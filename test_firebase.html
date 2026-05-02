@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Test Firebase</title>
+</head>
+<body>
+<h2>Test Firebase</h2>
+<div id="statut" style="padding:1rem;background:#eee;border-radius:8px;font-family:sans-serif;">
+  ⏳ Chargement Firebase...
+</div>
+<button onclick="testerEcriture()" style="margin-top:1rem;padding:10px 20px;font-size:16px;">
+  Tester l'écriture Firestore
+</button>
+<div id="resultat" style="margin-top:1rem;font-family:monospace;font-size:13px;"></div>
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script>
+var db = null;
+
+// Vérifie si Firebase est chargé
+if (typeof firebase === 'undefined') {
+  document.getElementById('statut').innerHTML =
+    '❌ Firebase NON chargé — les scripts CDN sont bloqués.<br>' +
+    'Essaie de désactiver les extensions Brave Shield sur ce site.';
+  document.getElementById('statut').style.background = '#ffe8e8';
+} else {
+  // Firebase est là — on initialise
+  firebase.initializeApp({
+    apiKey:            "AIzaSyA5hFSImv5Ti7SDgjiZUBpn8qR3_RFP2Ss",
+    authDomain:        "quest-station.firebaseapp.com",
+    projectId:         "quest-station",
+    storageBucket:     "quest-station.firebasestorage.app",
+    messagingSenderId: "382512497035",
+    appId:             "1:382512497035:web:cfc3de3255e885a1adaf8e"
+  });
+  db = firebase.firestore();
+  document.getElementById('statut').innerHTML = '✅ Firebase chargé et connecté !';
+  document.getElementById('statut').style.background = '#e6f4e6';
+}
+
+function testerEcriture() {
+  var res = document.getElementById('resultat');
+  if (!db) {
+    res.innerHTML = '❌ db est null — Firebase pas initialisé';
+    return;
+  }
+  res.innerHTML = '⏳ Écriture en cours...';
+  db.collection('test').doc('ping').set({ message: 'ça marche !', date: new Date().toISOString() })
+    .then(function() {
+      res.innerHTML = '✅ ÉCRITURE RÉUSSIE ! Vérifie Firestore → collection "test" → doc "ping"';
+      res.style.color = 'green';
+    })
+    .catch(function(err) {
+      res.innerHTML = '❌ Erreur : ' + err.code + ' — ' + err.message;
+      res.style.color = 'red';
+    });
+}
+</script>
+</body>
+</html>
