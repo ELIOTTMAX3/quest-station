@@ -1382,12 +1382,17 @@ function rendreListeSorts(ss, cid, mode) {
         if (edMode === "prepare_direct") {
           // Clerc/Druide/Paladin : cocher = préparer directement (pas de grimoire intermédiaire)
           chk.checked = prepares.has(nomSort);
-          if (!prepares.has(nomSort) && prepares.size >= maxP) {
+          var pasDeSlotEdit = s.nv > 0 && !aPossedeEmplacementNiveau(s.nv);
+          if (pasDeSlotEdit) {
+            chk.disabled = true; chk.style.opacity = "0.2";
+            item.style.opacity = "0.4";
+          } else if (!prepares.has(nomSort) && prepares.size >= maxP) {
             chk.disabled = true; chk.style.opacity = "0.3";
           }
           chk.addEventListener("click", function(ev) {
             ev.stopPropagation();
             if (this.checked) {
+              if (s.nv > 0 && !aPossedeEmplacementNiveau(s.nv)) { this.checked = false; return; }
               if (prepares.size >= maxP) { this.checked = false; return; }
               prepares.add(nomSort);
               grimoire.add(nomSort); // on garde une trace pour la sauvegarde
@@ -2208,7 +2213,7 @@ function rSearchSorts(){
   // Remonter jusqu'à la .card si besoin
   if(carteSort&&!carteSort.classList.contains("card"))carteSort=carteSort.parentElement;
   if(carteSort){
-    carteSort.style.display=(typePrepare==="connus")?"":"none";
+    carteSort.style.display="";
   }
   if(rFilNiv.size)ss=ss.filter(function(s){return rFilNiv.has(s.nv);});
   if(rech)ss=ss.filter(function(s){return s.n.toLowerCase().indexOf(rech)>=0||s.e.toLowerCase().indexOf(rech)>=0;});
