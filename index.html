@@ -761,16 +761,14 @@ function connecter(){
   var nom=el("li-nom").value.trim();
   var perso=el("li-perso").value.trim();
   var err=el("li-err");
-  if(!nom||!perso){err.textContent="⚠ Entre ton prénom et le nom de ton personnage !";err.style.display="block";return;}
-  err.style.display="none";
-  // Si Firebase pas encore prêt, attendre
-  if(!db){
-    err.textContent="⏳ Connexion Firebase en cours, réessaie dans 2 secondes...";
+  if(!nom||!perso){
+    err.textContent="⚠ Entre ton prénom et le nom de ton personnage !";
     err.style.display="block";
-    err.style.color="#7a5800";
-    err.style.background="#fff4d6";
+    err.style.color="#a32d2d";
+    err.style.background="#ffe8e8";
     return;
   }
+  err.style.display="none";
   joueurId=(nom+"-"+perso).toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
     .replace(/[^a-z0-9]/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"");
@@ -782,39 +780,94 @@ function connecter(){
 }
 
 function ecouterJoueur(){
-  if(unsub)unsub();
-  if(!db)return;
-  var ref=db.collection("parties").doc(PARTIE).collection("joueurs").doc(joueurId);
-  setSyncStatus("saving","r");
-  var premier=true;
-  unsub=ref.onSnapshot(function(snap){
-    if(snap.exists){
-      var data=snap.data();
-      if(premier){premier=false;chargerFiche(data);setSyncStatus("synced","r");setSyncStatus("synced","e");}
-      else{majMJ(data);setSyncStatus("synced","r");}
-    } else {
-      premier=false;
-      ref.set({_nouveau:true});
-      setSyncStatus("new","r");
-    }
-  },function(err){console.error(err);setSyncStatus("error","r");});
+  // ── Mode Firebase (si disponible) ──────────────────────
+  if(db){
+    if(unsub)unsub();
+    var ref=db.collection("parties").doc(PARTIE).collection("joueurs").doc(joueurId);
+    setSyncStatus("saving","r");
+    var premier=true;
+    unsub=ref.onSnapshot(function(snap){
+      if(snap.exists){
+        var data=snap.data();
+        if(premier){
+          premier=false;
+          chargerFiche(data);
+          setSyncStatus("synced","r");setSyncStatus("synced","e");
+        } else {
+          majMJ(data);setSyncStatus("synced","r");
+        }
+      } else {
+        premier=false;
+        // Essayer de charger depuis localStorage d'abord
+        var local=chargerLocal();
+        if(local){chargerFiche(local);}
+        ref.set({_nouveau:true});
+        setSyncStatus("new","r");
+      }
+    },function(err){
+      console.error("Firebase erreur:",err);
+      setSyncStatus("error","r");
+      // Fallback localStorage
+      var local=chargerLocal();
+      if(local)chargerFiche(local);
+    });
+    return;
+  }
+
+  // ── Mode local (sans Firebase) ─────────────────────────
+  console.warn("Firebase non disponible — mode local activé");
+  setSyncStatus("new","r");
+  setSyncStatus("new","e");
+  var local=chargerLocal();
+  if(local){
+    chargerFiche(local);
+    setSyncStatus("saved","r");
+    setSyncStatus("saved","e");
+  }
 }
 
 function sauvegarder(){
-  if(!joueurId||!db)return;
+  if(!joueurId)return;
   setSyncStatus("saving","r");setSyncStatus("saving","e");
   clearTimeout(saveTO);
   saveTO=setTimeout(function(){
     var data=collecterDonnees();
-    db.collection("parties").doc(PARTIE).collection("joueurs").doc(joueurId)
-      .set(data,{merge:true})
-      .then(function(){
-        setSyncStatus("saved","r");setSyncStatus("saved","e");
-        setTimeout(function(){setSyncStatus("synced","r");setSyncStatus("synced","e");},2000);
-        if(el("s-resume").classList.contains("on"))rafraichirResume();
-      })
-      .catch(function(err){console.error(err);setSyncStatus("error","r");setSyncStatus("error","e");});
+
+    // Toujours sauvegarder en local
+    sauvegarderLocal(data);
+
+    // Firebase si disponible
+    if(db){
+      db.collection("parties").doc(PARTIE).collection("joueurs").doc(joueurId)
+        .set(data,{merge:true})
+        .then(function(){
+          setSyncStatus("saved","r");setSyncStatus("saved","e");
+          setTimeout(function(){setSyncStatus("synced","r");setSyncStatus("synced","e");},2000);
+          if(el("s-resume").classList.contains("on"))rafraichirResume();
+        })
+        .catch(function(err){
+          console.error("Firebase save erreur:",err);
+          setSyncStatus("saved","r");setSyncStatus("saved","e"); // local OK au moins
+        });
+    } else {
+      setSyncStatus("saved","r");setSyncStatus("saved","e");
+      if(el("s-resume").classList.contains("on"))rafraichirResume();
+    }
   },1000);
+}
+
+// ── Sauvegarde locale (localStorage) ─────────────────────
+function sauvegarderLocal(data){
+  try{
+    localStorage.setItem("qs_"+joueurId, JSON.stringify(data));
+  }catch(e){}
+}
+
+function chargerLocal(){
+  try{
+    var raw=localStorage.getItem("qs_"+joueurId);
+    return raw ? JSON.parse(raw) : null;
+  }catch(e){return null;}
 }
 
 function collecterDonnees(){
