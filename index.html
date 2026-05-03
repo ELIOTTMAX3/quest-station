@@ -155,6 +155,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .cap-section:first-child{margin-top:0;}
 .cap-locked-msg{font-size:11px;color:var(--txt3);font-style:italic;padding:6px 0;}
 </style>
+<script src="sorts.js"></script>
 </head>
 <body>
 <div id="s-login" class="on">
@@ -621,68 +622,12 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 // pour garder index.html léger
 // ══════════════════════════════════════════
 // Ne pas écraser les données déjà chargées
-if (!window.SORTS || !window.SORTS.length) window.SORTS = [];
+if (!window.SORTS) window.SORTS = [];
 if (!window.CAPS_DATA || !window.CAPS_DATA.classes) window.CAPS_DATA = {};
 var SORTS = window.SORTS;
 var CAPS_DATA = window.CAPS_DATA;
-var _sortsCharge = SORTS.length > 0;
+var _sortsCharge = true;
 var _capsCharge  = Object.keys(CAPS_DATA.classes||{}).length > 0;
-
-function chargerDonnees() {
-  // Toujours charger sorts.js (pas de version inline)
-  var s1 = document.createElement('script');
-  s1.src = 'sorts.js';
-  s1.onload = function() {
-    // Petit délai pour s'assurer que window.SORTS est bien assigné
-    setTimeout(function() {
-      if (window.SORTS && window.SORTS.length) {
-        SORTS.splice(0, SORTS.length);
-        for (var i=0; i<window.SORTS.length; i++) SORTS.push(window.SORTS[i]);
-      }
-      _sortsCharge = true;
-      console.log('✅ sorts.js chargé:', SORTS.length, 'sorts');
-      var ds=document.getElementById("diag-sorts");
-      if(ds) ds.innerHTML="✅ "+SORTS.length+" sorts chargés";
-      verifierDonneesChargees();
-    }, 50);
-  };
-  s1.onerror = function() {
-    console.error('Impossible de charger sorts.js');
-    var ds=document.getElementById("diag-sorts");
-    if(ds) ds.innerHTML="❌ sorts.js introuvable";
-  };
-  document.head.appendChild(s1);
-
-  // CAPS_DATA est déjà inline — vérifier d'abord
-  if (CAPS_DATA && Object.keys(CAPS_DATA.classes||{}).length > 0) {
-    _capsCharge = true;
-    console.log('✅ CAPS_DATA inline:', Object.keys(CAPS_DATA.classes).length, 'classes');
-    var dc=document.getElementById("diag-caps");
-    if(dc) dc.innerHTML="✅ Capacités chargées (inline)";
-    verifierDonneesChargees();
-  } else {
-    // Charger capacites.js si non inline
-    var s2 = document.createElement('script');
-    s2.src = 'capacites.js';
-    s2.onload = function() {
-      if (window.CAPS_DATA && window.CAPS_DATA.classes) {
-        CAPS_DATA.classes     = window.CAPS_DATA.classes;
-        CAPS_DATA.races       = window.CAPS_DATA.races;
-        CAPS_DATA.historiques = window.CAPS_DATA.historiques;
-      }
-      _capsCharge = true;
-      console.log('✅ capacites.js chargé');
-      var dc=document.getElementById("diag-caps");
-      if(dc) dc.innerHTML="✅ Capacités chargées";
-      verifierDonneesChargees();
-    };
-    s2.onerror = function() {
-      var dc=document.getElementById("diag-caps");
-      if(dc) dc.innerHTML="❌ capacites.js introuvable";
-    };
-    document.head.appendChild(s2);
-  }
-}
 
 function verifierDonneesChargees() {
   if (_sortsCharge) {
@@ -2176,9 +2121,6 @@ function exportJSON(){
 // ══════════════════════════════════════════
 buildComps();
 updateAll();
-buildComps();
-updateAll();
-chargerDonnees(); // ← ajouter ici
 
 // ══════════════════════════════════════════
 // FIREBASE (chargé en dernier — garanti prêt)
