@@ -668,13 +668,12 @@ function verifierDonneesChargees() {
     console.log('✅ Données chargées — sorts:', SORTS.length, '/ capacités:', Object.keys(CAPS_DATA.classes||{}).length, 'classes');
     // Si la fiche est déjà chargée, rafraîchir l'affichage
     if (joueurId) {
+      // Relancer onClasseChange qui déclenche tout
+      onClasseChange();
       rafraichirResume();
       rendreHexagone();
       calcSortsDD();
       syncInvResume();
-      // Rafraîchir les onglets sorts/capacités si ouverts
-      if (typeof eBuildChips === 'function') eBuildChips();
-      if (typeof eFiltrerSorts === 'function') eFiltrerSorts();
     }
   }
 }
@@ -1048,9 +1047,11 @@ function onClasseChange(){
   if(LANCEURS.indexOf(cl)>=0&&CS_CL[cl]){
     var mod=el("sorts-mod");if(mod)mod.value=gMod(parseInt(v(CS_CL[cl]))||10);
   }
-  calcSortsDD();eBuildChips();eFiltrerSorts();rendreSlots("e-slots",true);majCompteurGrimoire();majCompteurPrepares();
-  if(el("e-caps-list"))eRendreCaps();
-  if(el("r-caps-list"))rRendreCaps();
+  calcSortsDD();
+  if(SORTS.length) { eBuildChips();eFiltrerSorts(); }
+  rendreSlots("e-slots",true);majCompteurGrimoire();majCompteurPrepares();
+  if(el("e-caps-list") && CAPS_DATA && CAPS_DATA.classes) eRendreCaps();
+  if(el("r-caps-list") && CAPS_DATA && CAPS_DATA.classes) rRendreCaps();
   sauvegarder();
 }
 
@@ -1277,6 +1278,7 @@ function calcSortsDD() {
   majCompteurPrepares();
 }
 function getSortsFiltres(){
+  if (!SORTS || !SORTS.length) return [];
   var cl=gCl();
   return cl&&LANCEURS.indexOf(cl)>=0?SORTS.filter(function(s){return s.cl.indexOf(cl)>=0;}):SORTS;
 }
@@ -1503,6 +1505,9 @@ function getCapsDisponibles() {
   var hist = v("historique") || "";
 
   var result = { classe: [], race: [], historique: [] };
+
+  // Attendre que CAPS_DATA soit chargé
+  if (!CAPS_DATA || !CAPS_DATA.classes) return result;
 
   // Capacités de classe
   if (cl && CAPS_DATA.classes[cl]) {
