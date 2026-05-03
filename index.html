@@ -629,59 +629,56 @@ var _sortsCharge = SORTS.length > 0;
 var _capsCharge  = Object.keys(CAPS_DATA.classes||{}).length > 0;
 
 function chargerDonnees() {
-  // Si déjà chargés (inline), déclencher directement
-  if (SORTS.length > 0) {
-    _sortsCharge = true;
-    console.log('✅ SORTS déjà disponibles:', SORTS.length);
-  }
-  if (Object.keys(CAPS_DATA.classes||{}).length > 0) {
-    _capsCharge = true;
-    console.log('✅ CAPS_DATA déjà disponibles');
-  }
-  if (_sortsCharge && _capsCharge) {
-    verifierDonneesChargees();
-    return;
-  }
-
-  // Charger sorts.js si nécessaire
+  // Toujours charger sorts.js (pas de version inline)
   var s1 = document.createElement('script');
   s1.src = 'sorts.js';
   s1.onload = function() {
-    // Copier window.SORTS dans le tableau local SORTS
     if (window.SORTS && window.SORTS.length) {
       SORTS.splice(0, SORTS.length);
       for (var i=0; i<window.SORTS.length; i++) SORTS.push(window.SORTS[i]);
     }
     _sortsCharge = true;
     console.log('✅ sorts.js chargé:', SORTS.length, 'sorts');
+    var ds=document.getElementById("diag-sorts");
+    if(ds) ds.innerHTML="✅ "+SORTS.length+" sorts chargés";
     verifierDonneesChargees();
   };
   s1.onerror = function() {
     console.error('Impossible de charger sorts.js');
     var ds=document.getElementById("diag-sorts");
-    if(ds) ds.innerHTML="❌ sorts.js introuvable — vérifie GitHub";
+    if(ds) ds.innerHTML="❌ sorts.js introuvable";
   };
   document.head.appendChild(s1);
 
-  // Charger capacites.js si nécessaire
-  var s2 = document.createElement('script');
-  s2.src = 'capacites.js';
-  s2.onload = function() {
-    if (window.CAPS_DATA && window.CAPS_DATA.classes) {
-      CAPS_DATA.classes    = window.CAPS_DATA.classes;
-      CAPS_DATA.races      = window.CAPS_DATA.races;
-      CAPS_DATA.historiques = window.CAPS_DATA.historiques;
-    }
+  // CAPS_DATA est déjà inline — vérifier d'abord
+  if (CAPS_DATA && Object.keys(CAPS_DATA.classes||{}).length > 0) {
     _capsCharge = true;
-    console.log('✅ capacites.js chargé');
-    verifierDonneesChargees();
-  };
-  s2.onerror = function() {
-    console.error('Impossible de charger capacites.js');
+    console.log('✅ CAPS_DATA inline:', Object.keys(CAPS_DATA.classes).length, 'classes');
     var dc=document.getElementById("diag-caps");
-    if(dc) dc.innerHTML="❌ capacites.js introuvable — vérifie GitHub";
-  };
-  document.head.appendChild(s2);
+    if(dc) dc.innerHTML="✅ Capacités chargées (inline)";
+    verifierDonneesChargees();
+  } else {
+    // Charger capacites.js si non inline
+    var s2 = document.createElement('script');
+    s2.src = 'capacites.js';
+    s2.onload = function() {
+      if (window.CAPS_DATA && window.CAPS_DATA.classes) {
+        CAPS_DATA.classes     = window.CAPS_DATA.classes;
+        CAPS_DATA.races       = window.CAPS_DATA.races;
+        CAPS_DATA.historiques = window.CAPS_DATA.historiques;
+      }
+      _capsCharge = true;
+      console.log('✅ capacites.js chargé');
+      var dc=document.getElementById("diag-caps");
+      if(dc) dc.innerHTML="✅ Capacités chargées";
+      verifierDonneesChargees();
+    };
+    s2.onerror = function() {
+      var dc=document.getElementById("diag-caps");
+      if(dc) dc.innerHTML="❌ capacites.js introuvable";
+    };
+    document.head.appendChild(s2);
+  }
 }
 
 function verifierDonneesChargees() {
