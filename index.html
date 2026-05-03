@@ -633,15 +633,18 @@ function chargerDonnees() {
   var s1 = document.createElement('script');
   s1.src = 'sorts.js';
   s1.onload = function() {
-    if (window.SORTS && window.SORTS.length) {
-      SORTS.splice(0, SORTS.length);
-      for (var i=0; i<window.SORTS.length; i++) SORTS.push(window.SORTS[i]);
-    }
-    _sortsCharge = true;
-    console.log('✅ sorts.js chargé:', SORTS.length, 'sorts');
-    var ds=document.getElementById("diag-sorts");
-    if(ds) ds.innerHTML="✅ "+SORTS.length+" sorts chargés";
-    verifierDonneesChargees();
+    // Petit délai pour s'assurer que window.SORTS est bien assigné
+    setTimeout(function() {
+      if (window.SORTS && window.SORTS.length) {
+        SORTS.splice(0, SORTS.length);
+        for (var i=0; i<window.SORTS.length; i++) SORTS.push(window.SORTS[i]);
+      }
+      _sortsCharge = true;
+      console.log('✅ sorts.js chargé:', SORTS.length, 'sorts');
+      var ds=document.getElementById("diag-sorts");
+      if(ds) ds.innerHTML="✅ "+SORTS.length+" sorts chargés";
+      verifierDonneesChargees();
+    }, 50);
   };
   s1.onerror = function() {
     console.error('Impossible de charger sorts.js');
