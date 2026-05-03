@@ -548,7 +548,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       </div>
     </div>
     <div style="display:flex;gap:4px;margin-bottom:1rem;border-bottom:2px solid var(--bord);">
-      <button class="tbtn on" style="flex:none;padding:6px 14px;font-size:12px;" onclick="sTab('grimoire',this)">Grimoire</button>
+      <button class="tbtn on" style="flex:none;padding:6px 14px;font-size:12px;" onclick="sTab('grimoire',this)"><span id="e-grimoire-tab-label">Grimoire</span></button>
       <button class="tbtn" style="flex:none;padding:6px 14px;font-size:12px;" onclick="sTab('prep',this)">Préparés <span id="prep-n"></span></button>
       <button class="tbtn" style="flex:none;padding:6px 14px;font-size:12px;" onclick="sTab('slots',this)">Emplacements</button>
     </div>
@@ -1024,6 +1024,11 @@ function onClasseChange(){
   calcSortsDD();
   if(SORTS.length) { eBuildChips();eFiltrerSorts(); }
   rendreSlots("e-slots",true);majCompteurGrimoire();majCompteurPrepares();
+  // Mettre à jour les labels d'onglet selon la classe
+  var lbl=getLabelEdition();
+  var tGrim=el("e-grimoire-tab-label");if(tGrim)tGrim.textContent=lbl.titre;
+  // Label onglet préparés
+  var tPrep=el("e-prep-tab-label");if(tPrep)tPrep.textContent=lbl.titre==="Grimoire"?"Préparés":"Préparés";
   if(el("e-caps-list") && CAPS_DATA && CAPS_DATA.classes) eRendreCaps();
   if(el("r-caps-list") && CAPS_DATA && CAPS_DATA.classes) rRendreCaps();
   sauvegarder();
@@ -1116,11 +1121,31 @@ function calcMaxPrepares() {
 }
 
 function getClassePreparationType() {
-  // "connus" = on choisit les sorts qu'on connaît, tous toujours dispo
-  // "prepares" = on choisit chaque jour lesquels préparer parmi le grimoire
+  // "connus"  = sorts fixes connus, pas de préparation quotidienne
+  // "prepares"= on choisit chaque jour lesquels préparer
   var cl=gCl();
   if(["Barde","Ensorceleur","Sorcier","Ranger"].indexOf(cl)>=0) return "connus";
   return "prepares";
+}
+
+function getEditionMode() {
+  // Retourne le comportement de l'onglet Grimoire en édition :
+  // "connus"          → Barde/Ensorceleur/Sorcier/Ranger : liste classe, coche = sort connu
+  // "grimoire_limite" → Magicien : liste classe, coche = ajouter au grimoire
+  // "prepare_direct"  → Clerc/Druide/Paladin : liste classe, coche = préparer directement
+  var cl=gCl();
+  if(["Barde","Ensorceleur","Sorcier","Ranger"].indexOf(cl)>=0) return "connus";
+  if(cl==="Magicien") return "grimoire_limite";
+  if(["Clerc","Druide","Paladin"].indexOf(cl)>=0) return "prepare_direct";
+  return "connus";
+}
+
+function getLabelEdition() {
+  // Labels dynamiques pour l'onglet Grimoire en édition
+  var m=getEditionMode();
+  if(m==="grimoire_limite") return {titre:"Grimoire", action:"Ajouter au grimoire", retirer:"Retirer du grimoire"};
+  if(m==="prepare_direct")  return {titre:"Sorts disponibles", action:"Préparer", retirer:"Dépreparer"};
+  return {titre:"Sorts connus", action:"Apprendre", retirer:"Oublier"};
 }
 
 // Tableaux PHB 2014 — sorts connus par niveau
@@ -1277,19 +1302,33 @@ function eFiltrerSorts(){
   if(filNiv.size)ss=ss.filter(function(s){return filNiv.has(s.nv);});
   if(rech)ss=ss.filter(function(s){return s.n.toLowerCase().indexOf(rech)>=0||s.e.toLowerCase().indexOf(rech)>=0;});
   var cnt=el("e-scount");if(cnt)cnt.textContent=ss.length+" sort"+(ss.length>1?"s":"");
+  // Mettre à jour le label de l'onglet selon le type de classe
+  var lbl=getLabelEdition();
+  var tGrim=el("e-grimoire-tab-label");if(tGrim)tGrim.textContent=lbl.titre;
   rendreListeSorts(ss,"e-slist","grimoire");
   majCompteurGrimoire();
 }
 
 function majCompteurGrimoire() {
   var max = calcMaxGrimoire();
-  var nb  = grimoire.size;
+  var edMode = getEditionMode();
   var el_c = el("e-grimoire-count");
   if (!el_c) return;
-  var plein = max < 9999 && nb >= max;
-  el_c.textContent = nb + "/" + (max < 9999 ? max : "∞");
-  el_c.style.background = plein ? "#ffe8e8" : "#e6f4e6";
-  el_c.style.color       = plein ? "#a32d2d" : "#2d6e2d";
+  if(edMode === "prepare_direct") {
+    // Clerc/Druide/Paladin : afficher le compteur de préparés
+    var maxP = calcMaxPrepares();
+    var nbP = prepares.size;
+    var plein = nbP >= maxP;
+    el_c.textContent = nbP + "/" + maxP + " préparés";
+    el_c.style.background = plein ? "#ffe8e8" : "#e6f4e6";
+    el_c.style.color = plein ? "#a32d2d" : "#2d6e2d";
+  } else {
+    var nb  = grimoire.size;
+    var plein = max < 9999 && nb >= max;
+    el_c.textContent = nb + "/" + (max < 9999 ? max : "∞");
+    el_c.style.background = plein ? "#ffe8e8" : "#e6f4e6";
+    el_c.style.color       = plein ? "#a32d2d" : "#2d6e2d";
+  }
 }
 
 function majCompteurPrepares() {
@@ -1330,30 +1369,55 @@ function rendreListeSorts(ss, cid, mode) {
       var nomSort = s.n;
 
       if (mode === "grimoire") {
-        // Coché si dans le grimoire
-        chk.checked = grimoire.has(nomSort);
-        // Bloqué si max atteint et pas encore coché
-        if (!grimoire.has(nomSort) && grimoire.size >= maxG) {
-          chk.disabled = true;
-          chk.style.opacity = "0.3";
-        }
-        chk.addEventListener("click", function(ev) {
-          ev.stopPropagation();
-          if (this.checked) {
-            if (grimoire.size >= maxG) { this.checked = false; return; }
-            grimoire.add(nomSort);
-            // Si sorts connus : aussi dans préparés automatiquement
-            if (getClassePreparationType() === "connus") prepares.add(nomSort);
-          } else {
-            grimoire.delete(nomSort);
-            prepares.delete(nomSort); // retirer aussi des préparés
+        var edMode = getEditionMode();
+        if (edMode === "prepare_direct") {
+          // Clerc/Druide/Paladin : cocher = préparer directement (pas de grimoire intermédiaire)
+          chk.checked = prepares.has(nomSort);
+          if (!prepares.has(nomSort) && prepares.size >= maxP) {
+            chk.disabled = true; chk.style.opacity = "0.3";
           }
-          majCompteurGrimoire();
-          eRendrePrep();
-          sauvegarder();
-          // Refresh pour mettre à jour les cases bloquées
-          eFiltrerSorts();
-        });
+          chk.addEventListener("click", function(ev) {
+            ev.stopPropagation();
+            if (this.checked) {
+              if (prepares.size >= maxP) { this.checked = false; return; }
+              prepares.add(nomSort);
+              grimoire.add(nomSort); // on garde une trace pour la sauvegarde
+            } else {
+              prepares.delete(nomSort);
+              grimoire.delete(nomSort);
+            }
+            majCompteurPrepares();
+            eRendrePrep();
+            sauvegarder();
+            eFiltrerSorts();
+          });
+        } else {
+          // Magicien (grimoire_limite) ou Barde/Ensorceleur/Sorcier/Ranger (connus)
+          // Coché si dans le grimoire
+          chk.checked = grimoire.has(nomSort);
+          // Bloqué si max atteint et pas encore coché
+          if (!grimoire.has(nomSort) && grimoire.size >= maxG) {
+            chk.disabled = true;
+            chk.style.opacity = "0.3";
+          }
+          chk.addEventListener("click", function(ev) {
+            ev.stopPropagation();
+            if (this.checked) {
+              if (grimoire.size >= maxG) { this.checked = false; return; }
+              grimoire.add(nomSort);
+              // Si sorts connus : aussi dans préparés automatiquement
+              if (getClassePreparationType() === "connus") prepares.add(nomSort);
+            } else {
+              grimoire.delete(nomSort);
+              prepares.delete(nomSort); // retirer aussi des préparés
+            }
+            majCompteurGrimoire();
+            eRendrePrep();
+            sauvegarder();
+            // Refresh pour mettre à jour les cases bloquées
+            eFiltrerSorts();
+          });
+        }
 
       } else if (mode === "prep") {
         // Coché si préparé, ET dans le grimoire
@@ -1956,23 +2020,41 @@ function rRendreComps(){
 }
 
 function eRendrePrep(){
-  // Onglet "Préparés" en édition = sorts dans le grimoire
+  // Onglet "Préparés" en édition
   var c=el("e-sprep");if(!c)return;
-  var triés=SORTS.filter(function(s){return grimoire.has(s.n);});
-  triés.sort(function(a,b){return a.nv-b.nv||a.n.localeCompare(b.n);});
-  el("prep-n").textContent=grimoire.size?"("+grimoire.size+")":"";
-  if(!triés.length){
-    c.innerHTML="<p style='font-size:13px;color:var(--txt3);'>Aucun sort dans le grimoire.</p>";
-    return;
+  var edMode=getEditionMode();
+  var nomOnglet=el("prep-n");
+  var triés;
+
+  if(edMode==="prepare_direct"){
+    // Clerc/Druide/Paladin : affiche les sorts préparés
+    triés=SORTS.filter(function(s){return prepares.has(s.n);});
+    if(nomOnglet)nomOnglet.textContent=prepares.size?"("+prepares.size+")":"";
+    if(!triés.length){
+      c.innerHTML="<p style='font-size:13px;color:var(--txt3);'>Aucun sort préparé. Coche des sorts dans la liste ci-dessus.</p>";
+      return;
+    }
+  } else {
+    // Magicien/Barde/etc : affiche les sorts dans le grimoire
+    triés=SORTS.filter(function(s){return grimoire.has(s.n);});
+    if(nomOnglet)nomOnglet.textContent=grimoire.size?"("+grimoire.size+")":"";
+    if(!triés.length){
+      c.innerHTML="<p style='font-size:13px;color:var(--txt3);'>Aucun sort dans le grimoire.</p>";
+      return;
+    }
   }
+
+  triés.sort(function(a,b){return a.nv-b.nv||a.n.localeCompare(b.n);});
   c.innerHTML="";
+  var lbl=getLabelEdition();
   triés.forEach(function(s){
     var item=document.createElement("div");item.className="si";
     var hd=document.createElement("div");hd.className="sh";
     var bdg=document.createElement("span");bdg.className="bdg b"+s.nv;
     bdg.textContent=s.nv===0?"Cantrip":"Niv."+s.nv;hd.appendChild(bdg);
     var nom=document.createElement("span");nom.className="sn";nom.textContent=s.n;hd.appendChild(nom);
-    var ptag=document.createElement("span");ptag.className="ptag";ptag.textContent="✓ Grimoire";hd.appendChild(ptag);
+    var ptag=document.createElement("span");ptag.className="ptag";
+    ptag.textContent=edMode==="prepare_direct"?"⚡ Préparé":"✓ "+lbl.titre;hd.appendChild(ptag);
     var eco=document.createElement("span");eco.className="se";eco.style.flex="1";eco.style.textAlign="right";
     eco.textContent=s.e.replace(/\s*\(rituel\)/i,"").trim();hd.appendChild(eco);
     var arr=document.createElement("span");arr.className="sa";arr.textContent="▾";hd.appendChild(arr);
@@ -1987,11 +2069,11 @@ function eRendrePrep(){
     var desc=document.createElement("div");desc.className="sdesc";desc.textContent=s.t;bd.appendChild(desc);
     var btnR=document.createElement("button");btnR.className="btn ko";
     btnR.style.cssText="margin-top:8px;font-size:11px;padding:3px 10px;";
-    btnR.textContent="✕ Retirer du grimoire";
+    btnR.textContent="✕ "+lbl.retirer;
     var nomSort=s.n;
     btnR.addEventListener("click",function(){
       grimoire.delete(nomSort);prepares.delete(nomSort);
-      majCompteurGrimoire();eRendrePrep();eFiltrerSorts();sauvegarder();
+      majCompteurGrimoire();majCompteurPrepares();eRendrePrep();eFiltrerSorts();sauvegarder();
     });
     bd.appendChild(btnR);
     hd.addEventListener("click",function(){
@@ -2011,7 +2093,9 @@ function rRendreSorts(){
   else{if(sb)sb.textContent="—";if(sd)sd.textContent="—";}
   // Emplacements lecture seule
   rendreSlots("r-slots",false);
-  // Compteur préparés
+  // Compteur préparés : masquer pour les classes "connus"
+  var pc=el("r-prep-count");
+  if(pc)pc.style.display=getClassePreparationType()==="connus"?"none":"";
   majCompteurPrepares();
   // Sorts préparés (avec bouton retirer)
   rRendreSortsPrep();
@@ -2021,10 +2105,12 @@ function rRendreSorts(){
 
 function rRendreSortsPrep(){
   var c=el("r-sprep");if(!c)return;
+  var isConnus=getClassePreparationType()==="connus";
   var triés=SORTS.filter(function(s){return prepares.has(s.n);});
   triés.sort(function(a,b){return a.nv-b.nv||a.n.localeCompare(b.n);});
   if(!triés.length){
-    c.innerHTML="<p style='font-size:13px;color:var(--txt3);'>Aucun sort préparé. Coche des sorts dans le Grimoire ci-dessous.</p>";
+    var msg=isConnus?"Aucun sort connu. Ajoute des sorts dans l'onglet Sorts ✨ > Édition.":"Aucun sort préparé. Coche des sorts dans la liste ci-dessous.";
+    c.innerHTML="<p style='font-size:13px;color:var(--txt3);'>"+msg+"</p>";
     el("r-sprep-n").textContent="";
     return;
   }
@@ -2035,7 +2121,8 @@ function rRendreSortsPrep(){
     var hd=document.createElement("div");hd.className="sh";
     var bdg=document.createElement("span");bdg.className="bdg b"+s.nv;bdg.textContent=s.nv===0?"Cantrip":"Niv."+s.nv;hd.appendChild(bdg);
     var nom=document.createElement("span");nom.className="sn";nom.textContent=s.n;hd.appendChild(nom);
-    var ptag=document.createElement("span");ptag.className="ptag";ptag.style.background="#fff4d6";ptag.style.color="#7a5800";ptag.textContent="⚡ Préparé";hd.appendChild(ptag);
+    var ptag=document.createElement("span");ptag.className="ptag";ptag.style.background="#fff4d6";ptag.style.color="#7a5800";
+    ptag.textContent=isConnus?"✓ Connu":"⚡ Préparé";hd.appendChild(ptag);
     var eco=document.createElement("span");eco.className="se";eco.style.flex="1";eco.style.textAlign="right";
     eco.textContent=s.e.replace(/\s*\(rituel\)/i,"").trim();hd.appendChild(eco);
     var arr=document.createElement("span");arr.className="sa";arr.textContent="▾";hd.appendChild(arr);
@@ -2047,16 +2134,18 @@ function rRendreSortsPrep(){
     });
     bd.appendChild(meta);
     var desc=document.createElement("div");desc.className="sdesc";desc.textContent=s.t;bd.appendChild(desc);
-    // Bouton supprimer sort préparé
-    var btnR=document.createElement("button");
-    btnR.className="btn ko";btnR.style.cssText="margin-top:8px;font-size:11px;padding:3px 10px;";
-    btnR.textContent="✕ Dépreparer";
-    var nomSort=s.n;
-    btnR.addEventListener("click",function(){
-      prepares.delete(nomSort);
-      majCompteurPrepares();rRendreSortsPrep();rSearchSorts();sauvegarder();
-    });
-    bd.appendChild(btnR);
+    // Bouton Dépreparer uniquement pour les classes qui préparent
+    if(!isConnus){
+      var btnR=document.createElement("button");
+      btnR.className="btn ko";btnR.style.cssText="margin-top:8px;font-size:11px;padding:3px 10px;";
+      btnR.textContent="✕ Dépreparer";
+      var nomSort=s.n;
+      btnR.addEventListener("click",function(){
+        prepares.delete(nomSort);
+        majCompteurPrepares();rRendreSortsPrep();rSearchSorts();sauvegarder();
+      });
+      bd.appendChild(btnR);
+    }
     hd.addEventListener("click",function(){
       if(event.target.tagName==="BUTTON")return;
       bd.classList.toggle("on");arr.textContent=bd.classList.contains("on")?"▴":"▾";
@@ -2067,11 +2156,16 @@ function rRendreSortsPrep(){
 
 var rFilNiv=new Set();
 function rBuildChips(){
-  var cl=gCl(),typePrepare=getClassePreparationType();
+  var cl=gCl(),typePrepare=getClassePreparationType(),edMode=getEditionMode();
   var ss;
   if(typePrepare==="connus"){
+    // Barde/Ensorceleur/Sorcier/Ranger : sorts connus dans le grimoire
+    ss=SORTS.filter(function(s){return grimoire.has(s.n);});
+  } else if(edMode==="grimoire_limite"){
+    // Magicien : prépare depuis le grimoire
     ss=SORTS.filter(function(s){return grimoire.has(s.n);});
   } else {
+    // Clerc/Druide/Paladin : toute la liste de classe pour préparer
     ss=cl&&LANCEURS.indexOf(cl)>=0?SORTS.filter(function(s){return s.cl.indexOf(cl)>=0;}):SORTS;
   }
   var nivs=[];ss.forEach(function(s){if(nivs.indexOf(s.nv)<0)nivs.push(s.nv);});
@@ -2087,22 +2181,27 @@ function rBuildChips(){
 }
 function rSearchSorts(){
   var cl=gCl(),rech=(v("r-search")||"").toLowerCase();
-  var typePrepare=getClassePreparationType();
-  var ss;
+  var typePrepare=getClassePreparationType(),edMode=getEditionMode();
+  var ss,titre="";
   if(typePrepare==="connus"){
-    // Sorts connus = ceux dans le grimoire
+    // Barde/Ensorceleur/Sorcier/Ranger : sorts connus
     ss=SORTS.filter(function(s){return grimoire.has(s.n);});
+    titre="Sorts connus";
+  } else if(edMode==="grimoire_limite"){
+    // Magicien : prépare depuis le grimoire
+    ss=SORTS.filter(function(s){return grimoire.has(s.n);});
+    titre="Grimoire (choisir lesquels préparer)";
   } else {
-    // Sorts préparables = toute la liste de la classe
+    // Clerc/Druide/Paladin : toute la liste de classe
     ss=cl&&LANCEURS.indexOf(cl)>=0?SORTS.filter(function(s){return s.cl.indexOf(cl)>=0;}):SORTS;
+    titre="Liste complète (choisir lesquels préparer)";
   }
   if(rFilNiv.size)ss=ss.filter(function(s){return rFilNiv.has(s.nv);});
   if(rech)ss=ss.filter(function(s){return s.n.toLowerCase().indexOf(rech)>=0||s.e.toLowerCase().indexOf(rech)>=0;});
   var cnt=el("r-scount");if(cnt)cnt.textContent=ss.length+" sort"+(ss.length>1?"s":"");
-  // Titre dynamique
-  var titre=el("r-grimoire-titre");
-  if(titre)titre.textContent=typePrepare==="connus"?"Sorts connus (choisir lesquels préparer)":"Liste complète (choisir lesquels préparer)";
-  rendreListeSorts(ss,"r-slist","prep");
+  var tElem=el("r-grimoire-titre");if(tElem)tElem.textContent=titre;
+  // Pour Barde/Ensorceleur/Sorcier/Ranger en résumé : pas de case à cocher (lecture seule)
+  rendreListeSorts(ss,"r-slist",typePrepare==="connus"?"lecture":"prep");
 }
 
 // ══════════════════════════════════════════
