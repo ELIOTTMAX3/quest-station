@@ -666,7 +666,16 @@ function verifierDonneesChargees() {
   }
   if (_sortsCharge && _capsCharge) {
     console.log('✅ Données chargées — sorts:', SORTS.length, '/ capacités:', Object.keys(CAPS_DATA.classes||{}).length, 'classes');
-    if (typeof eBuildChips === 'function') eBuildChips();
+    // Si la fiche est déjà chargée, rafraîchir l'affichage
+    if (joueurId) {
+      rafraichirResume();
+      rendreHexagone();
+      calcSortsDD();
+      syncInvResume();
+      // Rafraîchir les onglets sorts/capacités si ouverts
+      if (typeof eBuildChips === 'function') eBuildChips();
+      if (typeof eFiltrerSorts === 'function') eFiltrerSorts();
+    }
   }
 }
 
@@ -929,8 +938,29 @@ function chargerFiche(data){
   if(data.coches&&!data.grimoire)grimoire=new Set(data.coches);
   if(data.slots)slotsE=data.slots;
   el("prep-n").textContent=prepares.size?"("+prepares.size+")":"";
-  updateAll();onClasseChange();
-  setTimeout(rafraichirResume,100);
+  updateAll();
+  onClasseChange();
+  // Attendre que SORTS et CAPS soient chargés
+  function doRefresh() {
+    rafraichirResume();
+    rendreHexagone();
+    calcSortsDD();
+    syncInvResume();
+  }
+  if (SORTS.length > 0 && Object.keys(CAPS_DATA.classes||{}).length > 0) {
+    setTimeout(doRefresh, 100);
+  } else {
+    // Attendre le chargement des données externes
+    var tentatives = 0;
+    var attente = setInterval(function() {
+      tentatives++;
+      if (SORTS.length > 0 && Object.keys(CAPS_DATA.classes||{}).length > 0) {
+        clearInterval(attente);
+        doRefresh();
+      }
+      if (tentatives > 50) clearInterval(attente); // max 5 secondes
+    }, 100);
+  }
 }
 
 function majMJ(data){
