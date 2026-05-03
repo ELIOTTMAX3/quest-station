@@ -620,16 +620,34 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 // sorts.js et capacites.js sont chargés séparément
 // pour garder index.html léger
 // ══════════════════════════════════════════
-var SORTS = [];
-var CAPS_DATA = {};
-var _sortsCharge = false;
-var _capsCharge  = false;
+// Ne pas écraser les données déjà chargées
+if (!window.SORTS || !window.SORTS.length) window.SORTS = [];
+if (!window.CAPS_DATA || !window.CAPS_DATA.classes) window.CAPS_DATA = {};
+var SORTS = window.SORTS;
+var CAPS_DATA = window.CAPS_DATA;
+var _sortsCharge = SORTS.length > 0;
+var _capsCharge  = Object.keys(CAPS_DATA.classes||{}).length > 0;
 
 function chargerDonnees() {
-  // Charger sorts.js
+  // Si déjà chargés (inline), déclencher directement
+  if (SORTS.length > 0) {
+    _sortsCharge = true;
+    console.log('✅ SORTS déjà disponibles:', SORTS.length);
+  }
+  if (Object.keys(CAPS_DATA.classes||{}).length > 0) {
+    _capsCharge = true;
+    console.log('✅ CAPS_DATA déjà disponibles');
+  }
+  if (_sortsCharge && _capsCharge) {
+    verifierDonneesChargees();
+    return;
+  }
+
+  // Charger sorts.js si nécessaire
   var s1 = document.createElement('script');
   s1.src = 'sorts.js';
   s1.onload = function() {
+    SORTS = window.SORTS || SORTS;
     _sortsCharge = true;
     verifierDonneesChargees();
   };
@@ -640,10 +658,11 @@ function chargerDonnees() {
   };
   document.head.appendChild(s1);
 
-  // Charger capacites.js
+  // Charger capacites.js si nécessaire
   var s2 = document.createElement('script');
   s2.src = 'capacites.js';
   s2.onload = function() {
+    CAPS_DATA = window.CAPS_DATA || CAPS_DATA;
     _capsCharge = true;
     verifierDonneesChargees();
   };
