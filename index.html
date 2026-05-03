@@ -647,8 +647,13 @@ function chargerDonnees() {
   var s1 = document.createElement('script');
   s1.src = 'sorts.js';
   s1.onload = function() {
-    SORTS = window.SORTS || SORTS;
+    // Copier window.SORTS dans le tableau local SORTS
+    if (window.SORTS && window.SORTS.length) {
+      SORTS.splice(0, SORTS.length);
+      for (var i=0; i<window.SORTS.length; i++) SORTS.push(window.SORTS[i]);
+    }
     _sortsCharge = true;
+    console.log('✅ sorts.js chargé:', SORTS.length, 'sorts');
     verifierDonneesChargees();
   };
   s1.onerror = function() {
@@ -662,8 +667,13 @@ function chargerDonnees() {
   var s2 = document.createElement('script');
   s2.src = 'capacites.js';
   s2.onload = function() {
-    CAPS_DATA = window.CAPS_DATA || CAPS_DATA;
+    if (window.CAPS_DATA && window.CAPS_DATA.classes) {
+      CAPS_DATA.classes    = window.CAPS_DATA.classes;
+      CAPS_DATA.races      = window.CAPS_DATA.races;
+      CAPS_DATA.historiques = window.CAPS_DATA.historiques;
+    }
     _capsCharge = true;
+    console.log('✅ capacites.js chargé');
     verifierDonneesChargees();
   };
   s2.onerror = function() {
