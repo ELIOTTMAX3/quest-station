@@ -172,6 +172,11 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <div class="lerreur" id="li-err"></div>
     <button id="btn-login" onclick="connecter()">Connexion Firebase...</button>
     <p class="lnote">💾 Sauvegarde automatique · 🔄 Temps réel · 📱 Multi-appareils</p>
+    <div id="diag" style="font-size:11px;color:#888;margin-top:8px;text-align:left;line-height:1.8;">
+      <div id="diag-firebase">⏳ Firebase...</div>
+      <div id="diag-sorts">⏳ Sorts...</div>
+      <div id="diag-caps">⏳ Capacités...</div>
+    </div>
   </div>
 </div>
 <div id="s-resume">
@@ -630,6 +635,8 @@ function chargerDonnees() {
   };
   s1.onerror = function() {
     console.error('Impossible de charger sorts.js');
+    var ds=document.getElementById("diag-sorts");
+    if(ds) ds.innerHTML="❌ sorts.js introuvable — vérifie GitHub";
   };
   document.head.appendChild(s1);
 
@@ -642,16 +649,24 @@ function chargerDonnees() {
   };
   s2.onerror = function() {
     console.error('Impossible de charger capacites.js');
+    var dc=document.getElementById("diag-caps");
+    if(dc) dc.innerHTML="❌ capacites.js introuvable — vérifie GitHub";
   };
   document.head.appendChild(s2);
 }
 
 function verifierDonneesChargees() {
+  if (_sortsCharge) {
+    var ds=document.getElementById("diag-sorts");
+    if(ds) ds.innerHTML="✅ "+SORTS.length+" sorts chargés";
+  }
+  if (_capsCharge) {
+    var dc=document.getElementById("diag-caps");
+    if(dc) dc.innerHTML="✅ Capacités chargées";
+  }
   if (_sortsCharge && _capsCharge) {
     console.log('✅ Données chargées — sorts:', SORTS.length, '/ capacités:', Object.keys(CAPS_DATA.classes||{}).length, 'classes');
-    // Rafraîchir les onglets si déjà ouverts
     if (typeof eBuildChips === 'function') eBuildChips();
-    if (typeof buildFiltresSorts === 'function') buildFiltresSorts();
   }
 }
 
@@ -2126,7 +2141,9 @@ chargerScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"
   })
   .catch(function(e){
     var btn=document.getElementById("btn-login");
-    if(btn){btn.textContent="⚠ Firebase indisponible";btn.style.background="#a32d2d";btn.classList.add("on");}
+    if(btn){btn.textContent="Rejoindre la partie →";}
+    var d=document.getElementById("diag-firebase");
+    if(d) d.innerHTML="❌ Firebase: "+e.message;
     console.error("❌ Firebase:",e);
   });
 </script>
