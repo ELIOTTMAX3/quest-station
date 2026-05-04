@@ -1677,8 +1677,37 @@ function getCapsDisponibles() {
 }
 
 // ═══════════════════════════════════════════════════════
-// CAPACITÉS — Rendu édition (panneau C : 2 colonnes)
-// ═══════════════════════════════════════════════════════
+// CAPACITÉS — Rendu édition + résumé avec cascade de choix
+// ═══════════════════════════════════════════════════════════
+
+// Retourne true si une cap est "active" compte tenu des choixCaps actuels
+// Une cap est active si tous ses ancêtres ont été choisis
+function capEstActive(cap, allCaps, src) {
+  if (!cap.parent) return true; // racine = toujours active
+  var cle = src + "_" + cap.parent;
+  var parentChoisi = choixCaps[cle];
+  // Le parent doit avoir été choisi ET la valeur du choix doit correspondre à cette cap
+  // OU le parent est une cap auto (pas un choix), il faut juste que le grand-parent soit actif
+  var parentCap = allCaps.find(function(c){ return c.nom === cap.parent; });
+  if (!parentCap) return false;
+  if (parentCap.type === "choix") {
+    // Le joueur doit avoir choisi cette cap dans le select du parent
+    if (parentChoisi !== cap.nom) return false;
+  }
+  // Remonter la chaîne
+  return capEstActive(parentCap, allCaps, src);
+}
+
+// Retourne les options directes d'une cap choix (ses enfants immédiats)
+function getSousOptions(cap, allCaps) {
+  var enfants = allCaps.filter(function(c){ return c.parent === cap.nom; });
+  if (enfants.length) return enfants;
+  if (cap.options && cap.options.length) {
+    return cap.options.map(function(o){ return { nom: o, desc: cap.desc }; });
+  }
+  return [{ nom: cap.nom, desc: cap.desc }];
+}
+
 function rendreCapacites(containerId, niveauActuel) {
   var c = el(containerId);
   if (!c) return;
@@ -1689,33 +1718,30 @@ function rendreCapacites(containerId, niveauActuel) {
   var modeEdit = containerId === "e-caps-list";
 
   var sections = [
-    { label: "Classe — " + (gCl() || "Non choisie"),       items: caps.classe,    src: "cl" },
-    { label: "Race — " + (v("race") || "Non choisie"),      items: caps.race,      src: "ra" },
-    { label: "Historique — " + (v("historique") || "—"),    items: caps.historique, src: "hi" },
+    { label: "Classe — " + (gCl() || "Non choisie"),      items: caps.classe,    src: "cl" },
+    { label: "Race — " + (v("race") || "Non choisie"),     items: caps.race,      src: "ra" },
+    { label: "Historique — " + (v("historique") || "—"),   items: caps.historique, src: "hi" },
   ];
 
   sections.forEach(function(sec) {
     if (!sec.items || !sec.items.length) return;
 
-    // Titre de section
     var sTitle = document.createElement("p");
     sTitle.className = "cap-section";
     sTitle.textContent = sec.label;
     c.appendChild(sTitle);
 
     if (modeEdit) {
-      // ── MODE ÉDITION : 2 colonnes (auto | choix) ──────────
+      // ── MODE ÉDITION : 2 colonnes ──────────────────────────
       var grid = document.createElement("div");
       grid.style.cssText = "display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:8px;";
 
-      // Colonne gauche : capacités auto
       var colAuto = document.createElement("div");
       var lblAuto = document.createElement("p");
       lblAuto.style.cssText = "font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--txt3);margin-bottom:6px;";
-      lblAuto.textContent = "Capacités automatiques";
+      lblAuto.textContent = "Capacités possédées";
       colAuto.appendChild(lblAuto);
 
-      // Colonne droite : capacités à choix
       var colChoix = document.createElement("div");
       var lblChoix = document.createElement("p");
       lblChoix.style.cssText = "font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--txt3);margin-bottom:6px;";
@@ -1723,20 +1749,24 @@ function rendreCapacites(containerId, niveauActuel) {
       colChoix.appendChild(lblChoix);
 
       var hasChoix = false;
+      var hasAuto = false;
 
       sec.items.forEach(function(cap) {
-        // Ignorer les capacités enfants — elles apparaissent dans le select du parent
-        if (cap.parent) return;
-        var debloquee = cap.niveau <= niv;
+        // Vérifier si la branche de cette cap est active (tous les ancêtres choisis)
+        var brancheActive = capEstActive(cap, sec.items, sec.src);
+        if (!brancheActive) return;
+
+        // En mode édition : n'afficher que les caps au niveau <= niv du PJ
+        if (cap.niveau > niv) return;
+
         var cle = sec.src + "_" + cap.nom;
 
         if (cap.type === "choix") {
-          // ── Colonne droite : select + description déroulante ──
+          // ── Colonne droite : select + description ──
           hasChoix = true;
           var wrap = document.createElement("div");
-          wrap.style.cssText = "margin-bottom:10px;" + (debloquee ? "" : "opacity:.4;");
+          wrap.style.cssText = "margin-bottom:10px;";
 
-          // Label + niveau
           var lbl = document.createElement("div");
           lbl.style.cssText = "font-size:12px;font-weight:500;color:var(--txt);margin-bottom:4px;display:flex;align-items:center;gap:6px;";
           var nomSpan = document.createElement("span");
@@ -1748,16 +1778,13 @@ function rendreCapacites(containerId, niveauActuel) {
           lbl.appendChild(nivSpan);
           wrap.appendChild(lbl);
 
-          // Select (trouver les options depuis les sous-capacités)
           var sel2 = document.createElement("select");
           sel2.style.cssText = "width:100%;font-size:12px;margin-bottom:4px;";
-          if (!debloquee) sel2.disabled = true;
 
-          // Options = sous-capacités de cette catégorie
           var opts = getSousOptions(cap, sec.items);
           var optVide = document.createElement("option");
           optVide.value = "";
-          optVide.textContent = debloquee ? "— Choisir —" : "— Pas encore disponible —";
+          optVide.textContent = "— Choisir —";
           sel2.appendChild(optVide);
 
           opts.forEach(function(opt) {
@@ -1769,7 +1796,6 @@ function rendreCapacites(containerId, niveauActuel) {
           });
           wrap.appendChild(sel2);
 
-          // Description déroulante (accordéon)
           var descBtn = document.createElement("button");
           descBtn.style.cssText = "font-size:11px;color:var(--txt3);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;font-family:inherit;";
           descBtn.textContent = "Voir la description ▾";
@@ -1786,32 +1812,32 @@ function rendreCapacites(containerId, niveauActuel) {
             descBtn.textContent = open ? "Voir la description ▾" : "Masquer ▴";
           });
 
-          // Initialiser la description selon le choix déjà sauvegardé
+          // Init description selon choix sauvegardé
           (function() {
-            var initOpt = opts.find(function(o) { return o.nom === choixCaps[cle]; });
+            var initOpt = opts.find(function(o){ return o.nom === choixCaps[cle]; });
             if (initOpt) descZone.textContent = initOpt.desc || cap.desc;
           })();
-          // Sauvegarder le choix
+
           sel2.addEventListener("change", function() {
             choixCaps[cle] = this.value;
             sauvegarder();
-            // Mettre à jour la description si une option est choisie
-            var selectedOpt = opts.find(function(o) { return o.nom === sel2.value; });
-            if (selectedOpt) descZone.textContent = selectedOpt.desc || cap.desc;
+            // Re-rendre pour afficher/masquer les branches
+            eRendreCaps();
           });
 
           colChoix.appendChild(wrap);
 
         } else {
-          // ── Colonne gauche : capacités auto avec accordéon ──
+          // ── Colonne gauche : cap auto ──
+          hasAuto = true;
           var row = document.createElement("div");
-          row.style.cssText = "margin-bottom:3px;" + (debloquee ? "" : "opacity:.4;");
+          row.style.cssText = "margin-bottom:3px;";
 
           var rowHd = document.createElement("div");
-          rowHd.style.cssText = "display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;background:" + (debloquee ? "var(--vbg)" : "var(--bg3)") + ";cursor:pointer;";
+          rowHd.style.cssText = "display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;background:var(--vbg);cursor:pointer;";
 
           var badge = document.createElement("span");
-          badge.style.cssText = "font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;background:" + (debloquee ? "#2d6e2d" : "var(--txt3)") + ";color:white;flex-shrink:0;";
+          badge.style.cssText = "font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;background:#2d6e2d;color:white;flex-shrink:0;";
           badge.textContent = "Niv." + cap.niveau;
           rowHd.appendChild(badge);
 
@@ -1841,11 +1867,17 @@ function rendreCapacites(containerId, niveauActuel) {
         }
       });
 
-      if (!hasChoix) {
+      if (!hasAuto) {
         var msg = document.createElement("p");
         msg.style.cssText = "font-size:12px;color:var(--txt3);font-style:italic;";
-        msg.textContent = "Aucun choix requis.";
-        colChoix.appendChild(msg);
+        msg.textContent = "Aucune capacité à ce niveau.";
+        colAuto.appendChild(msg);
+      }
+      if (!hasChoix) {
+        var msg2 = document.createElement("p");
+        msg2.style.cssText = "font-size:12px;color:var(--txt3);font-style:italic;";
+        msg2.textContent = "Aucun choix requis.";
+        colChoix.appendChild(msg2);
       }
 
       grid.appendChild(colAuto);
@@ -1853,27 +1885,24 @@ function rendreCapacites(containerId, niveauActuel) {
       c.appendChild(grid);
 
     } else {
-      // ── MODE RÉSUMÉ : seulement auto + choix sélectionné ──
+      // ── MODE RÉSUMÉ : caps actives et débloquées ───────────
       sec.items.forEach(function(cap) {
-        var debloquee = cap.niveau <= niv;
-        if (!debloquee) return; // masquer les non débloquées
+        if (cap.niveau > niv) return;
+        if (!capEstActive(cap, sec.items, sec.src)) return;
 
-        // Pour les choix : afficher seulement si sélectionné
+        var nomAffiche = cap.nom;
+        var descAffiche = cap.desc;
+
         if (cap.type === "choix") {
           var cle = sec.src + "_" + cap.nom;
           var choisi = choixCaps[cle];
-          if (!choisi) return; // pas de choix = on n'affiche pas
-
-          // Trouver la capacité choisie dans la liste
+          if (!choisi) return;
           var opts = getSousOptions(cap, sec.items);
-          var optChoisie = opts.find(function(o) { return o.nom === choisi; });
-          if (!optChoisie) return;
-
-          // Afficher le choix comme une capacité normale
-          cap = { nom: cap.nom + " : " + choisi, niveau: cap.niveau, type: "auto", desc: optChoisie.desc || cap.desc };
+          var optChoisie = opts.find(function(o){ return o.nom === choisi; });
+          nomAffiche = cap.nom + " : " + choisi;
+          if (optChoisie) descAffiche = optChoisie.desc || cap.desc;
         }
 
-        // Rendu accordéon résumé
         var item = document.createElement("div");
         item.className = "cap-item";
 
@@ -1885,10 +1914,10 @@ function rendreCapacites(containerId, niveauActuel) {
         bd2.textContent = "Niv." + cap.niveau;
         hd.appendChild(bd2);
 
-        var nomEl = document.createElement("span");
-        nomEl.className = "cap-nom";
-        nomEl.textContent = cap.nom;
-        hd.appendChild(nomEl);
+        var nomEl2 = document.createElement("span");
+        nomEl2.className = "cap-nom";
+        nomEl2.textContent = nomAffiche;
+        hd.appendChild(nomEl2);
 
         var arr = document.createElement("span");
         arr.className = "cap-arr";
@@ -1899,7 +1928,7 @@ function rendreCapacites(containerId, niveauActuel) {
         bd.className = "cap-bd";
         var descEl = document.createElement("p");
         descEl.style.cssText = "font-size:12px;color:var(--txt);line-height:1.6;";
-        descEl.textContent = cap.desc;
+        descEl.textContent = descAffiche;
         bd.appendChild(descEl);
 
         hd.addEventListener("click", function() {
@@ -1914,28 +1943,11 @@ function rendreCapacites(containerId, niveauActuel) {
     }
   });
 
-  if (!c.children.length || (c.children.length === 0)) {
+  if (!c.children.length) {
     c.innerHTML = "<p style='font-size:13px;color:var(--txt3);'>Choisis une classe, une race et un historique dans l'onglet Identité.</p>";
   }
 }
 
-// Trouver les sous-options d'une capacité à choix
-// (les h3 de sous-classe qui suivent dans la même section)
-function getSousOptions(cap, allCaps) {
-  // 1. Chercher les caps qui ont ce cap comme parent direct
-  var enfants = allCaps.filter(function(c) {
-    return c.parent === cap.nom;
-  });
-  if (enfants.length) return enfants;
-  // 2. Si la cap a des options directes (ex: Ours/Aigle/Loup)
-  if (cap.options && cap.options.length) {
-    return cap.options.map(function(o) {
-      return { nom: o, desc: cap.desc };
-    });
-  }
-  // 3. Fallback : juste le choix lui-même
-  return [{ nom: cap.nom, desc: cap.desc }];
-}
 
 function rRendreCaps() {
   var niv = gNiv();
