@@ -273,10 +273,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         </div>
       </div>
 
-      <div class="card" style="flex:1;">
-        <p class="st">Jets de sauvegarde</p>
-        <div id="r-jds-section"></div>
-      </div><!-- /card JDS -->
+      <div id="r-jds-section" style="display:none;"></div>
       </div><!-- /col gauche -->
 
       <!-- COLONNE DROITE : PV + Personnalité -->
@@ -300,12 +297,16 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           <p class="st">Personnalité</p>
           <p style="font-size:12px;color:var(--txt2);line-height:1.6;font-style:italic;" id="r-traits">—</p>
           <div id="r-ideaux-w" style="font-size:11px;color:var(--txt3);margin-top:4px;display:none;"><b style="color:var(--txt);">Idéal :</b> <span id="r-ideaux"></span></div>
-          <div id="r-liens-resume" style="font-size:11px;color:var(--txt3);margin-top:4px;display:none;"><b style="color:var(--txt);">Liens :</b> <span id="r-liens-txt"></span></div>
           <div id="r-defauts-w" style="font-size:11px;color:var(--txt3);margin-top:4px;display:none;"><b style="color:var(--txt);">Défaut :</b> <span id="r-defauts"></span></div>
         </div>
       </div>
     </div>
 
+    <!-- Capacités -->
+    <div class="card" id="r-cap-card" style="display:none;">
+      <p class="st">Capacités de classe</p>
+      <p style="font-size:12px;color:var(--txt2);line-height:1.6;white-space:pre-wrap;" id="r-cap"></p>
+    </div>
     <!-- Notes libres -->
     <div class="card" id="r-notes-card" style="display:none;">
       <p class="st">Notes</p>
@@ -352,8 +353,8 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       </div>
       <div class="skg" id="r-slots" style="margin-top:10px;"></div>
     </div>
-    <div class="card" id="r-sprep-card" style="margin-bottom:1rem;">
-      <p class="st" id="r-sprep-titre">Sorts préparés <span id="r-sprep-n" style="font-weight:400;color:var(--txt3);"></span></p>
+    <div class="card" style="margin-bottom:1rem;">
+      <p class="st">Sorts préparés <span id="r-sprep-n" style="font-weight:400;color:var(--txt3);"></span></p>
       <div class="sl-list" id="r-sprep"></div>
     </div>
     <div class="card">
@@ -384,10 +385,9 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
   <div class="tbar">
     <button class="tbtn on" onclick="eTab('identite',this)">Identité</button>
     <button class="tbtn" onclick="eTab('comps',this)">Compétences</button>
-    <button class="tbtn" onclick="eTab('sorts',this)">Sorts ✨</button>
-
-    <button class="tbtn" onclick="eTab('notes',this)">Notes</button>
     <button class="tbtn" onclick="eTab('caps',this)">Capacités ⚡</button>
+    <button class="tbtn" onclick="eTab('sorts',this)">Sorts ✨</button>
+    <button class="tbtn" onclick="eTab('notes',this)">Notes</button>
   </div>
 
   <!-- IDENTITÉ -->
@@ -463,62 +463,40 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <div class="cb"><p class="cb-n">Charisme</p><input type="number" id="cha" class="cb-s" value="10" oninput="updateAll();sauvegarder()"><p class="cb-m" id="md-cha">+0</p></div>
       </div>
     </div>
-    <div class="card"><p class="st">Jets de sauvegarde</p><div class="g2" id="jds-l"></div></div>
-    <!-- Stats de combat intégrées dans Identité -->
-    <div class="card">
-      <p class="st">Combat & Points de vie</p>
-      <div class="g3" style="margin-bottom:12px;">
-        <div><label>PV Maximum</label><input type="number" id="pv-max" value="10" min="1" oninput="updatePV();sauvegarder()"></div>
-        <div><label>PV Actuels</label><input type="number" id="pv-act" value="10" min="0" oninput="updatePV();sauvegarder()"></div>
-        <div><label>PV Temporaires</label><input type="number" id="pv-tmp" value="0" min="0" oninput="sauvegarder()"></div>
-      </div>
-      <div class="pvw"><div class="pvb" id="pv-bar" style="width:100%;"></div></div>
-      <p id="pv-lbl" style="font-size:11px;color:var(--txt3);text-align:center;margin-top:4px;">10 / 10 PV</p>
-      <div style="display:flex;gap:8px;align-items:center;margin-top:8px;flex-wrap:wrap;">
-        <input type="number" id="pv-d" placeholder="Montant" style="width:80px;">
-        <button class="btn ko" onclick="appDeg()">− Dégâts</button>
-        <button class="btn ok" onclick="appSoin()">+ Soins</button>
-        <button class="btn" onclick="reposLong()">🌙 Repos long</button>
-      </div>
-      <div class="g3" style="margin-top:12px;">
-        <div><label>Classe d'Armure</label><input type="number" id="ca" value="10" oninput="sauvegarder()"></div>
-        <div><label>Initiative</label><div class="sb" style="margin-top:4px;"><span class="sv" id="init-v">+0</span></div></div>
-        <div><label>Vitesse (m)</label><input type="number" id="vitesse" value="9" oninput="sauvegarder()"></div>
-      </div>
-      <div class="g2" style="margin-top:12px;">
-        <div><label>Dé de vie</label><div class="sb"><span id="dv-v" style="font-size:16px;font-weight:700;color:var(--txt);">d8</span></div></div>
-        <div><label>Dés de vie restants</label><input type="number" id="dv-r" value="1" oninput="sauvegarder()"></div>
-      </div>
-    </div>
-    <div class="card">
-      <p class="st">Jets de mort</p>
-      <div style="display:flex;gap:24px;align-items:center;flex-wrap:wrap;">
-        <div><label style="color:var(--vert);">Réussites</label>
-          <div style="display:flex;gap:8px;margin-top:4px;">
-            <input type="checkbox" id="jr1" style="width:16px;height:16px;accent-color:var(--vert);" onchange="sauvegarder()">
-            <input type="checkbox" id="jr2" style="width:16px;height:16px;accent-color:var(--vert);" onchange="sauvegarder()">
-            <input type="checkbox" id="jr3" style="width:16px;height:16px;accent-color:var(--vert);" onchange="sauvegarder()">
-          </div>
-        </div>
-        <div><label style="color:#a32d2d;">Échecs</label>
-          <div style="display:flex;gap:8px;margin-top:4px;">
-            <input type="checkbox" id="je1" style="width:16px;height:16px;accent-color:#a32d2d;" onchange="sauvegarder()">
-            <input type="checkbox" id="je2" style="width:16px;height:16px;accent-color:#a32d2d;" onchange="sauvegarder()">
-            <input type="checkbox" id="je3" style="width:16px;height:16px;accent-color:#a32d2d;" onchange="sauvegarder()">
-          </div>
-        </div>
-        <button class="btn" onclick="resetJM()">Réinitialiser</button>
-      </div>
-    </div>
+    <div id="jds-l" style="display:none;"></div>
   </div>
 
-  <!-- COMBAT — conservé dans le DOM pour compatibilité mais masqué -->
-  <div id="et-combat" class="tc" style="display:none!important;">
+  <!-- COMBAT — masqué mais champs conservés pour sauvegarde -->
+  <div id="et-combat" style="display:none;">
+    <input type="number" id="pv-max" value="10" min="1" oninput="updatePV();sauvegarder()">
+    <input type="number" id="pv-act" value="10" min="0" oninput="updatePV();sauvegarder()">
+    <input type="number" id="pv-tmp" value="0" min="0" oninput="sauvegarder()">
+    <div class="pvw"><div class="pvb" id="pv-bar" style="width:100%;"></div></div>
+    <p id="pv-lbl"></p>
+    <input type="number" id="pv-d" style="display:none;">
+    <input type="number" id="ca" value="10" oninput="sauvegarder()">
+    <span id="init-v">+0</span>
+    <input type="number" id="vitesse" value="9" oninput="sauvegarder()">
+    <span id="dv-v">d8</span>
+    <input type="number" id="dv-r" value="1" oninput="sauvegarder()">
+    <input type="checkbox" id="jr1" onchange="sauvegarder()">
+    <input type="checkbox" id="jr2" onchange="sauvegarder()">
+    <input type="checkbox" id="jr3" onchange="sauvegarder()">
+    <input type="checkbox" id="je1" onchange="sauvegarder()">
+    <input type="checkbox" id="je2" onchange="sauvegarder()">
+    <input type="checkbox" id="je3" onchange="sauvegarder()">
   </div>
 
   <!-- COMPÉTENCES -->
   <div id="et-comps" class="tc">
-    <div class="card"><p class="st">Compétences <span id="e-comp-count" style="font-weight:700;font-size:11px;padding:2px 8px;border-radius:999px;background:#e6f4e6;color:#2d6e2d;"></span></p><div id="e-clist"></div></div>
+    <div class="card">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <p class="st" style="border:none;padding:0;margin:0;">Compétences</p>
+        <span id="e-comp-count" style="font-size:11px;color:var(--txt3);"></span>
+      </div>
+      <p style="font-size:11px;color:var(--txt3);margin-bottom:8px;">● = recommandée par ta classe, race ou historique. Tu peux cocher librement.</p>
+      <div id="e-clist"></div>
+    </div>
   </div>
 
   <!-- SORTS -->
@@ -527,8 +505,8 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <span style="font-size:13px;font-weight:700;" id="e-scl">—</span>
         <div style="flex:1;"></div>
-        <span style="font-size:12px;color:var(--txt3);" title="Modificateur de caractéristique d'incantation (Int/Sag/Cha selon ta classe). Modifiable si besoin.">Mod incantation :</span>
-        <input type="number" id="sorts-mod" value="0" min="-5" max="10" style="width:55px;" oninput="calcSortsDD();sauvegarder()" title="Modificateur de ta caractéristique d'incantation principale">
+        <span style="font-size:12px;color:var(--txt3);">Mod :</span>
+        <input type="number" id="sorts-mod" value="0" min="-5" max="10" style="width:60px;" oninput="calcSortsDD();sauvegarder()">
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;">
         <div class="sb"><div class="sl">Bonus incantation</div><div class="sv" id="s-bonus">—</div></div>
@@ -591,7 +569,8 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <div><label>Défauts</label><textarea id="defauts" oninput="sauvegarder()"></textarea></div>
       </div>
     </div>
-    <div class="card"><label>Notes libres</label><textarea id="notes" style="min-height:120px;" oninput="sauvegarder()"></textarea></div>
+    <div class="card"><label>Capacités de classe</label><textarea id="capacites" style="min-height:100px;" oninput="sauvegarder()"></textarea></div>
+    <div class="card"><label>Notes libres</label><textarea id="notes" style="min-height:100px;" oninput="sauvegarder()"></textarea></div>
     <div class="card">
       <p class="st">Inventaire & Monnaies</p>
       <p style="font-size:12px;color:var(--txt3);font-style:italic;">
@@ -645,6 +624,45 @@ function verifierDonneesChargees() {
 }
 
 var CARACS    = ["for","dex","con","int","sag","cha"];
+
+// ══════════════════════════════════════════
+// DONNÉES D&D 5e — COMPÉTENCES PAR SOURCE
+// ══════════════════════════════════════════
+var COMPS_CL = {
+  Barbare:    {max:2, liste:["Athlétisme","Dressage","Intimidation","Nature","Perception","Survie"]},
+  Barde:      {max:3, liste:["Acrobaties","Arcanes","Athlétisme","Discrétion","Dressage","Escamotage","Histoire","Intimidation","Investigation","Médecine","Nature","Perception","Persuasion","Religion","Représentation","Survie","Tromperie"]},
+  Clerc:      {max:2, liste:["Histoire","Intuition","Médecine","Persuasion","Religion"]},
+  Druide:     {max:2, liste:["Arcanes","Dressage","Intuition","Médecine","Nature","Perception","Religion","Survie"]},
+  Ensorceleur:{max:2, liste:["Arcanes","Tromperie","Intuition","Intimidation","Persuasion","Religion"]},
+  Guerrier:   {max:2, liste:["Acrobaties","Athlétisme","Discrétion","Dressage","Histoire","Intimidation","Perception","Survie"]},
+  Moine:      {max:2, liste:["Acrobaties","Athlétisme","Discrétion","Histoire","Intuition","Religion"]},
+  Paladin:    {max:2, liste:["Athlétisme","Intuition","Intimidation","Médecine","Persuasion","Religion"]},
+  Ranger:     {max:3, liste:["Athlétisme","Discrétion","Dressage","Investigation","Nature","Perception","Survie","Tromperie"]},
+  Roublard:   {max:4, liste:["Acrobaties","Arcanes","Athlétisme","Discrétion","Escamotage","Intimidation","Investigation","Perception","Persuasion","Représentation","Tromperie"]},
+  Sorcier:    {max:2, liste:["Arcanes","Tromperie","Histoire","Intimidation","Investigation","Nature","Religion"]},
+  Magicien:   {max:2, liste:["Arcanes","Histoire","Intuition","Investigation","Médecine","Religion"]}
+};
+// Compétences accordées par race (bonus, pas dans le max de classe)
+var COMPS_RACE = {
+  "Demi-Elfe": ["Acrobaties","Arcanes","Athlétisme","Discrétion","Dressage","Escamotage","Histoire","Intimidation","Investigation","Médecine","Nature","Perception","Persuasion","Religion","Représentation","Survie","Tromperie"],
+  "Demi-Orc": ["Intimidation"],
+  "Elfe": ["Perception"]
+};
+var COMPS_HIST = {
+  "Acolyte":         ["Intuition","Religion"],
+  "Artisan de guilde":["Intuition","Persuasion"],
+  "Artiste":         ["Acrobaties","Représentation"],
+  "Charlatan":       ["Tromperie","Escamotage"],
+  "Criminel":        ["Tromperie","Discrétion"],
+  "Ermite":          ["Médecine","Religion"],
+  "Hanté":           ["Arcanes","Survie"],
+  "Héros du peuple": ["Dressage","Survie"],
+  "Marin":           ["Athlétisme","Perception"],
+  "Noble":           ["Histoire","Persuasion"],
+  "Sauvageon":       ["Athlétisme","Survie"],
+  "Soldat":          ["Athlétisme","Intimidation"]
+};
+
 var CNOM      = {for:"Force",dex:"Dextérité",con:"Constitution",int:"Intelligence",sag:"Sagesse",cha:"Charisme"};
 var COMPS     = [
   {n:"Acrobaties",c:"dex"},{n:"Arcanes",c:"int"},{n:"Athlétisme",c:"for"},
@@ -674,22 +692,10 @@ var SLOTS_T   = {
   Sorcier:  [[1],[2],[2],[2],[3,1],[3,2],[4,2],[4,2],[4,2],[5,2],[5,3],[5,3],[5,3,1],[5,3,1],[5,3,2],[5,3,2],[5,4,2],[5,4,3],[5,4,3,3],[5,4,3,3]]
 };
 
-// Compétences disponibles et nombre max par classe (PHB 2014)
-var COMPS_CL = {
-  Barbare:    {max:2, liste:["Athlétisme","Dressage","Intimidation","Nature","Perception","Survie"]},
-  Barde:      {max:3, liste:["Acrobaties","Arcanes","Athlétisme","Discrétion","Dressage","Escamotage","Histoire","Intimidation","Investigation","Médecine","Nature","Perception","Persuasion","Religion","Représentation","Survie","Tromperie"]},
-  Clerc:      {max:2, liste:["Histoire","Intuition","Médecine","Persuasion","Religion"]},
-  Druide:     {max:2, liste:["Arcanes","Dressage","Intuition","Médecine","Nature","Perception","Religion","Survie"]},
-  Ensorceleur:{max:2, liste:["Arcanes","Déception","Intuition","Intimidation","Persuasion","Religion"]},
-  Guerrier:   {max:2, liste:["Acrobaties","Athlétisme","Discrétion","Dressage","Histoire","Intimidation","Perception","Survie"]},
-  Moine:      {max:2, liste:["Acrobaties","Athlétisme","Discrétion","Histoire","Intuition","Religion"]},
-  Paladin:    {max:2, liste:["Athlétisme","Intuition","Intimidation","Médecine","Persuasion","Religion"]},
-  Ranger:     {max:3, liste:["Athlétisme","Discrétion","Dressage","Investigation","Nature","Perception","Survie","Tromperie"]},
-  Roublard:   {max:4, liste:["Acrobaties","Arcanes","Athlétisme","Discrétion","Escamotage","Intimidation","Investigation","Perception","Persuasion","Représentation","Tromperie"]},
-  Sorcier:    {max:2, liste:["Arcanes","Déception","Histoire","Intimidation","Investigation","Nature","Religion"]},
-  Magicien:   {max:2, liste:["Arcanes","Histoire","Intuition","Investigation","Médecine","Religion"]}
-};
-// Note : "Intuition","Déception" sont des alias de "Perception"/"Tromperie" dans certains contextes — on utilisera les noms officiels FR
+// ══════════════════════════════════════════
+// ÉTAT
+// ══════════════════════════════════════════
+var db=null, PARTIE="campagne-1", joueurId=null, unsub=null, saveTO=null;
 var grimoire=new Set();   // sorts connus (édition)
 var prepares=new Set();   // sorts préparés aujourd'hui (résumé)
 var choixCaps={};          // capacités à choix sélectionnées {classe_nom: valeur}
@@ -901,11 +907,8 @@ function chargerFiche(data){
     var e=el(id);if(e&&data[id]!==undefined)e.value=data[id];
   });
   CARACS.forEach(function(c){if(data[c]!==undefined&&el(c))el(c).value=data[c];});
-  if(data.comps){
-    document.querySelectorAll(".erow[data-ci]").forEach(function(r,i){
-      if(data.comps[i]!==undefined)r.querySelector(".comp-check").checked=data.comps[i];
-    });
-  }
+  // Stocker comps — seront appliquées après buildComps (dans updateAll/onClasseChange)
+  var _compsData=data.comps||null;
   ["jr1","jr2","jr3","je1","je2","je3"].forEach(function(id){
     if(data[id]!==undefined&&el(id))el(id).checked=data[id];
   });
@@ -915,8 +918,16 @@ function chargerFiche(data){
   if(data.coches&&!data.grimoire)grimoire=new Set(data.coches);
   if(data.slots)slotsE=data.slots;
   el("prep-n").textContent=prepares.size?"("+prepares.size+")":"";
+  // updateAll() → buildComps() crée les .erow dans le DOM
   updateAll();
   onClasseChange();
+  // Appliquer les compétences maintenant que le DOM est prêt
+  if(_compsData){
+    document.querySelectorAll(".erow[data-ci]").forEach(function(r,i){
+      if(_compsData[i]!==undefined)r.querySelector(".comp-check").checked=_compsData[i];
+    });
+    updateComps();
+  }
   // Attendre que SORTS et CAPS soient chargés
   function doRefresh() {
     rafraichirResume();
@@ -992,46 +1003,83 @@ function buildComps(){
   c.innerHTML="";
   COMPS.forEach(function(cp,i){
     var row=document.createElement("div");row.className="erow";row.dataset.ci=i;
-    row.innerHTML="<input type='checkbox' class='comp-check' onchange='updateComps();sauvegarder()'><span style='flex:1;color:var(--txt);'>"+cp.n+"</span><span style='font-size:10px;color:var(--txt3);width:32px;'>"+cp.c.toUpperCase()+"</span><span class='comp-bon' style='font-weight:700;min-width:28px;text-align:right;color:var(--rouge);'>+0</span>";
+    row.style.cssText="display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--bord);";
+    row.innerHTML="<input type='checkbox' class='comp-check' onchange='updateComps();sauvegarder()'><span class='comp-src' style='font-size:9px;width:16px;text-align:center;flex-shrink:0;'></span><span style='flex:1;color:var(--txt);font-size:13px;'>"+cp.n+"</span><span style='font-size:10px;color:var(--txt3);width:28px;'>"+cp.c.toUpperCase()+"</span><span class='comp-bon' style='font-weight:700;min-width:28px;text-align:right;color:var(--rouge);'>+0</span>";
     c.appendChild(row);
   });
   updateComps();
 }
+
+function appliquerCompsDefaut(){
+  // Coche par défaut les compétences recommandées sans écraser les choix manuels
+  // Appelée uniquement lors du changement de classe/race/historique si aucune comps cochée
+  var defaut=getCompsDefaut();
+  var nbExistantes=0;
+  document.querySelectorAll(".erow[data-ci] .comp-check").forEach(function(c){if(c.checked)nbExistantes++;});
+  if(nbExistantes===0){
+    // Première configuration : cocher les défauts
+    document.querySelectorAll(".erow[data-ci]").forEach(function(row){
+      var cp=COMPS[parseInt(row.dataset.ci)];
+      var chk=row.querySelector(".comp-check");
+      if(defaut.has(cp.n))chk.checked=true;
+    });
+  }
+  updateComps();
+}
+function getCompsDefaut(){
+  // Retourne un Set des compétences données par classe+race+historique
+  var cl=gCl(), race=v("race"), hist=v("historique");
+  var liste=new Set();
+  // Classe : les 2/3/4 premières de la liste (on coche par défaut le max autorisé)
+  if(cl&&COMPS_CL[cl]){
+    var regle=COMPS_CL[cl];
+    regle.liste.slice(0,regle.max).forEach(function(n){liste.add(n);});
+  }
+  // Race : compétences bonus (Demi-Elfe a 2 au choix → on laisse vide sauf Elfe/Demi-Orc fixe)
+  if(race&&COMPS_RACE[race]&&COMPS_RACE[race].length<=2){
+    COMPS_RACE[race].forEach(function(n){liste.add(n);});
+  }
+  // Historique
+  if(hist&&COMPS_HIST[hist]){
+    COMPS_HIST[hist].forEach(function(n){liste.add(n);});
+  }
+  return liste;
+}
+
 function updateComps(){
-  var cl=gCl();
   var bm=gBM();
+  var cl=gCl();
   var regle=cl?COMPS_CL[cl]:null;
-  var maxComp=regle?regle.max:99;
-  var listeAutorisee=regle?regle.liste:null;
-  // Compter les cases cochées
+  var defaut=getCompsDefaut();
+  // Compter cochées
   var nbCoches=0;
-  document.querySelectorAll(".erow[data-ci]").forEach(function(row){
-    if(row.querySelector(".comp-check").checked) nbCoches++;
+  document.querySelectorAll(".erow[data-ci]").forEach(function(r){
+    if(r.querySelector(".comp-check").checked) nbCoches++;
   });
   document.querySelectorAll(".erow[data-ci]").forEach(function(row){
     var i=parseInt(row.dataset.ci),cp=COMPS[i];
-    var val=parseInt(v(cp.c))||10,m=gMod(val),ok=row.querySelector(".comp-check").checked;
-    var bon=row.querySelector(".comp-bon");if(bon)bon.textContent=fMod(m+(ok?bm:0));
+    var val=parseInt(v(cp.c))||10,m=gMod(val);
     var chk=row.querySelector(".comp-check");
-    // Bloquer si hors liste de classe
-    var horsListe=listeAutorisee&&listeAutorisee.indexOf(cp.n)<0;
-    // Bloquer si max atteint et pas coché
-    var maxAtteint=!ok&&nbCoches>=maxComp;
-    if(horsListe){
-      chk.disabled=true;
-      row.style.opacity="0.4";
-    } else if(maxAtteint){
-      chk.disabled=true;
-      row.style.opacity="0.7";
-    } else {
-      chk.disabled=false;
-      row.style.opacity="1";
+    var ok=chk.checked;
+    var bon=row.querySelector(".comp-bon");if(bon)bon.textContent=fMod(m+(ok?bm:0));
+    // Indicateur source
+    var src=row.querySelector(".comp-src");
+    if(src){
+      var isDefaut=defaut.has(cp.n);
+      src.textContent=isDefaut?"●":"";
+      src.title=isDefaut?"Compétence recommandée (classe/race/historique)":"";
+      src.style.color="var(--vert)";
     }
+    // Pas de blocage — l'utilisateur peut cocher librement
+    chk.disabled=false;
+    row.style.opacity="1";
   });
-  // Afficher le compteur
-  var cnt=document.getElementById("e-comp-count");
-  if(cnt&&regle){cnt.textContent=nbCoches+"/"+maxComp+" compétences";cnt.style.color=nbCoches>=maxComp?"#a32d2d":"#2d6e2d";}
-  else if(cnt){cnt.textContent="";}
+  // Compteur
+  var cnt=el("e-comp-count");
+  if(cnt&&regle){
+    cnt.textContent=nbCoches+" compétences"+(regle?" (max "+regle.max+" de classe)":"");
+    cnt.style.color=nbCoches>regle.max?"#a32d2d":"var(--txt3)";
+  } else if(cnt){cnt.textContent=nbCoches+" compétences";}
 }
 function updatePV(){
   var max=parseInt(v("pv-max"))||1,act=parseInt(v("pv-act"))||0;
@@ -1047,9 +1095,6 @@ function reposLong(){el("pv-act").value=v("pv-max");updatePV();resetSlots();sauv
 function resetJM(){["jr1","jr2","jr3","je1","je2","je3"].forEach(function(id){if(el(id))el(id).checked=false;});sauvegarder();}
 function onClasseChange(){
   var cl=gCl();
-  // Reset sorts au changement de classe
-  grimoire=new Set();prepares=new Set();slotsE={};
-  var pn=el("prep-n");if(pn)pn.textContent="";
   var dvv=el("dv-v");if(dvv)dvv.textContent=DV_CL[cl]||"d8";
   var scl=el("e-scl");if(scl)scl.textContent=cl||"—";
   updateAll();
@@ -1066,6 +1111,7 @@ function onClasseChange(){
   var tPrep=el("e-prep-tab-label");if(tPrep)tPrep.textContent=lbl.titre==="Grimoire"?"Préparés":"Préparés";
   if(el("e-caps-list") && CAPS_DATA && CAPS_DATA.classes) eRendreCaps();
   if(el("r-caps-list") && CAPS_DATA && CAPS_DATA.classes) rRendreCaps();
+  appliquerCompsDefaut();
   sauvegarder();
 }
 
@@ -1114,6 +1160,7 @@ function onRaceChange() {
   rafraichirResume();
   if (el("e-caps-list")) eRendreCaps();
   if (el("r-caps-list")) rRendreCaps();
+  appliquerCompsDefaut();
   sauvegarder();
 }
 
@@ -1121,47 +1168,24 @@ function onHistoriqueChange() {
   rafraichirResume();
   if (el("e-caps-list")) eRendreCaps();
   if (el("r-caps-list")) rRendreCaps();
+  appliquerCompsDefaut();
   sauvegarder();
 }
 
 function calcMaxGrimoire() {
-  // Retourne le nombre max de sorts NON-cantrip que le joueur peut avoir dans son grimoire
-  var cl=gCl(), niv=gNiv(), idx=niv-1;
+  // Retourne le nombre max de sorts que le joueur peut avoir dans son grimoire
+  var cl=gCl(), niv=gNiv(), mod=parseInt(v("sorts-mod"))||0, idx=niv-1;
   if(LANCEURS.indexOf(cl)<0) return 0;
   switch(cl) {
-    case "Magicien":    return 6+(niv-1)*2;
+    case "Magicien":    return 6+(niv-1)*2;       // 6 au niv1 + 2/niveau
     case "Barde":       return SORTS_CONNUS.Barde[idx];
     case "Ensorceleur": return SORTS_CONNUS.Ensorceleur[idx];
     case "Sorcier":     return SORTS_CONNUS.Sorcier[idx];
     case "Ranger":      return SORTS_CONNUS.Ranger[idx];
+    // Préparateurs : accès à TOUTE la liste → pas de limite grimoire
     case "Clerc": case "Druide": case "Paladin": return 9999;
     default: return 0;
   }
-}
-
-function calcMaxCantrips() {
-  // Retourne le nombre max de cantrips connus (quota séparé des sorts)
-  var cl=gCl(), niv=gNiv(), idx=niv-1;
-  if(LANCEURS.indexOf(cl)<0) return 0;
-  return CANTRIPS[cl] ? CANTRIPS[cl][idx] : 0;
-}
-
-function nbCantripsDansGrimoire() {
-  var n=0;
-  grimoire.forEach(function(nom){
-    var s=SORTS.find(function(x){return x.n===nom;});
-    if(s&&s.nv===0) n++;
-  });
-  return n;
-}
-
-function nbSortsNonCantripsDansGrimoire() {
-  var n=0;
-  grimoire.forEach(function(nom){
-    var s=SORTS.find(function(x){return x.n===nom;});
-    if(s&&s.nv>0) n++;
-  });
-  return n;
 }
 
 function calcMaxPrepares() {
@@ -1222,15 +1246,6 @@ var CANTRIPS = {
   Magicien:    [3,3,3,4,4,4,4,4,4,5,5,5,5,5,5,5,5,5,5,5],
   Sorcier:     [2,2,2,3,3,3,3,3,3,4,4,4,4,4,4,4,4,4,4,4]
 };
-
-// Vérifie si le PJ a des emplacements pour le niveau de sort donné
-function aPossedeEmplacementNiveau(niveauSort) {
-  if (niveauSort === 0) return true; // cantrips toujours disponibles
-  var cl = gCl(), niv = gNiv();
-  if (!cl || !SLOTS_T[cl]) return false;
-  var row = SLOTS_T[cl][niv - 1] || [];
-  return !!(row[niveauSort - 1]); // truthy = au moins 1 emplacement
-}
 
 function calcNbSorts() {
   var cl  = gCl();
@@ -1369,7 +1384,6 @@ function eFiltrerSorts(){
   // Exclure les cantrips de la limite grimoire (cantrips toujours disponibles)
   if(filNiv.size)ss=ss.filter(function(s){return filNiv.has(s.nv);});
   if(rech)ss=ss.filter(function(s){return s.n.toLowerCase().indexOf(rech)>=0||s.e.toLowerCase().indexOf(rech)>=0;});
-  ss.sort(function(a,b){return a.nv-b.nv||a.n.localeCompare(b.n,"fr");});
   var cnt=el("e-scount");if(cnt)cnt.textContent=ss.length+" sort"+(ss.length>1?"s":"");
   // Mettre à jour le label de l'onglet selon le type de classe
   var lbl=getLabelEdition();
@@ -1380,11 +1394,11 @@ function eFiltrerSorts(){
 
 function majCompteurGrimoire() {
   var max = calcMaxGrimoire();
-  var maxC = calcMaxCantrips();
   var edMode = getEditionMode();
   var el_c = el("e-grimoire-count");
   if (!el_c) return;
   if(edMode === "prepare_direct") {
+    // Clerc/Druide/Paladin : afficher le compteur de préparés
     var maxP = calcMaxPrepares();
     var nbP = prepares.size;
     var plein = nbP >= maxP;
@@ -1392,16 +1406,11 @@ function majCompteurGrimoire() {
     el_c.style.background = plein ? "#ffe8e8" : "#e6f4e6";
     el_c.style.color = plein ? "#a32d2d" : "#2d6e2d";
   } else {
-    var nbS = nbSortsNonCantripsDansGrimoire();
-    var nbC = nbCantripsDansGrimoire();
-    var pleinS = max < 9999 && nbS >= max;
-    var pleinC = maxC > 0 && nbC >= maxC;
-    var plein = pleinS || pleinC;
-    var sortsStr = nbS + "/" + (max < 9999 ? max : "∞") + " sorts";
-    var cantripStr = maxC > 0 ? " · " + nbC + "/" + maxC + " cantrips" : "";
-    el_c.textContent = sortsStr + cantripStr;
+    var nb  = grimoire.size;
+    var plein = max < 9999 && nb >= max;
+    el_c.textContent = nb + "/" + (max < 9999 ? max : "∞");
     el_c.style.background = plein ? "#ffe8e8" : "#e6f4e6";
-    el_c.style.color = plein ? "#a32d2d" : "#2d6e2d";
+    el_c.style.color       = plein ? "#a32d2d" : "#2d6e2d";
   }
 }
 
@@ -1445,22 +1454,17 @@ function rendreListeSorts(ss, cid, mode) {
       if (mode === "grimoire") {
         var edMode = getEditionMode();
         if (edMode === "prepare_direct") {
-          // Clerc/Druide/Paladin : cocher = préparer directement
+          // Clerc/Druide/Paladin : cocher = préparer directement (pas de grimoire intermédiaire)
           chk.checked = prepares.has(nomSort);
-          var pasDeSlotEdit = s.nv > 0 && !aPossedeEmplacementNiveau(s.nv);
-          if (pasDeSlotEdit) {
-            chk.disabled = true; chk.style.opacity = "0.2";
-            item.style.opacity = "0.4";
-          } else if (!prepares.has(nomSort) && prepares.size >= maxP) {
+          if (!prepares.has(nomSort) && prepares.size >= maxP) {
             chk.disabled = true; chk.style.opacity = "0.3";
           }
           chk.addEventListener("click", function(ev) {
             ev.stopPropagation();
             if (this.checked) {
-              if (s.nv > 0 && !aPossedeEmplacementNiveau(s.nv)) { this.checked = false; return; }
               if (prepares.size >= maxP) { this.checked = false; return; }
               prepares.add(nomSort);
-              grimoire.add(nomSort);
+              grimoire.add(nomSort); // on garde une trace pour la sauvegarde
             } else {
               prepares.delete(nomSort);
               grimoire.delete(nomSort);
@@ -1471,39 +1475,29 @@ function rendreListeSorts(ss, cid, mode) {
             eFiltrerSorts();
           });
         } else {
-          // Magicien / Barde / Ensorceleur / Sorcier / Ranger
+          // Magicien (grimoire_limite) ou Barde/Ensorceleur/Sorcier/Ranger (connus)
+          // Coché si dans le grimoire
           chk.checked = grimoire.has(nomSort);
-          // Vérifier limite selon cantrip ou sort
-          var maxC = calcMaxCantrips();
-          var isCantrip = s.nv === 0;
-          var pasDeSlotGrim = s.nv > 0 && !aPossedeEmplacementNiveau(s.nv);
-          var limitAtteinte = isCantrip
-            ? (maxC > 0 && nbCantripsDansGrimoire() >= maxC)
-            : (maxG < 9999 && nbSortsNonCantripsDansGrimoire() >= maxG);
-          if (pasDeSlotGrim) {
-            chk.disabled = true; chk.style.opacity = "0.2";
-            item.style.opacity = "0.4";
-          } else if (!grimoire.has(nomSort) && limitAtteinte) {
-            chk.disabled = true; chk.style.opacity = "0.3";
+          // Bloqué si max atteint et pas encore coché
+          if (!grimoire.has(nomSort) && grimoire.size >= maxG) {
+            chk.disabled = true;
+            chk.style.opacity = "0.3";
           }
           chk.addEventListener("click", function(ev) {
             ev.stopPropagation();
             if (this.checked) {
-              if (s.nv > 0 && !aPossedeEmplacementNiveau(s.nv)) { this.checked = false; return; }
-              var isC = s.nv === 0;
-              var mC = calcMaxCantrips();
-              var limC = isC ? (mC > 0 && nbCantripsDansGrimoire() >= mC)
-                             : (maxG < 9999 && nbSortsNonCantripsDansGrimoire() >= maxG);
-              if (limC) { this.checked = false; return; }
+              if (grimoire.size >= maxG) { this.checked = false; return; }
               grimoire.add(nomSort);
+              // Si sorts connus : aussi dans préparés automatiquement
               if (getClassePreparationType() === "connus") prepares.add(nomSort);
             } else {
               grimoire.delete(nomSort);
-              prepares.delete(nomSort);
+              prepares.delete(nomSort); // retirer aussi des préparés
             }
             majCompteurGrimoire();
             eRendrePrep();
             sauvegarder();
+            // Refresh pour mettre à jour les cases bloquées
             eFiltrerSorts();
           });
         }
@@ -1512,22 +1506,14 @@ function rendreListeSorts(ss, cid, mode) {
         // Coché si préparé, ET dans le grimoire
         var dansGrimoire = grimoire.has(nomSort) || getClassePreparationType() === "prepares";
         chk.checked = prepares.has(nomSort);
-        // Bloqué si pas d'emplacement pour ce niveau de sort
-        var pasDeSlot = s.nv > 0 && !aPossedeEmplacementNiveau(s.nv);
-        if (pasDeSlot) {
-          chk.disabled = true;
-          chk.style.opacity = "0.2";
-          item.style.opacity = "0.4";
-        }
         // Bloqué si max préparés atteint et pas coché, OU pas dans grimoire
-        if (!pasDeSlot && !prepares.has(nomSort) && prepares.size >= maxP) {
+        if (!prepares.has(nomSort) && prepares.size >= maxP) {
           chk.disabled = true;
           chk.style.opacity = "0.3";
         }
         chk.addEventListener("click", function(ev) {
           ev.stopPropagation();
           if (this.checked) {
-            if (!aPossedeEmplacementNiveau(s.nv) && s.nv > 0) { this.checked = false; return; }
             if (prepares.size >= maxP) { this.checked = false; return; }
             prepares.add(nomSort);
           } else {
@@ -1972,10 +1958,11 @@ function rafraichirResume(){
   var tr=v("traits");el("r-traits").textContent=tr||"Aucune note.";
   var id=v("ideaux");var iw=el("r-ideaux-w");
   if(iw){if(id){el("r-ideaux").textContent=id;iw.style.display="block";}else iw.style.display="none";}
-  var li=v("liens");var lres=el("r-liens-resume");var ltxt=el("r-liens-txt");
-  if(lres&&ltxt){if(li){ltxt.textContent=li;lres.style.display="block";}else lres.style.display="none";}
   var df=v("defauts");var dw=el("r-defauts-w");
   if(dw){if(df){el("r-defauts").textContent=df;dw.style.display="block";}else dw.style.display="none";}
+  // Capacités de classe (texte libre)
+  var cap=v("capacites");var cw=el("r-cap-card");
+  if(cw){if(cap){el("r-cap").textContent=cap;cw.style.display="block";}else cw.style.display="none";}
   // Mise à jour compteur niveau capacités
   var cniv=el("r-cap-niv");if(cniv)cniv.textContent=gNiv();
 
@@ -1986,9 +1973,9 @@ function rafraichirResume(){
   var notes=v("notes");var nw=el("r-notes-card");
   if(nw){if(notes){el("r-notes").textContent=notes;nw.style.display="block";}else nw.style.display="none";}
 
-  // Liens (carte dédiée, déjà gérée ci-dessus dans personnalité aussi)
-  var liens2=v("liens");var lw=el("r-liens-card");
-  if(lw) lw.style.display="none"; // on affiche dans personnalité uniquement
+  // Liens
+  var liens=v("liens");var lw=el("r-liens-card");
+  if(lw){if(liens){el("r-liens").textContent=liens;lw.style.display="block";}else lw.style.display="none";}
   // Hexagone
   rendreHexagone();
 
@@ -2116,98 +2103,14 @@ function rRendreComps(){
 }
 
 function eRendrePrep(){
+  // Onglet "Préparés" en édition
   var c=el("e-sprep");if(!c)return;
   var edMode=getEditionMode();
   var nomOnglet=el("prep-n");
   var triés;
 
-  if(edMode==="grimoire_limite"){
-    // ── MAGICIEN : afficher grimoire + liste à cocher pour préparer ──────
-    var maxP=calcMaxPrepares();
-    var nbP=prepares.size;
-    // Cantrips (toujours actifs, non préparables)
-    var cantripsGrim=SORTS.filter(function(s){return grimoire.has(s.n)&&s.nv===0;});
-    // Sorts non-cantrip dans le grimoire
-    var sortsGrim=SORTS.filter(function(s){return grimoire.has(s.n)&&s.nv>0;});
-    if(nomOnglet)nomOnglet.textContent=nbP?"("+nbP+")":"";
-    c.innerHTML="";
-
-    // Compteur préparés
-    var compteur=document.createElement("div");
-    var plein=nbP>=maxP;
-    compteur.style.cssText="font-size:12px;font-weight:700;padding:6px 10px;border-radius:6px;margin-bottom:10px;background:"+(plein?"#ffe8e8":"#e6f4e6")+";color:"+(plein?"#a32d2d":"#2d6e2d")+";";
-    compteur.id="e-prep-compteur";
-    compteur.textContent=nbP+"/"+maxP+" sorts préparés (hors cantrips)";
-    c.appendChild(compteur);
-
-    // Section cantrips (lecture seule — toujours connus)
-    if(cantripsGrim.length){
-      var titC=document.createElement("p");
-      titC.style.cssText="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);margin:8px 0 5px;";
-      titC.textContent="Cantrips connus (toujours disponibles)";
-      c.appendChild(titC);
-      var listC=document.createElement("div");listC.className="sl-list";
-      cantripsGrim.sort(function(a,b){return a.n.localeCompare(b.n,"fr");});
-      cantripsGrim.forEach(function(s){
-        var item=document.createElement("div");item.className="si";
-        var hd=document.createElement("div");hd.className="sh";
-        var bdg=document.createElement("span");bdg.className="bdg b0";bdg.textContent="Cantrip";hd.appendChild(bdg);
-        var nom2=document.createElement("span");nom2.className="sn";nom2.textContent=s.n;hd.appendChild(nom2);
-        var eco=document.createElement("span");eco.className="se";eco.textContent=s.e.replace(/\s*\(rituel\)/i,"").trim();hd.appendChild(eco);
-        item.appendChild(hd);listC.appendChild(item);
-      });
-      c.appendChild(listC);
-    }
-
-    // Section sorts préparables depuis le grimoire
-    var titS=document.createElement("p");
-    titS.style.cssText="font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);margin:12px 0 5px;";
-    titS.textContent="Sorts du grimoire — cocher pour préparer";
-    c.appendChild(titS);
-
-    if(!sortsGrim.length){
-      var msg=document.createElement("p");msg.style.cssText="font-size:13px;color:var(--txt3);";
-      msg.textContent="Aucun sort (hors cantrips) dans le grimoire. Ajoute des sorts dans l'onglet Grimoire.";
-      c.appendChild(msg);return;
-    }
-    sortsGrim.sort(function(a,b){return a.nv-b.nv||a.n.localeCompare(b.n,"fr");});
-    var listS=document.createElement("div");listS.className="sl-list";
-    sortsGrim.forEach(function(s){
-      var item=document.createElement("div");item.className="si";
-      var hd=document.createElement("div");hd.className="sh";
-      // Checkbox préparer
-      var chk=document.createElement("input");chk.type="checkbox";
-      chk.style.cssText="width:14px;height:14px;accent-color:#6D0000;flex-shrink:0;cursor:pointer;margin-right:2px;";
-      chk.checked=prepares.has(s.n);
-      var pasDeSlot=s.nv>0&&!aPossedeEmplacementNiveau(s.nv);
-      if(pasDeSlot){chk.disabled=true;chk.style.opacity="0.2";item.style.opacity="0.4";}
-      else if(!prepares.has(s.n)&&nbP>=maxP){chk.disabled=true;chk.style.opacity="0.3";}
-      var nomSort=s.n;
-      chk.addEventListener("click",function(ev){
-        ev.stopPropagation();
-        if(this.checked){
-          if(s.nv>0&&!aPossedeEmplacementNiveau(s.nv)){this.checked=false;return;}
-          if(prepares.size>=maxP){this.checked=false;return;}
-          prepares.add(nomSort);
-        } else {
-          prepares.delete(nomSort);
-        }
-        majCompteurPrepares();sauvegarder();eRendrePrep();
-      });
-      hd.appendChild(chk);
-      var bdg=document.createElement("span");bdg.className="bdg b"+s.nv;bdg.textContent="Niv."+s.nv;hd.appendChild(bdg);
-      var nom2=document.createElement("span");nom2.className="sn";nom2.textContent=s.n;
-      if(pasDeSlot)nom2.style.opacity="0.4";
-      hd.appendChild(nom2);
-      if(pasDeSlot){var tag=document.createElement("span");tag.style.cssText="font-size:10px;color:#a32d2d;";tag.textContent="Pas d'emplacement";hd.appendChild(tag);}
-      var eco=document.createElement("span");eco.className="se";eco.textContent=s.e.replace(/\s*\(rituel\)/i,"").trim();hd.appendChild(eco);
-      item.appendChild(hd);listS.appendChild(item);
-    });
-    c.appendChild(listS);
-    return;
-  }
-
   if(edMode==="prepare_direct"){
+    // Clerc/Druide/Paladin : affiche les sorts préparés
     triés=SORTS.filter(function(s){return prepares.has(s.n);});
     if(nomOnglet)nomOnglet.textContent=prepares.size?"("+prepares.size+")":"";
     if(!triés.length){
@@ -2215,11 +2118,11 @@ function eRendrePrep(){
       return;
     }
   } else {
-    // Barde/Ensorceleur/Sorcier/Ranger : affiche les sorts connus (grimoire)
+    // Magicien/Barde/etc : affiche les sorts dans le grimoire
     triés=SORTS.filter(function(s){return grimoire.has(s.n);});
     if(nomOnglet)nomOnglet.textContent=grimoire.size?"("+grimoire.size+")":"";
     if(!triés.length){
-      c.innerHTML="<p style='font-size:13px;color:var(--txt3);'>Aucun sort connu.</p>";
+      c.innerHTML="<p style='font-size:13px;color:var(--txt3);'>Aucun sort dans le grimoire.</p>";
       return;
     }
   }
@@ -2266,56 +2169,35 @@ function eRendrePrep(){
 
 function rRendreSorts(){
   var cl=gCl(),bm=gBM(),mod=parseInt(v("sorts-mod"))||0;
+  // Header stats
   var scl=el("r-scl");if(scl)scl.textContent=LANCEURS.indexOf(cl)>=0?cl:(cl||"Pas de sorts");
   var sb=el("r-sbonus"),sd=el("r-sdd");
   if(LANCEURS.indexOf(cl)>=0){if(sb)sb.textContent=fMod(mod+bm);if(sd)sd.textContent=8+bm+mod;}
   else{if(sb)sb.textContent="—";if(sd)sd.textContent="—";}
+  // Emplacements lecture seule
   rendreSlots("r-slots",false);
+  // Compteur préparés : masquer pour les classes "connus"
   var pc=el("r-prep-count");
-  if(pc)pc.style.display="none";
+  if(pc)pc.style.display=getClassePreparationType()==="connus"?"none":"";
   majCompteurPrepares();
-  var prepCard=el("r-sprep-card");
-  // Mettre à jour le titre
-  var titreCard=el("r-sprep-titre");
-  if(titreCard){
-    var isConnus2=getClassePreparationType()==="connus";
-    titreCard.childNodes[0].textContent=isConnus2?"Sorts connus ":"Sorts préparés ";
-  }
-  if(prepCard) prepCard.style.display="";
+  // Sorts préparés (avec bouton retirer)
   rRendreSortsPrep();
+  // Grimoire pour choisir
   rBuildChips();rSearchSorts();
 }
 
 function rRendreSortsPrep(){
   var c=el("r-sprep");if(!c)return;
-  var cl=gCl();
   var isConnus=getClassePreparationType()==="connus";
-  var edMode=getEditionMode();
-  var triés;
-
-  if(edMode==="grimoire_limite"){
-    // Magicien : afficher cantrips du grimoire + sorts préparés
-    var cantripsGrim=SORTS.filter(function(s){return grimoire.has(s.n)&&s.nv===0;});
-    var sortsPrep=SORTS.filter(function(s){return prepares.has(s.n)&&s.nv>0;});
-    triés=cantripsGrim.concat(sortsPrep);
-    triés.sort(function(a,b){return a.nv-b.nv||a.n.localeCompare(b.n,"fr");});
-    var nLabel="("+cantripsGrim.length+" cantrips · "+sortsPrep.length+" préparés)";
-    el("r-sprep-n").textContent=triés.length?nLabel:"";
-    if(!triés.length){
-      c.innerHTML="<p style='font-size:13px;color:var(--txt3);'>Aucun sort dans le grimoire. Va en mode Édition → Sorts.</p>";
-      return;
-    }
-  } else {
-    triés=SORTS.filter(function(s){return prepares.has(s.n);});
-    triés.sort(function(a,b){return a.nv-b.nv||a.n.localeCompare(b.n,"fr");});
-    if(!triés.length){
-      var msg=isConnus?"Aucun sort connu. Ajoute des sorts dans l'onglet Sorts ✨ > Édition.":"Aucun sort préparé. Va en mode Édition → Sorts pour préparer tes sorts.";
-      c.innerHTML="<p style='font-size:13px;color:var(--txt3);'>"+msg+"</p>";
-      el("r-sprep-n").textContent="";
-      return;
-    }
-    el("r-sprep-n").textContent="("+prepares.size+")";
+  var triés=SORTS.filter(function(s){return prepares.has(s.n);});
+  triés.sort(function(a,b){return a.nv-b.nv||a.n.localeCompare(b.n);});
+  if(!triés.length){
+    var msg=isConnus?"Aucun sort connu. Ajoute des sorts dans l'onglet Sorts ✨ > Édition.":"Aucun sort préparé. Coche des sorts dans la liste ci-dessous.";
+    c.innerHTML="<p style='font-size:13px;color:var(--txt3);'>"+msg+"</p>";
+    el("r-sprep-n").textContent="";
+    return;
   }
+  el("r-sprep-n").textContent="("+prepares.size+")";
   c.innerHTML="";
   triés.forEach(function(s){
     var item=document.createElement("div");item.className="si";
@@ -2323,13 +2205,7 @@ function rRendreSortsPrep(){
     var bdg=document.createElement("span");bdg.className="bdg b"+s.nv;bdg.textContent=s.nv===0?"Cantrip":"Niv."+s.nv;hd.appendChild(bdg);
     var nom=document.createElement("span");nom.className="sn";nom.textContent=s.n;hd.appendChild(nom);
     var ptag=document.createElement("span");ptag.className="ptag";ptag.style.background="#fff4d6";ptag.style.color="#7a5800";
-    var edModeR=getEditionMode();
-    if(edModeR==="grimoire_limite"){
-      ptag.textContent=s.nv===0?"✓ Cantrip":"⚡ Préparé";
-    } else {
-      ptag.textContent=isConnus?"✓ Connu":"⚡ Préparé";
-    }
-    hd.appendChild(ptag);
+    ptag.textContent=isConnus?"✓ Connu":"⚡ Préparé";hd.appendChild(ptag);
     var eco=document.createElement("span");eco.className="se";eco.style.flex="1";eco.style.textAlign="right";
     eco.textContent=s.e.replace(/\s*\(rituel\)/i,"").trim();hd.appendChild(eco);
     var arr=document.createElement("span");arr.className="sa";arr.textContent="▾";hd.appendChild(arr);
@@ -2341,7 +2217,18 @@ function rRendreSortsPrep(){
     });
     bd.appendChild(meta);
     var desc=document.createElement("div");desc.className="sdesc";desc.textContent=s.t;bd.appendChild(desc);
-    // Bouton Dépreparer supprimé en résumé : la gestion des sorts se fait en mode Édition
+    // Bouton Dépreparer uniquement pour les classes qui préparent
+    if(!isConnus){
+      var btnR=document.createElement("button");
+      btnR.className="btn ko";btnR.style.cssText="margin-top:8px;font-size:11px;padding:3px 10px;";
+      btnR.textContent="✕ Dépreparer";
+      var nomSort=s.n;
+      btnR.addEventListener("click",function(){
+        prepares.delete(nomSort);
+        majCompteurPrepares();rRendreSortsPrep();rSearchSorts();sauvegarder();
+      });
+      bd.appendChild(btnR);
+    }
     hd.addEventListener("click",function(){
       if(event.target.tagName==="BUTTON")return;
       bd.classList.toggle("on");arr.textContent=bd.classList.contains("on")?"▴":"▾";
@@ -2380,27 +2267,24 @@ function rSearchSorts(){
   var typePrepare=getClassePreparationType(),edMode=getEditionMode();
   var ss,titre="";
   if(typePrepare==="connus"){
+    // Barde/Ensorceleur/Sorcier/Ranger : sorts connus
     ss=SORTS.filter(function(s){return grimoire.has(s.n);});
     titre="Sorts connus";
   } else if(edMode==="grimoire_limite"){
-    ss=SORTS.filter(function(s){return (s.nv===0&&grimoire.has(s.n))||prepares.has(s.n);});
-    titre="Sorts actifs (grimoire + préparés)";
+    // Magicien : prépare depuis le grimoire
+    ss=SORTS.filter(function(s){return grimoire.has(s.n);});
+    titre="Grimoire (choisir lesquels préparer)";
   } else {
-    ss=SORTS.filter(function(s){return prepares.has(s.n);});
-    titre="Sorts préparés (gestion en mode Édition)";
-  }
-  // Masquer la carte inférieure pour les classes à sorts connus (déjà tout affiché dans la carte du haut)
-  var listeEl=el("r-slist");
-  var carteSort=listeEl?listeEl.parentElement:null;
-  if(carteSort&&!carteSort.classList.contains("card"))carteSort=carteSort.parentElement;
-  if(carteSort){
-    carteSort.style.display=(typePrepare==="connus")?"none":"";
+    // Clerc/Druide/Paladin : toute la liste de classe
+    ss=cl&&LANCEURS.indexOf(cl)>=0?SORTS.filter(function(s){return s.cl.indexOf(cl)>=0;}):SORTS;
+    titre="Liste complète (choisir lesquels préparer)";
   }
   if(rFilNiv.size)ss=ss.filter(function(s){return rFilNiv.has(s.nv);});
   if(rech)ss=ss.filter(function(s){return s.n.toLowerCase().indexOf(rech)>=0||s.e.toLowerCase().indexOf(rech)>=0;});
   var cnt=el("r-scount");if(cnt)cnt.textContent=ss.length+" sort"+(ss.length>1?"s":"");
   var tElem=el("r-grimoire-titre");if(tElem)tElem.textContent=titre;
-  rendreListeSorts(ss,"r-slist","lecture");
+  // Pour Barde/Ensorceleur/Sorcier/Ranger en résumé : pas de case à cocher (lecture seule)
+  rendreListeSorts(ss,"r-slist",typePrepare==="connus"?"lecture":"prep");
 }
 
 // ══════════════════════════════════════════
