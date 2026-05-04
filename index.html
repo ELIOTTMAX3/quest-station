@@ -281,6 +281,21 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
       <!-- COLONNE DROITE : PV + Personnalité -->
       <div style="display:flex;flex-direction:column;gap:12px;height:100%;">
+        <div class="card" style="flex:none;">
+          <p class="st">Points de vie</p>
+          <div style="display:flex;align-items:baseline;gap:6px;">
+            <span style="font-size:28px;font-weight:700;color:var(--txt);" id="r-pvact">0</span>
+            <span style="font-size:13px;color:var(--txt3);">/ <span id="r-pvmax">0</span> PV</span>
+            <span id="r-pvtmp" style="font-size:10px;padding:2px 6px;border-radius:999px;background:#fff4d6;color:#7a5800;margin-left:auto;display:none;"></span>
+          </div>
+          <div class="pvw"><div class="pvb" id="r-pvbar" style="width:100%;"></div></div>
+          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px;">
+            <div class="spill"><div class="spl">Initiative</div><div class="spv" id="r-init">+0</div></div>
+            <div class="spill"><div class="spl">Vitesse</div><div class="spv" id="r-vit">9m</div></div>
+            <div class="spill"><div class="spl">Bonus maîtrise</div><div class="spv" id="r-bm">+2</div></div>
+            <div class="spill"><div class="spl">Dé de vie</div><div class="spv" id="r-dv">d8</div></div>
+          </div>
+        </div>
         <div class="card" style="flex:1;">
           <p class="st">Personnalité</p>
           <p style="font-size:12px;color:var(--txt2);line-height:1.6;font-style:italic;" id="r-traits">—</p>
