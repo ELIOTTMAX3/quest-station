@@ -291,6 +291,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
             <div class="spill"><div class="spl">Bonus maîtrise</div><div class="spv" id="r-bm">+2</div></div>
             <div class="spill"><div class="spl">Dé de vie</div><div class="spv" id="r-dv">d8</div></div>
           </div>
+          <div class="skg" id="r-slots-perso" style="margin-top:10px;display:none;"></div>
         </div>
         <div class="card" style="flex:1;">
           <p class="st">Personnalité</p>
@@ -1618,8 +1619,8 @@ function rendreSlots(cid,avecClick){
     g.appendChild(box);
   });
 }
-function toggleDot(niv,idx){if(!slotsE[niv])return;slotsE[niv].used=slotsE[niv].used>idx?idx:idx+1;rendreSlots("e-slots",true);rendreSlots("r-slots",true);sauvegarder();}
-function resetSlots(){Object.keys(slotsE).forEach(function(k){slotsE[k].used=0;});rendreSlots("e-slots",true);rendreSlots("r-slots",true);sauvegarder();}
+function toggleDot(niv,idx){if(!slotsE[niv])return;slotsE[niv].used=slotsE[niv].used>idx?idx:idx+1;rendreSlots("e-slots",true);rendreSlots("r-slots",true);sauvegarder();}function toggleDot(niv,idx){if(!slotsE[niv])return;slotsE[niv].used=slotsE[niv].used>idx?idx:idx+1;rendreSlots("e-slots",true);rendreSlots("r-slots",true);rendreSlots("r-slots-perso",true);sauvegarder();}
+function resetSlots(){Object.keys(slotsE).forEach(function(k){slotsE[k].used=0;});rendreSlots("e-slots",true);rendreSlots("r-slots",true);sauvegarder();}function resetSlots(){Object.keys(slotsE).forEach(function(k){slotsE[k].used=0;});rendreSlots("e-slots",true);rendreSlots("r-slots",true);rendreSlots("r-slots-perso",true);sauvegarder();}
 
 // ══════════════════════════════════════════
 // VUE RÉSUMÉ
@@ -1974,6 +1975,13 @@ function rafraichirResume(){
   if(cw){if(cap){el("r-cap").textContent=cap;cw.style.display="block";}else cw.style.display="none";}
   // Mise à jour compteur niveau capacités
   var cniv=el("r-cap-niv");if(cniv)cniv.textContent=gNiv();
+  // Slots dans l'onglet Personnage
+  var sp=el("r-slots-perso");
+  if(sp){
+    var cl=gCl();
+    if(cl&&LANCEURS.indexOf(cl)>=0){rendreSlots("r-slots-perso",true);sp.style.display="";}
+    else sp.style.display="none";
+  }
 
   // Inventaire — visible si rempli
   syncInvResume();
