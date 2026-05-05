@@ -1694,18 +1694,17 @@ function capEstActive(cap, allCaps, src) {
   var parentCap = allCaps.find(function(c){ return c.nom === cap.parent; });
   if (!parentCap) return false;
 
-  function capEstActive(cap, allCaps, src) {
-  if (!cap.parent) return true;
-  var parentCap = allCaps.find(function(c){ return c.nom === cap.parent; });
-  if (!parentCap) return false;
-
   if (parentCap.type === "choix") {
-    // Vérifier que ce cap a été sélectionné dans le select de son parent
-    var clePar = src + "_" + parentCap.nom;
-    if (choixCaps[clePar] !== cap.nom) return false;
-    // Et que le parent lui-même est actif
+    // Le parent est lui-même une branche choisie : vérifier qu'il a été sélectionné
+    // dans le select de son propre parent (grand-parent de cap)
+    if (parentCap.parent) {
+      var clePP = src + "_" + parentCap.parent;
+      if (choixCaps[clePP] !== parentCap.nom) return false;
+    }
+    // Et que le grand-parent lui-même est actif
     return capEstActive(parentCap, allCaps, src);
   } else {
+    // Parent auto : vérifier que le parent est actif
     return capEstActive(parentCap, allCaps, src);
   }
 }
