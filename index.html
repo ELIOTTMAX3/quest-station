@@ -5677,6 +5677,7 @@ function connecter(){
     .replace(/[^a-z0-9]/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"");
   el("joueur").value=nom;
   el("nom").value=perso;
+  show("s-resume");
   updateHeader();
   ecouterJoueur();
 }
@@ -5694,7 +5695,6 @@ function ecouterJoueur(){
         if(premier){
           premier=false;
           chargerFiche(data);
-          show("s-resume");
           setSyncStatus("synced","r");setSyncStatus("synced","e");
         } else {
           majMJ(data);setSyncStatus("synced","r");
@@ -5702,7 +5702,7 @@ function ecouterJoueur(){
       } else {
         premier=false;
         var local=chargerLocal();
-        if(local){chargerFiche(local);show("s-resume");}
+        if(local){chargerFiche(local);}
         else{show("s-edit");}
         ref.set({_nouveau:true});
         setSyncStatus("new","r");
@@ -5712,7 +5712,7 @@ function ecouterJoueur(){
       setSyncStatus("error","r");
       // Fallback localStorage
       var local=chargerLocal();
-      if(local){chargerFiche(local);show("s-resume");}
+      if(local){chargerFiche(local);}
       else{show("s-edit");}
     });
     return;
@@ -5725,11 +5725,10 @@ function ecouterJoueur(){
   var local=chargerLocal();
   if(local){
     chargerFiche(local);
-    show("s-resume");
     setSyncStatus("saved","r");
     setSyncStatus("saved","e");
   } else {
-    show("s-edit");
+    allerEdition();
   }
 }
 
