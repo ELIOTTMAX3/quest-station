@@ -297,6 +297,11 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       </div>
     </div>
 
+    <!-- Capacités favorites -->
+    <div class="card" id="r-favoris-card" style="display:none;margin-bottom:1rem;">
+      <p class="st">⭐ Capacités favorites</p>
+      <div id="r-favoris-list"></div>
+    </div>
     <!-- Personnalité — pleine largeur -->
     <div class="card" style="margin-bottom:1rem;">
       <p class="st">Personnalité</p>
@@ -5567,6 +5572,7 @@ var grimoire=new Set();   // sorts connus (édition)
 var prepares=new Set();   // sorts préparés aujourd'hui (résumé)
 var choixCaps={};          // capacités à choix sélectionnées {classe_nom: valeur}
 var compsExtra=new Set();  // compétences cochées manuellement en mode résumé
+var capsFavoris=new Set(); // capacités favorites cochées en mode résumé
 var filNiv=new Set(), rFilNiv=new Set(), slotsE={}, desH=[];
 
 // ══════════════════════════════════════════
@@ -5789,6 +5795,7 @@ function collecterDonnees(){
   data.grimoire=Array.from(grimoire);
   data.prepares=Array.from(prepares);
   data.compsExtra=Array.from(compsExtra);
+  data.capsFavoris=Array.from(capsFavoris);
   data.choixCaps=choixCaps;
   data.slots=slotsE;
   data._pvmax=parseInt(v("pv-max"))||0;
@@ -5815,6 +5822,7 @@ function chargerFiche(data){
   if(data.grimoire)grimoire=new Set(data.grimoire);
   if(data.prepares)prepares=new Set(data.prepares);
   if(data.compsExtra)compsExtra=new Set(data.compsExtra);
+  if(data.capsFavoris)capsFavoris=new Set(data.capsFavoris);
   if(data.choixCaps)choixCaps=data.choixCaps;
   if(data.coches&&!data.grimoire)grimoire=new Set(data.coches);
   if(data.slots)slotsE=data.slots;
@@ -7020,6 +7028,21 @@ if (cap.type === "auto" && cap.options && cap.options.length) {
         nomEl2.textContent = nomAffiche;
         hd.appendChild(nomEl2);
 
+        // Étoile favori
+        var star = document.createElement("span");
+        var capKey = (sec.src||"") + "_" + nomAffiche;
+        star.textContent = capsFavoris.has(capKey) ? "⭐" : "☆";
+        star.title = "Ajouter aux favoris";
+        star.style.cssText = "cursor:pointer;font-size:13px;padding:0 2px;flex-shrink:0;";
+        star.addEventListener("click", function(e) {
+          e.stopPropagation();
+          if(capsFavoris.has(capKey)){ capsFavoris.delete(capKey); star.textContent="☆"; }
+          else { capsFavoris.add(capKey); star.textContent="⭐"; }
+          sauvegarder();
+          rMajFavoris();
+        });
+        hd.appendChild(star);
+
         var arr = document.createElement("span");
         arr.className = "cap-arr";
         arr.textContent = "▾";
@@ -7062,6 +7085,7 @@ function eRendreCaps() {
 }
 
 function rafraichirResume(){
+  rMajFavoris();
   var nom=v("nom")||"—",joueur=v("joueur")||"—",cl=v("classe")||"—";
   var race=v("race"),niv=v("niveau")||"1",align=v("alignement"),hist=v("historique");
   var ca=v("ca")||"10",vit=v("vitesse")||"9";
@@ -7222,6 +7246,83 @@ function rendreJDSPills(){
   });
 }
 
+function rMajFavoris(){
+  var card = el("r-favoris-card");
+  var list = el("r-favoris-list");
+  if(!card||!list) return;
+  if(capsFavoris.size === 0){ card.style.display="none"; return; }
+  card.style.display="block";
+  list.innerHTML="";
+
+  // Chercher la desc dans CAPS_DATA
+  function findDesc(nomComplet) {
+    // nomComplet peut être "Style de combat : Duel" → nom="Style de combat", choix="Duel"
+    var parts = nomComplet.split(" : ");
+    var nomCap = parts[0].trim();
+    var choix = parts[1] ? parts[1].trim() : null;
+    if(!CAPS_DATA||!CAPS_DATA.classes) return null;
+    var toutes = [];
+    Object.values(CAPS_DATA.classes).forEach(function(arr){ toutes = toutes.concat(arr); });
+    Object.values(CAPS_DATA.races||{}).forEach(function(arr){ toutes = toutes.concat(arr); });
+    Object.values(CAPS_DATA.historiques||{}).forEach(function(arr){ toutes = toutes.concat(arr); });
+    var cap = toutes.find(function(c){ return c.nom === nomCap; });
+    if(!cap) return null;
+    if(!choix) return cap.desc;
+    // Chercher desc de l'enfant ou filtrer la desc par animal/choix
+    var enfant = toutes.find(function(c){ return c.nom === choix && c.parent === nomCap; });
+    if(enfant) return enfant.desc;
+    // Filtrer la desc par choix (format "Animal. texte...")
+    if(cap.desc && cap.desc.indexOf(choix+'.') >= 0) {
+      var idx = cap.desc.indexOf(choix+'.');
+      var suite = cap.desc.slice(idx + choix.length + 1).trim();
+      var idxFin = suite.length;
+      (cap.options||[]).forEach(function(a){
+        if(a !== choix){ var p = suite.indexOf(a+'.'); if(p>=0&&p<idxFin) idxFin=p; }
+      });
+      return suite.slice(0, idxFin).trim();
+    }
+    return cap.desc;
+  }
+
+  capsFavoris.forEach(function(key){
+    var nom = key.replace(/^[a-z]+_/, "");
+    var desc = findDesc(nom);
+
+    var item = document.createElement("div");
+    item.className = "cap-item";
+    item.style.marginBottom = "4px";
+
+    var hd = document.createElement("div");
+    hd.className = "cap-hd";
+    hd.style.cursor = desc ? "pointer" : "default";
+    hd.innerHTML = "<span style='color:#b8860b;flex-shrink:0;'>⭐</span><span style='flex:1;font-size:13px;font-weight:500;'>" + nom + "</span>";
+
+    if(desc){
+      var arr = document.createElement("span");
+      arr.className = "cap-arr";
+      arr.textContent = "▾";
+      hd.appendChild(arr);
+
+      var bd = document.createElement("div");
+      bd.className = "cap-bd";
+      var p = document.createElement("p");
+      p.style.cssText = "font-size:12px;color:var(--txt);line-height:1.6;";
+      p.textContent = desc;
+      bd.appendChild(p);
+
+      hd.addEventListener("click", function(){
+        bd.classList.toggle("on");
+        arr.textContent = bd.classList.contains("on") ? "▴" : "▾";
+      });
+
+      item.appendChild(hd);
+      item.appendChild(bd);
+    } else {
+      item.appendChild(hd);
+    }
+    list.appendChild(item);
+  });
+}
 function rRendreComps(){
   var bm=gBM();
   var cc=el("r-clist");if(!cc)return;
