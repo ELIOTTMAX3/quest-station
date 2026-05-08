@@ -5477,12 +5477,22 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 // Ne pas écraser les données déjà chargées
 if (!window.SORTS) window.SORTS = [];
 if (!window.CAPS_DATA || !window.CAPS_DATA.classes) window.CAPS_DATA = {};
+// Ne pas copier en variable locale — toujours lire depuis window pour avoir la version à jour
+var _sortsCharge = window.SORTS.length > 0;
+var _capsCharge  = Object.keys((window.CAPS_DATA||{}).classes||{}).length > 0;
+
+// Raccourcis qui lisent toujours la version courante
+function getSORTS(){ return window.SORTS || []; }
+function getCAPS_DATA(){ return window.CAPS_DATA || {}; }
 var SORTS = window.SORTS;
 var CAPS_DATA = window.CAPS_DATA;
-var _sortsCharge = true;
-var _capsCharge  = Object.keys(CAPS_DATA.classes||{}).length > 0;
 
 function verifierDonneesChargees() {
+  // Resynchroniser les références locales
+  SORTS = window.SORTS || [];
+  CAPS_DATA = window.CAPS_DATA || {};
+  _sortsCharge = SORTS.length > 0;
+  _capsCharge  = Object.keys(CAPS_DATA.classes||{}).length > 0;
   if (_sortsCharge) {
     var ds=document.getElementById("diag-sorts");
     if(ds) ds.innerHTML="✅ "+SORTS.length+" sorts chargés";
@@ -5493,9 +5503,7 @@ function verifierDonneesChargees() {
   }
   if (_sortsCharge && _capsCharge) {
     console.log('✅ Données chargées — sorts:', SORTS.length, '/ capacités:', Object.keys(CAPS_DATA.classes||{}).length, 'classes');
-    // Si la fiche est déjà chargée, rafraîchir l'affichage
     if (joueurId) {
-      // Relancer onClasseChange qui déclenche tout
       onClasseChange();
       rafraichirResume();
       rendreHexagone();
@@ -5855,8 +5863,10 @@ function chargerFiche(data){
   // Rafraîchir immédiatement ce qui ne dépend pas de SORTS/CAPS
   var ficheVide = !data.classe && !data.race && !data.nom;
   if(ficheVide){ show("s-edit"); return; }
-  // CAPS_DATA est inline → toujours disponible. SORTS peut être vide (sorts.js manquant).
   function doRefresh() {
+    // Synchroniser les références locales avec window
+    SORTS = window.SORTS || [];
+    CAPS_DATA = window.CAPS_DATA || {};
     calcSortsDD();
     rafraichirResume();
     rendreHexagone();
@@ -5865,17 +5875,18 @@ function chargerFiche(data){
     if(CAPS_DATA && CAPS_DATA.classes) rRendreCaps();
     show("s-resume");
   }
-  // Attendre uniquement CAPS_DATA (SORTS peut être vide si sorts.js absent)
-  if (Object.keys(CAPS_DATA.classes||{}).length > 0) {
+  function donneesPretes() {
+    return Object.keys((window.CAPS_DATA||{}).classes||{}).length > 0
+        && (window.SORTS||[]).length > 0;
+  }
+  if (donneesPretes()) {
     setTimeout(doRefresh, 50);
   } else {
     var tentatives = 0;
     var attente = setInterval(function() {
       tentatives++;
-      if (Object.keys(CAPS_DATA.classes||{}).length > 0) {
-        clearInterval(attente); doRefresh();
-      }
-      if (tentatives > 30) { clearInterval(attente); doRefresh(); }
+      if (donneesPretes()) { clearInterval(attente); doRefresh(); return; }
+      if (tentatives > 50) { clearInterval(attente); doRefresh(); }
     }, 100);
   }
 }
@@ -6035,7 +6046,7 @@ function onClasseChange(){
     var mod=el("sorts-mod");if(mod)mod.value=gMod(parseInt(v(CS_CL[cl]))||10);
   }
   calcSortsDD();
-  if(SORTS.length) { eBuildChips();eFiltrerSorts(); }
+  if((window.SORTS||[]).length) { eBuildChips();eFiltrerSorts(); }
   rendreSlots("e-slots",true);majCompteurGrimoire();majCompteurPrepares();
   // Mettre à jour les labels d'onglet selon la classe
   var lbl=getLabelEdition();
@@ -6298,10 +6309,11 @@ function calcSortsDD() {
   majCompteurPrepares();
 }
 function getSortsFiltres(){
-  if (!SORTS || !SORTS.length) return [];
+  var S = window.SORTS || [];
+  if (!S.length) return [];
   var cl=gCl();
   var clF=cl==="Occultiste"?"Sorcier":cl==="Rôdeur"?"Ranger":cl;
-  return cl&&LANCEURS.indexOf(cl)>=0?SORTS.filter(function(s){return s.cl.indexOf(clF)>=0;}):SORTS;
+  return cl&&LANCEURS.indexOf(cl)>=0?S.filter(function(s){return s.cl.indexOf(clF)>=0;}):S;
 }
 function eBuildChips(){
   var ss=getSortsFiltres();
