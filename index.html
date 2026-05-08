@@ -5855,7 +5855,7 @@ function chargerFiche(data){
   // Rafraîchir immédiatement ce qui ne dépend pas de SORTS/CAPS
   var ficheVide = !data.classe && !data.race && !data.nom;
   if(ficheVide){ show("s-edit"); return; }
-  // Attendre SORTS et CAPS pour le rendu complet puis afficher
+  // CAPS_DATA est inline → toujours disponible. SORTS peut être vide (sorts.js manquant).
   function doRefresh() {
     calcSortsDD();
     rafraichirResume();
@@ -5865,16 +5865,17 @@ function chargerFiche(data){
     if(CAPS_DATA && CAPS_DATA.classes) rRendreCaps();
     show("s-resume");
   }
-  if (SORTS.length > 0 && Object.keys(CAPS_DATA.classes||{}).length > 0) {
+  // Attendre uniquement CAPS_DATA (SORTS peut être vide si sorts.js absent)
+  if (Object.keys(CAPS_DATA.classes||{}).length > 0) {
     setTimeout(doRefresh, 50);
   } else {
     var tentatives = 0;
     var attente = setInterval(function() {
       tentatives++;
-      if (SORTS.length > 0 && Object.keys(CAPS_DATA.classes||{}).length > 0) {
+      if (Object.keys(CAPS_DATA.classes||{}).length > 0) {
         clearInterval(attente); doRefresh();
       }
-      if (tentatives > 50) { clearInterval(attente); doRefresh(); }
+      if (tentatives > 30) { clearInterval(attente); doRefresh(); }
     }, 100);
   }
 }
