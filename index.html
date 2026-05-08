@@ -5829,26 +5829,27 @@ function chargerFiche(data){
     });
     updateComps();
   }
-  // Attendre que SORTS et CAPS soient chargés
-  function doRefresh() {
+  // Rafraîchir immédiatement ce qui ne dépend pas de SORTS/CAPS
+  var ficheVide = !data.classe && !data.race && !data.nom;
+  if(ficheVide){ show("s-edit"); }
+  else {
     rafraichirResume();
     rendreHexagone();
-    calcSortsDD();
     syncInvResume();
   }
-  // Si fiche vide (première connexion), aller directement en mode édition
-  var ficheVide = !data.classe && !data.race && !data.niveau;
-
+  // Attendre SORTS et CAPS pour les sorts et capacités
+  function doRefresh() {
+    calcSortsDD();
+    if(!ficheVide){ rafraichirResume(); rendreHexagone(); }
+  }
   if (SORTS.length > 0 && Object.keys(CAPS_DATA.classes||{}).length > 0) {
-    setTimeout(function(){ doRefresh(); if(ficheVide) allerEdition(); }, 100);
+    setTimeout(doRefresh, 100);
   } else {
     var tentatives = 0;
     var attente = setInterval(function() {
       tentatives++;
       if (SORTS.length > 0 && Object.keys(CAPS_DATA.classes||{}).length > 0) {
-        clearInterval(attente);
-        doRefresh();
-        if(ficheVide) allerEdition();
+        clearInterval(attente); doRefresh();
       }
       if (tentatives > 50) clearInterval(attente);
     }, 100);
