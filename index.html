@@ -5596,7 +5596,12 @@ function show(id){
   });
   var t=el(id);if(t)t.classList.add("on");
 }
-function allerResume(){rafraichirResume();show("s-resume");}
+function allerResume(){
+  show("s-resume");
+  rafraichirResume();
+  rRendreComps();
+  if(CAPS_DATA && CAPS_DATA.classes && Object.keys(CAPS_DATA.classes).length > 0){ rRendreCaps(); }
+}
 function allerEdition(){show("s-edit");}
 
 // ══════════════════════════════════════════
@@ -5683,7 +5688,8 @@ function connecter(){
     .replace(/[^a-z0-9]/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"");
   el("joueur").value=nom;
   el("nom").value=perso;
-  show("s-resume");
+  // Masquer le login, afficher un message d'attente temporaire
+  var btn=el("btn-login");if(btn){btn.textContent="⏳ Chargement...";btn.disabled=true;}
   updateHeader();
   ecouterJoueur();
 }
@@ -5755,7 +5761,6 @@ function sauvegarder(){
         .then(function(){
           setSyncStatus("saved","r");setSyncStatus("saved","e");
           setTimeout(function(){setSyncStatus("synced","r");setSyncStatus("synced","e");},2000);
-          if(el("s-resume").classList.contains("on"))rafraichirResume();
         })
         .catch(function(err){
           console.error("Firebase save erreur:",err);
@@ -5763,7 +5768,6 @@ function sauvegarder(){
         });
     } else {
       setSyncStatus("saved","r");setSyncStatus("saved","e");
-      if(el("s-resume").classList.contains("on"))rafraichirResume();
     }
   },1000);
 }
@@ -5840,15 +5844,17 @@ function chargerFiche(data){
   // Rafraîchir immédiatement ce qui ne dépend pas de SORTS/CAPS
   var ficheVide = !data.classe && !data.race && !data.nom;
   if(ficheVide){ show("s-edit"); }
-  else {
-    rafraichirResume();
-    rendreHexagone();
-    syncInvResume();
-  }
-  // Attendre SORTS et CAPS pour les sorts et capacités
+  // Attendre SORTS et CAPS pour le rendu complet
   function doRefresh() {
     calcSortsDD();
-    if(!ficheVide){ rafraichirResume(); rendreHexagone(); }
+    if(!ficheVide){
+      rafraichirResume();
+      rendreHexagone();
+      syncInvResume();
+      rRendreComps();
+      rRendreCaps();
+      show("s-resume");
+    }
   }
   if (SORTS.length > 0 && Object.keys(CAPS_DATA.classes||{}).length > 0) {
     setTimeout(doRefresh, 100);
@@ -5859,7 +5865,7 @@ function chargerFiche(data){
       if (SORTS.length > 0 && Object.keys(CAPS_DATA.classes||{}).length > 0) {
         clearInterval(attente); doRefresh();
       }
-      if (tentatives > 50) clearInterval(attente);
+      if (tentatives > 50) { clearInterval(attente); if(!ficheVide) allerResume(); }
     }, 100);
   }
 }
@@ -7030,7 +7036,7 @@ if (cap.type === "auto" && cap.options && cap.options.length) {
 
         // Étoile favori
         var star = document.createElement("span");
-        var capKey = (sec.src||"") + "_" + nomAffiche;
+        var capKey = (sec.src||"") + "_" + cap.nom;
         star.textContent = capsFavoris.has(capKey) ? "⭐" : "☆";
         star.title = "Ajouter aux favoris";
         star.style.cssText = "cursor:pointer;font-size:13px;padding:0 2px;flex-shrink:0;";
