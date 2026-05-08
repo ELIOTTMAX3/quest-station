@@ -5874,7 +5874,7 @@ function chargerFiche(data){
       if (SORTS.length > 0 && Object.keys(CAPS_DATA.classes||{}).length > 0) {
         clearInterval(attente); doRefresh();
       }
-      if (tentatives > 50) { clearInterval(attente); doRefresh(); } // fallback
+      if (tentatives > 50) { clearInterval(attente); doRefresh(); }
     }, 100);
   }
 }
@@ -6299,7 +6299,8 @@ function calcSortsDD() {
 function getSortsFiltres(){
   if (!SORTS || !SORTS.length) return [];
   var cl=gCl();
-  (function(){var clF=cl==="Occultiste"?"Sorcier":cl==="Rôdeur"?"Ranger":cl;return cl&&LANCEURS.indexOf(cl)>=0?SORTS.filter(function(s){return s.cl.indexOf(clF)>=0;}):SORTS;})()
+  var clF=cl==="Occultiste"?"Sorcier":cl==="Rôdeur"?"Ranger":cl;
+  return cl&&LANCEURS.indexOf(cl)>=0?SORTS.filter(function(s){return s.cl.indexOf(clF)>=0;}):SORTS;
 }
 function eBuildChips(){
   var ss=getSortsFiltres();
