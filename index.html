@@ -296,6 +296,30 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
             <span id="r-pvtmp" style="font-size:10px;padding:2px 6px;border-radius:999px;background:#fff4d6;color:#7a5800;margin-left:auto;display:none;"></span>
           </div>
           <div class="pvw"><div class="pvb" id="r-pvbar" style="width:100%;"></div></div>
+          <div style="display:flex;gap:5px;margin-top:8px;align-items:center;">
+            <input type="number" id="r-pv-delta" min="0" value="" placeholder="?" style="width:52px;text-align:center;font-size:13px;padding:5px 4px;">
+            <button class="btn ko" style="flex:1;padding:5px 6px;" onclick="rModPV(-1)">− Dégâts</button>
+            <button class="btn ok" style="flex:1;padding:5px 6px;" onclick="rModPV(1)">+ Soins</button>
+          </div>
+          <div style="display:flex;gap:5px;margin-top:6px;">
+            <button class="btn" style="flex:1;padding:6px 4px;font-size:12px;" onclick="rReposCourt()">☀️ Repos court</button>
+            <button class="btn" style="flex:1;padding:6px 4px;font-size:12px;" onclick="rReposLong()">🌙 Repos long</button>
+          </div>
+          <div id="r-rc-panel" style="display:none;margin-top:8px;background:var(--bg3);border:1px solid var(--bord);border-radius:8px;padding:10px;">
+            <div style="font-size:12px;color:var(--txt2);margin-bottom:8px;">
+              Dés de vie disponibles : <b id="r-rc-dv-rest">?</b>&thinsp;<span id="r-rc-dv-type">d8</span>
+              &nbsp;·&nbsp; CON : <b id="r-rc-con-mod">+0</b>
+            </div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <span style="font-size:12px;color:var(--txt3);">Dépenser :</span>
+              <button class="btn" style="padding:2px 8px;" onclick="rDvAdj(-1)">−</button>
+              <b id="r-rc-n" style="min-width:20px;text-align:center;">1</b>
+              <button class="btn" style="padding:2px 8px;" onclick="rDvAdj(1)">+</button>
+              <button class="btn ok" style="padding:4px 10px;" onclick="rDvLancer()">Lancer</button>
+              <button class="btn" style="padding:4px 8px;margin-left:auto;" onclick="el('r-rc-panel').style.display='none'">✕</button>
+            </div>
+            <div id="r-rc-res" style="font-size:12px;color:var(--txt2);margin-top:8px;min-height:18px;"></div>
+          </div>
           <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px;">
             <div class="spill"><div class="spl">Initiative</div><div class="spv" id="r-init">+0</div></div>
             <div class="spill"><div class="spl">Vitesse</div><div class="spv" id="r-vit">9m</div></div>
@@ -6025,6 +6049,62 @@ function updatePV(){
 function appDeg(){var d=parseInt(v("pv-d"))||0,e=el("pv-act");e.value=Math.max(0,parseInt(e.value)-d);updatePV();sauvegarder();}
 function appSoin(){var d=parseInt(v("pv-d"))||0,e=el("pv-act"),max=parseInt(v("pv-max"))||1;e.value=Math.min(max,parseInt(e.value)+d);updatePV();sauvegarder();}
 function reposLong(){el("pv-act").value=v("pv-max");updatePV();resetSlots();sauvegarder();}
+
+var _rDvN=1;
+function rModPV(sign){
+  var d=parseInt(document.getElementById("r-pv-delta").value)||0;
+  if(d<=0)return;
+  var ea=el("pv-act"),max=parseInt(v("pv-max"))||1,cur=parseInt(ea.value)||0;
+  ea.value=sign>0?Math.min(max,cur+d):Math.max(0,cur-d);
+  document.getElementById("r-pv-delta").value="";
+  updatePV();rafraichirResume();sauvegarder();
+}
+function rReposCourt(){
+  var panel=el("r-rc-panel");
+  if(panel.style.display!=="none"){panel.style.display="none";return;}
+  var dvRest=parseInt(v("dv-r"))||0,cl=gCl(),dvType=DV_CL[cl]||"d8";
+  var conMod=gMod(parseInt(v("con"))||10);
+  el("r-rc-dv-rest").textContent=dvRest;
+  el("r-rc-dv-type").textContent=dvType;
+  el("r-rc-con-mod").textContent=fMod(conMod);
+  _rDvN=dvRest>0?1:0;
+  el("r-rc-n").textContent=_rDvN;
+  el("r-rc-res").textContent="";
+  panel.style.display="block";
+  if(cl==="Occultiste"){resetSlots();el("r-rc-res").textContent="⚡ Pacte Magique : emplacements de sorts rechargés.";}
+}
+function rDvAdj(d){
+  var dvRest=parseInt(v("dv-r"))||0;
+  _rDvN=Math.max(0,Math.min(dvRest,_rDvN+d));
+  el("r-rc-n").textContent=_rDvN;
+}
+function rDvLancer(){
+  if(_rDvN<=0){el("r-rc-res").textContent="Aucun dé de vie disponible.";return;}
+  var dvRest=parseInt(v("dv-r"))||0,cl=gCl(),dvType=DV_CL[cl]||"d8";
+  var faces=parseInt(dvType.replace("d",""))||8;
+  var conMod=gMod(parseInt(v("con"))||10);
+  var rolls=[],rollTotal=0;
+  for(var i=0;i<_rDvN;i++){var r=Math.floor(Math.random()*faces)+1;rolls.push(r);rollTotal+=r;}
+  var total=Math.max(0,rollTotal+conMod*_rDvN);
+  var pvAct=parseInt(v("pv-act"))||0,pvMax=parseInt(v("pv-max"))||1;
+  el("pv-act").value=Math.min(pvMax,pvAct+total);
+  var eDvR=el("dv-r");if(eDvR)eDvR.value=Math.max(0,dvRest-_rDvN);
+  var conStr=conMod!==0?" + "+_rDvN+"×"+fMod(conMod):"";
+  el("r-rc-res").textContent=_rDvN+dvType+" = ["+rolls.join(", ")+"]"+conStr+" → +"+total+" PV";
+  el("r-rc-dv-rest").textContent=Math.max(0,dvRest-_rDvN);
+  _rDvN=0;el("r-rc-n").textContent=0;
+  updatePV();rafraichirResume();sauvegarder();
+}
+function rReposLong(){
+  var niv=gNiv(),dvRest=parseInt(v("dv-r"))||0;
+  el("pv-act").value=v("pv-max");
+  var recover=Math.max(1,Math.floor(niv/2));
+  var eDvR=el("dv-r");if(eDvR)eDvR.value=Math.min(niv,dvRest+recover);
+  resetSlots();resetJM();
+  el("r-rc-panel").style.display="none";
+  updatePV();rafraichirResume();sauvegarder();
+}
+
 function resetJM(){["jr1","jr2","jr3","je1","je2","je3"].forEach(function(id){if(el(id))el(id).checked=false;});sauvegarder();}
 function onClasseChange(){
   var cl=gCl();
