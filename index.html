@@ -6,70 +6,87 @@
 <title>Quest Station</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-:root{--rouge:#6D0000;--rh:#8a0000;--bg:#f5f3f0;--bg2:#fffffe;--bg3:#edeae6;--txt:#1a1a1a;--txt2:#555;--txt3:#888;--bord:#ddd;--bord2:#ccc;--vert:#2d6e2d;--vbg:#e6f4e6;}
+/* ── DARK THEME VARIABLES ─────────────────────────────── */
+:root{
+  --rouge:#d97706;  --rh:#b45309;
+  --bg:#1a1a2e;     --bg2:#16213e;    --bg3:#0f3460;
+  --txt:#e0e0e0;    --txt2:#a0a0b0;   --txt3:#6a6a8a;
+  --bord:rgba(255,255,255,0.08);  --bord2:rgba(255,255,255,0.14);
+  --vert:#2d8a4e;   --vbg:#132b1c;    --or:#c9a227;
+}
 body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;}
 .app{max-width:960px;margin:0 auto;padding:1rem;}
-/* SCREENS — un seul visible à la fois */
+/* SCREENS */
 .screen{display:none;}
-/* LOGIN */
-#s-login{min-height:100vh;display:none;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a0000,#3d0000);}
+/* ── LOGIN ───────────────────────────────────────────── */
+#s-login{min-height:100vh;display:none;align-items:center;justify-content:center;background:linear-gradient(135deg,#0a000a,#1a0000,#2d0808);}
 #s-login.on{display:flex;}
-.lbox{background:var(--bg2);border-radius:16px;padding:2.5rem;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.4);text-align:center;}
+.lbox{background:var(--bg2);border:1px solid var(--bord2);border-radius:16px;padding:2.5rem;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.7);text-align:center;}
 .llogo{font-size:48px;margin-bottom:.5rem;}
 .ltitre{font-size:22px;font-weight:700;color:var(--rouge);margin-bottom:.25rem;}
 .lsous{font-size:13px;color:var(--txt3);margin-bottom:1.5rem;}
 .lf{text-align:left;margin-bottom:1rem;}
 .lf label{font-size:12px;font-weight:600;color:var(--txt3);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;}
-.lf input{width:100%;font-size:15px;padding:10px 12px;border:1.5px solid var(--bord2);border-radius:8px;font-family:inherit;}
+.lf input{width:100%;font-size:15px;padding:10px 12px;border:1.5px solid var(--bord2);border-radius:8px;font-family:inherit;background:var(--bg);color:var(--txt);}
 .lf input:focus{outline:none;border-color:var(--rouge);}
-#btn-login{width:100%;padding:12px;font-size:15px;font-weight:700;border-radius:8px;background:var(--rouge);color:white;border:none;cursor:pointer;font-family:inherit;margin-top:.5rem;}
-#btn-login.on{background:var(--rh);cursor:pointer;}
-#btn-login.on:hover{background:var(--rh);}
-.lerreur{font-size:12px;color:#a32d2d;background:#ffe8e8;border-radius:6px;padding:8px;margin-top:8px;display:none;}
+#btn-login{width:100%;padding:12px;font-size:15px;font-weight:700;border-radius:8px;background:var(--rouge);color:white;border:none;cursor:pointer;font-family:inherit;margin-top:.5rem;transition:background .2s;}
+#btn-login:hover{background:var(--rh);}
+.lerreur{font-size:12px;color:#fca5a5;background:rgba(185,28,28,.25);border-radius:6px;padding:8px;margin-top:8px;display:none;}
 .lnote{font-size:11px;color:var(--txt3);margin-top:1rem;line-height:1.6;}
-/* RESUME */
+/* ── LOADING ─────────────────────────────────────────── */
+#s-loading{display:none;min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(135deg,#0a000a,#1a0000,#2d0808);}
+#s-loading.on{display:flex;}
+/* ── RESUME — sticky header ──────────────────────────── */
 #s-resume{display:none;}
 #s-resume.on{display:block;}
-/* LOADING */
-#s-loading{display:none;min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a0000,#3d0000);}
-#s-loading.on{display:flex;}
-/* EDITION */
+.r-sticky-hd{position:sticky;top:0;z-index:100;background:var(--rouge);color:white;display:flex;align-items:center;justify-content:center;padding:.75rem 1.25rem;box-shadow:0 2px 12px rgba(0,0,0,.5);min-height:62px;}
+.r-shd-center{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;}
+.r-sticky-hd .hright{position:absolute;right:1.25rem;top:50%;transform:translateY(-50%);display:flex;align-items:center;gap:8px;}
+.r-shd-info{min-width:0;}
+.r-shd-name{font-size:15px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1.2;}
+.r-shd-sub{display:flex;gap:5px;flex-wrap:wrap;margin-top:3px;align-items:center;}
+.r-shd-sub span{font-size:11px;opacity:.85;}
+.r-shd-sub .sep{opacity:.4;margin:0 1px;}
+.r-hbadge{background:rgba(0,0,0,.3);border-radius:8px;padding:4px 10px;text-align:center;flex-shrink:0;}
+.r-hbadge-l{font-size:8px;opacity:.75;font-weight:700;text-transform:uppercase;letter-spacing:.07em;}
+.r-hbadge-v{font-size:18px;font-weight:800;line-height:1.1;}
+.r-hbadge-v .r-hbadge-sep{font-size:11px;font-weight:400;opacity:.6;margin:0 1px;}
+/* ── EDITION HEADER ──────────────────────────────────── */
 #s-edit{display:none;}
 #s-edit.on{display:block;}
-/* HEADER */
 .hd{background:var(--rouge);color:white;border-radius:10px;padding:.875rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
 .hd h1{font-size:16px;font-weight:700;}
 .hd p{font-size:11px;opacity:.75;}
 .hright{display:flex;align-items:center;gap:8px;}
-/* SYNC */
+/* ── SYNC BADGE ──────────────────────────────────────── */
 .sbadge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;display:inline-flex;align-items:center;gap:5px;}
-.sbadge.saving{background:#fff4d6;color:#7a5800;}
+.sbadge.saving{background:rgba(201,162,39,.2);color:#fcd34d;}
 .sbadge.saved{background:var(--vbg);color:var(--vert);}
-.sbadge.synced{background:#e6f0f8;color:#1a5080;}
-.sbadge.error{background:#ffe8e8;color:#a32d2d;}
+.sbadge.synced{background:rgba(147,197,253,.15);color:#93c5fd;}
+.sbadge.error{background:rgba(185,28,28,.25);color:#fca5a5;}
 .sbadge.new{background:var(--bg3);color:var(--txt3);}
 .sdot{width:7px;height:7px;border-radius:50%;background:currentColor;}
 .saving .sdot{animation:p 1s infinite;}
 @keyframes p{0%,100%{opacity:1;}50%{opacity:.3;}}
-/* TABS */
+/* ── TABS ────────────────────────────────────────────── */
 .tbar{display:flex;background:var(--bg2);border:1px solid var(--bord);border-radius:10px;overflow:hidden;margin-bottom:1rem;}
 .tbtn{flex:1;font-family:inherit;font-size:13px;font-weight:500;padding:10px 4px;cursor:pointer;border:none;background:none;color:var(--txt2);text-align:center;border-right:1px solid var(--bord);}
 .tbtn:last-child{border-right:none;}
 .tbtn.on{background:var(--rouge);color:white;}
 .tbtn:hover:not(.on){background:var(--bg3);}
 .tc{display:none;}.tc.on{display:block;}
-/* CARD */
+/* ── CARD ────────────────────────────────────────────── */
 .card{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1rem;}
 .st{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3);margin-bottom:10px;border-bottom:1px solid var(--bord);padding-bottom:5px;}
-/* INPUTS */
-input[type=text],input[type=number],select,textarea{font-family:inherit;font-size:13px;color:var(--txt);background:var(--bg);border:1px solid var(--bord2);border-radius:6px;padding:6px 8px;width:100%);}
+/* ── INPUTS ──────────────────────────────────────────── */
+input[type=text],input[type=number],select,textarea{font-family:inherit;font-size:13px;color:var(--txt);background:var(--bg);border:1px solid var(--bord2);border-radius:6px;padding:6px 8px;width:100%;}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--rouge);}
 textarea{resize:none;min-height:70px;width:100%;}
 label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weight:500;}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
 .g6{display:grid;grid-template-columns:repeat(6,1fr);gap:8px;}
-/* CARAC */
+/* ── CARAC ───────────────────────────────────────────── */
 .cb{background:var(--bg3);border:1px solid var(--bord);border-radius:10px;padding:10px 6px;text-align:center;}
 .cb-n{font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--txt3);margin-bottom:4px;}
 .cb-s{width:100%;text-align:center;font-size:24px;font-weight:700;padding:2px;background:transparent;border:none;border-bottom:1px solid var(--bord2);border-radius:0;color:var(--txt);}
@@ -77,16 +94,16 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .sb{background:var(--bg3);border:1px solid var(--bord);border-radius:8px;padding:8px;text-align:center;}
 .sv{font-size:20px;font-weight:700;color:var(--txt);}
 .sl{font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.05em;}
-/* PV */
-.pvw{background:var(--bg3);border-radius:999px;height:12px;margin:6px 0;overflow:hidden;}
+/* ── PV BAR ──────────────────────────────────────────── */
+.pvw{background:rgba(255,255,255,.1);border-radius:999px;height:10px;margin:6px 0;overflow:hidden;}
 .pvb{height:100%;border-radius:999px;background:var(--vert);transition:width .4s,background .4s;}
-/* BOUTONS */
-.btn{font-family:inherit;font-size:13px;padding:6px 14px;border-radius:6px;cursor:pointer;border:1px solid var(--bord2);background:var(--bg2);color:var(--txt);white-space:nowrap;}
+/* ── BOUTONS ─────────────────────────────────────────── */
+.btn{font-family:inherit;font-size:13px;padding:6px 14px;border-radius:6px;cursor:pointer;border:1px solid var(--bord2);background:var(--bg2);color:var(--txt);white-space:nowrap;transition:background .15s;}
 .btn:hover{background:var(--bg3);}
-.btn.ok{border-color:var(--vert);color:var(--vert);}
-.btn.ko{border-color:#a32d2d;color:#a32d2d;}
+.btn.ok{border-color:var(--vert);color:#6ee7a1;}
+.btn.ko{border-color:#ef4444;color:#ef4444;}
 .btn.red{background:var(--rouge);color:white;border-color:var(--rouge);}
-/* SORTS */
+/* ── SORTS ───────────────────────────────────────────── */
 .sl-list{display:flex;flex-direction:column;gap:4px;padding-right:2px;}
 .si{border:1px solid var(--bord);border-radius:7px;}
 .sh{display:flex;align-items:center;gap:8px;padding:10px 12px;cursor:pointer;background:var(--bg2);user-select:none;min-height:42px;border-radius:7px;}
@@ -99,13 +116,13 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .smeta{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:8px;}
 .smeta span{font-size:11px;color:var(--txt3);}
 .smeta b{color:var(--txt);}
-.sdesc{font-size:12px;color:var(--txt);line-height:1.6;}
+.sdesc{font-size:12px;color:var(--txt2);line-height:1.6;}
 .bdg{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;flex-shrink:0;}
-.b0{background:#d4f5e9;color:#0a5c43;}.b1{background:#dbeeff;color:#1a5080;}
-.b2{background:#eeeaff;color:#4a3ca0;}.b3{background:#fff0d4;color:#7a5800;}
-.b4{background:#ffe8de;color:#8a3010;}.b5{background:#ffd6eb;color:#8a2550;}
-.b6{background:#e5f5d0;color:#2d5c0a;}.b7{background:#ffe8e8;color:#8a2020;}
-.b8{background:#ededea;color:#4a4a46;}.b9{background:#2c2c2a;color:#ddd;}
+.b0{background:rgba(45,138,78,.25);color:#6ee7a1;}.b1{background:rgba(24,95,165,.25);color:#93c5fd;}
+.b2{background:rgba(124,58,237,.25);color:#c4b5fd;}.b3{background:rgba(201,162,39,.25);color:#fcd34d;}
+.b4{background:rgba(234,88,12,.25);color:#fdba74;}.b5{background:rgba(219,39,119,.25);color:#f9a8d4;}
+.b6{background:rgba(84,160,10,.25);color:#a3e635;}.b7{background:rgba(185,28,28,.25);color:#fca5a5;}
+.b8{background:rgba(107,114,128,.2);color:#d1d5db;}.b9{background:rgba(30,30,28,.8);color:#e5e5e5;}
 .ptag{font-size:10px;padding:2px 6px;border-radius:999px;background:var(--vbg);color:var(--vert);flex-shrink:0;font-weight:600;}
 .chips{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:8px;}
 .chip{font-size:11px;padding:3px 9px;border-radius:999px;cursor:pointer;border:1px solid var(--bord2);background:var(--bg2);color:var(--txt3);}
@@ -117,24 +134,28 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .dot{width:10px;height:10px;border-radius:50%;cursor:pointer;border:1px solid var(--bord2);background:var(--bg2);display:inline-block;margin:1px;}
 .dot.avail{background:var(--rouge);border-color:var(--rouge);}
 .dot.used{background:var(--txt3);}
-/* RÉSUMÉ */
-.rav{width:50px;height:50px;border-radius:50%;background:#dbeeff;display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:#1a5080;flex-shrink:0;}
+/* ── RÉSUMÉ — common ─────────────────────────────────── */
+.rav{width:52px;height:52px;border-radius:50%;background:rgba(201,162,39,.2);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:700;color:var(--or);flex-shrink:0;cursor:pointer;overflow:hidden;position:relative;border:2px solid rgba(255,255,255,.25);transition:border-color .15s,box-shadow .15s;}
+.rav:hover{border-color:rgba(255,255,255,.75);box-shadow:0 0 0 3px rgba(255,255,255,.15);}
+.rav::after{content:'📷';position:absolute;inset:0;display:none;align-items:center;justify-content:center;font-size:18px;background:rgba(0,0,0,.55);border-radius:50%;}
+.rav:hover::after{display:flex;}
+.rav img{width:100%;height:100%;object-fit:cover;display:none;border-radius:50%;}
 .rbdg{font-size:11px;padding:2px 8px;border-radius:999px;font-weight:600;}
-.rb-cl{background:#dbeeff;color:#1a5080;}.rb-ra{background:#e5f5d0;color:#3b6d11;}.rb-nv,.rb-al{background:var(--bg3);color:var(--txt3);}
-.spill{background:var(--bg3);border-radius:6px;padding:6px 4px;text-align:center;}
+.rb-cl{background:rgba(24,95,165,.25);color:#93c5fd;}.rb-ra{background:rgba(45,110,17,.25);color:#86efac;}.rb-nv,.rb-al{background:rgba(255,255,255,.1);color:rgba(255,255,255,.75);}
+.spill{background:var(--bg3);border-radius:8px;padding:8px 6px;text-align:center;}
 .spl{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:.04em;color:var(--txt3);}
 .spv{font-size:16px;font-weight:700;color:var(--txt);}
-.jpill{font-size:11px;padding:2px 8px;border-radius:999px;background:#dbeeff;color:#1a5080;font-weight:600;}
-.rcrow{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--bg3);font-size:13px;color:var(--txt);}
+.jpill{font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(24,95,165,.25);color:#93c5fd;font-weight:600;}
+.rcrow{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--bord);font-size:13px;color:var(--txt);}
 .rcrow:last-child{border-bottom:none;}
-.rcdot{width:9px;height:9px;border-radius:50%;background:var(--bord2);flex-shrink:0;}
-.rcdot.on{background:#1a5080;}
-/* COMPÉTENCES ÉDITION */
-.erow{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--bg3);font-size:13px;color:var(--txt);}
+.rcdot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.2);flex-shrink:0;}
+.rcdot.on{background:#93c5fd;}
+/* ── COMPÉTENCES ÉDITION ─────────────────────────────── */
+.erow{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--bord);font-size:13px;color:var(--txt);}
 .erow:last-child{border-bottom:none;}
-.ejrow{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--bg3);font-size:13px;color:var(--txt);}
+.ejrow{display:flex;align-items:center;gap:8px;padding:4px 0;border-bottom:1px solid var(--bord);font-size:13px;color:var(--txt);}
 .ejrow:last-child{border-bottom:none;}
-/* DÉS */
+/* ── DÉS ─────────────────────────────────────────────── */
 .des-grid{display:flex;gap:8px;flex-wrap:wrap;}
 .de-btn{font-family:inherit;font-size:14px;font-weight:700;padding:10px 16px;border-radius:8px;cursor:pointer;border:1.5px solid var(--bord2);background:var(--bg2);color:var(--txt);}
 .de-btn:hover{background:var(--rouge);color:white;border-color:var(--rouge);}
@@ -142,21 +163,99 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .de-gros{font-size:52px;font-weight:800;color:var(--rouge);line-height:1;}
 .de-det{font-size:12px;color:var(--txt3);margin-top:4px;}
 .de-h{max-height:120px;overflow-y:auto;font-size:12px;color:var(--txt3);margin-top:8px;}
-.de-h div{padding:2px 0;border-bottom:1px solid var(--bg3);}
-
+.de-h div{padding:2px 0;border-bottom:1px solid var(--bord);}
+/* ── CAPACITÉS ───────────────────────────────────────── */
 .cap-item{border:1px solid var(--bord);border-radius:7px;margin-bottom:4px;}
 .cap-hd{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;background:var(--bg2);user-select:none;min-height:40px;border-radius:7px 7px 0 0;}
 .cap-hd:hover{background:var(--bg3);}
 .cap-nom{font-size:13px;font-weight:600;flex:1;color:var(--txt);}
-.cap-niv{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:#e6f4e6;color:#2d6e2d;flex-shrink:0;}
-.cap-niv.locked{background:var(--bg3);color:var(--txt3);}
-.cap-type-choix{font-size:10px;padding:2px 7px;border-radius:999px;background:#fff4d6;color:#7a5800;flex-shrink:0;}
+.cap-niv{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(45,138,78,.25);color:#6ee7a1;flex-shrink:0;}
+.cap-niv.locked{background:rgba(255,255,255,.08);color:var(--txt3);}
+.cap-type-choix{font-size:10px;padding:2px 7px;border-radius:999px;background:rgba(201,162,39,.25);color:#fcd34d;flex-shrink:0;}
 .cap-arr{font-size:10px;color:var(--txt3);flex-shrink:0;}
-.cap-bd{display:none;padding:10px 12px;background:var(--bg3);border-top:1px solid var(--bord);font-size:12px;line-height:1.6;color:var(--txt);border-radius:0 0 7px 7px;}
+.cap-bd{display:none;padding:10px 12px;background:var(--bg3);border-top:1px solid var(--bord);font-size:12px;line-height:1.6;color:var(--txt2);border-radius:0 0 7px 7px;}
 .cap-bd.on{display:block;}
 .cap-section{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--bord);}
 .cap-section:first-child{margin-top:0;}
 .cap-locked-msg{font-size:11px;color:var(--txt3);font-style:italic;padding:6px 0;}
+/* ── ÉQUIPEMENT ÉQUIPÉ ───────────────────────────────── */
+.eq-tbl{width:100%;border-collapse:collapse;}
+.eq-tbl th{font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--txt3);padding:0 4px 7px;text-align:left;}
+.eq-tbl th:last-child{width:28px;}
+.eq-tbl tr+tr td{border-top:1px solid var(--bord);}
+.eq-tbl td{padding:2px 4px;vertical-align:middle;}
+.eq-inp{width:100%;font-size:12px;padding:4px 6px;border:1px solid transparent;border-radius:4px;background:transparent;font-family:inherit;color:var(--txt);}
+.eq-inp:hover{border-color:var(--bord2);background:var(--bg);}
+.eq-inp:focus{outline:none;border-color:var(--rouge);background:var(--bg);}
+.eq-inp::placeholder{color:var(--txt3);}
+.eq-del{background:none;border:none;cursor:pointer;color:var(--txt3);font-size:15px;line-height:1;padding:3px 5px;border-radius:4px;display:block;}
+.eq-del:hover{color:#fca5a5;background:rgba(185,28,28,.2);}
+/* ── RÈGLES ÉQUIPEMENTS ──────────────────────────────── */
+.eq-sub-tbar{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap;}
+.eq-sub-btn{font-family:inherit;font-size:12px;font-weight:600;padding:6px 14px;border-radius:6px;cursor:pointer;border:1px solid var(--bord2);background:var(--bg2);color:var(--txt2);}
+.eq-sub-btn.on{background:var(--rouge);color:white;border-color:var(--rouge);}
+.eq-sub-btn:hover:not(.on){background:var(--bg3);}
+.eq-ref-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.eq-ref-tbl{width:100%;border-collapse:collapse;font-size:11px;min-width:500px;}
+.eq-ref-tbl th{font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--txt3);padding:7px 8px;text-align:left;background:var(--bg3);border-bottom:2px solid var(--bord);}
+.eq-ref-tbl td{padding:5px 8px;border-bottom:1px solid var(--bord);color:var(--txt2);line-height:1.4;vertical-align:middle;}
+.eq-ref-tbl tr:hover td{background:var(--bg3);}
+.eq-ref-cat td{background:var(--bg3)!important;font-weight:700;color:var(--rouge);font-size:11px;padding:5px 8px;letter-spacing:.03em;}
+/* ── RÉSUMÉ PERSO — Layout dark redesign ─────────────── */
+.r-section{background:var(--bg2);border:1px solid var(--bord);border-radius:12px;padding:1rem 1.25rem;margin-bottom:.875rem;}
+/* Grille stats 3×2 */
+.r-stat-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin-top:8px;}
+.r-stat-cell{background:var(--bg3);border-radius:8px;padding:9px 4px;text-align:center;border:1px solid var(--bord);}
+.r-stat-label{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);margin-bottom:3px;}
+.r-stat-val{font-size:22px;font-weight:800;color:var(--txt);line-height:1;}
+.r-stat-mod{font-size:12px;font-weight:600;color:var(--or);margin-top:2px;}
+/* Layout stats + combat (2 colonnes) */
+.r-stats-combat{display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:start;}
+@media(max-width:520px){.r-stats-combat{grid-template-columns:1fr;}}
+/* PV section */
+.r-pv-ctrl{display:flex;gap:5px;margin-top:8px;align-items:center;}
+.r-pv-ctrl input{width:56px;text-align:center;font-size:13px;padding:5px 4px;flex-shrink:0;}
+.r-pv-ctrl .btn{flex:1;padding:5px 6px;font-size:12px;}
+.r-rest-row{display:flex;gap:5px;margin-top:6px;}
+.r-rest-row .btn{flex:1;padding:6px 4px;font-size:12px;}
+/* Stat pills row */
+.r-pills-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px;}
+/* Repos court panel */
+.r-rc-panel-inner{background:var(--bg3);border:1px solid var(--bord);border-radius:8px;padding:10px;margin-top:8px;}
+/* JDS accordion */
+.r-acc-btn{width:100%;text-align:left;background:var(--bg3);border:1px solid var(--bord);border-radius:8px;padding:9px 14px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:var(--txt2);display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;transition:background .15s;}
+.r-acc-btn:hover{background:rgba(255,255,255,.06);}
+.r-acc-body{display:none;padding:4px 2px 6px;}
+.r-acc-body.on{display:block;}
+/* Favoris scroll */
+.r-fav-list{max-height:260px;overflow-y:auto;padding-right:2px;}
+.r-fav-list::-webkit-scrollbar{width:4px;}.r-fav-list::-webkit-scrollbar-track{background:transparent;}.r-fav-list::-webkit-scrollbar-thumb{background:var(--bord2);border-radius:2px;}
+/* Slots section perso */
+.r-slots-section{display:none;}
+.r-slots-section.active{display:block;}
+/* Personnalité grid 2 colonnes */
+.r-perso-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+@media(max-width:480px){.r-perso-grid{grid-template-columns:1fr;}}
+.r-perso-blk{background:var(--bg3);border-radius:8px;padding:10px 12px;}
+.r-perso-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);margin-bottom:5px;}
+.r-perso-val{font-size:12px;color:var(--txt2);line-height:1.55;}
+/* Timeline histoire */
+.r-timeline{padding-left:8px;}
+.r-timeline-item{position:relative;padding:10px 10px 10px 20px;border-left:2px solid var(--rouge);margin-bottom:6px;}
+.r-timeline-item::before{content:'';position:absolute;left:-5px;top:14px;width:8px;height:8px;border-radius:50%;background:var(--rouge);}
+/* ── REGLES CONTENT ──────────────────────────────────── */
+#regles-container h2,#regles-container h3,#regles-container h4{color:var(--txt);margin:10px 0 5px;}
+#regles-container p,#regles-container li{font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:4px;}
+#regles-container ul,#regles-container ol{padding-left:16px;margin-bottom:6px;}
+#regles-container table{width:100%;border-collapse:collapse;font-size:11px;margin:8px 0;}
+#regles-container th{background:var(--bg3);color:var(--txt3);padding:5px 8px;text-align:left;border-bottom:1px solid var(--bord);}
+#regles-container td{padding:4px 8px;border-bottom:1px solid var(--bord);color:var(--txt2);}
+#regles-container tr:hover td{background:rgba(255,255,255,.04);}
+/* ── SCROLLBARS ──────────────────────────────────────── */
+::-webkit-scrollbar{width:6px;height:6px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--bord2);border-radius:3px;}
+::-webkit-scrollbar-thumb:hover{background:rgba(255,255,255,.2);}
 </style>
 <script src="sorts.js"></script>
 </head>
@@ -176,7 +275,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <div class="lerreur" id="li-err"></div>
     <button id="btn-login" onclick="connecter()">Connexion Firebase...</button>
     <p class="lnote">💾 Sauvegarde automatique · 🔄 Temps réel · 📱 Multi-appareils</p>
-    <div id="diag" style="font-size:11px;color:#888;margin-top:8px;text-align:left;line-height:1.8;">
+    <div id="diag" style="font-size:11px;color:var(--txt3);margin-top:8px;text-align:left;line-height:1.8;">
       <div id="diag-firebase">⏳ Firebase...</div>
       <div id="diag-sorts">⏳ Sorts...</div>
       <div id="diag-caps">⏳ Capacités...</div>
@@ -191,126 +290,108 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
   </div>
 </div>
 <div id="s-resume">
-<div class="app">
-  <div class="hd">
-    <div><h1 id="r-titre">⚔️ Mon Personnage</h1><p id="r-sous">Quest Station · D&D 5e 2014</p></div>
+  <!-- ══ STICKY HEADER ══════════════════════════════════ -->
+  <div class="r-sticky-hd">
+    <!-- Groupe centré : CA · Avatar · Nom/Sous-titre · PV -->
+    <div class="r-shd-center">
+      <div class="r-hbadge">
+        <div class="r-hbadge-l">CA</div>
+        <div class="r-hbadge-v" id="r-ca">10</div>
+      </div>
+      <div class="rav" id="r-av"
+           onclick="document.getElementById('r-av-input').click()"
+           title="Changer la photo de profil">
+        <span id="r-av-init">?</span>
+        <img id="r-av-img" alt="Avatar">
+      </div>
+      <div class="r-shd-info">
+        <div class="r-shd-name" id="r-titre">⚔️ Mon Personnage</div>
+        <div class="r-shd-sub">
+          <span id="r-cl">—</span>
+          <span class="sep">·</span>
+          <span id="r-nv">Niveau 1</span>
+          <span id="r-ra" style="display:none;"></span>
+          <span id="r-al" style="display:none;"></span>
+        </div>
+      </div>
+      <div class="r-hbadge pv">
+        <div class="r-hbadge-l">PV</div>
+        <div class="r-hbadge-v"><span id="r-pvact">0</span><span class="r-hbadge-sep">/</span><span id="r-pvmax">0</span></div>
+      </div>
+    </div>
+    <!-- Boutons absolus à droite -->
     <div class="hright">
       <span id="r-sync" class="sbadge synced"><span class="sdot"></span><span id="r-sync-txt">Synchronisé</span></span>
       <button class="btn" onclick="allerEdition()">✏️ Modifier</button>
     </div>
   </div>
+  <!-- Input file caché pour l'upload avatar -->
+  <input type="file" id="r-av-input" accept="image/*" style="display:none;"
+         onchange="if(this.files[0])uploadAvatar(this.files[0]);this.value='';">
+  <!-- Hidden elements kept for JS/rafraichirResume() compat -->
+  <span id="r-nom" style="display:none;"></span>
+  <span id="r-joueur" style="display:none;"></span>
+  <span id="r-sous" style="display:none;"></span>
+
+<div class="app" style="padding-top:.75rem;">
   <div class="tbar">
     <button class="tbtn on" onclick="rTab('perso',this)">Personnage</button>
     <button class="tbtn" onclick="rTab('comps',this)">Compétences & Capacités</button>
     <button class="tbtn" onclick="rTab('sorts',this)">Sorts ✨</button>
+    <button class="tbtn" onclick="rTab('equip',this)">Équipements 🗡️</button>
     <button class="tbtn" onclick="rTab('regles',this)">Règles 📖</button>
   </div>
 
-  <!-- ONGLET PERSONNAGE -->
+  <!-- ══ ONGLET PERSONNAGE ══════════════════════════════ -->
   <div id="rt-perso" class="tc on">
-    <!-- INVENTAIRE EN HAUT -->
-    <div class="card" id="r-inv-card" style="display:none;margin-bottom:1rem;">
-      <p class="st">Inventaire</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:10px;">
+
+    <!-- STATS + COMBAT ──────────────────────────────── -->
+    <div class="r-section">
+      <div class="r-stats-combat">
+        <!-- Gauche : Caractéristiques 3×2 -->
         <div>
-          <label style="font-size:10px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;">PO</label>
-          <input type="number" id="po" value="0" min="0" style="margin-top:2px;"
-            oninput="syncInvResume();sauvegarder()">
+          <p class="st">Caractéristiques</p>
+          <!-- SVG radar masqué mais présent pour rendreHexagone() -->
+          <svg width="1" height="1" style="position:absolute;visibility:hidden;" aria-hidden="true">
+            <polygon points="70,8 118,35 118,105 70,132 22,105 22,35" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="0.5"/>
+            <polygon points="70,30 96,45 96,95 70,110 44,95 44,45" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="0.5"/>
+            <polygon points="70,52 82,59 82,81 70,88 58,81 58,59" fill="none" stroke="rgba(255,255,255,.04)" stroke-width="0.5"/>
+            <polygon id="r-hpoly" points="70,8 118,35 118,105 70,132 22,105 22,35" fill="rgba(201,162,39,.15)" stroke="#c9a227" stroke-width="1.5"/>
+            <circle id="rp0" cx="70" cy="8"   r="3.5" fill="#c9a227"/>
+            <circle id="rp1" cx="118" cy="35"  r="3.5" fill="#c9a227"/>
+            <circle id="rp2" cx="118" cy="105" r="3.5" fill="#c9a227"/>
+            <circle id="rp3" cx="70" cy="132"  r="3.5" fill="#c9a227"/>
+            <circle id="rp4" cx="22" cy="105"  r="3.5" fill="#c9a227"/>
+            <circle id="rp5" cx="22" cy="35"   r="3.5" fill="#c9a227"/>
+            <text x="70"  y="5"   text-anchor="middle" font-size="9" font-weight="600" fill="#6a6a8a">FOR</text>
+            <text x="126" y="34"  text-anchor="start"  font-size="9" font-weight="600" fill="#6a6a8a">DEX</text>
+            <text x="126" y="108" text-anchor="start"  font-size="9" font-weight="600" fill="#6a6a8a">CON</text>
+            <text x="70"  y="140" text-anchor="middle" font-size="9" font-weight="600" fill="#6a6a8a">INT</text>
+            <text x="14"  y="108" text-anchor="end"    font-size="9" font-weight="600" fill="#6a6a8a">SAG</text>
+            <text x="14"  y="34"  text-anchor="end"    font-size="9" font-weight="600" fill="#6a6a8a">CHA</text>
+          </svg>
+          <div class="r-stat-grid" id="r-stats-list"></div>
         </div>
+        <!-- Droite : PV + Controls + Stat pills -->
         <div>
-          <label style="font-size:10px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;">PA</label>
-          <input type="number" id="pa" value="0" min="0" style="margin-top:2px;"
-            oninput="syncInvResume();sauvegarder()">
-        </div>
-        <div>
-          <label style="font-size:10px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;">PC</label>
-          <input type="number" id="pc" value="0" min="0" style="margin-top:2px;"
-            oninput="syncInvResume();sauvegarder()">
-        </div>
-      </div>
-      <textarea id="inventaire" placeholder="Liste ton équipement..."
-        style="min-height:60px;max-height:120px;font-size:12px;resize:none;overflow-y:auto;"
-        oninput="syncInvResume();sauvegarder()"></textarea>
-    </div>
-
-    <div class="card" style="display:flex;align-items:center;gap:14px;margin-bottom:1rem;">
-      <div class="rav" id="r-av">?</div>
-      <div style="flex:1;">
-        <div style="font-size:16px;font-weight:700;color:var(--txt);" id="r-nom">—</div>
-        <div style="font-size:12px;color:var(--txt3);" id="r-joueur">—</div>
-        <div style="display:flex;gap:6px;margin-top:5px;flex-wrap:wrap;">
-          <span class="rbdg rb-cl" id="r-cl">—</span>
-          <span class="rbdg rb-ra" id="r-ra" style="display:none;">—</span>
-          <span class="rbdg rb-nv" id="r-nv">Niveau 1</span>
-          <span class="rbdg rb-al" id="r-al" style="display:none;">—</span>
-        </div>
-      </div>
-      <div style="text-align:right;">
-        <div style="font-size:10px;color:var(--txt3);text-transform:uppercase;">CA</div>
-        <div style="font-size:24px;font-weight:700;color:var(--txt);" id="r-ca">10</div>
-      </div>
-    </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:1rem;align-items:stretch;">
-      <!-- COLONNE GAUCHE : Stats + JDS -->
-      <div style="display:flex;flex-direction:column;gap:12px;height:100%;">
-      <div class="card" style="flex:none;">
-        <p class="st">Caractéristiques</p>
-        <div style="display:flex;align-items:center;gap:12px;">
-          <!-- Radar SVG -->
-          <div style="flex-shrink:0;">
-            <svg width="140" height="140" viewBox="0 0 140 140">
-              <polygon points="70,8 118,35 118,105 70,132 22,105 22,35" fill="none" stroke="#ddd" stroke-width="0.5"/>
-              <polygon points="70,30 96,45 96,95 70,110 44,95 44,45" fill="none" stroke="#e5e5e5" stroke-width="0.5"/>
-              <polygon points="70,52 82,59 82,81 70,88 58,81 58,59" fill="none" stroke="#eee" stroke-width="0.5"/>
-              <polygon id="r-hpoly" points="70,8 118,35 118,105 70,132 22,105 22,35" fill="rgba(24,95,165,0.12)" stroke="#185FA5" stroke-width="1.5"/>
-              <circle id="rp0" cx="70" cy="8"   r="3.5" fill="#185FA5"/>
-              <circle id="rp1" cx="118" cy="35"  r="3.5" fill="#185FA5"/>
-              <circle id="rp2" cx="118" cy="105" r="3.5" fill="#185FA5"/>
-              <circle id="rp3" cx="70" cy="132"  r="3.5" fill="#185FA5"/>
-              <circle id="rp4" cx="22" cy="105"  r="3.5" fill="#185FA5"/>
-              <circle id="rp5" cx="22" cy="35"   r="3.5" fill="#185FA5"/>
-              <text x="70"  y="5"   text-anchor="middle" font-size="9" font-weight="600" fill="#888">FOR</text>
-              <text x="126" y="34"  text-anchor="start"  font-size="9" font-weight="600" fill="#888">DEX</text>
-              <text x="126" y="108" text-anchor="start"  font-size="9" font-weight="600" fill="#888">CON</text>
-              <text x="70"  y="140" text-anchor="middle" font-size="9" font-weight="600" fill="#888">INT</text>
-              <text x="14"  y="108" text-anchor="end"    font-size="9" font-weight="600" fill="#888">SAG</text>
-              <text x="14"  y="34"  text-anchor="end"    font-size="9" font-weight="600" fill="#888">CHA</text>
-            </svg>
-          </div>
-          <!-- Liste des valeurs -->
-          <div style="flex:1;display:flex;flex-direction:column;gap:4px;" id="r-stats-list"></div>
-        </div>
-      </div>
-
-      <div id="r-jds-section" style="display:none;"></div>
-      </div><!-- /col gauche -->
-
-      <!-- COLONNE DROITE : PV + Personnalité -->
-      <div style="display:flex;flex-direction:column;gap:12px;height:100%;">
-        <div class="card" style="flex:none;">
-          <p class="st">Points de vie</p>
-          <div style="display:flex;align-items:baseline;gap:6px;">
-            <span style="font-size:28px;font-weight:700;color:var(--txt);" id="r-pvact">0</span>
-            <span style="font-size:13px;color:var(--txt3);">/ <span id="r-pvmax">0</span> PV</span>
-            <span id="r-pvtmp" style="font-size:10px;padding:2px 6px;border-radius:999px;background:#fff4d6;color:#7a5800;margin-left:auto;display:none;"></span>
-          </div>
+          <p class="st">Combat &amp; PV</p>
           <div class="pvw"><div class="pvb" id="r-pvbar" style="width:100%;"></div></div>
-          <div style="display:flex;gap:5px;margin-top:8px;align-items:center;">
-            <input type="number" id="r-pv-delta" min="0" value="" placeholder="?" style="width:52px;text-align:center;font-size:13px;padding:5px 4px;">
-            <button class="btn ko" style="flex:1;padding:5px 6px;" onclick="rModPV(-1)">− Dégâts</button>
-            <button class="btn ok" style="flex:1;padding:5px 6px;" onclick="rModPV(1)">+ Soins</button>
+          <span id="r-pvtmp" style="display:none;font-size:10px;padding:2px 8px;border-radius:999px;background:rgba(201,162,39,.2);color:#fcd34d;margin-top:4px;"></span>
+          <div class="r-pv-ctrl">
+            <input type="number" id="r-pv-delta" min="0" value="" placeholder="?" style="width:56px;text-align:center;font-size:13px;padding:5px 4px;flex-shrink:0;">
+            <button class="btn ko" style="flex:1;padding:5px 6px;font-size:12px;" onclick="rModPV(-1)">− Dégâts</button>
+            <button class="btn ok" style="flex:1;padding:5px 6px;font-size:12px;" onclick="rModPV(1)">+ Soins</button>
           </div>
-          <div style="display:flex;gap:5px;margin-top:6px;">
-            <button class="btn" style="flex:1;padding:6px 4px;font-size:12px;" onclick="rReposCourt()">☀️ Repos court</button>
-            <button class="btn" style="flex:1;padding:6px 4px;font-size:12px;" onclick="rReposLong()">🌙 Repos long</button>
+          <div class="r-rest-row">
+            <button class="btn" onclick="rReposCourt()">☀️ Repos court</button>
+            <button class="btn" onclick="rReposLong()">🌙 Repos long</button>
           </div>
           <div id="r-rc-panel" style="display:none;margin-top:8px;background:var(--bg3);border:1px solid var(--bord);border-radius:8px;padding:10px;">
             <div style="font-size:12px;color:var(--txt2);margin-bottom:8px;">
-              Dés de vie disponibles : <b id="r-rc-dv-rest">?</b>&thinsp;<span id="r-rc-dv-type">d8</span>
+              Dés de vie : <b id="r-rc-dv-rest">?</b>&thinsp;<span id="r-rc-dv-type">d8</span>
               &nbsp;·&nbsp; CON : <b id="r-rc-con-mod">+0</b>
             </div>
-            <div style="display:flex;gap:6px;align-items:center;">
+            <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;">
               <span style="font-size:12px;color:var(--txt3);">Dépenser :</span>
               <button class="btn" style="padding:2px 8px;" onclick="rDvAdj(-1)">−</button>
               <b id="r-rc-n" style="min-width:20px;text-align:center;">1</b>
@@ -320,46 +401,101 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
             </div>
             <div id="r-rc-res" style="font-size:12px;color:var(--txt2);margin-top:8px;min-height:18px;"></div>
           </div>
-          <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px;">
+          <div class="r-pills-row">
             <div class="spill"><div class="spl">Initiative</div><div class="spv" id="r-init">+0</div></div>
             <div class="spill"><div class="spl">Vitesse</div><div class="spv" id="r-vit">9m</div></div>
-            <div class="spill"><div class="spl">Bonus maîtrise</div><div class="spv" id="r-bm">+2</div></div>
+            <div class="spill"><div class="spl">Maîtrise</div><div class="spv" id="r-bm">+2</div></div>
             <div class="spill"><div class="spl">Dé de vie</div><div class="spv" id="r-dv">d8</div></div>
           </div>
-          <div id="r-slots-perso" style="display:none;margin-top:12px;grid-template-columns:repeat(3,1fr);gap:8px;"></div>
         </div>
       </div>
     </div>
 
-    <!-- Capacités favorites -->
-    <div class="card" id="r-favoris-card" style="display:none;margin-bottom:1rem;">
-      <p class="st">⭐ Capacités favorites</p>
-      <div id="r-favoris-list"></div>
-    </div>
-    <!-- Personnalité — pleine largeur -->
-    <div class="card" style="margin-bottom:1rem;">
-      <p class="st">Personnalité</p>
-      <p style="font-size:12px;color:var(--txt2);line-height:1.6;font-style:italic;" id="r-traits">—</p>
-      <div id="r-ideaux-w" style="font-size:11px;color:var(--txt3);margin-top:4px;display:none;"><b style="color:var(--txt);">Idéal :</b> <span id="r-ideaux"></span></div>
-      <div id="r-defauts-w" style="font-size:11px;color:var(--txt3);margin-top:4px;display:none;"><b style="color:var(--txt);">Défaut :</b> <span id="r-defauts"></span></div>
+    <!-- JDS ACCORDION ──────────────────────────────── -->
+    <button class="r-acc-btn" onclick="(function(btn){var b=btn.nextElementSibling;b.classList.toggle('on');btn.querySelector('.r-acc-arr').textContent=b.classList.contains('on')?'▴':'▾';})(this)">
+      <span>🛡️ Jets de sauvegarde</span><span class="r-acc-arr">▾</span>
+    </button>
+    <div class="r-acc-body">
+      <div id="r-jds-section"></div>
     </div>
 
-    <!-- Notes libres -->
-    <div class="card" id="r-notes-card" style="display:none;">
-      <p class="st">Notes</p>
-      <p style="font-size:12px;color:var(--txt2);line-height:1.6;white-space:pre-wrap;" id="r-notes"></p>
+    <!-- ÉQUIPEMENT ÉQUIPÉ ──────────────────────────── -->
+    <div class="r-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <p class="st" style="margin:0;border:none;padding:0;">⚔️ Équipement équipé</p>
+        <button class="btn" style="font-size:11px;padding:3px 10px;" onclick="ajouterEquip()">+ Ajouter</button>
+      </div>
+      <p id="equip-empty" style="font-size:12px;color:var(--txt3);font-style:italic;">Aucun équipement. Clique sur + pour ajouter.</p>
+      <table class="eq-tbl" id="equip-table" style="display:none;">
+        <thead><tr>
+          <th style="width:45%;">Nom</th>
+          <th style="width:20%;">Bonus atk</th>
+          <th style="width:30%;">Dégâts / Type</th>
+          <th></th>
+        </tr></thead>
+        <tbody id="equip-tbody"></tbody>
+      </table>
     </div>
-    <!-- Histoire du personnage -->
-    <div class="card" id="r-cap-card" style="display:none;">
+
+    <!-- CAPACITÉS FAVORITES ────────────────────────── -->
+    <div class="r-section" id="r-favoris-card" style="display:none;">
+      <p class="st">⭐ Capacités favorites</p>
+      <div class="r-fav-list" id="r-favoris-list"></div>
+    </div>
+
+    <!-- SORTS — lanceurs uniquement ────────────────── -->
+    <div class="r-section" id="r-slots-section" style="display:none;">
+      <p class="st">✨ Sorts</p>
+      <div id="r-slots-perso" style="grid-template-columns:repeat(3,1fr);gap:8px;"></div>
+    </div>
+
+    <!-- INVENTAIRE ─────────────────────────────────── -->
+    <div class="r-section" id="r-inv-card" style="display:none;">
+      <p class="st">Inventaire</p>
+      <div class="g3" style="margin-bottom:10px;">
+        <div><label>PO</label><input type="number" id="po" value="0" min="0" oninput="syncInvResume();sauvegarder()"></div>
+        <div><label>PA</label><input type="number" id="pa" value="0" min="0" oninput="syncInvResume();sauvegarder()"></div>
+        <div><label>PC</label><input type="number" id="pc" value="0" min="0" oninput="syncInvResume();sauvegarder()"></div>
+      </div>
+      <textarea id="inventaire" placeholder="Liste ton équipement..." style="min-height:60px;max-height:120px;font-size:12px;resize:none;overflow-y:auto;" oninput="syncInvResume();sauvegarder()"></textarea>
+    </div>
+
+    <!-- PERSONNALITÉ ───────────────────────────────── -->
+    <div class="r-section">
+      <p class="st">Personnalité</p>
+      <div class="r-perso-grid">
+        <div class="r-perso-blk">
+          <div class="r-perso-lbl">Traits de personnalité</div>
+          <div class="r-perso-val" id="r-traits">—</div>
+        </div>
+        <div id="r-ideaux-w" class="r-perso-blk" style="display:none;">
+          <div class="r-perso-lbl">Idéaux</div>
+          <div class="r-perso-val" id="r-ideaux"></div>
+        </div>
+        <div id="r-defauts-w" class="r-perso-blk" style="display:none;">
+          <div class="r-perso-lbl">Défauts</div>
+          <div class="r-perso-val" id="r-defauts"></div>
+        </div>
+        <div id="r-liens-card" class="r-perso-blk" style="display:none;">
+          <div class="r-perso-lbl">Liens</div>
+          <div class="r-perso-val" id="r-liens"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HISTOIRE DU PERSONNAGE ─────────────────────── -->
+    <div class="r-section" id="r-cap-card" style="display:none;">
       <p class="st">Histoire du personnage</p>
-      <p style="font-size:12px;color:var(--txt2);line-height:1.6;white-space:pre-wrap;" id="r-cap"></p>
+      <p style="font-size:12px;color:var(--txt2);line-height:1.7;white-space:pre-wrap;" id="r-cap"></p>
     </div>
-    <!-- Liens -->
-    <div class="card" id="r-liens-card" style="display:none;">
-      <p class="st">Liens</p>
-      <p style="font-size:12px;color:var(--txt2);" id="r-liens"></p>
+
+    <!-- NOTES ──────────────────────────────────────── -->
+    <div class="r-section" id="r-notes-card" style="display:none;">
+      <p class="st">Notes</p>
+      <p style="font-size:12px;color:var(--txt2);line-height:1.7;white-space:pre-wrap;max-height:280px;overflow-y:auto;" id="r-notes"></p>
     </div>
-  </div>
+
+  </div><!-- /rt-perso -->
 
   <!-- ONGLET COMPÉTENCES (lecture seule) -->
   <div id="rt-comps" class="tc">
@@ -410,7 +546,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <div class="card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <p class="st" id="r-grimoire-titre" style="border:none;padding:0;margin:0;">Choisir les sorts à préparer</p>
-        <span id="r-prep-count" style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:#e6f4e6;color:#2d6e2d;white-space:nowrap;">0/0 préparés</span>
+        <span id="r-prep-count" style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:rgba(45,138,78,.2);color:#6ee7a1;white-space:nowrap;">0/0 préparés</span>
       </div>
       <div class="chips" id="r-chips"></div>
       <input type="text" id="r-search" placeholder="Rechercher un sort..." oninput="rSearchSorts()" style="margin-bottom:8px;">
@@ -5275,6 +5411,154 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     </template>
   </div>
 
+  <!-- ONGLET ÉQUIPEMENTS — référence règles -->
+  <div id="rt-equip" class="tc">
+    <div class="eq-sub-tbar">
+      <button class="eq-sub-btn on" onclick="eqTab('armes',this)">⚔️ Armes</button>
+      <button class="eq-sub-btn" onclick="eqTab('armures',this)">🛡️ Armures</button>
+      <button class="eq-sub-btn" onclick="eqTab('outils',this)">🔧 Outils</button>
+    </div>
+    <!-- ARMES -->
+    <div id="eq-armes">
+      <div class="card">
+        <p class="st">Armes</p>
+        <div class="eq-ref-wrap">
+          <table class="eq-ref-tbl">
+            <thead><tr><th>Arme</th><th>Dégâts</th><th>Propriétés</th></tr></thead>
+            <tbody>
+              <tr class="eq-ref-cat"><td colspan="3">Armes courantes — Corps à corps</td></tr>
+              <tr><td>Bâton</td><td>1d6 contondant</td><td>Polyvalente (1d8)</td></tr>
+              <tr><td>Dague</td><td>1d4 perforant</td><td>Finesse, légère, lancer (6/18 m)</td></tr>
+              <tr><td>Gourdin</td><td>1d4 contondant</td><td>Légère</td></tr>
+              <tr><td>Hachette</td><td>1d6 tranchant</td><td>Légère, lancer (6/18 m)</td></tr>
+              <tr><td>Javeline</td><td>1d6 perforant</td><td>Lancer (9/36 m)</td></tr>
+              <tr><td>Lance</td><td>1d6 perforant</td><td>Lancer (6/18 m), polyvalente (1d8)</td></tr>
+              <tr><td>Marteau léger</td><td>1d4 contondant</td><td>Légère, lancer (6/18 m)</td></tr>
+              <tr><td>Masse d'armes</td><td>1d6 contondant</td><td>—</td></tr>
+              <tr><td>Massue</td><td>1d8 contondant</td><td>À deux mains</td></tr>
+              <tr><td>Serpe</td><td>1d4 tranchant</td><td>Légère</td></tr>
+              <tr class="eq-ref-cat"><td colspan="3">Armes courantes — À distance</td></tr>
+              <tr><td>Arbalète légère</td><td>1d8 perforant</td><td>Munitions (24/96 m), chargement, 2 mains</td></tr>
+              <tr><td>Arc court</td><td>1d6 perforant</td><td>Munitions (24/96 m), 2 mains</td></tr>
+              <tr><td>Fléchette</td><td>1d4 perforant</td><td>Finesse, lancer (6/18 m)</td></tr>
+              <tr><td>Fronde</td><td>1d4 contondant</td><td>Munitions (9/36 m)</td></tr>
+              <tr class="eq-ref-cat"><td colspan="3">Armes de guerre — Corps à corps</td></tr>
+              <tr><td>Cimeterre</td><td>1d6 tranchant</td><td>Finesse, légère</td></tr>
+              <tr><td>Coutille</td><td>1d10 tranchant</td><td>Lourde, allonge, 2 mains</td></tr>
+              <tr><td>Épée à deux mains</td><td>2d6 tranchant</td><td>Lourde, 2 mains</td></tr>
+              <tr><td>Épée courte</td><td>1d6 perforant</td><td>Finesse, légère</td></tr>
+              <tr><td>Épée longue</td><td>1d8 tranchant</td><td>Polyvalente (1d10)</td></tr>
+              <tr><td>Fléau d'armes</td><td>1d8 contondant</td><td>—</td></tr>
+              <tr><td>Fouet</td><td>1d4 tranchant</td><td>Finesse, allonge</td></tr>
+              <tr><td>Hache à deux mains</td><td>1d12 tranchant</td><td>Lourde, 2 mains</td></tr>
+              <tr><td>Hache d'armes</td><td>1d8 tranchant</td><td>Polyvalente (1d10)</td></tr>
+              <tr><td>Hallebarde</td><td>1d10 tranchant</td><td>Lourde, allonge, 2 mains</td></tr>
+              <tr><td>Lance d'arçon</td><td>1d12 perforant</td><td>Allonge, spécial</td></tr>
+              <tr><td>Maillet</td><td>2d6 contondant</td><td>Lourde, 2 mains</td></tr>
+              <tr><td>Marteau de guerre</td><td>1d8 contondant</td><td>Polyvalente (1d10)</td></tr>
+              <tr><td>Morgenstern</td><td>1d8 perforant</td><td>—</td></tr>
+              <tr><td>Pic de guerre</td><td>1d8 perforant</td><td>—</td></tr>
+              <tr><td>Pique</td><td>1d10 perforant</td><td>Lourde, allonge, 2 mains</td></tr>
+              <tr><td>Rapière</td><td>1d8 perforant</td><td>Finesse</td></tr>
+              <tr><td>Trident</td><td>1d6 perforant</td><td>Lancer (6/18 m), polyvalente (1d8)</td></tr>
+              <tr class="eq-ref-cat"><td colspan="3">Armes de guerre — À distance</td></tr>
+              <tr><td>Arbalète de poing</td><td>1d6 perforant</td><td>Munitions (9/36 m), légère, chargement</td></tr>
+              <tr><td>Arbalète lourde</td><td>1d10 perforant</td><td>Munitions (30/120 m), lourde, chargement, 2 mains</td></tr>
+              <tr><td>Arc long</td><td>1d8 perforant</td><td>Munitions (45/180 m), lourde, 2 mains</td></tr>
+              <tr><td>Filet</td><td>—</td><td>Spécial, lancer (1,5/4,5 m)</td></tr>
+              <tr><td>Sarbacane</td><td>1 perforant</td><td>Munitions (7,5/30 m), chargement</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- ARMURES -->
+    <div id="eq-armures" style="display:none;">
+      <div class="card">
+        <p class="st">Armures &amp; Bouclier</p>
+        <div class="eq-ref-wrap">
+          <table class="eq-ref-tbl">
+            <thead><tr><th>Armure</th><th>CA</th><th>For. min.</th><th>Discrétion</th></tr></thead>
+            <tbody>
+              <tr class="eq-ref-cat"><td colspan="4">Armures légères</td></tr>
+              <tr><td>Matelassée</td><td>11 + Dex</td><td>—</td><td>Désavantage</td></tr>
+              <tr><td>Cuir</td><td>11 + Dex</td><td>—</td><td>—</td></tr>
+              <tr><td>Cuir clouté</td><td>12 + Dex</td><td>—</td><td>—</td></tr>
+              <tr class="eq-ref-cat"><td colspan="4">Armures intermédiaires</td></tr>
+              <tr><td>Peaux</td><td>12 + Dex (max +2)</td><td>—</td><td>—</td></tr>
+              <tr><td>Chemise de mailles</td><td>13 + Dex (max +2)</td><td>—</td><td>—</td></tr>
+              <tr><td>Écailles</td><td>14 + Dex (max +2)</td><td>—</td><td>Désavantage</td></tr>
+              <tr><td>Cuirasse</td><td>14 + Dex (max +2)</td><td>—</td><td>—</td></tr>
+              <tr><td>Demi-plate</td><td>15 + Dex (max +2)</td><td>—</td><td>Désavantage</td></tr>
+              <tr class="eq-ref-cat"><td colspan="4">Armures lourdes</td></tr>
+              <tr><td>Broigne</td><td>14</td><td>—</td><td>Désavantage</td></tr>
+              <tr><td>Cotte de mailles</td><td>16</td><td>For 13</td><td>Désavantage</td></tr>
+              <tr><td>Clibanion</td><td>17</td><td>For 15</td><td>Désavantage</td></tr>
+              <tr><td>Harnois</td><td>18</td><td>For 15</td><td>Désavantage</td></tr>
+              <tr class="eq-ref-cat"><td colspan="4">Bouclier</td></tr>
+              <tr><td>Bouclier</td><td>+2</td><td>—</td><td>—</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    <!-- OUTILS -->
+    <div id="eq-outils" style="display:none;">
+      <div class="card">
+        <p class="st">Outils</p>
+        <div class="eq-ref-wrap">
+          <table class="eq-ref-tbl">
+            <thead><tr><th>Outil</th><th>Prix</th></tr></thead>
+            <tbody>
+              <tr class="eq-ref-cat"><td colspan="2">Instruments de musique</td></tr>
+              <tr><td>Chalemie</td><td>2 po</td></tr>
+              <tr><td>Cor</td><td>3 po</td></tr>
+              <tr><td>Cornemuse</td><td>30 po</td></tr>
+              <tr><td>Flûte</td><td>2 po</td></tr>
+              <tr><td>Flûte de pan</td><td>12 po</td></tr>
+              <tr><td>Luth</td><td>35 po</td></tr>
+              <tr><td>Lyre</td><td>30 po</td></tr>
+              <tr><td>Tambour</td><td>6 po</td></tr>
+              <tr><td>Tympanon</td><td>25 po</td></tr>
+              <tr><td>Viole</td><td>30 po</td></tr>
+              <tr class="eq-ref-cat"><td colspan="2">Jeux</td></tr>
+              <tr><td>Dés</td><td>1 pa</td></tr>
+              <tr><td>Jeu d'échecs draconiques</td><td>1 po</td></tr>
+              <tr><td>Jeu de cartes</td><td>5 pa</td></tr>
+              <tr><td>Jeu des Dragons</td><td>1 po</td></tr>
+              <tr class="eq-ref-cat"><td colspan="2">Kits</td></tr>
+              <tr><td>Kit d'empoisonneur</td><td>50 po</td></tr>
+              <tr><td>Kit d'herboriste</td><td>5 po</td></tr>
+              <tr><td>Kit de contrefaçon</td><td>15 po</td></tr>
+              <tr><td>Kit de déguisement</td><td>25 po</td></tr>
+              <tr class="eq-ref-cat"><td colspan="2">Outils d'artisan</td></tr>
+              <tr><td>Matériel d'alchimiste</td><td>50 po</td></tr>
+              <tr><td>Matériel de brasseur</td><td>20 po</td></tr>
+              <tr><td>Matériel de calligraphe</td><td>10 po</td></tr>
+              <tr><td>Matériel de peintre</td><td>10 po</td></tr>
+              <tr><td>Outils de bijoutier</td><td>25 po</td></tr>
+              <tr><td>Outils de bricoleur</td><td>50 po</td></tr>
+              <tr><td>Outils de cartographe</td><td>15 po</td></tr>
+              <tr><td>Outils de charpentier</td><td>8 po</td></tr>
+              <tr><td>Outils de cordonnier</td><td>5 po</td></tr>
+              <tr><td>Outils de forgeron</td><td>20 po</td></tr>
+              <tr><td>Outils de maçon</td><td>10 po</td></tr>
+              <tr><td>Outils de menuisier</td><td>1 po</td></tr>
+              <tr><td>Outils de potier</td><td>10 po</td></tr>
+              <tr><td>Outils de souffleur de verre</td><td>30 po</td></tr>
+              <tr><td>Outils de tanneur</td><td>5 po</td></tr>
+              <tr><td>Outils de tisserand</td><td>1 po</td></tr>
+              <tr><td>Ustensiles de cuisinier</td><td>1 po</td></tr>
+              <tr class="eq-ref-cat"><td colspan="2">Spécialisés</td></tr>
+              <tr><td>Outils de navigateur</td><td>25 po</td></tr>
+              <tr><td>Outils de voleur</td><td>25 po</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
 </div>
 </div>
 
@@ -5420,7 +5704,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <div class="sb"><div class="sl">Cantrips</div><div class="sv" id="s-cantrips">—</div></div>
       </div>
       <div style="margin-top:8px;padding:8px 10px;background:var(--bg3);border-radius:6px;font-size:12px;color:var(--txt2);" id="s-prep">—</div>
-      <div id="s-grimoire-wrap" style="display:none;margin-top:6px;padding:8px 10px;background:#dbeeff;border-radius:6px;font-size:12px;color:#1a5080;">
+      <div id="s-grimoire-wrap" style="display:none;margin-top:6px;padding:8px 10px;background:rgba(24,95,165,.2);border-radius:6px;font-size:12px;color:#93c5fd;">
         📖 Grimoire : <b id="s-grimoire">—</b>
       </div>
     </div>
@@ -5456,7 +5740,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <div class="card">
       <p class="st">Capacités de classe, race & historique</p>
       <p style="font-size:11px;color:var(--txt3);margin-bottom:10px;">
-        Les capacités à choix multiples (<span style="background:#fff4d6;color:#7a5800;padding:1px 6px;border-radius:999px;font-size:10px;">À choisir</span>) se débloquent à mesure que tu montes de niveau.
+        Les capacités à choix multiples (<span style="background:rgba(201,162,39,.2);color:#fcd34d;padding:1px 6px;border-radius:999px;font-size:10px;">À choisir</span>) se débloquent à mesure que tu montes de niveau.
       </p>
       <div id="e-caps-list"></div>
     </div>
@@ -5602,12 +5886,14 @@ var SLOTS_T   = {
 // ÉTAT
 // ══════════════════════════════════════════
 var db=null, PARTIE="campagne-1", joueurId=null, unsub=null, saveTO=null;
+var avatarUrl=null; // URL de la photo de profil (Firebase Storage ou blob local)
 var grimoire=new Set();   // sorts connus (édition)
 var prepares=new Set();   // sorts préparés aujourd'hui (résumé)
 var choixCaps={};          // capacités à choix sélectionnées {classe_nom: valeur}
 var compsExtra=new Set();  // compétences cochées manuellement en mode résumé
 var capsFavoris=new Set(); // capacités favorites cochées en mode résumé
 var filNiv=new Set(), rFilNiv=new Set(), slotsE={}, desH=[];
+var equipEquipes=[]; // [{nom, bonus, degats}]
 
 // ══════════════════════════════════════════
 // UTILITAIRES
@@ -5636,6 +5922,10 @@ function allerResume(){
   syncInvResume();
   rRendreComps();
   if(CAPS_DATA && CAPS_DATA.classes) rRendreCaps();
+  renderEquipEquipes();
+  // Afficher section slots uniquement pour les lanceurs
+  var ss=el("r-slots-section");
+  if(ss){var cl2=gCl();ss.style.display=(cl2&&LANCEURS.indexOf(cl2)>=0)?"block":"none";}
   show("s-resume");
 }
 function allerEdition(){
@@ -5675,7 +5965,7 @@ function chargerRegles() {
   }
 }
 function rTab(name,btn){
-  ["perso","comps","sorts","caps","regles"].forEach(function(n){
+  ["perso","comps","sorts","caps","equip","regles"].forEach(function(n){
     var e=el("rt-"+n);if(e)e.classList.remove("on");
   });
   document.querySelectorAll("#s-resume .tbtn").forEach(function(b){b.classList.remove("on");});
@@ -5685,6 +5975,14 @@ function rTab(name,btn){
   if(name==="comps"){rRendreComps();rRendreCaps();}
   if(name==="caps")rRendreCaps();
   if(name==="regles")chargerRegles();
+}
+function eqTab(name,btn){
+  ["armes","armures","outils"].forEach(function(n){
+    var e=el("eq-"+n);if(e)e.style.display="none";
+  });
+  document.querySelectorAll(".eq-sub-tbar .eq-sub-btn").forEach(function(b){b.classList.remove("on");});
+  var target=el("eq-"+name);if(target)target.style.display="";
+  btn.classList.add("on");
 }
 function eTab(name,btn){
   ["identite","combat","comps","sorts","notes","caps"].forEach(function(n){
@@ -5840,6 +6138,7 @@ function collecterDonnees(){
   data.compsExtra=Array.from(compsExtra);
   data.capsFavoris=Array.from(capsFavoris);
   data.choixCaps=choixCaps;
+  data.equipEquipes=equipEquipes.slice();
   data.slots=slotsE;
   data._pvmax=parseInt(v("pv-max"))||0;
   data._pvact=parseInt(v("pv-act"))||0;
@@ -5847,6 +6146,7 @@ function collecterDonnees(){
   data._init=gMod(parseInt(v("dex"))||10);
   data._cl=gCl();
   data._nom=v("nom");
+  if(avatarUrl) data.avatar=avatarUrl;
   return data;
 }
 
@@ -5867,6 +6167,7 @@ function chargerFiche(data){
   if(data.compsExtra)compsExtra=new Set(data.compsExtra);
   if(data.capsFavoris)capsFavoris=new Set(data.capsFavoris);
   if(data.choixCaps)choixCaps=data.choixCaps;
+  if(data.equipEquipes)equipEquipes=data.equipEquipes;
   if(data.coches&&!data.grimoire)grimoire=new Set(data.coches);
   if(data.slots)slotsE=data.slots;
   el("prep-n").textContent=prepares.size?"("+prepares.size+")":"";
@@ -5880,6 +6181,8 @@ function chargerFiche(data){
     });
     updateComps();
   }
+  // Photo de profil — charger avant allerResume()
+  if(data.avatar){appliquerAvatar(data.avatar);}else{retirerAvatar();}
   // Rafraîchir immédiatement ce qui ne dépend pas de SORTS/CAPS
   var ficheVide = !data.classe && !data.race && !data.nom;
   if(ficheVide){ show("s-edit"); return; }
@@ -5891,6 +6194,9 @@ function chargerFiche(data){
     syncInvResume();
     rRendreComps();
     if(CAPS_DATA && CAPS_DATA.classes) rRendreCaps();
+    renderEquipEquipes();
+    var ss=el("r-slots-section");
+    if(ss){var cl2=gCl();ss.style.display=(cl2&&LANCEURS.indexOf(cl2)>=0)?"block":"none";}
     show("s-resume");
   }
   // Attendre uniquement CAPS_DATA (SORTS peut être vide si sorts.js absent)
@@ -6485,7 +6791,7 @@ function rendreListeSorts(ss, cid, mode) {
     if (mode === "grimoire" || mode === "prep") {
       var chk = document.createElement("input");
       chk.type = "checkbox";
-      chk.style.cssText = "width:14px;height:14px;accent-color:#6D0000;flex-shrink:0;cursor:pointer;margin-right:2px;";
+      chk.style.cssText = "width:14px;height:14px;accent-color:#d97706;flex-shrink:0;cursor:pointer;margin-right:2px;";
 
       var nomSort = s.n;
 
@@ -6967,7 +7273,7 @@ function rendreCapacites(containerId, niveauActuel) {
           rowHd.style.cssText = "display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;background:var(--vbg);cursor:pointer;";
 
           var badge = document.createElement("span");
-          badge.style.cssText = "font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;background:#2d6e2d;color:white;flex-shrink:0;";
+          badge.style.cssText = "font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;background:rgba(45,138,78,.3);color:#6ee7a1;flex-shrink:0;";
           badge.textContent = "Niv." + cap.niveau;
           rowHd.appendChild(badge);
 
@@ -7158,6 +7464,131 @@ if (cap.type === "auto" && cap.options && cap.options.length) {
 }
 
 
+function renderEquipEquipes(){
+  var tbody=el("equip-tbody");
+  var emptyMsg=el("equip-empty");
+  var table=el("equip-table");
+  if(!tbody||!emptyMsg||!table)return;
+  tbody.innerHTML="";
+  if(equipEquipes.length===0){
+    emptyMsg.style.display="";
+    table.style.display="none";
+    return;
+  }
+  emptyMsg.style.display="none";
+  table.style.display="";
+  equipEquipes.forEach(function(eq,idx){
+    var tr=document.createElement("tr");
+    ["nom","bonus","degats"].forEach(function(field){
+      var td=document.createElement("td");
+      var inp=document.createElement("input");
+      inp.className="eq-inp";
+      inp.type="text";
+      inp.value=eq[field]||"";
+      inp.placeholder=field==="nom"?"Nom":field==="bonus"?"ex: +5":"ex: 1d8 tranchant";
+      (function(i,f){
+        inp.oninput=function(){equipEquipes[i][f]=this.value;sauvegarder();};
+      })(idx,field);
+      td.appendChild(inp);
+      tr.appendChild(td);
+    });
+    var tdDel=document.createElement("td");
+    var btnDel=document.createElement("button");
+    btnDel.className="eq-del";
+    btnDel.innerHTML="✕";
+    btnDel.title="Supprimer";
+    (function(i){
+      btnDel.onclick=function(){equipEquipes.splice(i,1);sauvegarder();renderEquipEquipes();};
+    })(idx);
+    tdDel.appendChild(btnDel);
+    tr.appendChild(tdDel);
+    tbody.appendChild(tr);
+  });
+}
+function ajouterEquip(){
+  equipEquipes.push({nom:"",bonus:"",degats:""});
+  sauvegarder();
+  renderEquipEquipes();
+  // Focus le premier champ de la nouvelle ligne
+  var rows=el("equip-tbody").querySelectorAll("tr");
+  if(rows.length>0){
+    var lastRow=rows[rows.length-1];
+    var firstInp=lastRow.querySelector(".eq-inp");
+    if(firstInp)firstInp.focus();
+  }
+}
+
+// ══════════════════════════════════════════
+// AVATAR — photo de profil
+// ══════════════════════════════════════════
+function majInitialesAvatar(init){
+  if(avatarUrl) return; // photo déjà affichée, ne pas écraser
+  var initEl=el("r-av-init");
+  if(initEl){initEl.textContent=init||"?";initEl.style.display="";}
+  var img=el("r-av-img");
+  if(img){img.style.display="none";img.src="";}
+}
+function appliquerAvatar(url){
+  avatarUrl=url;
+  var img=el("r-av-img");
+  var initEl=el("r-av-init");
+  if(!img) return;
+  img.src=url;
+  img.style.display="block";
+  if(initEl) initEl.style.display="none";
+}
+function retirerAvatar(){
+  avatarUrl=null;
+  var img=el("r-av-img");
+  var initEl=el("r-av-init");
+  if(img){img.src="";img.style.display="none";}
+  if(initEl) initEl.style.display="";
+}
+function resizeAvatar(file,maxSize,callback){
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var image=new Image();
+    image.onload=function(){
+      var w=image.width,h=image.height;
+      if(w>h){if(w>maxSize){h=Math.round(h*maxSize/w);w=maxSize;}}
+      else{if(h>maxSize){w=Math.round(w*maxSize/h);h=maxSize;}}
+      var canvas=document.createElement("canvas");
+      canvas.width=w;canvas.height=h;
+      canvas.getContext("2d").drawImage(image,0,0,w,h);
+      canvas.toBlob(function(blob){callback(blob);},"image/jpeg",0.85);
+    };
+    image.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function uploadAvatar(file){
+  if(!joueurId) return;
+  resizeAvatar(file,400,function(blob){
+    // Convertir en base64 pour stockage Firestore (pas de Storage payant)
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var base64=e.target.result; // "data:image/jpeg;base64,..."
+      // Affichage immédiat
+      appliquerAvatar(base64);
+      // Sauvegarder en localStorage
+      try{
+        var raw=localStorage.getItem("qs_"+joueurId);
+        var d=raw?JSON.parse(raw):{};
+        d.avatar=base64;
+        localStorage.setItem("qs_"+joueurId,JSON.stringify(d));
+      }catch(e){}
+      // Sauvegarder dans Firestore (merge — ne touche pas aux autres champs)
+      if(db){
+        db.collection("parties").doc(PARTIE).collection("joueurs").doc(joueurId)
+          .set({avatar:base64},{merge:true})
+          .then(function(){console.log("✅ Avatar sauvegardé dans Firestore");})
+          .catch(function(e){console.warn("⚠️ Avatar Firestore:",e.message||e);});
+      }
+    };
+    reader.readAsDataURL(blob);
+  });
+}
+
 function rRendreCaps() {
   var niv = gNiv();
   var el_niv = el("r-cap-niv");
@@ -7178,7 +7609,7 @@ function rafraichirResume(){
   var bm=gBM(),dexMod=gMod(parseInt(v("dex"))||10);
   // Header
   var init=nom.split(" ").map(function(w){return w[0]||"";}).slice(0,2).join("").toUpperCase();
-  var av=el("r-av");if(av)av.textContent=init||"?";
+  majInitialesAvatar(init);
   var rn=el("r-nom");if(rn)rn.textContent=nom;
   var rj=el("r-joueur");if(rj)rj.textContent=joueur+(hist?" · "+hist:"");
   el("r-titre").textContent="⚔️ "+nom;
@@ -7258,57 +7689,46 @@ function rendreHexagone(){
     p.setAttribute("cy",(cy+rMax*ratio*Math.sin(a)).toFixed(1));
   });
 
-  // ── Liste des stats (SANS badge JDS) ──────────────────────
+  // ── Grille 3×2 des caractéristiques ─────────────────────
+  var abbrevs=["FOR","DEX","CON","INT","SAG","CHA"];
   var list=el("r-stats-list");
   if(list){
     list.innerHTML="";
     vals.forEach(function(val,i){
       var mod=gMod(val);
-      var row=document.createElement("div");
-      row.style.cssText="display:flex;align-items:center;justify-content:space-between;padding:4px 8px;border-radius:6px;background:var(--bg3);margin-bottom:2px;";
-      var lbl=document.createElement("span");
-      lbl.style.cssText="font-size:12px;color:var(--txt2);";
-      lbl.textContent=noms[i];
-      row.appendChild(lbl);
-      var right=document.createElement("span");
-      right.style.cssText="display:flex;align-items:baseline;gap:6px;";
-      var valEl=document.createElement("span");
-      valEl.style.cssText="font-size:14px;font-weight:500;color:var(--txt);";
-      valEl.textContent=val;
-      var modEl=document.createElement("span");
-      modEl.style.cssText="font-size:12px;font-weight:500;color:var(--txt3);";
-      modEl.textContent=fMod(mod);
-      right.appendChild(valEl);
-      right.appendChild(modEl);
-      row.appendChild(right);
-      list.appendChild(row);
+      var cell=document.createElement("div");
+      cell.className="r-stat-cell";
+      var lbl=document.createElement("div");lbl.className="r-stat-label";lbl.textContent=abbrevs[i];
+      var vEl=document.createElement("div");vEl.className="r-stat-val";vEl.textContent=val;
+      var mEl=document.createElement("div");mEl.className="r-stat-mod";mEl.textContent=fMod(mod);
+      cell.appendChild(lbl);cell.appendChild(vEl);cell.appendChild(mEl);
+      list.appendChild(cell);
     });
   }
 
-  // ── Jets de sauvegarde compacts ──────────────────────────
+  // ── Jets de sauvegarde compacts (dark theme) ─────────────
   var jdsList=el("r-jds-section");
   if(!jdsList)return;
   jdsList.innerHTML="";
-  // Grille 2 colonnes pour les JDS
   var jdsGrid=document.createElement("div");
-  jdsGrid.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:3px;";
+  jdsGrid.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:4px;";
   CARACS.forEach(function(k,i){
     var val=parseInt(v(k))||10;
     var mod=gMod(val);
     var isMai=mai.indexOf(k)>=0;
     var tot=mod+(isMai?bm:0);
     var row=document.createElement("div");
-    row.style.cssText="display:flex;align-items:center;gap:5px;padding:3px 6px;border-radius:5px;"
-      +(isMai?"background:#E6F1FB;":"opacity:0.5;");
+    row.style.cssText="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;"
+      +(isMai?"background:rgba(147,197,253,.12);":"opacity:0.45;");
     var dot=document.createElement("span");
-    dot.style.cssText="width:6px;height:6px;border-radius:50%;flex-shrink:0;background:"+(isMai?"#185FA5":"var(--bord2)")+";";
+    dot.style.cssText="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:"+(isMai?"#93c5fd":"rgba(255,255,255,.2)")+";";
     row.appendChild(dot);
     var lbl=document.createElement("span");
     lbl.style.cssText="font-size:11px;flex:1;color:"+(isMai?"var(--txt)":"var(--txt3)")+";";
     lbl.textContent=noms[i];
     row.appendChild(lbl);
     var tot2=document.createElement("span");
-    tot2.style.cssText="font-size:11px;font-weight:500;color:"+(isMai?"#185FA5":"var(--txt3)")+";";
+    tot2.style.cssText="font-size:12px;font-weight:700;color:"+(isMai?"#93c5fd":"var(--txt3)")+";";
     tot2.textContent=fMod(tot);
     row.appendChild(tot2);
     jdsGrid.appendChild(row);
@@ -7381,7 +7801,7 @@ function rMajFavoris(){
     var hd = document.createElement("div");
     hd.className = "cap-hd";
     hd.style.cursor = desc ? "pointer" : "default";
-    hd.innerHTML = "<span style='color:#b8860b;flex-shrink:0;'>⭐</span><span style='flex:1;font-size:13px;font-weight:500;'>" + nom + "</span>";
+    hd.innerHTML = "<span style='color:var(--or);flex-shrink:0;'>⭐</span><span style='flex:1;font-size:13px;font-weight:500;'>" + nom + "</span>";
 
     if(desc){
       var arr = document.createElement("span");
@@ -7426,9 +7846,9 @@ function rRendreComps(){
     var d=document.createElement("div");d.className="rcrow";
     d.style.cursor="default";
     // Dot : vert si règles, bleu si coché en édition, gris sinon
-    var dotColor=isDefaut?"#2d7a2d":isEditChecked?"#185FA5":"var(--bord2)";
+    var dotColor=isDefaut?"#6ee7a1":isEditChecked?"#93c5fd":"rgba(255,255,255,.2)";
     var dotTitle=isDefaut?"Accordée par classe/race/historique":isEditChecked?"Cochée en mode édition":"";
-    d.innerHTML="<span style='width:10px;height:10px;border-radius:50%;background:"+dotColor+";flex-shrink:0;margin-right:6px;border:1px solid "+dotColor+";' title='"+dotTitle+"'></span><span style='flex:1;font-size:13px;'>"+cp.n+"</span><span style='font-weight:700;color:#1a5080;font-size:13px;'>"+fMod(m+(ok?bm:0))+"</span>";
+    d.innerHTML="<span style='width:10px;height:10px;border-radius:50%;background:"+dotColor+";flex-shrink:0;margin-right:6px;border:1px solid "+dotColor+";' title='"+dotTitle+"'></span><span style='flex:1;font-size:13px;'>"+cp.n+"</span><span style='font-weight:700;color:var(--txt);font-size:13px;'>"+fMod(m+(ok?bm:0))+"</span>";
     cc.appendChild(d);
   });
   // Compteur
@@ -7440,7 +7860,7 @@ function rRendreComps(){
   CARACS.forEach(function(k){
     var val=parseInt(v(k))||10,m=gMod(val),ok=mai.indexOf(k)>=0;
     var d=document.createElement("div");d.className="rcrow";
-    d.innerHTML="<span class='rcdot"+(ok?" on":"")+"'></span><span style='flex:1;'>"+CNOM[k]+"</span><span style='font-weight:700;color:#1a5080;'>"+fMod(m+(ok?bm:0))+"</span>";
+    d.innerHTML="<span class='rcdot"+(ok?" on":"")+"'></span><span style='flex:1;'>"+CNOM[k]+"</span><span style='font-weight:700;color:var(--txt);'>"+fMod(m+(ok?bm:0))+"</span>";
     jc.appendChild(d);
   });
 }
