@@ -30,6 +30,9 @@ body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--txt);font
 /* RESUME */
 #s-resume{display:none;}
 #s-resume.on{display:block;}
+/* LOADING */
+#s-loading{display:none;min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a0000,#3d0000);}
+#s-loading.on{display:flex;}
 /* EDITION */
 #s-edit{display:none;}
 #s-edit.on{display:block;}
@@ -178,6 +181,13 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <div id="diag-sorts">⏳ Sorts...</div>
       <div id="diag-caps">⏳ Capacités...</div>
     </div>
+  </div>
+</div>
+<div id="s-loading">
+  <div style="text-align:center;color:white;">
+    <div style="font-size:48px;margin-bottom:1rem;">⚔️</div>
+    <div style="font-size:18px;font-weight:700;margin-bottom:.5rem;">Chargement...</div>
+    <div style="font-size:13px;opacity:.7;">Récupération de ta fiche</div>
   </div>
 </div>
 <div id="s-resume">
@@ -5591,16 +5601,18 @@ function esc(s){return s.replace(/\\/g,"\\\\").replace(/'/g,"\\'");}
 // NAVIGATION ÉCRANS
 // ══════════════════════════════════════════
 function show(id){
-  ["s-login","s-resume","s-edit"].forEach(function(s){
+  ["s-login","s-loading","s-resume","s-edit"].forEach(function(s){
     var e=el(s);if(e)e.classList.remove("on");
   });
   var t=el(id);if(t)t.classList.add("on");
 }
 function allerResume(){
-  show("s-resume");
   rafraichirResume();
+  rendreHexagone();
+  syncInvResume();
   rRendreComps();
-  if(CAPS_DATA && CAPS_DATA.classes && Object.keys(CAPS_DATA.classes).length > 0){ rRendreCaps(); }
+  if(CAPS_DATA && CAPS_DATA.classes) rRendreCaps();
+  show("s-resume");
 }
 function allerEdition(){show("s-edit");}
 
@@ -5688,8 +5700,7 @@ function connecter(){
     .replace(/[^a-z0-9]/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"");
   el("joueur").value=nom;
   el("nom").value=perso;
-  // Masquer le login, afficher un message d'attente temporaire
-  var btn=el("btn-login");if(btn){btn.textContent="⏳ Chargement...";btn.disabled=true;}
+  show("s-loading");
   updateHeader();
   ecouterJoueur();
 }
@@ -5764,7 +5775,7 @@ function sauvegarder(){
         })
         .catch(function(err){
           console.error("Firebase save erreur:",err);
-          setSyncStatus("saved","r");setSyncStatus("saved","e"); // local OK au moins
+          setSyncStatus("saved","r");setSyncStatus("saved","e");
         });
     } else {
       setSyncStatus("saved","r");setSyncStatus("saved","e");
@@ -5843,21 +5854,19 @@ function chargerFiche(data){
   }
   // Rafraîchir immédiatement ce qui ne dépend pas de SORTS/CAPS
   var ficheVide = !data.classe && !data.race && !data.nom;
-  if(ficheVide){ show("s-edit"); }
-  // Attendre SORTS et CAPS pour le rendu complet
+  if(ficheVide){ show("s-edit"); return; }
+  // Attendre SORTS et CAPS pour le rendu complet puis afficher
   function doRefresh() {
     calcSortsDD();
-    if(!ficheVide){
-      rafraichirResume();
-      rendreHexagone();
-      syncInvResume();
-      rRendreComps();
-      rRendreCaps();
-      show("s-resume");
-    }
+    rafraichirResume();
+    rendreHexagone();
+    syncInvResume();
+    rRendreComps();
+    if(CAPS_DATA && CAPS_DATA.classes) rRendreCaps();
+    show("s-resume");
   }
   if (SORTS.length > 0 && Object.keys(CAPS_DATA.classes||{}).length > 0) {
-    setTimeout(doRefresh, 100);
+    setTimeout(doRefresh, 50);
   } else {
     var tentatives = 0;
     var attente = setInterval(function() {
@@ -5865,7 +5874,7 @@ function chargerFiche(data){
       if (SORTS.length > 0 && Object.keys(CAPS_DATA.classes||{}).length > 0) {
         clearInterval(attente); doRefresh();
       }
-      if (tentatives > 50) { clearInterval(attente); if(!ficheVide) allerResume(); }
+      if (tentatives > 50) { clearInterval(attente); doRefresh(); } // fallback
     }, 100);
   }
 }
