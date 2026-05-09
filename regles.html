@@ -2,25 +2,606 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Règles D&D 5e</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Règles D&D 5e — Quest Station</title>
+<script src="capacites.js"></script>
 <style>
-  body { font-family: Georgia, serif; margin: 0; padding: 0; background: #fff; color: #222; }
-  .regles-section { display: none; padding: 20px; max-width: 900px; margin: 0 auto; }
-  .regles-section.active { display: block; }
-  h1, h2, h3, h4 { color: #7b0000; }
-  h2 { border-bottom: 2px solid #7b0000; padding-bottom: 4px; }
-  table { border-collapse: collapse; width: 100%; margin: 12px 0; }
-  th, td { border: 1px solid #ccc; padding: 4px 8px; font-size: 13px; }
-  th { background: #f0e6e6; }
-  a { color: #7b0000; text-decoration: none; }
-  p { line-height: 1.6; font-size: 14px; }
-  ul, ol { font-size: 14px; line-height: 1.6; }
-  .imagedroite, .imagegauche { display: none; }
+/* ── DARK THEME ───────────────────────────────────────────── */
+:root{
+  --rouge:#d97706; --rh:#b45309;
+  --bg:#1a1a2e;    --bg2:#16213e;   --bg3:#0f3460;
+  --txt:#e0e0e0;   --txt2:#a0a0b0;  --txt3:#6a6a8a;
+  --bord:rgba(255,255,255,.08); --bord2:rgba(255,255,255,.14);
+  --vert:#2d8a4e;  --or:#c9a227;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;}
+a{color:var(--rouge);}
+
+/* ── NAV PRINCIPALE ───────────────────────────────────────── */
+.r-topnav{position:sticky;top:0;z-index:100;background:var(--rouge);color:white;box-shadow:0 2px 12px rgba(0,0,0,.5);}
+.r-topnav-inner{max-width:1080px;margin:0 auto;display:flex;align-items:center;overflow-x:auto;}
+.r-topnav-logo{font-size:14px;font-weight:700;padding:0 1rem;white-space:nowrap;flex-shrink:0;opacity:.9;}
+.r-navbtn{font-family:inherit;font-size:13px;font-weight:500;padding:0 13px;height:50px;cursor:pointer;border:none;background:none;color:rgba(255,255,255,.8);white-space:nowrap;border-bottom:3px solid transparent;transition:background .12s,color .12s;}
+.r-navbtn:hover{background:rgba(0,0,0,.15);color:white;}
+.r-navbtn.on{background:rgba(0,0,0,.25);color:white;border-bottom-color:white;}
+
+/* ── PAGES ────────────────────────────────────────────────── */
+.r-page{display:none;max-width:960px;margin:0 auto;padding:1.25rem 1rem;}
+.r-page.on{display:block;}
+
+/* ── CARDS ────────────────────────────────────────────────── */
+.r-card{background:var(--bg2);border:1px solid var(--bord);border-radius:12px;padding:1rem 1.25rem;margin-bottom:1rem;}
+.r-card-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3);margin-bottom:.75rem;border-bottom:1px solid var(--bord);padding-bottom:.4rem;}
+.r-hero{background:var(--bg2);border:1px solid var(--bord);border-radius:16px;padding:1.5rem 1.75rem;margin-bottom:1rem;display:flex;align-items:center;gap:1.25rem;flex-wrap:wrap;}
+.r-hero-icon{font-size:44px;flex-shrink:0;}
+.r-hero h2{font-size:22px;font-weight:800;color:var(--txt);margin-bottom:.25rem;}
+.r-hero p{font-size:13px;color:var(--txt2);}
+.r-notice{background:rgba(201,162,39,.08);border:1px solid rgba(201,162,39,.2);border-radius:10px;padding:1.25rem;color:var(--txt2);font-size:13px;text-align:center;margin:2rem auto;max-width:500px;}
+.r-notice strong{color:var(--or);display:block;margin-bottom:.5rem;font-size:15px;}
+
+/* ── CAPACITÉS ────────────────────────────────────────────── */
+.r-cap-item{border:1px solid var(--bord);border-radius:8px;margin-bottom:5px;background:var(--bg2);}
+.r-cap-hd{display:flex;align-items:center;gap:8px;padding:10px 14px;cursor:pointer;user-select:none;min-height:42px;border-radius:8px;}
+.r-cap-hd:hover{background:var(--bg3);}
+.r-cap-nom{font-size:13px;font-weight:600;flex:1;color:var(--txt);}
+.r-cap-niv{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(45,138,78,.25);color:#6ee7a1;flex-shrink:0;}
+.r-cap-niv.locked{background:rgba(255,255,255,.08);color:var(--txt3);}
+.r-cap-type{font-size:10px;padding:2px 7px;border-radius:999px;background:rgba(201,162,39,.25);color:#fcd34d;flex-shrink:0;}
+.r-cap-arr{font-size:10px;color:var(--txt3);}
+.r-cap-bd{display:none;padding:10px 14px;border-top:1px solid var(--bord);font-size:12px;color:var(--txt2);line-height:1.65;background:var(--bg3);border-radius:0 0 8px 8px;}
+.r-cap-bd.on{display:block;}
+
+/* ── SOUS-ONGLETS ÉQUIPEMENT ─────────────────────────────── */
+.r-subtabs{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap;}
+.r-subtab{font-family:inherit;font-size:13px;font-weight:600;padding:7px 16px;border-radius:8px;cursor:pointer;border:1px solid var(--bord2);background:var(--bg2);color:var(--txt2);transition:background .12s;}
+.r-subtab.on{background:var(--rouge);color:white;border-color:var(--rouge);}
+.r-subpage{display:none;}
+.r-subpage.on{display:block;}
+
+/* ── TABLES ÉQUIPEMENT ────────────────────────────────────── */
+.eq-tbl{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:1.25rem;overflow-x:auto;}
+.eq-tbl th{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--txt3);padding:6px 8px;text-align:left;background:var(--bg3);border-bottom:2px solid var(--bord);}
+.eq-tbl td{padding:5px 8px;border-bottom:1px solid var(--bord);color:var(--txt2);vertical-align:middle;}
+.eq-tbl tr:hover td{background:rgba(255,255,255,.025);}
+.eq-cat-row td{background:rgba(217,119,6,.1)!important;font-weight:700;color:var(--rouge);font-size:11px;letter-spacing:.04em;text-transform:uppercase;}
+.tbl-wrap{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+
+/* ── CRÉATION ─────────────────────────────────────────────── */
+.r-steps{counter-reset:step-counter;}
+.r-step{counter-increment:step-counter;position:relative;padding:1.25rem 1.25rem 1.25rem 3.75rem;background:var(--bg2);border:1px solid var(--bord);border-radius:12px;margin-bottom:.875rem;}
+.r-step::before{content:counter(step-counter);position:absolute;left:1rem;top:1.2rem;width:1.75rem;height:1.75rem;border-radius:50%;background:var(--rouge);color:white;font-weight:800;font-size:13px;display:flex;align-items:center;justify-content:center;}
+.r-step h3{font-size:15px;font-weight:700;color:var(--txt);margin-bottom:.5rem;}
+.r-step p,.r-step li{font-size:13px;color:var(--txt2);line-height:1.7;}
+.r-step ul{padding-left:1.25rem;margin:.4rem 0;}
+.r-step .r-tip{background:rgba(201,162,39,.1);border-left:3px solid var(--or);padding:.6rem .9rem;border-radius:0 6px 6px 0;margin:.6rem 0;font-size:12px;color:var(--txt2);}
+
+/* ── MINI CHIPS CLASSE ────────────────────────────────────── */
+.r-classtabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:1rem;}
+.r-ctab{font-family:inherit;font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px;cursor:pointer;border:1px solid var(--bord2);background:var(--bg2);color:var(--txt2);transition:background .12s;}
+.r-ctab.on{background:var(--rouge);color:white;border-color:var(--rouge);}
+
+/* ── CONTENU CLASSES (sections existantes) ────────────────── */
+.regles-section{display:none;padding:0;}
+.regles-section.on{display:block;}
+.imagedroite,.imagegauche{display:none;}
+#page-classes .regles-section h2{font-size:18px;font-weight:800;color:var(--txt);border-bottom:2px solid var(--rouge);padding-bottom:.4rem;margin:1.25rem 0 .6rem;}
+#page-classes .regles-section h3{font-size:14px;font-weight:700;color:var(--txt);margin:.9rem 0 .4rem;}
+#page-classes .regles-section h4{font-size:13px;font-weight:600;color:var(--or);margin:.65rem 0 .3rem;}
+#page-classes .regles-section p{font-size:13px;color:var(--txt2);line-height:1.65;margin-bottom:.5rem;}
+#page-classes .regles-section ul,#page-classes .regles-section ol{font-size:13px;color:var(--txt2);line-height:1.65;padding-left:1.25rem;margin-bottom:.5rem;}
+#page-classes .regles-section table{width:100%;border-collapse:collapse;font-size:11px;margin:.5rem 0 1rem;}
+#page-classes .regles-section th{background:var(--bg3);color:var(--txt3);font-size:10px;text-transform:uppercase;letter-spacing:.05em;padding:5px 8px;text-align:left;border-bottom:1px solid var(--bord);}
+#page-classes .regles-section td{padding:4px 8px;border-bottom:1px solid var(--bord);color:var(--txt2);}
+#page-classes .regles-section tr:hover td{background:rgba(255,255,255,.03);}
+#page-classe .regles-section.on{display:block;}
+#page-classe .regles-section h2{font-size:17px;font-weight:800;color:var(--txt);border-bottom:2px solid var(--rouge);padding-bottom:.4rem;margin:1.25rem 0 .6rem;}
+#page-classe .regles-section h3{font-size:14px;font-weight:700;color:var(--txt);margin:.9rem 0 .4rem;}
+#page-classe .regles-section h4{font-size:13px;font-weight:600;color:var(--or);margin:.65rem 0 .3rem;}
+#page-classe .regles-section p{font-size:13px;color:var(--txt2);line-height:1.65;margin-bottom:.5rem;}
+#page-classe .regles-section ul,#page-classe .regles-section ol{font-size:13px;color:var(--txt2);line-height:1.65;padding-left:1.25rem;margin-bottom:.5rem;}
+#page-classe .regles-section table{width:100%;border-collapse:collapse;font-size:11px;margin:.5rem 0 1rem;}
+#page-classe .regles-section th{background:var(--bg3);color:var(--txt3);font-size:10px;text-transform:uppercase;padding:5px 8px;border-bottom:1px solid var(--bord);}
+#page-classe .regles-section td{padding:4px 8px;border-bottom:1px solid var(--bord);color:var(--txt2);}
+
+::-webkit-scrollbar{width:5px;height:5px;}
+::-webkit-scrollbar-track{background:var(--bg);}
+::-webkit-scrollbar-thumb{background:var(--bord2);border-radius:3px;}
 </style>
 </head>
 <body>
-<div id="regles-Barbare" class="regles-section">
+
+<!-- ══ NAVIGATION PRINCIPALE ══════════════════════════════════ -->
+<nav class="r-topnav">
+  <div class="r-topnav-inner">
+    <span class="r-topnav-logo">⚔️ Quest Station</span>
+    <button class="r-navbtn on"  onclick="showPage('page-perso',this)">Mon Perso</button>
+    <button class="r-navbtn"     onclick="showPage('page-classe',this)">Classe</button>
+    <button class="r-navbtn"     onclick="showPage('page-historique',this)">Historique</button>
+    <button class="r-navbtn"     onclick="showPage('page-race',this)">Race</button>
+    <button class="r-navbtn"     onclick="showPage('page-equip',this)">Équipement</button>
+    <button class="r-navbtn"     onclick="showPage('page-creation',this)">Création</button>
+    <button class="r-navbtn"     onclick="showPage('page-classes',this)">Classes ▾</button>
+  </div>
+</nav>
+
+<!-- ══ PAGE : MON PERSONNAGE ══════════════════════════════════ -->
+<div id="page-perso" class="r-page on">
+  <div id="r-loading" class="r-notice">
+    <strong>⏳ Chargement…</strong>
+    Lecture de ta fiche depuis Quest Station.
+  </div>
+  <div id="r-nok" class="r-notice" style="display:none;">
+    <strong>🔗 Non connecté</strong>
+    Ouvre <a href="index.html">Quest Station</a> et connecte-toi pour que tes données apparaissent ici.
+  </div>
+  <div id="r-perso-content" style="display:none;">
+    <div class="r-hero">
+      <div class="r-hero-icon" id="ph-icon">⚔️</div>
+      <div>
+        <h2 id="ph-nom">—</h2>
+        <p id="ph-sous" style="color:var(--txt2);"></p>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:.875rem;margin-bottom:1rem;">
+      <div class="r-card" style="cursor:pointer;" onclick="showPage('page-classe',document.querySelectorAll('.r-navbtn')[1])">
+        <div class="r-card-title">Classe</div>
+        <div id="ph-classe" style="font-size:16px;font-weight:700;color:var(--rouge);"></div>
+        <p style="font-size:11px;color:var(--txt3);margin-top:.4rem;">→ Règles de ta classe</p>
+      </div>
+      <div class="r-card" style="cursor:pointer;" onclick="showPage('page-historique',document.querySelectorAll('.r-navbtn')[2])">
+        <div class="r-card-title">Historique</div>
+        <div id="ph-historique" style="font-size:16px;font-weight:700;color:var(--rouge);"></div>
+        <p style="font-size:11px;color:var(--txt3);margin-top:.4rem;">→ Capacités d'historique</p>
+      </div>
+      <div class="r-card" style="cursor:pointer;" onclick="showPage('page-race',document.querySelectorAll('.r-navbtn')[3])">
+        <div class="r-card-title">Race</div>
+        <div id="ph-race" style="font-size:16px;font-weight:700;color:var(--rouge);"></div>
+        <p style="font-size:11px;color:var(--txt3);margin-top:.4rem;">→ Traits raciaux</p>
+      </div>
+    </div>
+    <div class="r-card">
+      <div class="r-card-title">Caractéristiques</div>
+      <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px;">
+        <div style="background:var(--bg3);border-radius:8px;padding:8px 4px;text-align:center;"><div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);">FOR</div><div style="font-size:20px;font-weight:800;color:var(--txt);" id="ph-for">—</div></div>
+        <div style="background:var(--bg3);border-radius:8px;padding:8px 4px;text-align:center;"><div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);">DEX</div><div style="font-size:20px;font-weight:800;color:var(--txt);" id="ph-dex">—</div></div>
+        <div style="background:var(--bg3);border-radius:8px;padding:8px 4px;text-align:center;"><div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);">CON</div><div style="font-size:20px;font-weight:800;color:var(--txt);" id="ph-con">—</div></div>
+        <div style="background:var(--bg3);border-radius:8px;padding:8px 4px;text-align:center;"><div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);">INT</div><div style="font-size:20px;font-weight:800;color:var(--txt);" id="ph-int">—</div></div>
+        <div style="background:var(--bg3);border-radius:8px;padding:8px 4px;text-align:center;"><div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);">SAG</div><div style="font-size:20px;font-weight:800;color:var(--txt);" id="ph-sag">—</div></div>
+        <div style="background:var(--bg3);border-radius:8px;padding:8px 4px;text-align:center;"><div style="font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);">CHA</div><div style="font-size:20px;font-weight:800;color:var(--txt);" id="ph-cha">—</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PAGE : CLASSE ══════════════════════════════════════════ -->
+<div id="page-classe" class="r-page">
+  <div id="r-classe-nok" class="r-notice">
+    <strong>🔗 Non connecté</strong>
+    Ouvre <a href="index.html">Quest Station</a> pour voir les règles de ta classe.
+  </div>
+  <div id="r-classe-content" style="display:none;"></div>
+</div>
+
+<!-- ══ PAGE : HISTORIQUE ══════════════════════════════════════ -->
+<div id="page-historique" class="r-page">
+  <div id="r-hist-nok" class="r-notice">
+    <strong>🔗 Non connecté</strong>
+    Ouvre <a href="index.html">Quest Station</a> pour voir les règles de ton historique.
+  </div>
+  <div id="r-hist-content" style="display:none;"></div>
+</div>
+
+<!-- ══ PAGE : RACE ════════════════════════════════════════════ -->
+<div id="page-race" class="r-page">
+  <div id="r-race-nok" class="r-notice">
+    <strong>🔗 Non connecté</strong>
+    Ouvre <a href="index.html">Quest Station</a> pour voir les règles de ta race.
+  </div>
+  <div id="r-race-content" style="display:none;"></div>
+</div>
+
+<!-- ══ PAGE : ÉQUIPEMENT ══════════════════════════════════════ -->
+<div id="page-equip" class="r-page">
+  <div class="r-subtabs">
+    <button class="r-subtab on" onclick="showSubtab('equip','armes',this)">⚔️ Armes</button>
+    <button class="r-subtab"    onclick="showSubtab('equip','armures',this)">🛡️ Armures</button>
+    <button class="r-subtab"    onclick="showSubtab('equip','outils',this)">🔧 Outils &amp; Kits</button>
+  </div>
+
+  <!-- ── ARMES ── -->
+  <div id="equip-armes" class="r-subpage on">
+    <div class="r-card">
+      <div class="r-card-title">Propriétés des armes</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;">
+        <div><b style="color:var(--txt);font-size:12px;">Allonge</b><p style="font-size:11px;color:var(--txt3);">+1,50 m de portée au corps à corps.</p></div>
+        <div><b style="color:var(--txt);font-size:12px;">Chargement</b><p style="font-size:11px;color:var(--txt3);">1 attaque max par action/bonus/réaction, quelle que soit la quantité d'attaques.</p></div>
+        <div><b style="color:var(--txt);font-size:12px;">Finesse</b><p style="font-size:11px;color:var(--txt3);">Choisir FOR ou DEX pour les jets d'attaque et de dégâts.</p></div>
+        <div><b style="color:var(--txt);font-size:12px;">Lancer</b><p style="font-size:11px;color:var(--txt3);">Portée courte/longue indiquée (ex : 6/18). Utilise FOR ou DEX (finesse).</p></div>
+        <div><b style="color:var(--txt);font-size:12px;">Légère</b><p style="font-size:11px;color:var(--txt3);">Peut être utilisée en combat à deux armes (bonus d'action).</p></div>
+        <div><b style="color:var(--txt);font-size:12px;">Lourde</b><p style="font-size:11px;color:var(--txt3);">Petites créatures (Petite taille) ont désavantage aux attaques.</p></div>
+        <div><b style="color:var(--txt);font-size:12px;">Munitions</b><p style="font-size:11px;color:var(--txt3);">Nécessite des munitions ; récupérables après le combat (½ des dépensées).</p></div>
+        <div><b style="color:var(--txt);font-size:12px;">Polyvalente</b><p style="font-size:11px;color:var(--txt3);">Peut être tenue à une ou deux mains (dégâts différents indiqués).</p></div>
+        <div><b style="color:var(--txt);font-size:12px;">Deux mains</b><p style="font-size:11px;color:var(--txt3);">Nécessite les deux mains pour attaquer.</p></div>
+        <div><b style="color:var(--txt);font-size:12px;">Spéciale</b><p style="font-size:11px;color:var(--txt3);">Règle particulière décrite dans la description de l'arme.</p></div>
+      </div>
+    </div>
+
+    <div class="r-card">
+      <div class="r-card-title">Armes courantes — corps à corps</div>
+      <div class="tbl-wrap"><table class="eq-tbl">
+        <thead><tr><th>Arme</th><th>Prix</th><th>Dégâts</th><th>Poids</th><th>Propriétés</th></tr></thead>
+        <tbody>
+          <tr><td>Bâton</td><td>2 pa</td><td>1d6 contondants</td><td>2 kg</td><td>Polyvalente (1d8)</td></tr>
+          <tr><td>Dague</td><td>2 po</td><td>1d4 perforants</td><td>½ kg</td><td>Finesse, légère, lancer (6/18)</td></tr>
+          <tr><td>Gourdin</td><td>1 pa</td><td>1d4 contondants</td><td>1 kg</td><td>Légère</td></tr>
+          <tr><td>Hache à main</td><td>5 po</td><td>1d6 tranchants</td><td>1 kg</td><td>Légère, lancer (6/18)</td></tr>
+          <tr><td>Javeline</td><td>5 pa</td><td>1d6 perforants</td><td>1 kg</td><td>Lancer (9/36)</td></tr>
+          <tr><td>Lance</td><td>1 po</td><td>1d6 perforants</td><td>1½ kg</td><td>Lancer (6/18), polyvalente (1d8)</td></tr>
+          <tr><td>Marteau léger</td><td>2 po</td><td>1d4 contondants</td><td>1 kg</td><td>Légère, lancer (6/18)</td></tr>
+          <tr><td>Masse d'armes</td><td>5 po</td><td>1d6 contondants</td><td>2 kg</td><td>—</td></tr>
+          <tr><td>Sagaie</td><td>2 pa</td><td>1d4 perforants</td><td>½ kg</td><td>Lancer (6/18)</td></tr>
+          <tr><td>Serpe</td><td>1 pa</td><td>1d4 tranchants</td><td>1 kg</td><td>Légère</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="r-card">
+      <div class="r-card-title">Armes courantes — à distance</div>
+      <div class="tbl-wrap"><table class="eq-tbl">
+        <thead><tr><th>Arme</th><th>Prix</th><th>Dégâts</th><th>Poids</th><th>Portée</th><th>Propriétés</th></tr></thead>
+        <tbody>
+          <tr><td>Arc court</td><td>25 po</td><td>1d6 perforants</td><td>1 kg</td><td>24/96 m</td><td>Munitions, deux mains</td></tr>
+          <tr><td>Arbalète légère</td><td>25 po</td><td>1d8 perforants</td><td>2½ kg</td><td>24/96 m</td><td>Munitions, chargement, deux mains</td></tr>
+          <tr><td>Fléchette</td><td>5 pc</td><td>1d4 perforants</td><td>⅛ kg</td><td>6/18 m</td><td>Finesse, lancer</td></tr>
+          <tr><td>Fronde</td><td>1 pa</td><td>1d4 contondants</td><td>—</td><td>9/36 m</td><td>Munitions</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="r-card">
+      <div class="r-card-title">Armes de guerre — corps à corps</div>
+      <div class="tbl-wrap"><table class="eq-tbl">
+        <thead><tr><th>Arme</th><th>Prix</th><th>Dégâts</th><th>Poids</th><th>Propriétés</th></tr></thead>
+        <tbody>
+          <tr class="eq-cat-row"><td colspan="5">Corps à corps — une main</td></tr>
+          <tr><td>Cimeterre</td><td>25 po</td><td>1d6 tranchants</td><td>1½ kg</td><td>Finesse, légère</td></tr>
+          <tr><td>Épée courte</td><td>10 po</td><td>1d6 perforants</td><td>1 kg</td><td>Finesse, légère</td></tr>
+          <tr><td>Épée longue</td><td>15 po</td><td>1d8 tranchants</td><td>1½ kg</td><td>Polyvalente (1d10)</td></tr>
+          <tr><td>Fléau</td><td>10 po</td><td>1d8 contondants</td><td>1 kg</td><td>—</td></tr>
+          <tr><td>Hache de bataille</td><td>10 po</td><td>1d8 tranchants</td><td>2 kg</td><td>Polyvalente (1d10)</td></tr>
+          <tr><td>Lance d'arçon</td><td>10 po</td><td>1d12 perforants</td><td>2 kg</td><td>Allonge, spéciale (monture)</td></tr>
+          <tr><td>Marteau de guerre</td><td>15 po</td><td>1d8 contondants</td><td>1 kg</td><td>Polyvalente (1d10)</td></tr>
+          <tr><td>Morgenstern</td><td>15 po</td><td>1d8 perforants</td><td>2 kg</td><td>—</td></tr>
+          <tr><td>Rapière</td><td>25 po</td><td>1d8 perforants</td><td>1 kg</td><td>Finesse</td></tr>
+          <tr><td>Trident</td><td>5 po</td><td>1d6 perforants</td><td>2 kg</td><td>Lancer (6/18), polyvalente (1d8)</td></tr>
+          <tr class="eq-cat-row"><td colspan="5">Corps à corps — deux mains</td></tr>
+          <tr><td>Épée à deux mains</td><td>50 po</td><td>2d6 tranchants</td><td>3 kg</td><td>Lourde, deux mains</td></tr>
+          <tr><td>Glaive</td><td>20 po</td><td>1d10 tranchants</td><td>3 kg</td><td>Allonge, lourde, deux mains</td></tr>
+          <tr><td>Hallebarde</td><td>20 po</td><td>1d10 tranchants</td><td>3 kg</td><td>Allonge, lourde, deux mains</td></tr>
+          <tr><td>Lance à deux mains</td><td>1 po</td><td>1d10 perforants</td><td>4 kg</td><td>Allonge, lourde, deux mains</td></tr>
+          <tr><td>Marteau à deux mains</td><td>10 po</td><td>2d6 contondants</td><td>5 kg</td><td>Lourde, deux mains</td></tr>
+          <tr><td>Pique</td><td>5 po</td><td>1d10 perforants</td><td>4 kg</td><td>Allonge, lourde, deux mains</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="r-card">
+      <div class="r-card-title">Armes de guerre — à distance</div>
+      <div class="tbl-wrap"><table class="eq-tbl">
+        <thead><tr><th>Arme</th><th>Prix</th><th>Dégâts</th><th>Poids</th><th>Portée</th><th>Propriétés</th></tr></thead>
+        <tbody>
+          <tr><td>Arc long</td><td>50 po</td><td>1d8 perforants</td><td>1 kg</td><td>45/180 m</td><td>Munitions, lourde, deux mains</td></tr>
+          <tr><td>Arbalète de poing</td><td>75 po</td><td>1d6 perforants</td><td>1½ kg</td><td>9/36 m</td><td>Munitions, légère, chargement</td></tr>
+          <tr><td>Arbalète lourde</td><td>50 po</td><td>1d10 perforants</td><td>9 kg</td><td>30/120 m</td><td>Munitions, chargement, lourde, deux mains</td></tr>
+          <tr><td>Filet</td><td>1 po</td><td>—</td><td>1½ kg</td><td>1,5/4,5 m</td><td>Spéciale, lancer</td></tr>
+          <tr><td>Sarbacane</td><td>10 po</td><td>1 perforant</td><td>½ kg</td><td>7,5/30 m</td><td>Munitions, chargement</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="r-card">
+      <div class="r-card-title">Munitions</div>
+      <div class="tbl-wrap"><table class="eq-tbl">
+        <thead><tr><th>Munition</th><th>Prix (20)</th><th>Poids (20)</th></tr></thead>
+        <tbody>
+          <tr><td>Flèches</td><td>1 po</td><td>½ kg</td></tr>
+          <tr><td>Carreaux d'arbalète</td><td>1 po</td><td>½ kg</td></tr>
+          <tr><td>Aiguilles de sarbacane</td><td>1 po</td><td>½ kg</td></tr>
+          <tr><td>Projectiles de fronde</td><td>4 pc</td><td>½ kg</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div><!-- /equip-armes -->
+
+  <!-- ── ARMURES ── -->
+  <div id="equip-armures" class="r-subpage">
+    <div class="r-card">
+      <div class="r-card-title">Règles d'armure</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px 16px;">
+        <div><b style="color:var(--txt);font-size:12px;">Maîtrise requise</b><p style="font-size:11px;color:var(--txt3);">Sans maîtrise : désavantage aux jets d'attaque, de Force, de Dextérité, et impossibilité de lancer des sorts.</p></div>
+        <div><b style="color:var(--txt);font-size:12px;">Discrétion (désavantage)</b><p style="font-size:11px;color:var(--txt3);">Les armures marquées imposent un désavantage aux jets de Discrétion (DEX).</p></div>
+        <div><b style="color:var(--txt);font-size:12px;">Force minimum</b><p style="font-size:11px;color:var(--txt3);">Si la valeur de Force est inférieure au minimum, la vitesse est réduite de 3 m.</p></div>
+        <div><b style="color:var(--txt);font-size:12px;">Revêtir / retirer</b><p style="font-size:11px;color:var(--txt3);">Légère : 1 min / 1 min. Intermédiaire : 5 min / 1 min. Lourde : 10 min / 5 min.</p></div>
+      </div>
+    </div>
+
+    <div class="r-card">
+      <div class="r-card-title">Armures légères</div>
+      <div class="tbl-wrap"><table class="eq-tbl">
+        <thead><tr><th>Armure</th><th>Prix</th><th>Classe d'armure</th><th>Poids</th><th>Discrétion</th></tr></thead>
+        <tbody>
+          <tr><td>Armure de peaux</td><td>10 po</td><td>11 + mod. DEX</td><td>6 kg</td><td>—</td></tr>
+          <tr><td>Armure de cuir</td><td>10 po</td><td>11 + mod. DEX</td><td>5 kg</td><td>—</td></tr>
+          <tr><td>Armure de cuir clouté</td><td>45 po</td><td>12 + mod. DEX</td><td>6½ kg</td><td>—</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="r-card">
+      <div class="r-card-title">Armures intermédiaires</div>
+      <div class="tbl-wrap"><table class="eq-tbl">
+        <thead><tr><th>Armure</th><th>Prix</th><th>Classe d'armure</th><th>Poids</th><th>Discrétion</th></tr></thead>
+        <tbody>
+          <tr><td>Armure d'écailles</td><td>50 po</td><td>14 + mod. DEX (max 2)</td><td>22½ kg</td><td>Désavantage</td></tr>
+          <tr><td>Armure de cotte de mailles</td><td>75 po</td><td>14 + mod. DEX (max 2)</td><td>20 kg</td><td>—</td></tr>
+          <tr><td>Cuirasse</td><td>400 po</td><td>14 + mod. DEX (max 2)</td><td>10 kg</td><td>—</td></tr>
+          <tr><td>Demi-plate</td><td>750 po</td><td>15 + mod. DEX (max 2)</td><td>20 kg</td><td>Désavantage</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="r-card">
+      <div class="r-card-title">Armures lourdes</div>
+      <div class="tbl-wrap"><table class="eq-tbl">
+        <thead><tr><th>Armure</th><th>Prix</th><th>Classe d'armure</th><th>FOR min</th><th>Poids</th><th>Discrétion</th></tr></thead>
+        <tbody>
+          <tr><td>Broigne</td><td>30 po</td><td>13</td><td>—</td><td>20 kg</td><td>Désavantage</td></tr>
+          <tr><td>Cotte de mailles</td><td>75 po</td><td>16</td><td>13</td><td>27½ kg</td><td>Désavantage</td></tr>
+          <tr><td>Clibanion</td><td>200 po</td><td>17</td><td>15</td><td>30 kg</td><td>Désavantage</td></tr>
+          <tr><td>Harnois</td><td>1 500 po</td><td>18</td><td>15</td><td>32½ kg</td><td>Désavantage</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="r-card">
+      <div class="r-card-title">Bouclier &amp; protection magique</div>
+      <div class="tbl-wrap"><table class="eq-tbl">
+        <thead><tr><th>Objet</th><th>Prix</th><th>Bonus CA</th><th>Poids</th></tr></thead>
+        <tbody>
+          <tr><td>Bouclier</td><td>10 po</td><td>+2</td><td>3 kg</td></tr>
+          <tr class="eq-cat-row"><td colspan="4">Sorts utiles</td></tr>
+          <tr><td><em>Armure du mage</em></td><td>—</td><td>13 + mod. DEX (sans armure)</td><td>—</td></tr>
+          <tr><td><em>Bouclier</em> (réaction)</td><td>—</td><td>+5 CA jusqu'au prochain tour</td><td>—</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div><!-- /equip-armures -->
+
+  <!-- ── OUTILS & KITS ── -->
+  <div id="equip-outils" class="r-subpage">
+    <div class="r-card">
+      <div class="r-card-title">Outils d'artisan</div>
+      <div class="tbl-wrap"><table class="eq-tbl">
+        <thead><tr><th>Outil</th><th>Prix</th><th>Poids</th></tr></thead>
+        <tbody>
+          <tr><td>Outils d'alchimiste</td><td>50 po</td><td>4 kg</td></tr>
+          <tr><td>Outils de brasseur</td><td>20 po</td><td>4½ kg</td></tr>
+          <tr><td>Outils de calligraphe</td><td>10 po</td><td>2½ kg</td></tr>
+          <tr><td>Outils de charpentier</td><td>8 po</td><td>3 kg</td></tr>
+          <tr><td>Outils de cordonnier</td><td>5 po</td><td>2½ kg</td></tr>
+          <tr><td>Outils de cuisinier</td><td>1 po</td><td>4 kg</td></tr>
+          <tr><td>Outils de forgeron</td><td>20 po</td><td>4 kg</td></tr>
+          <tr><td>Outils de joaillier</td><td>25 po</td><td>1 kg</td></tr>
+          <tr><td>Outils de maçon</td><td>10 po</td><td>4 kg</td></tr>
+          <tr><td>Outils de menuisier</td><td>1 po</td><td>2½ kg</td></tr>
+          <tr><td>Outils de peintre</td><td>10 po</td><td>2½ kg</td></tr>
+          <tr><td>Outils de potier</td><td>10 po</td><td>1½ kg</td></tr>
+          <tr><td>Outils de tanneur</td><td>5 po</td><td>2½ kg</td></tr>
+          <tr><td>Outils de tisserand</td><td>1 po</td><td>2½ kg</td></tr>
+          <tr><td>Outils de verrier</td><td>30 po</td><td>2½ kg</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="r-card">
+      <div class="r-card-title">Instruments de musique</div>
+      <div class="tbl-wrap"><table class="eq-tbl">
+        <thead><tr><th>Instrument</th><th>Prix</th><th>Poids</th></tr></thead>
+        <tbody>
+          <tr><td>Cornemuse</td><td>30 po</td><td>3 kg</td></tr>
+          <tr><td>Cor</td><td>3 po</td><td>1 kg</td></tr>
+          <tr><td>Flûte</td><td>2 po</td><td>½ kg</td></tr>
+          <tr><td>Luth</td><td>35 po</td><td>1 kg</td></tr>
+          <tr><td>Lyre</td><td>30 po</td><td>1 kg</td></tr>
+          <tr><td>Tambour</td><td>6 po</td><td>1½ kg</td></tr>
+          <tr><td>Viole</td><td>30 po</td><td>½ kg</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="r-card">
+      <div class="r-card-title">Kits &amp; matériaux spéciaux</div>
+      <div class="tbl-wrap"><table class="eq-tbl">
+        <thead><tr><th>Kit</th><th>Prix</th><th>Poids</th><th>Usage</th></tr></thead>
+        <tbody>
+          <tr><td>Kit de déguisement</td><td>25 po</td><td>1½ kg</td><td>Tromperie, changer d'apparence</td></tr>
+          <tr><td>Kit de contrefaçon</td><td>15 po</td><td>2½ kg</td><td>Falsifier documents</td></tr>
+          <tr><td>Kit d'herboriste</td><td>5 po</td><td>1½ kg</td><td>Créer antidotes, potions de soins</td></tr>
+          <tr><td>Kit de soins</td><td>5 po</td><td>1½ kg</td><td>Stabiliser créature à 0 PV (10 utilisations)</td></tr>
+          <tr><td>Outils de voleur</td><td>25 po</td><td>½ kg</td><td>Crocheter serrures, désamorcer pièges</td></tr>
+          <tr><td>Matériel d'empoisonneur</td><td>50 po</td><td>1 kg</td><td>Créer et appliquer des poisons</td></tr>
+          <tr><td>Matériel de navigateur</td><td>25 po</td><td>1 kg</td><td>Navigation maritime, cartographie</td></tr>
+          <tr class="eq-cat-row"><td colspan="4">Jeux</td></tr>
+          <tr><td>Jeu de dés (un set)</td><td>1 pa</td><td>—</td><td>—</td></tr>
+          <tr><td>Jeu de cartes (un set)</td><td>5 pa</td><td>—</td><td>—</td></tr>
+          <tr><td>Jeu d'échecs de dragon</td><td>1 po</td><td>½ kg</td><td>—</td></tr>
+          <tr><td>Jeu de dames de troisports</td><td>1 pa</td><td>—</td><td>—</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div><!-- /equip-outils -->
+</div><!-- /page-equip -->
+
+<!-- ══ PAGE : CRÉATION DE PERSONNAGE ══════════════════════════ -->
+<div id="page-creation" class="r-page">
+  <div class="r-hero">
+    <div class="r-hero-icon">✨</div>
+    <div>
+      <h2>Création de personnage</h2>
+      <p>Guide complet en 6 étapes — D&amp;D 5e</p>
+    </div>
+  </div>
+
+  <div class="r-steps">
+
+    <div class="r-step">
+      <h3>Choisir une race</h3>
+      <p>La race définit les traits innés de ton personnage : vitesse, langues, capacités raciales et bonus de caractéristiques.</p>
+      <ul>
+        <li><b>Humain</b> — +1 à toutes les caractéristiques. Compétence bonus et don (variante). Généraliste idéal.</li>
+        <li><b>Elfe</b> — +2 DEX. Avantage vs charme, immunité au sommeil magique. <em>Elfe des bois :</em> +1 SAG, vitesse 10,5 m. <em>Demi-elfe :</em> +2 CHA, +1×2 autres, 2 compétences bonus.</li>
+        <li><b>Nain</b> — +2 CON. Vitesse 7,5 m (non réduite par armure lourde). Résistance poison. <em>Nain des collines :</em> +1 SAG, PV +1/niveau.</li>
+        <li><b>Halfelin</b> — +2 DEX. Veinard (relancer les 1), Brave, Agilité halfeline. Peut passer dans l'espace d'une créature de Grande taille ou plus.</li>
+        <li><b>Gnome</b> — +2 INT. Avantage js INT/SAG/CHA vs magie. <em>Gnome des forêts :</em> +1 DEX, <em>Illusion mineure</em>, parler aux petits animaux.</li>
+        <li><b>Demi-orc</b> — +2 FOR, +1 CON. Endurance implacable (1/repos long). Attaques critiques : dé de dégâts supplémentaire.</li>
+        <li><b>Tieffelin</b> — +2 CHA, +1 INT. Résistance feu. Sorts innés : <em>Thaumaturgie</em>, <em>Mains brûlantes</em>, <em>Ténèbres</em>.</li>
+        <li><b>Drakeïde</b> — +2 FOR, +1 CHA. Arme de souffle (dégâts selon ascendance), résistance associée.</li>
+      </ul>
+      <div class="r-tip">💡 Choisir une race complémentaire à ta classe principale maximise l'efficacité. Mais jouer une combinaison inhabituelle peut être tout aussi amusant !</div>
+    </div>
+
+    <div class="r-step">
+      <h3>Choisir une classe</h3>
+      <p>La classe détermine tes capacités, dés de vie, maîtrises et progression tout au long des niveaux.</p>
+      <div class="tbl-wrap"><table class="eq-tbl" style="margin:.5rem 0;">
+        <thead><tr><th>Classe</th><th>DV</th><th>Rôle principal</th><th>Caractéristique clé</th><th>Armure</th></tr></thead>
+        <tbody>
+          <tr><td>⚔️ Barbare</td><td>d12</td><td>Dégâts/durabilité</td><td>FOR / CON</td><td>Légère / Intermédiaire</td></tr>
+          <tr><td>🎵 Barde</td><td>d8</td><td>Soutien / Polyvalence</td><td>CHA</td><td>Légère</td></tr>
+          <tr><td>✨ Clerc</td><td>d8</td><td>Soins / Soutien</td><td>SAG</td><td>Légère / Intermédiaire / Lourde</td></tr>
+          <tr><td>🌿 Druide</td><td>d8</td><td>Contrôle / Nature</td><td>SAG</td><td>Légère / Intermédiaire (non métal)</td></tr>
+          <tr><td>🛡️ Guerrier</td><td>d10</td><td>Polyvalence combat</td><td>FOR ou DEX</td><td>Toutes</td></tr>
+          <tr><td>👊 Moine</td><td>d8</td><td>Mobilité / Dégâts</td><td>DEX / SAG</td><td>Aucune (mains nues)</td></tr>
+          <tr><td>⚜️ Paladin</td><td>d10</td><td>Hybride combat/soins</td><td>FOR / CHA</td><td>Toutes</td></tr>
+          <tr><td>🏹 Rôdeur</td><td>d10</td><td>Exploration / Distance</td><td>DEX / SAG</td><td>Légère / Intermédiaire</td></tr>
+          <tr><td>🗡️ Roublard</td><td>d8</td><td>Furtivité / Dégâts ciblés</td><td>DEX / INT</td><td>Légère</td></tr>
+          <tr><td>🔥 Ensorceleur</td><td>d6</td><td>Sorts offensifs</td><td>CHA</td><td>Aucune</td></tr>
+          <tr><td>🌑 Occultiste</td><td>d8</td><td>Magie / Pacte</td><td>CHA</td><td>Légère</td></tr>
+          <tr><td>📚 Magicien</td><td>d6</td><td>Sorts / Contrôle</td><td>INT</td><td>Aucune</td></tr>
+        </tbody>
+      </table></div>
+      <div class="r-tip">💡 À partir du niveau 3, chaque classe se spécialise via une <b>sous-classe</b> (Voie, Archétype, Domaine…) qui affine ton rôle.</div>
+    </div>
+
+    <div class="r-step">
+      <h3>Déterminer les caractéristiques</h3>
+      <p>Les 6 caractéristiques sont <b>Force (FOR), Dextérité (DEX), Constitution (CON), Intelligence (INT), Sagesse (SAG), Charisme (CHA)</b>.</p>
+      <p><b>Méthode 1 — Achat de points (standard compétitif)</b></p>
+      <p>Tu as 27 points à répartir. Chaque caractéristique commence à 8.</p>
+      <div class="tbl-wrap"><table class="eq-tbl" style="margin:.5rem 0;max-width:400px;">
+        <thead><tr><th>Valeur</th><th>8</th><th>9</th><th>10</th><th>11</th><th>12</th><th>13</th><th>14</th><th>15</th></tr></thead>
+        <tbody><tr><td>Coût</td><td>0</td><td>1</td><td>2</td><td>3</td><td>4</td><td>5</td><td>7</td><td>9</td></tr></tbody>
+      </table></div>
+      <p><b>Méthode 2 — Tableau standard</b> : répartir librement les valeurs 15, 14, 13, 12, 10, 8.</p>
+      <p><b>Méthode 3 — Lancers de dés</b> : lancer 4d6, ignorer le plus petit résultat, noter la somme. Répéter 6 fois.</p>
+      <p style="margin-top:.5rem;"><b>Modificateurs :</b></p>
+      <div class="tbl-wrap"><table class="eq-tbl" style="max-width:500px;margin:.4rem 0;">
+        <thead><tr><th>Valeur</th><th>1</th><th>2-3</th><th>4-5</th><th>6-7</th><th>8-9</th><th>10-11</th><th>12-13</th><th>14-15</th><th>16-17</th><th>18-19</th><th>20</th></tr></thead>
+        <tbody><tr><td>Mod</td><td>−5</td><td>−4</td><td>−3</td><td>−2</td><td>−1</td><td>+0</td><td>+1</td><td>+2</td><td>+3</td><td>+4</td><td>+5</td></tr></tbody>
+      </table></div>
+      <div class="r-tip">💡 Priorise la caractéristique principale de ta classe, puis la Constitution pour les PV et la concentration des sorts.</div>
+    </div>
+
+    <div class="r-step">
+      <h3>Choisir un historique</h3>
+      <p>L'historique représente le passé de ton personnage avant d'être aventurier. Il octroie :</p>
+      <ul>
+        <li>2 <b>maîtrises de compétence</b></li>
+        <li>2 <b>maîtrises d'outils ou langues</b></li>
+        <li>Un <b>équipement de départ</b></li>
+        <li>Une <b>capacité d'historique</b> (avantages narratifs)</li>
+        <li>Des <b>traits de personnalité</b>, idéaux, liens, défauts (suggestions)</li>
+      </ul>
+      <div class="tbl-wrap"><table class="eq-tbl" style="margin:.5rem 0;">
+        <thead><tr><th>Historique</th><th>Compétences</th><th>Équipement notable</th></tr></thead>
+        <tbody>
+          <tr><td>Acolyte</td><td>Perspicacité, Religion</td><td>Symbole sacré, livre de prières</td></tr>
+          <tr><td>Artisan de guilde</td><td>Perspicacité, Persuasion</td><td>Outils d'artisan, lettre d'introduction</td></tr>
+          <tr><td>Charlatan</td><td>Tromperie, Escamotage</td><td>Kit de déguisement, faux papiers</td></tr>
+          <tr><td>Criminel</td><td>Tromperie, Discrétion</td><td>Outils de voleur, pied-de-biche</td></tr>
+          <tr><td>Enfant des rues</td><td>Tromperie, Discrétion</td><td>Couteau, carte de la ville</td></tr>
+          <tr><td>Ermite</td><td>Médecine, Religion</td><td>Kit d'herboriste, journal de notes</td></tr>
+          <tr><td>Héros du peuple</td><td>Dressage, Survie</td><td>Outils d'artisan, pelle, pot de fer</td></tr>
+          <tr><td>Noble</td><td>Histoire, Persuasion</td><td>Cachet de noblesse, vêtements fins</td></tr>
+          <tr><td>Sauvageon</td><td>Athlétisme, Survie</td><td>Bâton, piège de chasse</td></tr>
+          <tr><td>Savant</td><td>Arcanes, Histoire</td><td>Plume et encre, petite note de bibliothèque</td></tr>
+          <tr><td>Soldat</td><td>Athlétisme, Intimidation</td><td>Insigne de rang, trophée de bataille</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="r-step">
+      <h3>Équipement de départ</h3>
+      <p>À la création, tu reçois l'équipement de ta classe <em>ou</em> des pièces d'or pour en acheter toi-même.</p>
+      <div class="tbl-wrap"><table class="eq-tbl" style="margin:.5rem 0;">
+        <thead><tr><th>Classe</th><th>Richesse alternative (dés × 10 po)</th></tr></thead>
+        <tbody>
+          <tr><td>Barbare</td><td>2d4 × 10 po</td></tr>
+          <tr><td>Barde</td><td>5d4 × 10 po</td></tr>
+          <tr><td>Clerc</td><td>5d4 × 10 po</td></tr>
+          <tr><td>Druide</td><td>2d4 × 10 po</td></tr>
+          <tr><td>Guerrier</td><td>5d4 × 10 po</td></tr>
+          <tr><td>Moine</td><td>5d4 po</td></tr>
+          <tr><td>Paladin</td><td>5d4 × 10 po</td></tr>
+          <tr><td>Rôdeur</td><td>5d4 × 10 po</td></tr>
+          <tr><td>Roublard</td><td>4d4 × 10 po</td></tr>
+          <tr><td>Ensorceleur</td><td>3d4 × 10 po</td></tr>
+          <tr><td>Occultiste</td><td>4d4 × 10 po</td></tr>
+          <tr><td>Magicien</td><td>4d4 × 10 po</td></tr>
+        </tbody>
+      </table></div>
+      <div class="r-tip">💡 Si tu veux personnaliser ton équipement, opte pour l'argent. Si tu débutes, prends l'équipement par défaut — il est optimisé pour ta classe.</div>
+    </div>
+
+    <div class="r-step">
+      <h3>Finaliser le personnage</h3>
+      <p>Une fois les étapes précédentes complètes, calcule :</p>
+      <ul>
+        <li><b>Points de vie max</b> = DV max au niveau 1 + modificateur CON</li>
+        <li><b>Classe d'armure</b> = selon armure portée + éventuels bonus</li>
+        <li><b>Bonus de maîtrise</b> = +2 aux niveaux 1–4</li>
+        <li><b>Initiative</b> = modificateur DEX</li>
+        <li><b>Jets de sauvegarde maîtrisés</b> = selon ta classe</li>
+        <li><b>Compétences maîtrisées</b> = classe + historique (2+2 minimum)</li>
+        <li><b>Langues connues</b> = commun + celles de la race/historique</li>
+        <li><b>Vitesse</b> = selon race (9 m par défaut)</li>
+      </ul>
+      <p style="margin-top:.5rem;">Remplis ensuite les champs de personnalité : <b>traits</b>, <b>idéaux</b>, <b>liens</b>, <b>défauts</b>. Ces éléments guident le roleplay et peuvent déclencher des <em>Inspiration</em> accordées par le MD.</p>
+      <div class="r-tip">💡 Parle à ton MD de ton background avant la session 0 — l'histoire de ton perso peut influencer la campagne entière !</div>
+    </div>
+
+  </div><!-- /r-steps -->
+</div><!-- /page-creation -->
+
+<!-- ══ PAGE : TOUTES LES CLASSES ══════════════════════════════ -->
+<div id="page-classes" class="r-page">
+  <div class="r-classtabs">
+    <button class="r-ctab on"  onclick="showClasse('regles-Barbare',this)">Barbare</button>
+    <button class="r-ctab"     onclick="showClasse('regles-Barde',this)">Barde</button>
+    <button class="r-ctab"     onclick="showClasse('regles-Clerc',this)">Clerc</button>
+    <button class="r-ctab"     onclick="showClasse('regles-Druide',this)">Druide</button>
+    <button class="r-ctab"     onclick="showClasse('regles-Ensorceleur',this)">Ensorceleur</button>
+    <button class="r-ctab"     onclick="showClasse('regles-Guerrier',this)">Guerrier</button>
+    <button class="r-ctab"     onclick="showClasse('regles-Magicien',this)">Magicien</button>
+    <button class="r-ctab"     onclick="showClasse('regles-Moine',this)">Moine</button>
+    <button class="r-ctab"     onclick="showClasse('regles-Occultiste',this)">Occultiste</button>
+    <button class="r-ctab"     onclick="showClasse('regles-Paladin',this)">Paladin</button>
+    <button class="r-ctab"     onclick="showClasse('regles-Rodeur',this)">Rôdeur</button>
+    <button class="r-ctab"     onclick="showClasse('regles-Roublard',this)">Roublard</button>
+  </div>
+
+<div id="regles-Barbare" class="regles-section on">
 <p>Drapé de fourrure et portant une hache, un humain tribal de haute taille marche à grandes enjambées à travers le blizzard. Riant aux éclats, il charge le géant du givre qui a osé s'en prendre au troupeau de son clan. Une demi-orc grogne férocement contre le dernier adversaire qui a voulu remettre en cause son autorité sur la tribu, prête à lui briser le cou comme elle l'a fait avec les six précédents. L'écume aux lèvres, un nain balance son casque dans le visage d'un premier ennemi drow puis, se retournant, envoie sa cubitière dans le ventre d'un second.</p><p>Ces barbares, bien que différents, ont en commun leur rage : un déchaînement de fureur, inextinguible et irraisonné. Bien plus qu'une émotion passagère, leur colère est celle d'un féroce prédateur acculé, l'assaut implacable de la tempête, le tumulte d'une mer démontée. Pour certains, leur rage est le fruit d'une communion avec de fiers esprits animaux. D'autres la puisent d'une réserve trouble de colère contre ce monde de souffrance. Mais pour tous, la rage est une force qui n'alimente pas que leur frénésie guerrière. Elle leur donne aussi des réflexes, une résistance et des prouesses physiques incroyables.</p><h3>Instinct primitif</h3><p>Villageois et citadins sont fiers de leur manières civilisées qui les distinguent des animaux, comme si renier sa propre nature était un signe de supériorité. Mais pour un barbare, la civilisation n'est pas une vertu, c'est un signe de faiblesse. Les forts assument leurs instincts naturels, leur physique primitif et leur rage féroce. Les barbares ne sont pas à l'aise derrière des murs ou entourés par la foule. Ils prospèrent sur les étendues sauvages de leurs terres natales : la toundra, la jungle ou les prairies où leur tribu vit et chasse. Les barbares renaissent dans le chaos d'un combat. Ils peuvent entrer en rage et devenir fous furieux, ce qui leur donne une force et une résistance au-delà des limites humaines. Un barbare ne peut puiser dans cette réserve de furie que quelquefois avant de devoir se reposer, mais ces quelques rages sont généralement suffisantes pour annihiler toute menace.</p><h3>Une vie pleine de danger</h3><p>Un membre d'une tribu réputée « barbare » par la société civilisée ne possède pas forcément des niveaux dans la classe de barbare. Un vrai barbare parmi son peuple est aussi rare qu'un guerrier compétent en ville, et il ou elle joue un rôle similaire destiné à protéger son peuple et à être un meneur en cas de guerre. La vie dans les endroits sauvages du monde est remplie de dangers : des tribus rivales, un climat hostile et des monstres terrifiants. Les barbares s'y jettent la tête la première afin que leur peuple n'ait pas besoin de le faire. Le courage dont ils font preuve face au danger en font de parfaits aventuriers. L'errance étant souvent le mode de vie de leur tribu natale, la vie souvent sans attache d'un aventurier n'est donc pas contraignante pour un barbare. La structure familiale d'une tribu et ses membres très unis peut manquer au barbare mais, finalement, elle sera compensée par les liens tissés avec leurs compagnons d'aventure.</p><h3>Créer un barbare</h3><p>Lorsque vous créez un barbare, réfléchissez d'où il vient et quelle est sa place dans le monde. Discutez avec votre MD afin de lui trouver une origine appropriée. Venez-vous d'une contrée éloignée faisant de vous un étranger dans la campagne ? Ou bien cette même campagne se déroule t-elle dans une rude région frontalière où les barbares sont communs ? Qu'est-ce qui vous a poussé à devenir aventurier ? Avez vous été séduit par la certitude de devenir riche dans les pays régis par les lois ? Avez-vous joint vos forces avec les soldats de ces mêmes pays afin de repousser une menace commune ? Est-ce que des monstres ou une horde étrangère vous ont contraint à l'exil ? Vous étiez peut-être un prisonnier de guerre, conduit enchaîné dans les pays « civilisés » et qui tente de regagner sa liberté à tout prix. Ou peut-être avez vous été banni de votre peuple suite à un crime que vous avez commis, un tabou que vous avez brisé ou une révolte qui vous a déchu de votre autorité.</p><h4>Création rapide</h4><p>Vous pouvez concevoir rapidement un barbare en suivant ces quelques suggestions. En premier lieu, la Force devrait être votre plus haute valeur de caractéristique, suivie par la Constitution. Ensuite, choisissez l'historique sauvageon.</p><h2>Capacités de classe</h2><h4>Points de vie</h4><p><strong>DV</strong> : 1d12 par niveau de barbare<br/><strong>pv au niveau 1</strong> : 12 + votre modificateur de Constitution<br/><strong>pv aux niveaux suivants</strong> : 1d12 (ou 7) + votre modificateur de Constitution</p><h4>Maîtrises</h4><p><strong>Armures</strong> : armures légères, armures intermédiaires, boucliers<br/><strong>Armes</strong> : armes courantes, armes de guerre<br/><strong>Outils</strong> : aucun<br/><strong>Jets de sauvegarde</strong> : Force, Constitution<br/><strong>Compétences</strong> : choisissez deux compétences parmi Athlétisme, Dressage, Intimidation, Nature, Perception et Survie</p><h4>Équipement</h4><p>Vous commencez avec l'équipement suivant, en plus de l'équipement accordé par votre historique :</p><ul>
 <li>(a) une hache à deux mains ou (b) n'importe quelle arme de guerre de corps à corps</li>
 <li>(a) deux hachettes ou (b) n'importe quelle arme courante</li>
@@ -4871,5 +5452,215 @@
 </ul><p>À la discrétion du MD, vous pouvez aussi réaliser que vous connaissez une part de l'histoire de la créature ou l'un de ses traits de personnalité, si elle en possède.</p><h4>Redirection</h4><p>À partir du niveau 13, vous pouvez parfois faire qu'une créature finisse par être la cible d'une attaque qui vous visait. Lorsque vous êtes ciblé par une attaque alors qu'une créature dans un rayon de 1,50 mètre autour de vous vous offre un abri contre cette attaque, vous pouvez utiliser votre réaction pour que la cible de l'attaque soit cette créature, à votre place.</p><h4>Âme de trompeur</h4><p>À partir du niveau 17, vos pensées ne peuvent être lues par télépathie ou par d'autres moyens, sauf si vous le permettez. Vous pouvez présenter de fausses pensées en faisant un jet de Charisme (Tromperie) opposé à un jet de Sagesse (Intuition) du lecteur de votre esprit. En outre, peu importe ce que vous dites, la magie qui permettrait de déterminer si vous dites la vérité indique que vous ne mentez pas, si vous le souhaitez, et vous ne pouvez pas être obligé de dire la vérité par magie.</p><p class="auteur">Traduit par blueace et 5hAmAhS</p>
 </div>
 
+</div><!-- /page-classes -->
+
+<script>
+// ══════════════════════════════════════════
+// NAVIGATION
+// ══════════════════════════════════════════
+function showPage(id, btn) {
+  document.querySelectorAll('.r-page').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.r-navbtn').forEach(function(b){b.classList.remove('on');});
+  var page = document.getElementById(id);
+  if (page) page.classList.add('on');
+  if (btn) btn.classList.add('on');
+}
+function showSubtab(group, sub, btn) {
+  var prefix = group + '-';
+  document.querySelectorAll('#page-' + group + ' .r-subpage').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('#page-' + group + ' .r-subtab').forEach(function(b){b.classList.remove('on');});
+  var el = document.getElementById(prefix + sub);
+  if (el) el.classList.add('on');
+  if (btn) btn.classList.add('on');
+}
+function showClasse(id, btn) {
+  document.querySelectorAll('#page-classes .regles-section').forEach(function(p){p.classList.remove('on');});
+  document.querySelectorAll('.r-ctab').forEach(function(b){b.classList.remove('on');});
+  var el = document.getElementById(id);
+  if (el) el.classList.add('on');
+  if (btn) btn.classList.add('on');
+}
+
+// ══════════════════════════════════════════
+// LECTURE localStorage (Quest Station)
+// ══════════════════════════════════════════
+function loadChar() {
+  var best = null;
+  for (var i = 0; i < localStorage.length; i++) {
+    var k = localStorage.key(i);
+    if (!k || !k.startsWith('qs_')) continue;
+    try {
+      var d = JSON.parse(localStorage.getItem(k));
+      if (d && d.classe) { best = d; break; }
+    } catch(e) {}
+  }
+  return best;
+}
+
+// ══════════════════════════════════════════
+// RENDU CAPACITÉS (depuis CAPS_DATA)
+// ══════════════════════════════════════════
+function renderCaps(items, niv, container) {
+  if (!items || !items.length) {
+    container.innerHTML = '<p style="color:var(--txt3);font-size:13px;padding:.5rem 0;">Aucune capacité disponible.</p>';
+    return;
+  }
+  container.innerHTML = '';
+  items.forEach(function(cap) {
+    var unlocked = (!cap.niveau || cap.niveau <= niv);
+    var div = document.createElement('div');
+    div.className = 'r-cap-item';
+    div.innerHTML =
+      '<div class="r-cap-hd" onclick="this.nextElementSibling.classList.toggle(\'on\')">'
+      + '<span class="r-cap-nom">' + (cap.nom||'—') + '</span>'
+      + (cap.niveau ? '<span class="r-cap-niv' + (unlocked ? '' : ' locked') + '">Niv ' + cap.niveau + '</span>' : '')
+      + (cap.type === 'choix' ? '<span class="r-cap-type">À choisir</span>' : '')
+      + '<span class="r-cap-arr">▾</span>'
+      + '</div>'
+      + '<div class="r-cap-bd">' + (cap.desc || cap.description || 'Aucune description.') + '</div>';
+    container.appendChild(div);
+  });
+}
+
+function setText(id, text) {
+  var el = document.getElementById(id);
+  if (el) el.textContent = text;
+}
+
+// ══════════════════════════════════════════
+// INIT — charge le personnage
+// ══════════════════════════════════════════
+(function init() {
+  var loading  = document.getElementById('r-loading');
+  var nok      = document.getElementById('r-nok');
+  var content  = document.getElementById('r-perso-content');
+
+  var data = loadChar();
+  if (loading) loading.style.display = 'none';
+
+  if (!data || !data.classe) {
+    if (nok) nok.style.display = '';
+    return; // Laisser les pages Classe/Historique/Race afficher leur propre notice
+  }
+
+  var cl   = data.classe     || '—';
+  var niv  = parseInt(data.niveau) || 1;
+  var race = data.race       || '—';
+  var hist = data.historique || '—';
+  var nom  = data.nom        || '—';
+  var joueur = data.joueur   || '—';
+
+  var ICONS = {
+    'Barbare':'⚔️','Barde':'🎵','Clerc':'✨','Druide':'🌿',
+    'Ensorceleur':'🔥','Guerrier':'🛡️','Magicien':'📚','Moine':'👊',
+    'Occultiste':'🌑','Paladin':'⚜️','Rôdeur':'🏹','Roublard':'🗡️'
+  };
+
+  // ── Page "Mon Personnage" ────────────────────────────────────
+  if (content) content.style.display = '';
+  setText('ph-icon',      ICONS[cl] || '⚔️');
+  setText('ph-nom',       nom);
+  setText('ph-sous',      cl + ' · Niveau ' + niv + (race !== '—' ? ' · ' + race : '') + (hist !== '—' ? ' · ' + hist : '') + ' · Joueur : ' + joueur);
+  setText('ph-classe',    cl);
+  setText('ph-historique', hist);
+  setText('ph-race',      race);
+  setText('ph-for',  data['for']  || data.for  || '—');
+  setText('ph-dex',  data['dex']  || data.dex  || '—');
+  setText('ph-con',  data['con']  || data.con  || '—');
+  setText('ph-int',  data['int']  || data.int  || '—');
+  setText('ph-sag',  data['sag']  || data.sag  || '—');
+  setText('ph-cha',  data['cha']  || data.cha  || '—');
+
+  // ── Page "Classe" ────────────────────────────────────────────
+  var classeNok     = document.getElementById('r-classe-nok');
+  var classeContent = document.getElementById('r-classe-content');
+  if (classeNok)     classeNok.style.display = 'none';
+  if (classeContent) {
+    classeContent.style.display = '';
+    var caps = (window.CAPS_DATA && window.CAPS_DATA.classes) ? window.CAPS_DATA.classes[cl] : null;
+
+    // En-tête hero
+    classeContent.innerHTML =
+      '<div class="r-hero"><div class="r-hero-icon">' + (ICONS[cl]||'⚔️') + '</div>'
+      + '<div><h2>' + cl + '</h2><p>Niveau ' + niv + ' · ' + joueur + '</p></div></div>';
+
+    // Capacités depuis CAPS_DATA
+    if (caps && caps.length) {
+      var card = document.createElement('div');
+      card.className = 'r-card';
+      card.innerHTML = '<div class="r-card-title">Capacités de classe (niveau ≤ ' + niv + ' en avant)</div><div id="caps-cl-list"></div>';
+      classeContent.appendChild(card);
+      renderCaps(caps, niv, document.getElementById('caps-cl-list'));
+    }
+
+    // Description complète depuis les sections existantes
+    var ruleId  = {'Rôdeur':'Rodeur'}[cl] || cl;
+    var ruleDiv = document.getElementById('regles-' + ruleId);
+    if (ruleDiv) {
+      var clone = ruleDiv.cloneNode(true);
+      clone.removeAttribute('id');
+      clone.classList.remove('on');
+      clone.style.display = 'block';
+      var descCard = document.createElement('div');
+      descCard.className = 'r-card';
+      descCard.innerHTML = '<div class="r-card-title">Description complète</div>';
+      descCard.appendChild(clone);
+      classeContent.appendChild(descCard);
+    }
+  }
+
+  // ── Page "Historique" ────────────────────────────────────────
+  var histNok     = document.getElementById('r-hist-nok');
+  var histContent = document.getElementById('r-hist-content');
+  if (histNok)     histNok.style.display = 'none';
+  if (histContent) {
+    histContent.style.display = '';
+    var histCaps = (window.CAPS_DATA && window.CAPS_DATA.historiques) ? window.CAPS_DATA.historiques[hist] : null;
+
+    histContent.innerHTML =
+      '<div class="r-hero"><div class="r-hero-icon">📖</div>'
+      + '<div><h2>' + hist + '</h2><p>Historique de ' + nom + '</p></div></div>';
+
+    if (histCaps && histCaps.length) {
+      var hcard = document.createElement('div');
+      hcard.className = 'r-card';
+      hcard.innerHTML = '<div class="r-card-title">Capacités d\'historique</div><div id="caps-hist-list"></div>';
+      histContent.appendChild(hcard);
+      renderCaps(histCaps, 99, document.getElementById('caps-hist-list'));
+    } else {
+      var hn = document.createElement('div');
+      hn.className = 'r-notice';
+      hn.innerHTML = '<strong>📖 ' + hist + '</strong>Les détails de cet historique ne sont pas dans le référentiel actuel.';
+      histContent.appendChild(hn);
+    }
+  }
+
+  // ── Page "Race" ──────────────────────────────────────────────
+  var raceNok     = document.getElementById('r-race-nok');
+  var raceContent = document.getElementById('r-race-content');
+  if (raceNok)     raceNok.style.display = 'none';
+  if (raceContent) {
+    raceContent.style.display = '';
+    var raceCaps = (window.CAPS_DATA && window.CAPS_DATA.races) ? window.CAPS_DATA.races[race] : null;
+
+    raceContent.innerHTML =
+      '<div class="r-hero"><div class="r-hero-icon">🧝</div>'
+      + '<div><h2>' + race + '</h2><p>Race de ' + nom + '</p></div></div>';
+
+    if (raceCaps && raceCaps.length) {
+      var rcard = document.createElement('div');
+      rcard.className = 'r-card';
+      rcard.innerHTML = '<div class="r-card-title">Traits raciaux</div><div id="caps-race-list"></div>';
+      raceContent.appendChild(rcard);
+      renderCaps(raceCaps, 99, document.getElementById('caps-race-list'));
+    } else {
+      var rn = document.createElement('div');
+      rn.className = 'r-notice';
+      rn.innerHTML = '<strong>🧝 ' + race + '</strong>Les traits de cette race ne sont pas dans le référentiel actuel.';
+      raceContent.appendChild(rn);
+    }
+  }
+})();
+</script>
 </body>
 </html>
