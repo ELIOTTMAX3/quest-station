@@ -107,6 +107,34 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
 /* ── CODE DISPLAY ─── */
 .code-big{font-family:monospace;font-size:36px;font-weight:800;color:var(--or);letter-spacing:.3em;text-align:center;padding:1rem;background:var(--bg3);border-radius:10px;border:1px solid var(--bord2);}
+
+/* ── COMBAT TRACKER ─── */
+.combat-row{background:var(--bg2);border:1px solid var(--bord);border-radius:8px;padding:8px 10px;margin-bottom:6px;display:flex;align-items:center;gap:7px;transition:border-color .15s,background .15s;}
+.combat-row.actif{border-color:var(--rouge);background:rgba(217,119,6,.08);box-shadow:0 0 0 1px rgba(217,119,6,.25);}
+.combat-row.mort{opacity:.4;}
+.combat-indicateur{font-size:12px;color:var(--rouge);width:12px;text-align:center;flex-shrink:0;}
+.combat-num{font-size:10px;font-weight:700;color:var(--txt3);width:16px;text-align:center;flex-shrink:0;}
+.combat-av{width:28px;height:28px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:var(--txt3);flex-shrink:0;overflow:hidden;}
+.combat-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.combat-info{flex:1;min-width:0;}
+.combat-nom{font-size:12px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.combat-type{font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;}
+.combat-pv{flex-shrink:0;width:72px;}
+.combat-pv-val{font-size:10px;color:var(--txt2);text-align:right;margin-bottom:2px;}
+.combat-pv-bg{background:rgba(255,255,255,.1);border-radius:999px;height:4px;overflow:hidden;}
+.combat-pv-fill{height:100%;border-radius:999px;transition:width .3s,background .3s;}
+.combat-ca{font-size:11px;font-weight:700;color:var(--txt2);width:24px;text-align:center;flex-shrink:0;}
+.combat-init{width:46px;flex-shrink:0;}
+.combat-init input{width:100%;text-align:center;font-size:13px;font-weight:700;padding:3px 4px;border-radius:6px;}
+.combat-btns{display:flex;gap:3px;flex-shrink:0;}
+.cbtn{font-family:inherit;font-size:10px;padding:3px 7px;border-radius:5px;cursor:pointer;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt2);transition:background .1s;white-space:nowrap;}
+.cbtn:hover{background:var(--rouge);color:white;border-color:var(--rouge);}
+.cbtn.d:hover{background:#dc2626;border-color:#dc2626;}
+.combat-reprise{background:rgba(217,119,6,.12);border:1px solid rgba(217,119,6,.35);border-radius:8px;padding:10px 14px;margin-bottom:1rem;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.combat-controls{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;align-items:center;}
+.round-badge{background:var(--bg3);border:1px solid var(--bord2);border-radius:6px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--or);}
+.monster-form{background:var(--bg3);border:1px solid var(--bord2);border-radius:10px;padding:12px;margin-bottom:1rem;}
+.mf-grid{display:grid;grid-template-columns:1fr 64px 54px 64px;gap:8px;margin-bottom:8px;align-items:end;}
 </style>
 </head>
 <body>
@@ -182,12 +210,44 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
     <div class="tbar">
       <button class="tbtn on" onclick="panelTab('joueurs',this)">Joueurs</button>
+      <button class="tbtn" onclick="panelTab('combat',this)">Combat</button>
       <button class="tbtn" onclick="panelTab('campagne',this)">Campagne</button>
     </div>
 
     <!-- Onglet Joueurs -->
     <div id="pt-joueurs">
       <div id="panel-joueurs"><p style="font-size:12px;color:var(--txt3);">En attente de joueurs…</p></div>
+    </div>
+
+    <!-- Onglet Combat -->
+    <div id="pt-combat" style="display:none;">
+      <!-- Bandeau reprise -->
+      <div id="combat-reprise" class="combat-reprise" style="display:none;">
+        <span id="combat-reprise-txt" style="flex:1;font-size:13px;color:var(--or);font-weight:600;"></span>
+        <button class="btn ok" style="font-size:11px;padding:5px 12px;" onclick="reprendreCombat()">Reprendre</button>
+        <button class="btn danger" style="font-size:11px;padding:5px 12px;" onclick="effacerCombat()">Effacer</button>
+      </div>
+      <!-- Contrôles -->
+      <div class="combat-controls">
+        <button class="btn ok" id="btn-debut-combat" onclick="debutCombat()">Début du combat</button>
+        <button class="btn" id="btn-tour-suiv" onclick="tourSuivant()" style="display:none;">Tour suivant ▶</button>
+        <button class="btn" id="btn-nouveau-round" onclick="nouveauRound()" style="display:none;">Nouveau round</button>
+        <button class="btn danger" onclick="nouveauCombat()">Nouveau combat</button>
+        <span class="round-badge" id="combat-round-badge" style="display:none;">Round <span id="combat-round-num">1</span></span>
+      </div>
+      <!-- Formulaire monstre -->
+      <div class="monster-form">
+        <p class="st" style="margin-bottom:8px;">Ajouter un monstre</p>
+        <div class="mf-grid">
+          <div><label>Nom</label><input type="text" id="m-nom" placeholder="Gobelin" onkeydown="if(event.key==='Enter')ajouterMonstre()"></div>
+          <div><label>PV max</label><input type="number" id="m-pvmax" min="1" placeholder="7"></div>
+          <div><label>CA</label><input type="number" id="m-ca" min="1" placeholder="15"></div>
+          <div><label>Initiative</label><input type="number" id="m-init" placeholder="12"></div>
+        </div>
+        <button class="btn ok" style="width:100%;" onclick="ajouterMonstre()">+ Ajouter</button>
+      </div>
+      <!-- Liste d'initiative -->
+      <div id="combat-list"></div>
     </div>
 
     <!-- Onglet Campagne -->
@@ -306,10 +366,11 @@ function seDeconnecter(){
   window.location.href="index.html";
 }
 function panelTab(name,btn){
-  ["joueurs","campagne"].forEach(function(n){var e=el("pt-"+n);if(e)e.style.display="none";});
+  ["joueurs","combat","campagne"].forEach(function(n){var e=el("pt-"+n);if(e)e.style.display="none";});
   document.querySelectorAll("#s-panel .tbar .tbtn").forEach(function(b){b.classList.remove("on");});
   var t=el("pt-"+name);if(t)t.style.display="";
   btn.classList.add("on");
+  if(name==="combat")ouvrirOngletCombat();
 }
 
 // ══════════════════════════════════════════
@@ -411,6 +472,14 @@ function ouvrirPanel(code){
     joueursData={};
     qs.forEach(function(d){joueursData[d.id]=d.data();});
     rendreJoueurs();
+    // Mettre à jour PV des PJ dans le tracker si actif
+    combatants.forEach(function(c){
+      if(c.type==='pj'&&c.jid&&joueursData[c.jid]){
+        c.pvact=joueursData[c.jid]._pvact||c.pvact;
+        c.pvmax=joueursData[c.jid]._pvmax||c.pvmax;
+      }
+    });
+    if(combatants.length&&el('pt-combat')&&el('pt-combat').style.display!=='none')rendreCombat();
   },function(){});
 }
 
@@ -511,6 +580,8 @@ function appliquerHp(type){
   el("mhp-cur").textContent=newVal;
   el("mhp-val").value="";
   rendreJoueurs();
+  // Sync tracker d'initiative si ouvert
+  syncPvCombat(hpTarget,newVal);
   toast(type==="degats"?"–"+Math.abs(val)+" PV":type==="soins"?"+"+Math.abs(val)+" PV":"PV définis à "+newVal);
   fermerModalHp();
 }
@@ -636,6 +707,346 @@ function supprimerCampagne(){
     show("s-home");chargerCampagnes();
     toast("Campagne supprimée");
   }).catch(function(e){toast("Erreur : "+e.message);});
+}
+
+// ══════════════════════════════════════════
+// COMBAT TRACKER
+// ══════════════════════════════════════════
+var combatants=[], combatTour=-1, combatRound=0, combatActif=false;
+var monstreInstances={};
+
+function combatKey(){return campagneActive?'combat_'+campagneActive.id:null;}
+
+function sauvegarderCombat(){
+  var k=combatKey();if(!k)return;
+  localStorage.setItem(k,JSON.stringify({combatants:combatants,combatTour:combatTour,combatRound:combatRound,combatActif:combatActif}));
+}
+
+function chargerCombatLocal(){
+  var k=combatKey();if(!k)return null;
+  try{var d=localStorage.getItem(k);return d?JSON.parse(d):null;}catch(e){return null;}
+}
+
+function effacerCombat(){
+  var k=combatKey();if(k)localStorage.removeItem(k);
+  combatants=[];combatTour=-1;combatRound=0;combatActif=false;monstreInstances={};
+  importerPJsCombat();
+  el('combat-reprise').style.display='none';
+  rendreCombat();majControlsCombat();
+}
+
+function importerPJsCombat(){
+  Object.keys(joueursData).forEach(function(jid){
+    var d=joueursData[jid];
+    if(!d._nom)return;
+    if(combatants.find(function(c){return c.jid===jid;}))return;
+    combatants.push({id:'pj-'+jid,jid:jid,nom:d._nom,type:'pj',
+      pvact:d._pvact||0,pvmax:d._pvmax||0,ca:d._ca||'—',init:null,avatar:d.avatar||null});
+  });
+}
+
+function trierCombatants(){
+  combatants.sort(function(a,b){
+    if(a.init===null&&b.init===null)return 0;
+    if(a.init===null)return 1;
+    if(b.init===null)return -1;
+    return b.init-a.init;
+  });
+}
+
+function ajouterMonstre(){
+  var nom=(el('m-nom').value||'').trim();
+  if(!nom){el('m-nom').focus();return;}
+  var pvmax=Math.max(1,parseInt(el('m-pvmax').value)||1);
+  var ca=parseInt(el('m-ca').value)||10;
+  var initVal=el('m-init').value.trim();
+  var init=initVal!==''?parseInt(initVal):null;
+  // Numérotation
+  monstreInstances[nom]=(monstreInstances[nom]||0)+1;
+  var count=monstreInstances[nom];
+  if(count===2){
+    // Renuméroter le premier
+    var premier=combatants.find(function(c){return c.nom===nom&&c.type==='monstre';});
+    if(premier)premier.nom=nom+' #1';
+  }
+  var nomAff=count>=2?nom+' #'+count:nom;
+  combatants.push({id:'m-'+Date.now(),nom:nomAff,type:'monstre',pvact:pvmax,pvmax:pvmax,ca:ca,init:init,avatar:null});
+  trierCombatants();
+  el('m-nom').value='';el('m-pvmax').value='';el('m-ca').value='';el('m-init').value='';
+  el('m-nom').focus();
+  rendreCombat();majBtnDebut();sauvegarderCombat();
+}
+
+function debutCombat(){
+  trierCombatants();
+  combatActif=true;combatRound=1;combatTour=0;
+  rendreCombat();majControlsCombat();sauvegarderCombat();
+}
+
+function tourSuivant(){
+  if(!combatants.length)return;
+  combatTour=(combatTour+1)%combatants.length;
+  if(combatTour===0)combatRound++;
+  majRoundBadge();rendreCombat();sauvegarderCombat();
+  // Scroller vers le combattant actif
+  var actif=document.querySelector('.combat-row.actif');
+  if(actif)actif.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function nouveauRound(){
+  combatTour=0;combatRound++;
+  majRoundBadge();rendreCombat();sauvegarderCombat();
+}
+
+function nouveauCombat(){
+  if(!confirm("Réinitialiser le combat ? Les scores d'initiative seront effacés."))return;
+  effacerCombat();
+}
+
+function reprendreCombat(){
+  el('combat-reprise').style.display='none';
+  // Rafraîchir PV des PJ depuis joueursData
+  combatants.forEach(function(c){
+    if(c.type==='pj'&&c.jid&&joueursData[c.jid]){
+      c.pvact=joueursData[c.jid]._pvact||c.pvact;
+      c.pvmax=joueursData[c.jid]._pvmax||c.pvmax;
+    }
+  });
+  rendreCombat();majControlsCombat();
+}
+
+function retirerCombattant(idx){
+  var idxActuel=combatTour;
+  combatants.splice(idx,1);
+  if(combatActif){
+    if(idx<idxActuel)combatTour=Math.max(0,combatTour-1);
+    else if(idx===idxActuel)combatTour=combatTour%Math.max(1,combatants.length);
+  }
+  rendreCombat();sauvegarderCombat();
+}
+
+function majInitiativeCombat(idx,val){
+  combatants[idx].init=val===''?null:parseInt(val);
+  if(!combatActif){trierCombatants();}
+  rendreCombat();majBtnDebut();sauvegarderCombat();
+}
+
+function majPvMonstre(idx,type){
+  var val=parseInt(prompt(type==='degats'?'Dégâts infliqués :':'Soins appliqués :')||'0');
+  if(!val||isNaN(val))return;
+  var c=combatants[idx];
+  if(type==='degats')c.pvact=Math.max(0,c.pvact-Math.abs(val));
+  else c.pvact=Math.min(c.pvmax,c.pvact+Math.abs(val));
+  rendreCombat();sauvegarderCombat();
+}
+
+// Sync PV PJ vers combat tracker (appelé après appliquerHp)
+function syncPvCombat(jid,newPvact){
+  var c=combatants.find(function(x){return x.jid===jid;});
+  if(c){c.pvact=newPvact;rendreCombat();sauvegarderCombat();}
+}
+
+function majBtnDebut(){
+  var btn=el('btn-debut-combat');if(!btn)return;
+  var hasInit=combatants.some(function(c){return c.init!==null;});
+  btn.disabled=!hasInit||combatActif;
+}
+
+function majRoundBadge(){
+  var b=el('combat-round-badge'),n=el('combat-round-num');
+  if(b)b.style.display=combatActif?'':'none';
+  if(n)n.textContent=combatRound;
+}
+
+function majControlsCombat(){
+  majBtnDebut();majRoundBadge();
+  var ts=el('btn-tour-suiv'),nr=el('btn-nouveau-round');
+  if(ts)ts.style.display=combatActif?'':'none';
+  if(nr)nr.style.display=combatActif?'':'none';
+}
+
+function rendreCombat(){
+  var cont=el('combat-list');if(!cont)return;
+  if(!combatants.length){
+    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);text-align:center;padding:1.5rem 0;">Aucun combattant — ajoute des monstres ou clique "Nouveau combat" pour importer les PJ.</p>';
+    return;
+  }
+  cont.innerHTML=combatants.map(function(c,idx){
+    var estActif=combatActif&&idx===combatTour;
+    var pct=c.pvmax?Math.round(Math.max(0,Math.min(100,c.pvact/c.pvmax*100))):0;
+    var pvCol=pct>50?'var(--vert)':pct>25?'#d97706':'#dc2626';
+    var mort=c.pvact===0&&c.pvmax>0;
+    var avHtml=c.avatar
+      ?'<div class="combat-av"><img src="'+c.avatar+'"></div>'
+      :'<div class="combat-av">'+(c.type==='pj'?'PJ':'M')+'</div>';
+    var pvBtns=c.type==='pj'
+      ?'<button class="cbtn" onclick="ouvrirHp(\''+c.jid+'\')">PV</button>'
+      :'<button class="cbtn" onclick="majPvMonstre('+idx+',\'degats\')" style="color:#fca5a5;">-</button>'
+       +'<button class="cbtn" onclick="majPvMonstre('+idx+',\'soins\')" style="color:#86efac;">+</button>';
+    return '<div class="combat-row'+(estActif?' actif':'')+(mort?' mort':'')+'">'
+      +'<div class="combat-indicateur">'+(estActif?'▶':'')+'</div>'
+      +'<div class="combat-num">'+(idx+1)+'</div>'
+      +avHtml
+      +'<div class="combat-info"><div class="combat-nom">'+(mort?'<s>':'')+c.nom+(mort?'</s>':'')+'</div>'
+      +'<div class="combat-type">'+(c.type==='pj'?'PJ':'Monstre')+'</div></div>'
+      +'<div class="combat-pv"><div class="combat-pv-val">'+c.pvact+'/'+c.pvmax+'</div>'
+      +'<div class="combat-pv-bg"><div class="combat-pv-fill" style="width:'+pct+'%;background:'+pvCol+';"></div></div></div>'
+      +'<div class="combat-ca" title="CA">'+c.ca+'</div>'
+      +'<div class="combat-init"><input type="number" value="'+(c.init!==null?c.init:'')+'" placeholder="Init"'
+      +' oninput="majInitiativeCombat('+idx+',this.value)"'
+      +' style="background:'+(estActif?'var(--bg)':'var(--bg3)')+'"></div>'
+      +'<div class="combat-btns">'+pvBtns
+      +'<button class="cbtn d" onclick="retirerCombattant('+idx+')" title="Retirer">✕</button>'
+      +'</div></div>';
+  }).join('');
+}
+
+function ouvrirOngletCombat(){
+  var sauvegarde=chargerCombatLocal();
+  if(sauvegarde&&sauvegarde.combatants&&sauvegarde.combatants.length>0){
+    combatants=sauvegarde.combatants;
+    combatTour=sauvegarde.combatTour;
+    combatRound=sauvegarde.combatRound;
+    combatActif=sauvegarde.combatActif;
+    var reprise=el('combat-reprise');
+    if(reprise){
+      reprise.style.display='flex';
+      var txt=el('combat-reprise-txt');
+      if(txt)txt.textContent=combatActif
+        ?'Combat en cours — Round '+combatRound+' · '+combatants.length+' combattant'+(combatants.length>1?'s':'')
+        :'Liste d\'initiative sauvegardée ('+combatants.length+' combattant'+(combatants.length>1?'s':'')+')';
+    }
+    rendreCombat();majControlsCombat();
+  } else {
+    combatants=[];combatTour=-1;combatRound=0;combatActif=false;monstreInstances={};
+    el('combat-reprise').style.display='none';
+    importerPJsCombat();
+    rendreCombat();majControlsCombat();
+  }
+}
+
+// ══════════════════════════════════════════
+// FICHE PJ COMPLÈTE
+// ══════════════════════════════════════════
+function ouvrirFiche(jid){
+  var mirror=joueursData[jid]||{};
+  el("modal-content").innerHTML='<p style="font-size:13px;color:var(--txt3);text-align:center;padding:2rem;">Chargement…</p>';
+  el("modal-fiche").style.display="flex";
+  if(db){
+    db.collection("parties").doc("campagne-1").collection("joueurs").doc(jid).get()
+      .then(function(snap){rendreModalFiche(jid,mirror,snap.exists?snap.data():{});})
+      .catch(function(){rendreModalFiche(jid,mirror,{});});
+  } else {
+    rendreModalFiche(jid,mirror,{});
+  }
+}
+
+function gModFiche(v){var m=Math.floor((parseInt(v)||10)-10)/2;return (m>=0?'+':'')+Math.floor(m);}
+
+function rendreModalFiche(jid,mir,f){
+  var pvact=parseInt(mir._pvact||f['pv-act'])||0;
+  var pvmax=parseInt(mir._pvmax||f['pv-max'])||0;
+  var pct=pvmax?Math.round(Math.max(0,Math.min(100,pvact/pvmax*100))):0;
+  var pvCol=pct>50?'var(--vert)':pct>25?'#d97706':'#dc2626';
+  var conds=Array.from(condActives[jid]||new Set());
+  var sec=function(titre,contenu){
+    return '<div style="margin-bottom:1rem;">'
+      +'<p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);'
+      +'margin-bottom:8px;border-bottom:1px solid var(--bord);padding-bottom:4px;">'+titre+'</p>'
+      +contenu+'</div>';
+  };
+  var html='';
+
+  // En-tête
+  html+='<div style="display:flex;align-items:center;gap:14px;margin-bottom:1.25rem;">';
+  html+=mir.avatar
+    ?'<img src="'+mir.avatar+'" style="width:58px;height:58px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
+    :'<div style="width:58px;height:58px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--txt3);flex-shrink:0;">?</div>';
+  html+='<div style="min-width:0;">';
+  html+='<div style="font-size:17px;font-weight:800;color:var(--txt);">'+(f.nom||mir._nom||jid)+'</div>';
+  html+='<div style="font-size:12px;color:var(--txt2);margin-top:2px;">'
+    +(f.classe||mir._cl||'—')+(f.niveau?' · Niv. '+f.niveau:'')+(f.race?' · '+f.race:'')+'</div>';
+  html+='<div style="display:flex;align-items:center;gap:5px;margin-top:3px;">'
+    +'<span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;background:'+(mir.enLigne?'#4ade80':'var(--txt3)')+'"></span>'
+    +'<span style="font-size:11px;color:var(--txt3);">'+(mir.enLigne?'En ligne':'Hors ligne')+'</span>'
+    +(f.historique?'<span style="color:var(--bord2);margin:0 3px;">·</span><span style="font-size:11px;color:var(--txt3);">'+f.historique+'</span>':'')
+    +'</div></div></div>';
+
+  // PV
+  if(pvmax){
+    html+=sec('Points de vie',
+      '<div style="background:var(--bg3);border-radius:8px;padding:10px 12px;">'
+      +'<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">'
+      +'<span style="font-size:22px;font-weight:800;color:var(--txt);">'+pvact+'</span>'
+      +'<span style="font-size:13px;color:var(--txt3);">/ '+pvmax+(f['pv-tmp']&&parseInt(f['pv-tmp'])>0?' (+'+f['pv-tmp']+' tmp)':'')+'</span>'
+      +'</div>'
+      +'<div style="background:rgba(255,255,255,.1);border-radius:999px;height:8px;overflow:hidden;">'
+      +'<div style="width:'+pct+'%;height:100%;border-radius:999px;background:'+pvCol+';"></div>'
+      +'</div></div>');
+  }
+
+  // Caractéristiques
+  var CARACS=[['for','FOR'],['dex','DEX'],['con','CON'],['int','INT'],['sag','SAG'],['cha','CHA']];
+  var hasCaracs=CARACS.some(function(c){return f[c[0]];});
+  if(hasCaracs){
+    var cHtml='<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:6px;">';
+    CARACS.forEach(function(c){
+      var val=parseInt(f[c[0]])||10;
+      cHtml+='<div style="background:var(--bg3);border-radius:8px;padding:6px 4px;text-align:center;">'
+        +'<div style="font-size:9px;font-weight:700;text-transform:uppercase;color:var(--txt3);letter-spacing:.05em;">'+c[1]+'</div>'
+        +'<div style="font-size:18px;font-weight:800;color:var(--txt);">'+val+'</div>'
+        +'<div style="font-size:11px;font-weight:700;color:var(--rouge);">'+gModFiche(val)+'</div>'
+        +'</div>';
+    });
+    cHtml+='</div>';
+    html+=sec('Caractéristiques',cHtml);
+  }
+
+  // Stats de combat
+  var stHtml='<div style="display:flex;gap:8px;flex-wrap:wrap;">';
+  var combatStats=[
+    ['CA',f.ca||mir._ca||'—'],
+    ['Initiative',mir._init!==undefined?(mir._init>=0?'+'+mir._init:String(mir._init)):'—'],
+    ['Vitesse',f.vitesse?f.vitesse+'m':'—'],
+  ];
+  if(f['dv-r'])combatStats.push(['DV rest.',f['dv-r']]);
+  combatStats.forEach(function(s){
+    stHtml+='<div style="background:var(--bg3);border-radius:8px;padding:6px 12px;text-align:center;min-width:56px;">'
+      +'<div style="font-size:16px;font-weight:800;color:var(--txt);">'+s[1]+'</div>'
+      +'<div style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);">'+s[0]+'</div>'
+      +'</div>';
+  });
+  stHtml+='</div>';
+  html+=sec('Combat',stHtml);
+
+  // Textes libres
+  [['traits','Traits de personnalité'],['ideaux','Idéaux'],['liens','Liens'],
+   ['defauts','Défauts'],['capacites','Capacités & Histoire'],['notes','Notes']].forEach(function(t){
+    if(f[t[0]]&&f[t[0]].trim()){
+      html+=sec(t[1],'<p style="font-size:12px;color:var(--txt2);line-height:1.65;'
+        +'background:var(--bg3);border-radius:6px;padding:8px 10px;">'
+        +f[t[0]].replace(/</g,'&lt;').replace(/\n/g,'<br>')+'</p>');
+    }
+  });
+
+  // Conditions
+  if(conds.length){
+    html+=sec('Conditions actives',
+      '<div style="display:flex;flex-wrap:wrap;gap:6px;">'
+      +conds.map(function(c){
+        return '<span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;'
+          +'background:rgba(220,38,38,.5);color:#fecaca;border:1px solid rgba(220,38,38,.4);">'+c+'</span>';
+      }).join('')+'</div>');
+  }
+
+  // Actions (sticky en bas)
+  html+='<div style="display:flex;gap:8px;position:sticky;bottom:-1px;background:var(--bg2);'
+    +'padding:.75rem 0 0;border-top:1px solid var(--bord);margin-top:.5rem;">'
+    +'<button class="btn ok" style="flex:1;" onclick="fermerModal();ouvrirHp(\''+jid+'\')">Modifier PV</button>'
+    +'<button class="btn" style="flex:1;" onclick="fermerModal();ouvrirConditions(\''+jid+'\')">Conditions</button>'
+    +'</div>';
+
+  el("modal-content").innerHTML=html;
 }
 
 // ══════════════════════════════════════════
