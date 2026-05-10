@@ -5459,10 +5459,15 @@ a{color:var(--rouge);}
 // NAVIGATION
 // ══════════════════════════════════════════
 function showPage(id, btn) {
+  console.log('[regles] showPage →', id);
   document.querySelectorAll('.r-page').forEach(function(p){p.classList.remove('on');});
   document.querySelectorAll('.r-navbtn').forEach(function(b){b.classList.remove('on');});
   var page = document.getElementById(id);
-  if (page) page.classList.add('on');
+  if (page) {
+    page.classList.add('on');
+  } else {
+    console.warn('[regles] showPage: page introuvable —', id);
+  }
   if (btn) btn.classList.add('on');
 }
 function showSubtab(group, sub, btn) {
@@ -5486,13 +5491,17 @@ function showClasse(id, btn) {
 // ══════════════════════════════════════════
 function loadChar() {
   var best = null;
+  var keys = [];
   for (var i = 0; i < localStorage.length; i++) {
     var k = localStorage.key(i);
-    if (!k || !k.startsWith('qs_')) continue;
+    if (k && k.startsWith('qs_')) keys.push(k);
+  }
+  console.log('[regles] clés localStorage qs_* :', keys);
+  for (var j = 0; j < keys.length; j++) {
     try {
-      var d = JSON.parse(localStorage.getItem(k));
+      var d = JSON.parse(localStorage.getItem(keys[j]));
       if (d && d.classe) { best = d; break; }
-    } catch(e) {}
+    } catch(e) { console.warn('[regles] Erreur parse localStorage[' + keys[j] + '] :', e); }
   }
   return best;
 }
@@ -5501,6 +5510,7 @@ function loadChar() {
 // RENDU CAPACITÉS (depuis CAPS_DATA)
 // ══════════════════════════════════════════
 function renderCaps(items, niv, container) {
+  if (!container) { console.warn('[regles] renderCaps: container null'); return; }
   if (!items || !items.length) {
     container.innerHTML = '<p style="color:var(--txt3);font-size:13px;padding:.5rem 0;">Aucune capacité disponible.</p>';
     return;
@@ -5531,15 +5541,19 @@ function setText(id, text) {
 // INIT — charge le personnage
 // ══════════════════════════════════════════
 (function init() {
+  console.log('[regles] init() démarré');
+  try {
   var loading  = document.getElementById('r-loading');
   var nok      = document.getElementById('r-nok');
   var content  = document.getElementById('r-perso-content');
 
   var data = loadChar();
+  console.log('[regles] loadChar() →', data ? ('classe=' + data.classe) : 'null');
   if (loading) loading.style.display = 'none';
 
   if (!data || !data.classe) {
     if (nok) nok.style.display = '';
+    console.log('[regles] Pas de données personnage — pages statiques seulement');
     return; // Laisser les pages Classe/Historique/Race afficher leur propre notice
   }
 
@@ -5588,9 +5602,14 @@ function setText(id, text) {
     if (caps && caps.length) {
       var card = document.createElement('div');
       card.className = 'r-card';
-      card.innerHTML = '<div class="r-card-title">Capacités de classe (niveau ≤ ' + niv + ' en avant)</div><div id="caps-cl-list"></div>';
+      var clTitle = document.createElement('div');
+      clTitle.className = 'r-card-title';
+      clTitle.textContent = 'Capacités de classe (niveau ≤ ' + niv + ' en avant)';
+      var clList = document.createElement('div');
+      card.appendChild(clTitle);
+      card.appendChild(clList);
       classeContent.appendChild(card);
-      renderCaps(caps, niv, document.getElementById('caps-cl-list'));
+      renderCaps(caps, niv, clList);
     }
 
     // Description complète depuis les sections existantes
@@ -5624,9 +5643,14 @@ function setText(id, text) {
     if (histCaps && histCaps.length) {
       var hcard = document.createElement('div');
       hcard.className = 'r-card';
-      hcard.innerHTML = '<div class="r-card-title">Capacités d\'historique</div><div id="caps-hist-list"></div>';
+      var hTitle = document.createElement('div');
+      hTitle.className = 'r-card-title';
+      hTitle.textContent = 'Capacités d\'historique';
+      var hList = document.createElement('div');
+      hcard.appendChild(hTitle);
+      hcard.appendChild(hList);
       histContent.appendChild(hcard);
-      renderCaps(histCaps, 99, document.getElementById('caps-hist-list'));
+      renderCaps(histCaps, 99, hList);
     } else {
       var hn = document.createElement('div');
       hn.className = 'r-notice';
@@ -5650,15 +5674,24 @@ function setText(id, text) {
     if (raceCaps && raceCaps.length) {
       var rcard = document.createElement('div');
       rcard.className = 'r-card';
-      rcard.innerHTML = '<div class="r-card-title">Traits raciaux</div><div id="caps-race-list"></div>';
+      var rTitle = document.createElement('div');
+      rTitle.className = 'r-card-title';
+      rTitle.textContent = 'Traits raciaux';
+      var rList = document.createElement('div');
+      rcard.appendChild(rTitle);
+      rcard.appendChild(rList);
       raceContent.appendChild(rcard);
-      renderCaps(raceCaps, 99, document.getElementById('caps-race-list'));
+      renderCaps(raceCaps, 99, rList);
     } else {
       var rn = document.createElement('div');
       rn.className = 'r-notice';
       rn.innerHTML = '<strong>🧝 ' + race + '</strong>Les traits de cette race ne sont pas dans le référentiel actuel.';
       raceContent.appendChild(rn);
     }
+  }
+  console.log('[regles] init() terminé ✅');
+  } catch(err) {
+    console.error('[regles] ERREUR dans init() :', err);
   }
 })();
 </script>
