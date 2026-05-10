@@ -231,6 +231,9 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .r-res-cnt-val{font-size:22px;font-weight:800;color:var(--txt);min-width:32px;text-align:center;}
 .r-res-cnt-max{font-size:12px;color:var(--txt3);}
 .r-res-info-val{font-size:14px;font-weight:700;color:var(--or);}
+/* ── Conditions de campagne ──────────────────────────── */
+.r-cond-badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;}
+.r-cond-bdg{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(220,38,38,.55);color:#fecaca;border:1px solid rgba(220,38,38,.4);}
 /* ── RÉSUMÉ PERSO — Layout dark redesign ─────────────── */
 .r-section{background:var(--bg2);border:1px solid var(--bord);border-radius:12px;padding:1rem 1.25rem;margin-bottom:.875rem;}
 /* Grille stats 3×2 */
@@ -295,11 +298,8 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <div class="llogo"></div>
     <div class="ltitre">Quest Station</div>
     <div class="lsous">D&D 5e · Fiche de personnage connectée</div>
-    <div class="lf"><label>Ton prénom (joueur)</label>
-      <input type="text" id="li-nom" placeholder="Ex : Jean" autocomplete="off">
-    </div>
-    <div class="lf"><label>Nom de ton personnage</label>
-      <input type="text" id="li-perso" placeholder="Ex : Aldric le Gris" autocomplete="off"
+    <div class="lf"><label>Identifiant</label>
+      <input type="text" id="li-id" placeholder="Ex : jean-aldric" autocomplete="off"
         onkeydown="if(event.key==='Enter')connecter()">
     </div>
     <div class="lerreur" id="li-err"></div>
@@ -343,6 +343,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           <span id="r-ra" style="display:none;"></span>
           <span id="r-al" style="display:none;"></span>
         </div>
+        <div id="r-cond-badges" class="r-cond-badges" style="display:none;"></div>
       </div>
       <div class="r-hbadge pv">
         <div class="r-hbadge-l">PV</div>
@@ -369,6 +370,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <button class="tbtn" onclick="rTab('comps',this)">Compétences & Capacités</button>
     <button class="tbtn" id="r-tbtn-sorts" onclick="rTab('sorts',this)">Sorts</button>
     <button class="tbtn" onclick="rTab('regles',this)">Règles</button>
+    <button class="tbtn" onclick="rTab('campagne',this)">Campagne</button>
   </div>
 
   <!-- ══ ONGLET PERSONNAGE ══════════════════════════════ -->
@@ -531,6 +533,42 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     </div>
 
   </div><!-- /rt-perso -->
+
+  <!-- ONGLET CAMPAGNE -->
+  <div id="rt-campagne" class="tc">
+    <!-- Pas encore dans une campagne -->
+    <div id="rc-join">
+      <div class="r-section">
+        <p class="st">Rejoindre une campagne</p>
+        <p style="font-size:12px;color:var(--txt2);margin-bottom:1rem;line-height:1.6;">Ton MJ crée la campagne sur <b>mj.html</b> et te communique un code à 6 caractères.</p>
+        <label style="font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:6px;">Code de campagne</label>
+        <input type="text" id="rc-code" maxlength="6" placeholder="EX3K1P"
+               style="width:100%;font-size:20px;text-align:center;letter-spacing:.25em;text-transform:uppercase;padding:10px;border:1.5px solid var(--bord2);border-radius:8px;background:var(--bg);color:var(--txt);font-family:monospace;">
+        <div id="rc-err" style="display:none;color:#fca5a5;font-size:12px;margin-top:8px;"></div>
+        <button class="btn ok" style="width:100%;margin-top:.75rem;padding:10px;" onclick="campJoindre()">Rejoindre la campagne</button>
+      </div>
+    </div>
+    <!-- Dans une campagne -->
+    <div id="rc-panel" style="display:none;">
+      <div class="r-section">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:.5rem;">
+          <div style="flex:1;">
+            <p id="rc-nom" style="font-size:15px;font-weight:700;color:var(--txt);">—</p>
+            <p style="font-size:11px;color:var(--txt3);">Code : <b id="rc-code-aff" style="font-family:monospace;letter-spacing:.1em;color:var(--or);">—</b></p>
+          </div>
+          <button class="btn" style="font-size:11px;padding:5px 12px;background:rgba(185,28,28,.3);border-color:rgba(185,28,28,.5);" onclick="campQuitter()">Quitter</button>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;margin-top:.25rem;">
+          <span style="width:8px;height:8px;border-radius:50%;background:#4ade80;flex-shrink:0;"></span>
+          <span style="font-size:12px;color:var(--txt2);">Connecté · présence automatique</span>
+        </div>
+      </div>
+      <div class="r-section">
+        <p class="st">Autres joueurs</p>
+        <div id="rc-joueurs"><p style="font-size:12px;color:var(--txt3);">Chargement…</p></div>
+      </div>
+    </div>
+  </div>
 
   <!-- ONGLET COMPÉTENCES (lecture seule) -->
   <div id="rt-comps" class="tc">
@@ -6468,6 +6506,7 @@ var SLOTS_T   = {
 // ÉTAT
 // ══════════════════════════════════════════
 var db=null, PARTIE="campagne-1", joueurId=null, unsub=null, saveTO=null;
+var campCode=null, campUnsub=null, campSaveTO=null;
 var avatarUrl=null; // URL de la photo de profil (Firebase Storage ou blob local)
 var grimoire=new Set();   // sorts connus (édition)
 var prepares=new Set();   // sorts préparés aujourd'hui (résumé)
@@ -6667,7 +6706,7 @@ function chargerRegles(contId) {
   }
 }
 function rTab(name,btn){
-  ["perso","comps","sorts","caps","equip","regles"].forEach(function(n){
+  ["perso","comps","sorts","caps","equip","regles","campagne"].forEach(function(n){
     var e=el("rt-"+n);if(e)e.classList.remove("on");
   });
   document.querySelectorAll("#s-resume .tbtn").forEach(function(b){b.classList.remove("on");});
@@ -6759,28 +6798,52 @@ function sTab(name,btn){
 // FIREBASE — CONNEXION
 // ══════════════════════════════════════════
 function connecter(){
-  var nom=el("li-nom").value.trim();
-  var perso=el("li-perso").value.trim();
+  var id=(el("li-id").value||"").trim();
   var err=el("li-err");
-  if(!nom||!perso){
-    err.textContent=" Entre ton prénom et le nom de ton personnage !";
-    err.style.display="block";
-    err.style.color="#a32d2d";
-    err.style.background="#ffe8e8";
+  if(!id){
+    err.textContent="Entre un identifiant pour continuer.";
+    err.style.display="block";err.style.color="#a32d2d";err.style.background="#ffe8e8";
     return;
   }
   err.style.display="none";
-  joueurId=(nom+"-"+perso).toLowerCase()
+  var idNorm=id.toLowerCase()
     .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
     .replace(/[^a-z0-9]/g,"-").replace(/-+/g,"-").replace(/^-|-$/g,"");
-  el("joueur").value=nom;
-  el("nom").value=perso;
-  show("s-loading");
-  updateHeader();
-  ecouterJoueur();
+
+  function continuerJoueur(){
+    joueurId=idNorm;
+    el("joueur").value=id;
+    show("s-loading");
+    updateHeader();
+    ecouterJoueur();
+  }
+
+  if(db){
+    el("btn-login").disabled=true;
+    el("btn-login").textContent="Vérification...";
+    db.collection("comptes").doc("comptes").get().then(function(snap){
+      el("btn-login").disabled=false;
+      el("btn-login").textContent="Rejoindre la partie →";
+      if(snap.exists && snap.data()[idNorm]){
+        localStorage.setItem("mj_id",idNorm);
+        localStorage.setItem("mj_label",id);
+        window.location.href="mj.html";
+      } else {
+        continuerJoueur();
+      }
+    }).catch(function(){
+      el("btn-login").disabled=false;
+      el("btn-login").textContent="Rejoindre la partie →";
+      continuerJoueur();
+    });
+  } else {
+    continuerJoueur();
+  }
 }
 
 function ecouterJoueur(){
+  // ── Reconnexion automatique campagne ───────────────────
+  initCampagne();
   // ── Mode Firebase (si disponible) ──────────────────────
   if(db){
     if(unsub)unsub();
@@ -6852,6 +6915,13 @@ function sauvegarder(){
           console.error("Firebase save erreur:",err);
           setSyncStatus("saved","r");setSyncStatus("saved","e");
         });
+      // Miroir dans la campagne (si connecté)
+      if(campCode && db){
+        var campData={_pvact:data._pvact,_pvmax:data._pvmax,_ca:data._ca,_cl:data._cl,_nom:data._nom,_init:data._init};
+        if(data.avatar)campData.avatar=data.avatar;
+        db.collection("parties").doc(campCode).collection("joueurs").doc(joueurId)
+          .set(campData,{merge:true}).catch(function(){});
+      }
     } else {
       setSyncStatus("saved","r");setSyncStatus("saved","e");
     }
@@ -6965,13 +7035,24 @@ function chargerFiche(data){
 }
 
 function majMJ(data){
-  var pa=el("pv-act"),pt=el("pv-tmp");
-  if(data["pv-act"]!==undefined&&data["pv-act"]!==pa.value){
-    pa.value=data["pv-act"];updatePV();
+  var changed=false;
+  var pa=el("pv-act"),pt=el("pv-tmp"),pm=el("pv-max");
+  if(data["pv-act"]!==undefined&&String(data["pv-act"])!==pa.value){
+    pa.value=data["pv-act"];updatePV();changed=true;
     pa.style.background="#fff4d6";
     setTimeout(function(){pa.style.background="";},1500);
   }
-  if(data["pv-tmp"]!==undefined&&pt)pt.value=data["pv-tmp"];
+  if(data["pv-max"]!==undefined&&pm&&String(data["pv-max"])!==pm.value){
+    pm.value=data["pv-max"];updatePV();changed=true;
+  }
+  if(data["pv-tmp"]!==undefined&&pt&&String(data["pv-tmp"])!==pt.value){
+    pt.value=data["pv-tmp"];changed=true;
+  }
+  if(changed){
+    rafraichirResume();
+    // Renvoyer la nouvelle valeur au miroir campagne → le panneau MJ se met à jour
+    if(campCode)campEcrireJoueur({enLigne:true});
+  }
 }
 
 function setSyncStatus(st,prefix){
@@ -8823,6 +8904,138 @@ function rSearchSorts(){
 }
 
 // ══════════════════════════════════════════
+// CAMPAGNE
+// ══════════════════════════════════════════
+
+function campJoindre(){
+  var code=(el("rc-code").value||"").trim().toUpperCase();
+  var errEl=el("rc-err");
+  errEl.style.display="none";
+  if(!code||code.length<4){errEl.textContent="Code invalide (min. 4 caractères).";errEl.style.display="block";return;}
+  if(!db){errEl.textContent="Firebase non disponible. Réessaie dans un instant.";errEl.style.display="block";return;}
+  // Vérifier que la campagne existe
+  db.collection("parties").doc(code).get().then(function(snap){
+    if(!snap.exists){errEl.textContent="Campagne introuvable. Vérifie le code.";errEl.style.display="block";return;}
+    campCode=code;
+    localStorage.setItem("qs_campCode",campCode);
+    campEcrireJoueur({enLigne:true});
+    campEcouter();
+    majAffichageCampagne();
+    var nomCamp=snap.data()&&snap.data().nom?snap.data().nom:"Campagne "+code;
+    var nomEl=el("rc-nom");if(nomEl)nomEl.textContent=nomCamp;
+    var codeEl=el("rc-code-aff");if(codeEl)codeEl.textContent=code;
+  }).catch(function(e){errEl.textContent="Erreur : "+e.message;errEl.style.display="block";});
+}
+
+function campQuitter(){
+  if(!campCode)return;
+  campEcrireJoueur({enLigne:false});
+  if(campUnsub){campUnsub();campUnsub=null;}
+  campCode=null;
+  localStorage.removeItem("qs_campCode");
+  majAffichageCampagne();
+  majConditions([]);
+}
+
+function campEcrireJoueur(extra){
+  if(!db||!joueurId||!campCode)return;
+  var data=collecterDonnees();
+  var payload={_pvact:data._pvact,_pvmax:data._pvmax,_ca:data._ca,_cl:data._cl,_nom:data._nom,_init:data._init,enLigne:true};
+  if(data.avatar)payload.avatar=data.avatar;
+  if(extra)Object.assign(payload,extra);
+  db.collection("parties").doc(campCode).collection("joueurs").doc(joueurId)
+    .set(payload,{merge:true}).catch(function(){});
+}
+
+function campEcouter(){
+  if(campUnsub){campUnsub();campUnsub=null;}
+  if(!db||!campCode)return;
+  // Écouter le doc de la campagne (pour le nom et les conditions envoyées au joueur)
+  campUnsub=db.collection("parties").doc(campCode).onSnapshot(function(snap){
+    if(!snap.exists)return;
+    var d=snap.data();
+    var nomEl=el("rc-nom");
+    if(nomEl&&d.nom)nomEl.textContent=d.nom;
+    // Conditions adressées à ce joueur
+    var conds=(d.conditions&&d.conditions[joueurId])||[];
+    majConditions(conds);
+    // Autres joueurs
+    campRendreJoueurs();
+  },function(){});
+  // Écouter aussi la collection joueurs de la campagne
+  db.collection("parties").doc(campCode).collection("joueurs").onSnapshot(function(qs){
+    campRendreJoueurs(qs);
+  },function(){});
+}
+
+function campRendreJoueurs(qs){
+  var cont=el("rc-joueurs");if(!cont)return;
+  if(!qs){cont.innerHTML='<p style="font-size:12px;color:var(--txt3);">Chargement…</p>';return;}
+  var docs=[];qs.forEach(function(d){if(d.id!==joueurId)docs.push({id:d.id,data:d.data()});});
+  if(!docs.length){cont.innerHTML='<p style="font-size:12px;color:var(--txt3);">Tu es seul dans cette campagne pour l\'instant.</p>';return;}
+  var html="";
+  docs.forEach(function(j){
+    var d=j.data;
+    var pct=d._pvmax?Math.round(Math.max(0,Math.min(100,(d._pvact||0)/d._pvmax*100))):0;
+    var bar=d._pvmax?'<div class="pvw" style="margin:4px 0;height:6px;"><div class="pvb" style="width:'+pct+'%;background:'+(pct>50?"var(--vert)":pct>25?"#d97706":"#dc2626")+'"></div></div>':"";
+    var online=d.enLigne?'<span style="width:7px;height:7px;border-radius:50%;background:#4ade80;display:inline-block;margin-right:3px;"></span>':'<span style="width:7px;height:7px;border-radius:50%;background:var(--txt3);display:inline-block;margin-right:3px;"></span>';
+    html+='<div style="background:var(--bg3);border:1px solid var(--bord);border-radius:8px;padding:10px;margin-bottom:8px;">'
+      +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">'
+      +online+'<b style="font-size:13px;color:var(--txt);">'+(d._nom||j.id)+'</b>'
+      +'<span style="font-size:11px;color:var(--txt3);margin-left:auto;">'+(d._cl||"")+'</span>'
+      +'</div>'
+      +bar
+      +(d._pvmax?'<p style="font-size:11px;color:var(--txt2);">PV '+((d._pvact)||0)+' / '+(d._pvmax||0)+'</p>':"")
+      +'</div>';
+  });
+  cont.innerHTML=html;
+}
+
+function majConditions(conds){
+  var cont=el("r-cond-badges");if(!cont)return;
+  if(!conds||!conds.length){cont.style.display="none";cont.innerHTML="";return;}
+  cont.innerHTML=conds.map(function(c){return '<span class="r-cond-bdg">'+c+'</span>';}).join("");
+  cont.style.display="flex";
+}
+
+function majAffichageCampagne(){
+  var joinEl=el("rc-join"),panelEl=el("rc-panel");
+  if(campCode){
+    if(joinEl)joinEl.style.display="none";
+    if(panelEl)panelEl.style.display="";
+    var codeEl=el("rc-code-aff");if(codeEl)codeEl.textContent=campCode;
+  } else {
+    if(joinEl)joinEl.style.display="";
+    if(panelEl)panelEl.style.display="none";
+  }
+}
+
+function initCampagne(){
+  var saved=localStorage.getItem("qs_campCode");
+  if(saved&&db){
+    campCode=saved;
+    campEcrireJoueur({enLigne:true});
+    campEcouter();
+    majAffichageCampagne();
+    // Charger le nom de la campagne
+    db.collection("parties").doc(campCode).get().then(function(snap){
+      if(snap.exists){
+        var d=snap.data();
+        var nomEl=el("rc-nom");if(nomEl&&d.nom)nomEl.textContent=d.nom;
+        var codeEl=el("rc-code-aff");if(codeEl)codeEl.textContent=campCode;
+      } else {
+        // Campagne supprimée
+        campCode=null;localStorage.removeItem("qs_campCode");majAffichageCampagne();
+      }
+    }).catch(function(){});
+  }
+}
+
+// Présence — marquer hors ligne à la fermeture
+window.addEventListener("beforeunload",function(){if(campCode&&db&&joueurId)campEcrireJoueur({enLigne:false});});
+window.addEventListener("pagehide",function(){if(campCode&&db&&joueurId)campEcrireJoueur({enLigne:false});});
+
+// ══════════════════════════════════════════
 // EXPORT
 // ══════════════════════════════════════════
 function exportJSON(){
@@ -8864,6 +9077,8 @@ chargerScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"
     var btn=document.getElementById("btn-login");
     if(btn){btn.classList.add("on");btn.textContent="Rejoindre la partie →";}
     console.log(" Firebase prêt");
+    // Reconnexion automatique campagne si déjà rejoint
+    if(joueurId)initCampagne();
   })
   .catch(function(e){
     var btn=document.getElementById("btn-login");

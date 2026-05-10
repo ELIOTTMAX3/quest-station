@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quest Station — MJ</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --rouge:#d97706; --rh:#b45309;
+  --bg:#1a1a2e;    --bg2:#16213e;   --bg3:#0f3460;
+  --txt:#e0e0e0;   --txt2:#a0a0b0;  --txt3:#6a6a8a;
+  --bord:rgba(255,255,255,0.08); --bord2:rgba(255,255,255,0.14);
+  --vert:#2d8a4e;  --vbg:#132b1c;   --or:#c9a227;
+}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;min-height:100vh;}
+.app{max-width:960px;margin:0 auto;padding:1rem;}
+
+/* ── HEADER ─── */
+.hd{background:var(--rouge);color:white;border-radius:10px;padding:.875rem 1.25rem;margin-bottom:1rem;display:flex;align-items:center;justify-content:space-between;gap:8px;}
+.hd h1{font-size:16px;font-weight:700;}
+.hd-sub{font-size:11px;opacity:.75;}
+.hright{display:flex;align-items:center;gap:8px;}
+
+/* ── SCREENS ─── */
+.screen{display:none;}
+.screen.on{display:block;}
+
+/* ── CARD ─── */
+.card{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:1rem 1.25rem;margin-bottom:1rem;}
+.st{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3);margin-bottom:10px;border-bottom:1px solid var(--bord);padding-bottom:5px;}
+
+/* ── INPUTS ─── */
+input[type=text],input[type=number],select,textarea{font-family:inherit;font-size:13px;color:var(--txt);background:var(--bg);border:1px solid var(--bord2);border-radius:6px;padding:6px 8px;width:100%;}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--rouge);}
+label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weight:500;}
+
+/* ── BOUTONS ─── */
+.btn{font-family:inherit;font-size:13px;font-weight:600;padding:7px 14px;border-radius:8px;cursor:pointer;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt);transition:background .12s;}
+.btn:hover{background:var(--rouge);color:white;border-color:var(--rouge);}
+.btn.ok{background:var(--rouge);color:white;border-color:var(--rouge);}
+.btn.ok:hover{background:var(--rh);}
+.btn.danger{background:rgba(185,28,28,.3);color:#fca5a5;border-color:rgba(185,28,28,.5);}
+.btn.danger:hover{background:rgba(185,28,28,.6);}
+
+/* ── HOME — campagne list ─── */
+.camp-item{background:var(--bg3);border:1px solid var(--bord);border-radius:10px;padding:1rem;margin-bottom:.75rem;display:flex;align-items:center;gap:12px;cursor:pointer;transition:border-color .15s;}
+.camp-item:hover{border-color:var(--rouge);}
+.camp-code{font-family:monospace;font-size:20px;font-weight:800;color:var(--or);letter-spacing:.15em;flex-shrink:0;}
+.camp-info{flex:1;min-width:0;}
+.camp-nom{font-size:14px;font-weight:700;color:var(--txt);}
+.camp-meta{font-size:11px;color:var(--txt3);margin-top:2px;}
+
+/* ── PV BAR ─── */
+.pvw{background:rgba(255,255,255,.1);border-radius:999px;height:8px;margin:5px 0;overflow:hidden;}
+.pvb{height:100%;border-radius:999px;transition:width .4s,background .4s;}
+
+/* ── PLAYER CARD ─── */
+.pcard{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:1rem;margin-bottom:.75rem;}
+.pcard-hd{display:flex;align-items:center;gap:8px;margin-bottom:.5rem;}
+.pcard-av{width:38px;height:38px;border-radius:50%;object-fit:cover;background:var(--bg3);flex-shrink:0;}
+.pcard-av-ph{width:38px;height:38px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;color:var(--txt3);}
+.pcard-name{font-size:14px;font-weight:700;color:var(--txt);flex:1;}
+.pcard-cl{font-size:11px;color:var(--txt3);}
+.online-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.online-dot.on{background:#4ade80;}
+.online-dot.off{background:var(--txt3);}
+.pcard-stats{display:flex;gap:8px;margin-top:.5rem;flex-wrap:wrap;}
+.pcard-stat{background:var(--bg3);border-radius:6px;padding:5px 10px;text-align:center;flex:1;min-width:60px;}
+.pcard-stat-v{font-size:16px;font-weight:700;color:var(--txt);}
+.pcard-stat-l{font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;}
+.pcard-actions{display:flex;gap:6px;margin-top:.75rem;flex-wrap:wrap;}
+
+/* ── CONDITIONS BADGES ─── */
+.cond-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:999px;cursor:pointer;border:1px solid transparent;transition:all .12s;}
+.cond-badge.off{background:var(--bg3);color:var(--txt3);border-color:var(--bord);}
+.cond-badge.on{background:rgba(220,38,38,.5);color:#fecaca;border-color:rgba(220,38,38,.5);}
+
+/* ── MODAL ─── */
+.modal-bg{position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:500;padding:1rem;}
+.modal{background:var(--bg2);border:1px solid var(--bord2);border-radius:14px;padding:1.5rem;width:100%;max-width:520px;max-height:90vh;overflow-y:auto;position:relative;}
+.modal-close{position:absolute;top:12px;right:14px;background:none;border:none;color:var(--txt3);font-size:20px;cursor:pointer;line-height:1;}
+.modal-close:hover{color:var(--txt);}
+
+/* ── HP EDIT CONTROLS ─── */
+.hp-ctrl{display:flex;gap:8px;align-items:center;margin-top:.5rem;}
+.hp-input{width:80px;text-align:center;font-size:16px;font-weight:700;}
+.hp-label{font-size:11px;color:var(--txt3);text-align:center;margin-top:3px;}
+
+/* ── TOAST ─── */
+#toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%);background:rgba(30,30,60,.95);border:1px solid var(--bord2);border-radius:8px;padding:8px 18px;font-size:13px;color:var(--txt);display:none;z-index:999;box-shadow:0 4px 20px rgba(0,0,0,.6);}
+
+/* ── SYNC ─── */
+.sbadge{font-size:11px;font-weight:600;padding:3px 10px;border-radius:999px;display:inline-flex;align-items:center;gap:5px;}
+.sbadge.saved{background:var(--vbg);color:var(--vert);}
+.sbadge.saving{background:rgba(201,162,39,.2);color:#fcd34d;}
+.sbadge.synced{background:rgba(147,197,253,.15);color:#93c5fd;}
+.sbadge.error{background:rgba(185,28,28,.25);color:#fca5a5;}
+.sdot{width:7px;height:7px;border-radius:50%;background:currentColor;}
+
+/* ── TABS ─── */
+.tbar{display:flex;background:var(--bg2);border:1px solid var(--bord);border-radius:10px;overflow:hidden;margin-bottom:1rem;}
+.tbtn{flex:1;font-family:inherit;font-size:13px;font-weight:500;padding:10px 4px;cursor:pointer;border:none;background:none;color:var(--txt2);text-align:center;border-right:1px solid var(--bord);}
+.tbtn:last-child{border-right:none;}
+.tbtn.on{background:var(--rouge);color:white;}
+.tbtn:hover:not(.on){background:var(--bg3);}
+
+/* ── CODE DISPLAY ─── */
+.code-big{font-family:monospace;font-size:36px;font-weight:800;color:var(--or);letter-spacing:.3em;text-align:center;padding:1rem;background:var(--bg3);border-radius:10px;border:1px solid var(--bord2);}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<!-- ══ LOADING ══════════════════════════════════════════ -->
+<div id="s-loading" class="screen on" style="min-height:100vh;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:.75rem;">
+  <div style="text-align:center;">
+    <div style="font-size:32px;margin-bottom:.5rem;">⚔</div>
+    <p style="color:var(--txt3);font-size:13px;">Chargement Firebase…</p>
+  </div>
+</div>
+
+<!-- ══ HOME — liste des campagnes ════════════════════════ -->
+<div id="s-home" class="screen">
+  <div class="app">
+    <div class="hd">
+      <div>
+        <h1>Quest Station MJ</h1>
+        <p class="hd-sub" id="mj-label-sub">Tableau de bord du Maître du Jeu</p>
+      </div>
+      <div class="hright">
+        <button class="btn ok" onclick="ouvrirCreer()">+ Nouvelle campagne</button>
+        <button class="btn danger" onclick="seDeconnecter()" title="Déconnexion" style="padding:7px 10px;">↩</button>
+      </div>
+    </div>
+    <div class="card">
+      <p class="st">Mes campagnes</p>
+      <div id="home-list"><p style="font-size:12px;color:var(--txt3);">Chargement…</p></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CRÉER ══════════════════════════════════════════════ -->
+<div id="s-creer" class="screen">
+  <div class="app">
+    <div class="hd">
+      <div>
+        <h1>Nouvelle campagne</h1>
+        <p class="hd-sub">Un code à 6 caractères sera généré automatiquement</p>
+      </div>
+      <button class="btn" onclick="show('s-home');chargerCampagnes();">Retour</button>
+    </div>
+    <div class="card">
+      <div style="margin-bottom:1rem;">
+        <label>Nom de la campagne</label>
+        <input type="text" id="cr-nom" placeholder="La Malédiction de Strahd" maxlength="60">
+      </div>
+      <div style="margin-bottom:1.25rem;">
+        <label>Code d'invitation (généré)</label>
+        <div id="cr-code" class="code-big">——————</div>
+        <p style="font-size:11px;color:var(--txt3);text-align:center;margin-top:6px;">Ce code sera communiqué à tes joueurs</p>
+      </div>
+      <div id="cr-err" style="display:none;color:#fca5a5;font-size:12px;margin-bottom:.75rem;"></div>
+      <button class="btn ok" style="width:100%;padding:10px;" onclick="creerCampagne()">Créer la campagne</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ PANEL MJ ════════════════════════════════════════════ -->
+<div id="s-panel" class="screen">
+  <div class="app">
+    <div class="hd">
+      <div>
+        <h1 id="panel-nom">Campagne</h1>
+        <p class="hd-sub">Code : <b id="panel-code" style="font-family:monospace;letter-spacing:.1em;color:white;opacity:.9;">——</b></p>
+      </div>
+      <div class="hright">
+        <span id="panel-sync" class="sbadge synced"><span class="sdot"></span><span id="panel-sync-txt">Synced</span></span>
+        <button class="btn" onclick="show('s-home');chargerCampagnes();">Liste</button>
+      </div>
+    </div>
+
+    <div class="tbar">
+      <button class="tbtn on" onclick="panelTab('joueurs',this)">Joueurs</button>
+      <button class="tbtn" onclick="panelTab('campagne',this)">Campagne</button>
+    </div>
+
+    <!-- Onglet Joueurs -->
+    <div id="pt-joueurs">
+      <div id="panel-joueurs"><p style="font-size:12px;color:var(--txt3);">En attente de joueurs…</p></div>
+    </div>
+
+    <!-- Onglet Campagne -->
+    <div id="pt-campagne" style="display:none;">
+      <div class="card">
+        <p class="st">Informations</p>
+        <div style="margin-bottom:1rem;">
+          <label>Nom de la campagne</label>
+          <input type="text" id="camp-edit-nom" oninput="majCampagneNom()">
+        </div>
+        <div style="margin-bottom:1rem;">
+          <label>Code d'invitation</label>
+          <div class="code-big" id="camp-code-big" style="font-size:24px;letter-spacing:.25em;">——</div>
+        </div>
+        <div>
+          <label>Notes MJ (privées)</label>
+          <textarea id="camp-notes" rows="5" style="min-height:100px;" oninput="majCampagneNotes()"></textarea>
+        </div>
+      </div>
+      <div class="card">
+        <p class="st">Danger</p>
+        <button class="btn danger" onclick="supprimerCampagne()">Supprimer la campagne</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL FICHE JOUEUR ════════════════════════════════ -->
+<div id="modal-fiche" class="modal-bg" style="display:none;" onclick="if(event.target===this)fermerModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="fermerModal()">×</button>
+    <div id="modal-content"></div>
+  </div>
+</div>
+
+<!-- ══ MODAL HP EDIT ════════════════════════════════════ -->
+<div id="modal-hp" class="modal-bg" style="display:none;" onclick="if(event.target===this)fermerModalHp()">
+  <div class="modal" style="max-width:340px;">
+    <button class="modal-close" onclick="fermerModalHp()">×</button>
+    <h2 style="font-size:15px;font-weight:700;margin-bottom:1rem;" id="modal-hp-nom">Points de vie</h2>
+    <div style="display:flex;gap:1rem;justify-content:center;margin-bottom:1rem;">
+      <div>
+        <div class="hp-input" style="font-size:22px;font-weight:800;text-align:center;padding:8px;background:var(--bg3);border-radius:8px;min-width:70px;" id="mhp-cur">—</div>
+        <div class="hp-label">Actuels</div>
+      </div>
+      <div style="align-self:center;font-size:20px;color:var(--txt3);">/</div>
+      <div>
+        <div class="hp-input" style="font-size:22px;font-weight:800;text-align:center;padding:8px;background:var(--bg3);border-radius:8px;min-width:70px;" id="mhp-max">—</div>
+        <div class="hp-label">Maximum</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:.75rem;">
+      <input type="number" id="mhp-val" placeholder="Montant" style="flex:1;text-align:center;font-size:16px;">
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn danger" style="flex:1;" onclick="appliquerHp('degats')">Dégâts</button>
+      <button class="btn ok" style="flex:1;" onclick="appliquerHp('soins')">Soins</button>
+      <button class="btn" style="flex:1;" onclick="appliquerHp('set')">Définir</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ MODAL CONDITIONS ═══════════════════════════════════ -->
+<div id="modal-cond" class="modal-bg" style="display:none;" onclick="if(event.target===this)fermerModalCond()">
+  <div class="modal" style="max-width:380px;">
+    <button class="modal-close" onclick="fermerModalCond()">×</button>
+    <h2 style="font-size:15px;font-weight:700;margin-bottom:.75rem;" id="modal-cond-nom">Conditions</h2>
+    <p style="font-size:11px;color:var(--txt3);margin-bottom:1rem;">Cliquer pour activer / désactiver. Visible par le joueur en badge dans son interface.</p>
+    <div id="modal-cond-badges" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+    <button class="btn ok" style="width:100%;margin-top:1rem;" onclick="sauvegarderConditions()">Appliquer</button>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════
+// VARIABLES GLOBALES
+// ══════════════════════════════════════════
+var db = null;
+var mjId = null;
+var campagneActive = null; // {id, nom, notes, ...}
+var joueursUnsub = null;
+var campagneUnsub = null;
+var joueursData = {}; // joueurId → data
+var condTarget = null; // joueurId en cours d'édition conditions
+var condActives = {};  // joueurId → Set de conditions actives
+var hpTarget = null;   // joueurId en cours d'édition HP
+
+var CONDITIONS_DD = [
+  "Aveuglé","Charmé","Assourdi","Épouvanté","Agrippé","Incapacité",
+  "Invisible","Empoisonné","À terre","Entravé","Étourdi","Inconscient"
+];
+
+// ══════════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════════
+function el(id){return document.getElementById(id);}
+function show(id){
+  ["s-loading","s-home","s-creer","s-panel"].forEach(function(s){
+    var e=el(s);if(e)e.style.display="none";
+  });
+  var t=el(id);
+  if(t)t.style.display=(id==="s-loading"?"flex":"block");
+}
+function toast(msg,dur){
+  var t=el("toast");t.textContent=msg;t.style.display="block";
+  clearTimeout(t._to);t._to=setTimeout(function(){t.style.display="none";},dur||2000);
+}
+function genCode(){
+  var chars="ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  var code="";for(var i=0;i<6;i++)code+=chars[Math.floor(Math.random()*chars.length)];
+  return code;
+}
+function seDeconnecter(){
+  localStorage.removeItem("mj_id");
+  localStorage.removeItem("mj_label");
+  window.location.href="index.html";
+}
+function panelTab(name,btn){
+  ["joueurs","campagne"].forEach(function(n){var e=el("pt-"+n);if(e)e.style.display="none";});
+  document.querySelectorAll("#s-panel .tbar .tbtn").forEach(function(b){b.classList.remove("on");});
+  var t=el("pt-"+name);if(t)t.style.display="";
+  btn.classList.add("on");
+}
+
+// ══════════════════════════════════════════
+// LISTE DES CAMPAGNES (HOME)
+// ══════════════════════════════════════════
+function chargerCampagnes(){
+  if(!db)return;
+  var cont=el("home-list");
+  var codes=JSON.parse(localStorage.getItem("mj_campagnes")||"[]");
+  if(!codes.length){
+    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);">Aucune campagne créée. Crée la première !</p>';
+    return;
+  }
+  cont.innerHTML='<p style="font-size:12px;color:var(--txt3);">Chargement…</p>';
+  var items=[],loaded=0;
+  codes.forEach(function(code,idx){
+    db.collection("parties").doc(code).get().then(function(snap){
+      if(snap.exists){items[idx]={id:code,data:snap.data()};}
+      loaded++;
+      if(loaded===codes.length)afficherListeCampagnes(items.filter(Boolean));
+    }).catch(function(){loaded++;if(loaded===codes.length)afficherListeCampagnes(items.filter(Boolean));});
+  });
+}
+
+function afficherListeCampagnes(items){
+  var cont=el("home-list");
+  if(!items.length){
+    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);">Aucune campagne trouvée.</p>';
+    return;
+  }
+  cont.innerHTML=items.map(function(item){
+    return '<div class="camp-item" onclick="ouvrirPanel(\''+item.id+'\')">'
+      +'<div class="camp-code">'+item.id+'</div>'
+      +'<div class="camp-info">'
+      +'<div class="camp-nom">'+(item.data.nom||"Sans nom")+'</div>'
+      +'<div class="camp-meta">Créée le '+(item.data.creeLe||"—")+'</div>'
+      +'</div>'
+      +'<svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>'
+      +'</div>';
+  }).join("");
+}
+
+// ══════════════════════════════════════════
+// CRÉER CAMPAGNE
+// ══════════════════════════════════════════
+function ouvrirCreer(){
+  el("cr-nom").value="";
+  el("cr-err").style.display="none";
+  var code=genCode();
+  el("cr-code").textContent=code;
+  el("cr-code").dataset.code=code;
+  show("s-creer");
+}
+
+function creerCampagne(){
+  var nom=(el("cr-nom").value||"").trim();
+  var code=el("cr-code").dataset.code||genCode();
+  var errEl=el("cr-err");
+  if(!nom){errEl.textContent="Entre un nom pour la campagne.";errEl.style.display="block";return;}
+  if(!db){errEl.textContent="Firebase non disponible.";errEl.style.display="block";return;}
+  var today=new Date().toLocaleDateString("fr-FR");
+  db.collection("parties").doc(code).set({nom:nom,creeLe:today,conditions:{},notes:""}).then(function(){
+    var codes=JSON.parse(localStorage.getItem("mj_campagnes")||"[]");
+    if(codes.indexOf(code)<0){codes.unshift(code);localStorage.setItem("mj_campagnes",JSON.stringify(codes));}
+    ouvrirPanel(code);
+  }).catch(function(e){errEl.textContent="Erreur : "+e.message;errEl.style.display="block";});
+}
+
+// ══════════════════════════════════════════
+// PANEL MJ
+// ══════════════════════════════════════════
+function ouvrirPanel(code){
+  if(joueursUnsub){joueursUnsub();joueursUnsub=null;}
+  if(campagneUnsub){campagneUnsub();campagneUnsub=null;}
+  joueursData={};
+  condActives={};
+
+  el("panel-code").textContent=code;
+  el("camp-code-big").textContent=code;
+  show("s-panel");
+
+  // Écouter le doc campagne
+  campagneUnsub=db.collection("parties").doc(code).onSnapshot(function(snap){
+    if(!snap.exists)return;
+    campagneActive=Object.assign({id:code},snap.data());
+    el("panel-nom").textContent=campagneActive.nom||"Campagne";
+    el("camp-edit-nom").value=campagneActive.nom||"";
+    el("camp-notes").value=campagneActive.notes||"";
+    // Lire condActives depuis le doc
+    if(campagneActive.conditions){
+      Object.keys(campagneActive.conditions).forEach(function(jid){
+        condActives[jid]=new Set(campagneActive.conditions[jid]||[]);
+      });
+    }
+  },function(){});
+
+  // Écouter la collection joueurs
+  joueursUnsub=db.collection("parties").doc(code).collection("joueurs").onSnapshot(function(qs){
+    joueursData={};
+    qs.forEach(function(d){joueursData[d.id]=d.data();});
+    rendreJoueurs();
+  },function(){});
+}
+
+function rendreJoueurs(){
+  var cont=el("panel-joueurs");if(!cont)return;
+  var ids=Object.keys(joueursData).filter(function(id){return joueursData[id]._nom;});
+  if(!ids.length){
+    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);">En attente de joueurs… Partage le code <b style="color:var(--or);">'+
+      (campagneActive?campagneActive.id:"")+'</b> avec tes joueurs.</p>';
+    return;
+  }
+  // Trier : en ligne d'abord
+  ids.sort(function(a,b){return (joueursData[b].enLigne?1:0)-(joueursData[a].enLigne?1:0);});
+  cont.innerHTML=ids.map(function(jid){
+    return rendreCartJoueur(jid,joueursData[jid]);
+  }).join("");
+}
+
+function rendreCartJoueur(jid,d){
+  var pvact=d._pvact||0,pvmax=d._pvmax||0;
+  var pct=pvmax?Math.round(Math.max(0,Math.min(100,pvact/pvmax*100))):0;
+  var pvColor=pct>50?"var(--vert)":pct>25?"#d97706":"#dc2626";
+  var online=d.enLigne;
+  var conds=Array.from(condActives[jid]||new Set());
+  var condBadges=conds.length?conds.map(function(c){
+    return '<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(220,38,38,.5);color:#fecaca;border:1px solid rgba(220,38,38,.4);">'+c+'</span>';
+  }).join(" "):"";
+
+  var av=d.avatar?'<img class="pcard-av" src="'+d.avatar+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">'
+    +'<div class="pcard-av-ph" style="display:none;">?</div>'
+    :'<div class="pcard-av-ph">?</div>';
+
+  return '<div class="pcard" id="pcard-'+jid+'">'
+    +'<div class="pcard-hd">'
+    +av
+    +'<div style="flex:1;min-width:0;">'
+    +'<div style="display:flex;align-items:center;gap:6px;">'
+    +'<span class="online-dot '+(online?"on":"off")+'"></span>'
+    +'<span class="pcard-name">'+(d._nom||jid)+'</span>'
+    +'</div>'
+    +'<div class="pcard-cl">'+(d._cl||"—")+'</div>'
+    +'</div>'
+    +'</div>'
+    // PV bar
+    +(pvmax?'<div class="pvw"><div class="pvb" style="width:'+pct+'%;background:'+pvColor+'"></div></div>'
+      +'<div style="font-size:11px;color:var(--txt2);margin-bottom:.5rem;">PV '+pvact+' / '+pvmax+'</div>':"")
+    // Badges conditions
+    +(condBadges?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.5rem;">'+condBadges+'</div>':"")
+    // Stats
+    +'<div class="pcard-stats">'
+    +'<div class="pcard-stat"><div class="pcard-stat-v">'+(pvact||"—")+'</div><div class="pcard-stat-l">PV</div></div>'
+    +'<div class="pcard-stat"><div class="pcard-stat-v">'+(d._ca||"—")+'</div><div class="pcard-stat-l">CA</div></div>'
+    +'<div class="pcard-stat"><div class="pcard-stat-v">'+(d._init!==undefined?(d._init>=0?"+"+d._init:d._init):"—")+'</div><div class="pcard-stat-l">Init</div></div>'
+    +'</div>'
+    // Actions
+    +'<div class="pcard-actions">'
+    +'<button class="btn" style="font-size:11px;padding:5px 10px;" onclick="ouvrirHp(\''+jid+'\')">PV</button>'
+    +'<button class="btn" style="font-size:11px;padding:5px 10px;" onclick="ouvrirConditions(\''+jid+'\')">Conditions</button>'
+    +'<button class="btn" style="font-size:11px;padding:5px 10px;margin-left:auto;" onclick="ouvrirFiche(\''+jid+'\')">Voir fiche</button>'
+    +'</div>'
+    +'</div>';
+}
+
+// ══════════════════════════════════════════
+// ÉDITER HP
+// ══════════════════════════════════════════
+function ouvrirHp(jid){
+  hpTarget=jid;
+  var d=joueursData[jid]||{};
+  el("modal-hp-nom").textContent=(d._nom||jid)+" — Points de vie";
+  el("mhp-cur").textContent=d._pvact||0;
+  el("mhp-max").textContent=d._pvmax||0;
+  el("mhp-val").value="";
+  el("modal-hp").style.display="flex";
+  setTimeout(function(){el("mhp-val").focus();},100);
+}
+function fermerModalHp(){el("modal-hp").style.display="none";hpTarget=null;}
+
+function appliquerHp(type){
+  if(!hpTarget||!campagneActive)return;
+  var val=parseInt(el("mhp-val").value)||0;
+  var d=joueursData[hpTarget]||{};
+  var cur=parseInt(d._pvact)||0;
+  var max=parseInt(d._pvmax)||0;
+  var newVal;
+  if(type==="degats")newVal=Math.max(0,cur-Math.abs(val));
+  else if(type==="soins")newVal=Math.min(max||999,cur+Math.abs(val));
+  else newVal=Math.max(0,Math.min(max||999,val));
+  // Écrire dans la fiche principale + campagne
+  // Campagne (miroir)
+  db.collection("parties").doc(campagneActive.id).collection("joueurs").doc(hpTarget)
+    .set({"_pvact":newVal},{merge:true}).catch(function(){});
+  // Fiche principale (PARTIE=campagne-1)
+  db.collection("parties").doc("campagne-1").collection("joueurs").doc(hpTarget)
+    .set({"pv-act":String(newVal)},{merge:true}).catch(function(){});
+  // Mise à jour optimiste locale (avant le retour du snapshot)
+  if(joueursData[hpTarget])joueursData[hpTarget]._pvact=newVal;
+  el("mhp-cur").textContent=newVal;
+  el("mhp-val").value="";
+  rendreJoueurs();
+  toast(type==="degats"?"–"+Math.abs(val)+" PV":type==="soins"?"+"+Math.abs(val)+" PV":"PV définis à "+newVal);
+  fermerModalHp();
+}
+
+// ══════════════════════════════════════════
+// ÉDITER CONDITIONS
+// ══════════════════════════════════════════
+function ouvrirConditions(jid){
+  condTarget=jid;
+  var d=joueursData[jid]||{};
+  el("modal-cond-nom").textContent=(d._nom||jid)+" — Conditions";
+  if(!condActives[jid])condActives[jid]=new Set();
+  var cont=el("modal-cond-badges");
+  cont.innerHTML=CONDITIONS_DD.map(function(c){
+    var on=condActives[jid].has(c);
+    return '<span class="cond-badge '+(on?"on":"off")+'" onclick="toggleCond(this,\''+c+'\')">'+c+'</span>';
+  }).join("");
+  el("modal-cond").style.display="flex";
+}
+function fermerModalCond(){el("modal-cond").style.display="none";condTarget=null;}
+
+function toggleCond(el,cond){
+  if(!condTarget)return;
+  if(!condActives[condTarget])condActives[condTarget]=new Set();
+  if(condActives[condTarget].has(cond)){condActives[condTarget].delete(cond);el.className="cond-badge off";}
+  else{condActives[condTarget].add(cond);el.className="cond-badge on";}
+}
+
+function sauvegarderConditions(){
+  if(!condTarget||!campagneActive)return;
+  var conds=Array.from(condActives[condTarget]||new Set());
+  var update={};
+  update["conditions."+condTarget]=conds;
+  db.collection("parties").doc(campagneActive.id).update(update).then(function(){
+    toast("Conditions mises à jour");
+    fermerModalCond();
+  }).catch(function(e){toast("Erreur : "+e.message);});
+}
+
+// ══════════════════════════════════════════
+// VOIR FICHE (modale lecture seule)
+// ══════════════════════════════════════════
+function ouvrirFiche(jid){
+  var d=joueursData[jid]||{};
+  var pvact=d._pvact||0,pvmax=d._pvmax||0;
+  var pct=pvmax?Math.round(Math.max(0,Math.min(100,pvact/pvmax*100))):0;
+  var pvColor=pct>50?"var(--vert)":pct>25?"#d97706":"#dc2626";
+  var conds=Array.from(condActives[jid]||new Set());
+  var html='<div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;">'
+    +(d.avatar?'<img src="'+d.avatar+'" style="width:52px;height:52px;border-radius:50%;object-fit:cover;">'
+      :'<div style="width:52px;height:52px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--txt3);">?</div>')
+    +'<div>'
+    +'<div style="font-size:16px;font-weight:700;color:var(--txt);">'+(d._nom||jid)+'</div>'
+    +'<div style="font-size:12px;color:var(--txt3);">'+(d._cl||"—")+(d.enLigne?' · <span style="color:#4ade80;">En ligne</span>':" · Hors ligne")+'</div>'
+    +'</div>'
+    +'</div>';
+
+  if(pvmax){
+    html+='<div style="margin-bottom:1rem;">'
+      +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'
+      +'<span style="font-size:11px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Points de vie</span>'
+      +'<span style="font-size:14px;font-weight:700;color:var(--txt);">'+pvact+' / '+pvmax+'</span>'
+      +'</div>'
+      +'<div class="pvw" style="height:10px;"><div class="pvb" style="width:'+pct+'%;background:'+pvColor+'"></div></div>'
+      +'</div>';
+  }
+
+  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1rem;">'
+    +'<div class="pcard-stat"><div class="pcard-stat-v">'+(d._ca||"—")+'</div><div class="pcard-stat-l">CA</div></div>'
+    +'<div class="pcard-stat"><div class="pcard-stat-v">'+(d._init!==undefined?(d._init>=0?"+"+d._init:d._init):"—")+'</div><div class="pcard-stat-l">Initiative</div></div>'
+    +'<div class="pcard-stat"><div class="pcard-stat-v">'+(d._cl||"—")+'</div><div class="pcard-stat-l">Classe</div></div>'
+    +'</div>';
+
+  if(conds.length){
+    html+='<div style="margin-bottom:1rem;">'
+      +'<p style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3);margin-bottom:8px;">Conditions actives</p>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:6px;">'
+      +conds.map(function(c){return '<span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:rgba(220,38,38,.5);color:#fecaca;border:1px solid rgba(220,38,38,.4);">'+c+'</span>';}).join("")
+      +'</div></div>';
+  }
+
+  html+='<div style="display:flex;gap:8px;margin-top:1rem;">'
+    +'<button class="btn ok" style="flex:1;" onclick="fermerModal();ouvrirHp(\''+jid+'\')">Modifier PV</button>'
+    +'<button class="btn" style="flex:1;" onclick="fermerModal();ouvrirConditions(\''+jid+'\')">Conditions</button>'
+    +'</div>';
+
+  el("modal-content").innerHTML=html;
+  el("modal-fiche").style.display="flex";
+}
+function fermerModal(){el("modal-fiche").style.display="none";}
+
+// ══════════════════════════════════════════
+// CAMPAGNE — ÉDITION (onglet Campagne)
+// ══════════════════════════════════════════
+var nomTO=null,notesTO=null;
+function majCampagneNom(){
+  clearTimeout(nomTO);
+  nomTO=setTimeout(function(){
+    if(!campagneActive)return;
+    var nom=(el("camp-edit-nom").value||"").trim();
+    if(!nom)return;
+    db.collection("parties").doc(campagneActive.id).update({nom:nom}).then(function(){
+      el("panel-nom").textContent=nom;
+      toast("Nom mis à jour");
+    }).catch(function(){});
+  },800);
+}
+function majCampagneNotes(){
+  clearTimeout(notesTO);
+  notesTO=setTimeout(function(){
+    if(!campagneActive)return;
+    db.collection("parties").doc(campagneActive.id).update({notes:el("camp-notes").value}).catch(function(){});
+  },1000);
+}
+function supprimerCampagne(){
+  if(!campagneActive)return;
+  if(!confirm("Supprimer la campagne "+campagneActive.nom+" ? Cette action est irréversible."))return;
+  db.collection("parties").doc(campagneActive.id).delete().then(function(){
+    var codes=JSON.parse(localStorage.getItem("mj_campagnes")||"[]");
+    codes=codes.filter(function(c){return c!==campagneActive.id;});
+    localStorage.setItem("mj_campagnes",JSON.stringify(codes));
+    campagneActive=null;
+    show("s-home");chargerCampagnes();
+    toast("Campagne supprimée");
+  }).catch(function(e){toast("Erreur : "+e.message);});
+}
+
+// ══════════════════════════════════════════
+// FIREBASE INIT
+// ══════════════════════════════════════════
+function chargerScript(url){
+  return new Promise(function(resolve,reject){
+    var s=document.createElement("script");s.src=url;s.onload=resolve;s.onerror=reject;
+    document.head.appendChild(s);
+  });
+}
+// Timeout de sécurité — si Firebase met trop longtemps
+var _fbTimeout=setTimeout(function(){
+  if(!db){
+    // Vérifier quand même la session avant de rendre la page utilisable
+    mjId=localStorage.getItem("mj_id");
+    if(!mjId){window.location.href="index.html";return;}
+    show("s-home");
+    el("home-list").innerHTML='<p style="color:#fca5a5;font-size:13px;">Impossible de joindre Firebase. Vérifie ta connexion.</p>';
+  }
+},8000);
+
+chargerScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js")
+  .then(function(){return chargerScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js");})
+  .then(function(){
+    clearTimeout(_fbTimeout);
+    firebase.initializeApp({
+      apiKey:"AIzaSyA5hFSImv5Ti7SDgjiZUBpn8qR3_RFP2Ss",
+      authDomain:"quest-station.firebaseapp.com",
+      projectId:"quest-station",
+      storageBucket:"quest-station.firebasestorage.app",
+      messagingSenderId:"382512497035",
+      appId:"1:382512497035:web:cfc3de3255e885a1adaf8e"
+    });
+    db=firebase.firestore();
+    console.log("Firebase MJ prêt");
+    // Vérifier la session MJ
+    mjId=localStorage.getItem("mj_id");
+    var mjLabel=localStorage.getItem("mj_label")||mjId;
+    if(!mjId){
+      // Pas de session → retour login
+      window.location.href="index.html";
+      return;
+    }
+    // Afficher l'identifiant dans le header
+    var sub=el("mj-label-sub");
+    if(sub)sub.textContent="Connecté en tant que "+mjLabel;
+    show("s-home");
+    chargerCampagnes();
+  })
+  .catch(function(e){
+    clearTimeout(_fbTimeout);
+    console.error("Firebase erreur:",e);
+    show("s-home");
+    el("home-list").innerHTML='<p style="color:#fca5a5;font-size:13px;">Firebase indisponible : '+e.message+'</p>';
+  });
+</script>
+</body>
+</html>
