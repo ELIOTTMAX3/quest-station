@@ -234,6 +234,31 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 /* ── Conditions de campagne ──────────────────────────── */
 .r-cond-badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;}
 .r-cond-bdg{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(220,38,38,.55);color:#fecaca;border:1px solid rgba(220,38,38,.4);}
+/* ── COMBAT PJ OVERLAY ───────────────────────────────── */
+#s-combat{position:fixed;inset:0;z-index:200;background:var(--bg);overflow-y:auto;display:none;}
+.cbt-hd{background:var(--rouge);color:white;padding:.875rem 1.25rem;display:flex;align-items:center;gap:10px;position:sticky;top:0;z-index:10;}
+.cbt-hd h2{font-size:15px;font-weight:700;flex:1;}
+.cbt-row{background:var(--bg2);border:1px solid var(--bord);border-radius:8px;padding:9px 12px;margin-bottom:6px;display:flex;align-items:center;gap:8px;transition:border-color .15s;}
+.cbt-row.actif{border-color:var(--rouge);background:rgba(217,119,6,.08);}
+.cbt-row.moi{border-left:3px solid #4ade80;}
+.cbt-indicateur{font-size:13px;color:var(--rouge);width:14px;flex-shrink:0;}
+.cbt-num{font-size:10px;color:var(--txt3);width:18px;text-align:center;flex-shrink:0;}
+.cbt-av{width:30px;height:30px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;overflow:hidden;}
+.cbt-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.cbt-info{flex:1;min-width:0;}
+.cbt-nom{font-size:13px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.cbt-pvbar{width:72px;flex-shrink:0;}
+.cbt-pvbar-bg{background:rgba(255,255,255,.1);border-radius:999px;height:5px;overflow:hidden;margin-top:2px;}
+.cbt-pvbar-fill{height:100%;border-radius:999px;}
+.cbt-initv{font-size:12px;font-weight:700;color:var(--txt3);width:28px;text-align:center;flex-shrink:0;}
+.cbt-mon-tour{background:rgba(217,119,6,.15);border:2px solid var(--rouge);border-radius:12px;padding:1rem;text-align:center;margin-bottom:1rem;animation:cbt-pulse 1.2s infinite;}
+@keyframes cbt-pulse{0%,100%{box-shadow:0 0 0 0 rgba(217,119,6,.5);}50%{box-shadow:0 0 0 10px rgba(217,119,6,0);}}
+.cbt-res-item{display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bord);}
+.cbt-res-item:last-child{border-bottom:none;}
+.cbt-res-nom{flex:1;font-size:13px;color:var(--txt);}
+.cbt-res-btn{width:26px;height:26px;border-radius:50%;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt);cursor:pointer;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:background .1s;}
+.cbt-res-btn:hover{background:var(--rouge);border-color:var(--rouge);color:white;}
+.cbt-res-val{font-size:16px;font-weight:700;color:var(--txt);min-width:24px;text-align:center;}
 /* ── RÉSUMÉ PERSO — Layout dark redesign ─────────────── */
 .r-section{background:var(--bg2);border:1px solid var(--bord);border-radius:12px;padding:1rem 1.25rem;margin-bottom:.875rem;}
 /* Grille stats 3×2 */
@@ -8950,19 +8975,17 @@ function campEcrireJoueur(extra){
 function campEcouter(){
   if(campUnsub){campUnsub();campUnsub=null;}
   if(!db||!campCode)return;
-  // Écouter le doc de la campagne (pour le nom et les conditions envoyées au joueur)
   campUnsub=db.collection("parties").doc(campCode).onSnapshot(function(snap){
     if(!snap.exists)return;
     var d=snap.data();
     var nomEl=el("rc-nom");
     if(nomEl&&d.nom)nomEl.textContent=d.nom;
-    // Conditions adressées à ce joueur
     var conds=(d.conditions&&d.conditions[joueurId])||[];
     majConditions(conds);
-    // Autres joueurs
+    // Combat
+    majCombatPJ(d.combat||{actif:false});
     campRendreJoueurs();
   },function(){});
-  // Écouter aussi la collection joueurs de la campagne
   db.collection("parties").doc(campCode).collection("joueurs").onSnapshot(function(qs){
     campRendreJoueurs(qs);
   },function(){});
@@ -9036,6 +9059,216 @@ window.addEventListener("beforeunload",function(){if(campCode&&db&&joueurId)camp
 window.addEventListener("pagehide",function(){if(campCode&&db&&joueurId)campEcrireJoueur({enLigne:false});});
 
 // ══════════════════════════════════════════
+// COMBAT PJ
+// ══════════════════════════════════════════
+var combatPJData=null, combatMute=false, _audioCtx=null, _dernierMonTour=false;
+
+function cbtGetAudio(){if(!_audioCtx)_audioCtx=new(window.AudioContext||window.webkitAudioContext)();return _audioCtx;}
+function cbtBip(){
+  if(combatMute)return;
+  try{
+    var ctx=cbtGetAudio(),osc=ctx.createOscillator(),g=ctx.createGain();
+    osc.connect(g);g.connect(ctx.destination);
+    osc.frequency.value=880;osc.type='sine';
+    g.gain.setValueAtTime(.35,ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,ctx.currentTime+.6);
+    osc.start(ctx.currentTime);osc.stop(ctx.currentTime+.6);
+  }catch(e){}
+}
+function cbtToggleMute(){
+  combatMute=!combatMute;
+  var b=el('cbt-mute');if(b)b.textContent=combatMute?'🔕':'🔔';
+}
+
+function ouvrirCombatPJ(){
+  el('s-combat').style.display='block';
+  cbtMajUI();
+}
+function fermerCombatPJ(){el('s-combat').style.display='none';}
+
+function cbtConfirmerInit(){
+  var val=parseInt((el('cbt-init-val').value)||'');
+  if(isNaN(val)){el('cbt-init-val').focus();return;}
+  if(!db||!campCode||!joueurId)return;
+  db.collection("parties").doc(campCode).collection("joueurs").doc(joueurId)
+    .set({_initScore:val},{merge:true}).catch(function(){});
+  el('cbt-init-saisie').style.display='none';
+  cbtMajUI();
+}
+
+function majCombatPJ(data){
+  combatPJData=data;
+  var actif=data&&data.actif;
+  // Bouton dans le header résumé
+  var bBtn=el('r-btn-combat');
+  if(actif){
+    if(!bBtn){
+      bBtn=document.createElement('button');
+      bBtn.id='r-btn-combat';
+      bBtn.className='btn ok';
+      bBtn.style.cssText='font-size:11px;padding:4px 10px;';
+      bBtn.textContent='⚔ Combat';
+      bBtn.onclick=ouvrirCombatPJ;
+      var hright=document.querySelector('#s-resume .hright');
+      if(hright)hright.insertBefore(bBtn,hright.firstChild);
+    }
+    if(el('s-combat').style.display!=='none')cbtMajUI();
+  } else {
+    if(bBtn)bBtn.parentNode.removeChild(bBtn);
+    el('s-combat').style.display='none';
+    _dernierMonTour=false;
+    // Réinitialiser _initScore
+    if(db&&campCode&&joueurId){
+      db.collection("parties").doc(campCode).collection("joueurs").doc(joueurId)
+        .set({_initScore:null},{merge:true}).catch(function(){});
+    }
+  }
+}
+
+function cbtMajUI(){
+  var data=combatPJData;
+  if(!data||!data.actif)return;
+  // Round
+  var ri=el('cbt-round-info');if(ri)ri.textContent='Round '+(data.round||1);
+  // Vérifier si mon initiative est dans la liste (soumise ou entrée par le MJ)
+  var maCombattant=data.combattants&&data.combattants.find(function(c){return c.type==='pj'&&c.id===joueurId;});
+  var initOk=maCombattant&&maCombattant.initiative!==null&&maCombattant.initiative!==undefined;
+  // Saisie initiative
+  if(!initOk){
+    el('cbt-init-saisie').style.display='';
+    el('cbt-liste').innerHTML='<p style="font-size:12px;color:var(--txt3);text-align:center;padding:.5rem;">En attente du début du combat…</p>';
+    el('cbt-mon-tour').style.display='none';
+    el('cbt-actions-panel').style.display='none';
+    return;
+  }
+  el('cbt-init-saisie').style.display='none';
+  // C'est mon tour ?
+  var monTour=!!(data.joueurActifId&&data.joueurActifId===joueurId);
+  el('cbt-mon-tour').style.display=monTour?'':'none';
+  if(monTour&&!_dernierMonTour)cbtBip();
+  _dernierMonTour=monTour;
+  // Liste
+  var liste=data.combattants||[];
+  el('cbt-liste').innerHTML=liste.map(function(c,idx){
+    var estActif=idx===data.tourActif;
+    var estMoi=c.type==='pj'&&c.id===joueurId;
+    var avH=c.type==='pj'
+      ?(c.avatar?'<div class="cbt-av"><img src="'+c.avatar+'"></div>':'<div class="cbt-av" style="font-size:9px;font-weight:700;">PJ</div>')
+      :'<div class="cbt-av">👾</div>';
+    var pvH='';
+    if(c.type==='pj'){
+      var pva=estMoi?(parseInt(v('pv-act'))||0):(c.pvact||0);
+      var pvm=estMoi?(parseInt(v('pv-max'))||0):(c.pvmax||0);
+      var pct=pvm?Math.round(Math.max(0,Math.min(100,pva/pvm*100))):0;
+      var pvCol=pct>50?'var(--vert)':pct>25?'#d97706':'#dc2626';
+      pvH='<div class="cbt-pvbar"><div style="font-size:10px;color:var(--txt2);text-align:right;">'+pva+'/'+pvm+'</div>'
+        +'<div class="cbt-pvbar-bg"><div class="cbt-pvbar-fill" style="width:'+pct+'%;background:'+pvCol+'"></div></div></div>';
+    }
+    return '<div class="cbt-row'+(estActif?' actif':'')+(estMoi?' moi':'')+'">'
+      +'<div class="cbt-indicateur">'+(estActif?'▶':'')+'</div>'
+      +'<div class="cbt-num">'+(idx+1)+'</div>'
+      +avH
+      +'<div class="cbt-info"><div class="cbt-nom">'+(estMoi?'<b>':'')+c.nom+(estMoi?'</b>':'')+(estMoi?' <span style="font-size:10px;color:#4ade80;">(toi)</span>':'')+'</div>'
+      +(c.type==='monstre'?'<div style="font-size:10px;color:var(--txt3);">Monstre</div>':'')+'</div>'
+      +pvH
+      +'<div class="cbt-initv">'+(c.initiative!==null&&c.initiative!==undefined?c.initiative:'?')+'</div>'
+      +'</div>';
+  }).join('')||'<p style="font-size:12px;color:var(--txt3);">En attente des combattants…</p>';
+  // Actions panel
+  var ap=el('cbt-actions-panel');
+  if(ap){
+    ap.style.display='';
+    ap.style.opacity=monTour?'1':'.6';
+    var at=el('cbt-actions-titre');
+    if(at)at.textContent=monTour?'Tes actions — À toi de jouer !':'Tes ressources';
+    cbtRendreActions();
+  }
+}
+
+function cbtRendreActions(){
+  var cont=el('cbt-actions-content');if(!cont)return;
+  var cl=gCl(),niv=parseInt(v('niveau'))||1,html='';
+  // Emplacements de sorts
+  if(isSpellcasterClass(cl)&&Object.keys(slotsE).length){
+    Object.keys(slotsE).forEach(function(ns){
+      var s=slotsE[ns];if(!s||!s.total)return;
+      var rem=s.total-s.used;
+      html+='<div class="cbt-res-item">'
+        +'<div class="cbt-res-nom">Sorts niveau '+ns+'</div>'
+        +'<div style="display:flex;align-items:center;gap:6px;">'
+        +'<button class="cbt-res-btn" onclick="cbtSlot('+ns+',-1)">−</button>'
+        +'<span class="cbt-res-val">'+rem+'</span>'
+        +'<span style="font-size:11px;color:var(--txt3);">/'+s.total+'</span>'
+        +'<button class="cbt-res-btn" onclick="cbtSlot('+ns+',1)">+</button>'
+        +'</div></div>';
+    });
+  }
+  // Ressources de classe
+  var clRes=RESSOURCES_CL[cl];
+  if(clRes){
+    clRes.forEach(function(res){
+      if(res.type==='info')return;
+      var max=typeof res.max==='function'?res.max(niv):res.max;
+      if(!max)return;
+      var used=ressourcesClasse[res.id]||0,rem=max-used;
+      html+='<div class="cbt-res-item">'
+        +'<div class="cbt-res-nom">'+res.nom+(res.unite?' <span style="font-size:10px;color:var(--txt3);">('+res.unite+')</span>':'')+'</div>'
+        +'<div style="display:flex;align-items:center;gap:6px;">'
+        +'<button class="cbt-res-btn" onclick="cbtRes(\''+res.id+'\',-1)">−</button>'
+        +'<span class="cbt-res-val">'+rem+'</span>'
+        +'<span style="font-size:11px;color:var(--txt3);">/'+max+'</span>'
+        +'<button class="cbt-res-btn" onclick="cbtRes(\''+res.id+'\',1)">+</button>'
+        +'</div></div>';
+    });
+  }
+  if(!html)html='<p style="font-size:12px;color:var(--txt3);">Aucune ressource de classe.</p>';
+  cont.innerHTML=html;
+}
+
+function cbtSlot(ns,delta){
+  // delta: +1=récupérer, -1=dépenser
+  var s=slotsE[ns];if(!s)return;
+  s.used=Math.max(0,Math.min(s.total,s.used+(-delta)));
+  rendreSlots("e-slots",true);rendreSlots("r-slots",true);rendreSlots("r-slots-perso",true);
+  sauvegarder();cbtRendreActions();
+}
+
+function cbtRes(id,delta){
+  // delta: +1=récupérer, -1=dépenser
+  var cl=gCl(),niv=parseInt(v('niveau'))||1;
+  var res=RESSOURCES_CL[cl]&&RESSOURCES_CL[cl].find(function(r){return r.id===id;});
+  if(!res)return;
+  var max=typeof res.max==='function'?res.max(niv):res.max;
+  ressourcesClasse[id]=Math.max(0,Math.min(max,(ressourcesClasse[id]||0)+(-delta)));
+  majRessourcesClasse();sauvegarder();cbtRendreActions();
+}
+
+function cbtReposCourt(){
+  var cl=gCl();
+  (RESSOURCES_CL[cl]||[]).forEach(function(res){
+    if(res.reset==='short')ressourcesClasse[res.id]=0;
+  });
+  majRessourcesClasse();sauvegarder();cbtRendreActions();
+}
+
+function cbtReposLong(){
+  var cl=gCl();
+  (RESSOURCES_CL[cl]||[]).forEach(function(res){ressourcesClasse[res.id]=0;});
+  slotsE={};
+  rendreSlots("e-slots",true);rendreSlots("r-slots",true);rendreSlots("r-slots-perso",true);
+  majRessourcesClasse();
+  var max=parseInt(v('pv-max'))||0;
+  if(el('pv-act'))el('pv-act').value=max;
+  updatePV();sauvegarder();cbtRendreActions();
+}
+
+// Présence — visibilitychange
+document.addEventListener('visibilitychange',function(){
+  if(!campCode||!db||!joueurId)return;
+  campEcrireJoueur({enLigne:document.visibilityState!=='hidden'});
+});
+
+// ══════════════════════════════════════════
 // EXPORT
 // ══════════════════════════════════════════
 function exportJSON(){
@@ -9088,5 +9321,46 @@ chargerScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"
     console.error(" Firebase:",e);
   });
 </script>
+
+<!-- ══ COMBAT PJ OVERLAY ════════════════════════════════ -->
+<div id="s-combat">
+  <div class="cbt-hd">
+    <h2>⚔ Combat</h2>
+    <span id="cbt-round-info" style="font-size:12px;opacity:.85;"></span>
+    <button id="cbt-mute" onclick="cbtToggleMute()" style="background:none;border:none;color:white;cursor:pointer;font-size:18px;padding:0 4px;">🔔</button>
+    <button class="btn" style="font-size:11px;padding:4px 10px;background:rgba(0,0,0,.3);border-color:rgba(255,255,255,.3);color:white;" onclick="fermerCombatPJ()">Retour</button>
+  </div>
+  <div class="app" style="padding-top:.75rem;">
+    <!-- Saisie initiative -->
+    <div id="cbt-init-saisie" style="display:none;">
+      <div style="text-align:center;padding:2.5rem 1rem;">
+        <p style="font-size:14px;color:var(--txt2);margin-bottom:.5rem;font-weight:600;">Ton score d'initiative</p>
+        <p style="font-size:11px;color:var(--txt3);margin-bottom:1.5rem;">Résultat total (dé + modificateur)</p>
+        <input type="number" id="cbt-init-val" placeholder="17"
+          style="font-size:48px;font-weight:800;text-align:center;width:160px;padding:10px;border:2px solid var(--rouge);border-radius:12px;background:var(--bg2);color:var(--txt);"
+          onkeydown="if(event.key==='Enter')cbtConfirmerInit()">
+        <div style="margin-top:1.5rem;">
+          <button class="btn ok" style="font-size:15px;padding:12px 36px;border-radius:10px;" onclick="cbtConfirmerInit()">Confirmer</button>
+        </div>
+      </div>
+    </div>
+    <!-- Notification tour -->
+    <div id="cbt-mon-tour" class="cbt-mon-tour" style="display:none;">
+      <div style="font-size:26px;font-weight:800;color:var(--or);">C'EST TON TOUR !</div>
+      <div style="font-size:12px;color:var(--txt2);margin-top:.25rem;">Agis maintenant</div>
+    </div>
+    <!-- Liste combattants -->
+    <div id="cbt-liste" style="margin-bottom:1rem;"></div>
+    <!-- Actions / ressources -->
+    <div id="cbt-actions-panel" class="card" style="display:none;">
+      <p class="st" id="cbt-actions-titre">Tes ressources</p>
+      <div id="cbt-actions-content"></div>
+      <div style="display:flex;gap:8px;margin-top:1rem;border-top:1px solid var(--bord);padding-top:.75rem;">
+        <button class="btn" style="flex:1;font-size:12px;" onclick="cbtReposCourt()">Repos court</button>
+        <button class="btn" style="flex:1;font-size:12px;" onclick="cbtReposLong()">Repos long</button>
+      </div>
+    </div>
+  </div>
+</div>
 </body>
 </html>
