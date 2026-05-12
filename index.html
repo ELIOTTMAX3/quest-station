@@ -606,6 +606,10 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px;" id="r-clist"></div>
     </div>
     <div class="card">
+      <p class="st">Langues maîtrisées</p>
+      <div id="r-lang-list" style="display:flex;flex-wrap:wrap;gap:6px;"></div>
+    </div>
+    <div class="card">
       <p class="st">Jets de sauvegarde</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px;" id="r-jlist"></div>
     </div>
@@ -5997,6 +6001,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
             <option>Demi-Orc</option>
             <option>Drakéide</option>
             <option>Elfe</option>
+            <option>Elfe noir</option>
             <option>Gnome</option>
             <option>Halfelin</option>
             <option>Humain</option>
@@ -6075,6 +6080,14 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       </div>
       <p style="font-size:11px;color:var(--txt3);margin-bottom:8px;">● = recommandée par ta classe, race ou historique. Tu peux cocher librement.</p>
       <div id="e-clist"></div>
+    </div>
+    <div class="card" style="margin-top:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <p class="st" style="border:none;padding:0;margin:0;">Langues maîtrisées</p>
+        <span id="e-lang-count" style="font-size:11px;color:var(--txt3);"></span>
+      </div>
+      <p style="font-size:11px;color:var(--txt3);margin-bottom:8px;">● = accordée par les règles (lecture seule)</p>
+      <div id="e-lang-list" style="display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;"></div>
     </div>
   </div>
 
@@ -6250,8 +6263,16 @@ var COMPS_CL = {
 var COMPS_RACE = {
   "Demi-Elfe": ["Acrobaties","Arcanes","Athlétisme","Discrétion","Dressage","Escamotage","Histoire","Intimidation","Investigation","Médecine","Nature","Perception","Persuasion","Religion","Représentation","Survie","Tromperie"],
   "Demi-Orc": ["Intimidation"],
-  "Elfe": ["Perception"]
+  "Elfe": ["Perception"],
+  "Elfe noir": ["Perception"]
 };
+
+var LANGUES=["Commun","Elfique","Nain","Gnome","Halfelin","Orc","Draconique","Infernal","Céleste","Sylvestre","Gobelin"];
+var LANGUES_RACE={
+  "Humain":["Commun"],"Elfe":["Commun","Elfique"],"Elfe noir":["Commun","Elfique"],"Demi-Elfe":["Commun","Elfique"],
+  "Nain":["Commun","Nain"],"Halfelin":["Commun","Halfelin"],"Gnome":["Commun","Gnome"],"Demi-Orc":["Commun","Orc"],"Tieffelin":["Commun","Infernal"],"Drakéide":["Commun","Draconique"]
+};
+var LANGUES_HIST={"Acolyte":2};
 var COMPS_HIST = {
   "Acolyte":         ["Intuition","Religion"],
   "Artisan de guilde":["Intuition","Persuasion"],
@@ -6976,6 +6997,7 @@ function collecterDonnees(){
   var cm=[];
   document.querySelectorAll(".erow[data-ci]").forEach(function(r){cm.push(r.querySelector(".comp-check").checked);});
   data.comps=cm;
+  data.langues=Array.from(document.querySelectorAll(".lang-check")).filter(function(ch){return ch.checked;}).map(function(ch){return ch.dataset.lang;});
   ["jr1","jr2","jr3","je1","je2","je3"].forEach(function(id){data[id]=el(id)&&el(id).checked;});
   data.grimoire=Array.from(grimoire);
   data.prepares=Array.from(prepares);
@@ -7016,6 +7038,7 @@ function chargerFiche(data){
   if(data.coches&&!data.grimoire)grimoire=new Set(data.coches);
   if(data.slots)slotsE=data.slots;
   if(data.ressources)ressourcesClasse=data.ressources;
+  window._languesData=data.langues||null;
   el("prep-n").textContent=prepares.size?"("+prepares.size+")":"";
   // updateAll() → buildComps() crée les .erow dans le DOM
   updateAll();
@@ -7026,6 +7049,9 @@ function chargerFiche(data){
       if(_compsData[i]!==undefined)r.querySelector(".comp-check").checked=_compsData[i];
     });
     updateComps();
+    buildLangues();
+    if(window._languesData){document.querySelectorAll(".lang-check").forEach(function(ch){ if(window._languesData.indexOf(ch.dataset.lang)>=0) ch.checked=true;});}
+    updateLangues();
   }
   // Photo de profil — charger avant allerResume()
   if(data.avatar){appliquerAvatar(data.avatar);}else{retirerAvatar();}
@@ -7127,6 +7153,45 @@ function buildComps(){
     c.appendChild(row);
   });
   updateComps();
+  buildLangues();
+}
+
+
+
+function getLanguesDefaut(){
+  var r=v("race"),h=v("historique");
+  var d=new Set(["Commun"]);
+  (LANGUES_RACE[r]||[]).forEach(function(l){d.add(l);});
+  return d;
+}
+function buildLangues(){
+  var c=el("e-lang-list"); if(!c) return;
+  c.innerHTML="";
+  var def=getLanguesDefaut();
+  LANGUES.forEach(function(l){
+    var row=document.createElement("label");
+    row.style.cssText="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--txt2);";
+    var isDef=def.has(l);
+    row.innerHTML="<input type='checkbox' class='lang-check' data-lang='"+l+"' onchange='updateLangues();sauvegarder()' "+(isDef?"checked disabled":"")+">"+"<span style='font-size:10px;width:12px;color:var(--vert);'>"+(isDef?"●":"")+"</span><span>"+l+"</span>";
+    c.appendChild(row);
+  });
+  updateLangues();
+}
+function updateLangues(){
+  var def=getLanguesDefaut(),n=0,list=[];
+  document.querySelectorAll('.lang-check').forEach(function(ch){
+    if(def.has(ch.dataset.lang)){ch.checked=true;ch.disabled=true;}
+    if(ch.checked){n++;list.push(ch.dataset.lang);}
+  });
+  var cnt=el('e-lang-count'); if(cnt) cnt.textContent=n+" langues";
+  var r=el('r-lang-list'); if(r){
+    r.innerHTML='';
+    list.forEach(function(l){
+      var sp=document.createElement('span');
+      sp.style.cssText='font-size:11px;padding:3px 8px;border-radius:999px;background:var(--bg3);border:1px solid var(--bord);color:var(--txt);';
+      sp.textContent=l; r.appendChild(sp);
+    });
+  }
 }
 
 function appliquerCompsDefaut(){
@@ -7141,7 +7206,9 @@ function appliquerCompsDefaut(){
     // Les compétences manuelles (non-règles) restent inchangées
   });
   updateComps();
+  buildLangues();
 }
+
 function getCompsDefaut(){
   // Retourne un Set des compétences données par classe+race+historique
   var cl=gCl(), race=v("race"), hist=v("historique");
@@ -7352,6 +7419,7 @@ function onRaceChange() {
   if (el("e-caps-list")) eRendreCaps();
   if (el("r-caps-list")) rRendreCaps();
   appliquerCompsDefaut();
+  buildLangues();
   sauvegarder();
 }
 
@@ -7360,6 +7428,7 @@ function onHistoriqueChange() {
   if (el("e-caps-list")) eRendreCaps();
   if (el("r-caps-list")) rRendreCaps();
   appliquerCompsDefaut();
+  buildLangues();
   sauvegarder();
 }
 
