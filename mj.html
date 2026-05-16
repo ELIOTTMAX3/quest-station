@@ -1274,7 +1274,7 @@ function syncCombatFirestore(){
           initiative:c.init!==null?c.init:null,
           pvact:c.pvact,pvmax:c.pvmax,avatar:c.avatar||null,
           revele:c.type==='monstre'?(c.revele===true):true,
-          conditions:(c.type==='pj'?c.conditions||[]:undefined)};
+          conditions:(c.type==='pj'?c.conditions||[]:[])}
       })
     }
   },{merge:true}).catch(function(e){
