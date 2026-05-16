@@ -142,6 +142,14 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .pjsel-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--rouge);flex-shrink:0;pointer-events:none;}
 .init-wait{font-size:11px;color:var(--txt3);font-style:italic;}
 .init-ok{font-size:11px;color:#4ade80;font-weight:700;}
+.groupes-liste{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
+.groupe-card{background:var(--bg3);border:1px solid var(--bord);border-radius:8px;padding:8px 10px;display:flex;align-items:center;gap:8px;}
+.groupe-card-info{flex:1;min-width:0;}
+.groupe-card-nom{font-size:13px;font-weight:700;color:var(--txt);}
+.groupe-card-sub{font-size:11px;color:var(--txt3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.groupe-draft-item{display:flex;align-items:center;gap:6px;font-size:11px;padding:3px 0;border-bottom:1px solid var(--bord);}
+.groupe-draft-item span{flex:1;}
+.groupes-section{border-top:1px solid var(--bord);margin-top:10px;padding-top:8px;}
 .mj-hlist{display:flex;gap:8px;overflow-x:auto;padding:22px 0 8px;margin-bottom:.75rem;scrollbar-width:thin;scrollbar-color:var(--bord) transparent;}
 .mj-hlist::-webkit-scrollbar{height:4px;}.mj-hlist::-webkit-scrollbar-thumb{background:var(--bord);border-radius:2px;}
 .mj-hcard{flex-shrink:0;width:100px;background:var(--bg2);border:2px solid var(--bord);border-radius:10px;padding:8px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;cursor:pointer;transition:border-color .15s;}
@@ -281,6 +289,31 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           <div><label>Initiative</label><input type="number" id="m-init" placeholder="12"></div>
         </div>
         <button class="btn ok" style="width:100%;" onclick="ajouterMonstre()">+ Ajouter</button>
+      </div>
+      <!-- Groupes de monstres -->
+      <div class="card" style="margin-top:.75rem;">
+        <div style="display:flex;align-items:center;margin-bottom:8px;">
+          <p class="st" style="flex:1;margin:0;">Groupes de monstres</p>
+          <button class="btn ok" style="font-size:11px;padding:4px 10px;" onclick="gOuvrirCreer()">+ Nouveau</button>
+        </div>
+        <div id="groupes-liste" class="groupes-liste"></div>
+        <!-- Formulaire de création de groupe -->
+        <div id="groupe-creer" class="groupes-section" style="display:none;">
+          <p style="font-size:12px;font-weight:700;color:var(--txt2);margin-bottom:6px;">Nouveau groupe</p>
+          <input type="text" id="g-nom" placeholder="Nom du groupe…" style="width:100%;margin-bottom:8px;">
+          <div class="mf-grid">
+            <div><label>Nom</label><input type="text" id="g-m-nom" placeholder="Gobelin" onkeydown="if(event.key==='Enter')gAjouterMonstre()"></div>
+            <div><label>PV</label><input type="number" id="g-m-pv" min="1" placeholder="7"></div>
+            <div><label>CA</label><input type="number" id="g-m-ca" min="1" placeholder="15"></div>
+            <div><label>Init</label><input type="number" id="g-m-init" placeholder="—"></div>
+          </div>
+          <button class="btn" style="width:100%;margin:6px 0;" onclick="gAjouterMonstre()">+ Ajouter monstre au groupe</button>
+          <div id="g-draft-list"></div>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <button class="btn ok" style="flex:1;" onclick="gSauvegarder()">💾 Sauvegarder le groupe</button>
+            <button class="btn" onclick="gAnnulerCreer()">Annuler</button>
+          </div>
+        </div>
       </div>
       <!-- Liste d'initiative -->
       <div id="combat-list"></div>
@@ -785,6 +818,109 @@ function kickJoueur(jid){
     }).catch(function(e){toast('Erreur: '+e.message);});
 }
 
+// ═══════════════════════════════════════════
+// GROUPES DE MONSTRES
+// ═══════════════════════════════════════════
+var groupesMonstres=(function(){try{return JSON.parse(localStorage.getItem('qs_groupes')||'[]');}catch(e){return [];}})();
+var _gDraft=[];
+
+function _saveGroupes(){
+  try{localStorage.setItem('qs_groupes',JSON.stringify(groupesMonstres));}catch(e){}
+}
+
+function rendreGroupes(){
+  var cont=el('groupes-liste');if(!cont)return;
+  if(!groupesMonstres.length){
+    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);">Aucun groupe sauvegardé.</p>';
+    return;
+  }
+  cont.innerHTML=groupesMonstres.map(function(g,i){
+    var sub=g.monstres.map(function(m){return m.nom+(m.pvmax?'('+m.pvmax+'PV)':'')+' CA'+m.ca;}).join(' · ');
+    return '<div class="groupe-card">'  +
+      '<div class="groupe-card-info">'  +
+      '<div class="groupe-card-nom">'+g.nom+'</div>'  +
+      '<div class="groupe-card-sub">'+g.monstres.length+' monstre'+(g.monstres.length>1?'s':'')  +'  — '+sub+'</div>'  +
+      '</div>'  +
+      '<button class="btn ok" style="font-size:11px;padding:4px 8px;" onclick="gImporter('+i+')">↓ Importer</button>'  +
+      '<button class="btn danger" style="font-size:11px;padding:4px 8px;" onclick="gSupprimer('+i+')">✕</button>'  +
+      '</div>'  ;
+  }).join('');
+}
+
+function rendreGDraft(){
+  var cont=el('g-draft-list');if(!cont)return;
+  if(!_gDraft.length){cont.innerHTML='<p style="font-size:11px;color:var(--txt3);padding:4px 0;">Aucun monstre ajouté.</p>';return;}
+  cont.innerHTML=_gDraft.map(function(m,i){
+    return '<div class="groupe-draft-item"><span>'+m.nom+' — PV '+m.pvmax+' CA '+m.ca+(m.init!==null?' Init '+m.init:'')  +'</span>'  +
+      '<button onclick="gRetirerMonstre('+i+')" style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:13px;">✕</button></div>';
+  }).join('');
+}
+
+function gOuvrirCreer(){
+  _gDraft=[];
+  var d=el('groupe-creer');if(d)d.style.display='';
+  var n=el('g-nom');if(n){n.value='';n.focus();}
+  rendreGDraft();
+}
+
+function gAnnulerCreer(){
+  _gDraft=[];
+  var d=el('groupe-creer');if(d)d.style.display='none';
+}
+
+function gAjouterMonstre(){
+  var nom=(el('g-m-nom').value||"").trim();
+  if(!nom){el('g-m-nom').focus();return;}
+  var pv=Math.max(1,parseInt(el('g-m-pv').value)||1);
+  var ca=parseInt(el('g-m-ca').value)||10;
+  var initV=el('g-m-init').value.trim();
+  var init=initV!==''?parseInt(initV):null;
+  _gDraft.push({nom:nom,pvmax:pv,ca:ca,init:init});
+  el('g-m-nom').value='';el('g-m-pv').value='';el('g-m-ca').value='';el('g-m-init').value='';
+  el('g-m-nom').focus();
+  rendreGDraft();
+}
+
+function gRetirerMonstre(i){
+  _gDraft.splice(i,1);rendreGDraft();
+}
+
+function gSauvegarder(){
+  var nom=(el('g-nom').value||"").trim();
+  if(!nom){el('g-nom').focus();toast('Donne un nom au groupe.');return;}
+  if(!_gDraft.length){toast('Ajoute au moins un monstre.');return;}
+  groupesMonstres.push({nom:nom,monstres:_gDraft.slice()});
+  _saveGroupes();
+  gAnnulerCreer();
+  rendreGroupes();
+  toast('Groupe "'+nom+'" sauvegardé !');
+}
+
+function gImporter(i){
+  var g=groupesMonstres[i];if(!g)return;
+  var instances={};
+  g.monstres.forEach(function(m){
+    var nom=m.nom;
+    monstreInstances[nom]=(monstreInstances[nom]||0)+1;
+    var count=monstreInstances[nom];
+    if(count===2){
+      var premier=combatants.find(function(c){return c.nom===nom&&c.type==='monstre';});
+      if(premier)premier.nom=nom+' #1';
+    }
+    var nomAff=count>=2?nom+' #'+count:nom;
+    combatants.push({id:'m-'+Date.now()+'-'+count,nom:nomAff,type:'monstre',
+      pvact:m.pvmax,pvmax:m.pvmax,ca:m.ca,init:m.init,avatar:null,revele:false,conditions:[],effets:[]});
+  });
+  if(combatPhase!=='initiative')trierCombatants();
+  rendreCombat();syncCombatFirestore();sauvegarderCombat();
+  toast(g.monstres.length+' monstre'+(g.monstres.length>1?'s':'')  +' importé'+(g.monstres.length>1?'s':'')  +' !');
+}
+
+function gSupprimer(i){
+  if(!confirm('Supprimer le groupe "'+groupesMonstres[i].nom+'" ?'))return;
+  groupesMonstres.splice(i,1);_saveGroupes();rendreGroupes();
+}
+
 // ══════════════════════════════════════════
 // CAMPAGNE — ÉDITION (onglet Campagne)
 // ══════════════════════════════════════════
@@ -956,7 +1092,6 @@ function verifierInitiativesCompletes(){
   });
   var btn=el('btn-commencer');
   if(btn)btn.style.display=tous?'':'none';
-  if(tous)commencerCombat();
 }
 
 function tourSuivant(){
@@ -1106,12 +1241,12 @@ function ouvrirOngletCombat(){
         ?'Combat en cours — Round '+combatRound+' · '+combatants.length+' combattant'+(combatants.length>1?'s':'')
         :'Liste d\'initiative sauvegardée ('+combatants.length+' combattant'+(combatants.length>1?'s':'')+')';
     }
-    rendreCombat();majControlsCombat();
+    rendreCombat();majControlsCombat();rendreGroupes();
   } else {
     combatants=[];combatTour=-1;combatRound=0;combatActif=false;monstreInstances={};
     el('combat-reprise').style.display='none';
     importerPJsCombat();
-    rendreCombat();majControlsCombat();
+    rendreCombat();majControlsCombat();rendreGroupes();
   }
 }
 
