@@ -9281,6 +9281,7 @@ function cbtMajUI(){
   el('cbt-init-saisie').style.display='none';
   _cbtInitSoumise=false;
   _cbtInitVal=null;
+  cbtStopWaitPoll();
   // À terre
   var pvAct=parseInt(v('pv-act'))||0,pvMax=parseInt(v('pv-max'))||0;
   var aterre=pvAct===0&&pvMax>0;
@@ -9575,24 +9576,24 @@ function cbtPasserTour(){
   campEcrireJoueur({_passeTour:true});
 }
 var _cbtWaitPollTO=null;
-function cbtStartWaitPoll(){
-  if(_cbtWaitPollTO)return;
-  _cbtWaitPollTO=setInterval(function(){
-    if(!_cbtInitSoumise){clearInterval(_cbtWaitPollTO);_cbtWaitPollTO=null;return;}
-    if(db&&campCode)db.collection('parties').doc(campCode).get().then(function(snap){
-      if(!snap.exists)return;
-      var combat=snap.data().combat;
-      if(combat&&combat.phase!=='initiative')majCombatPJ(combat);
-    }).catch(function(){});
-  },5000);
-}
-function cbtForceRefresh(){
+function cbtStopWaitPoll(){if(_cbtWaitPollTO){clearInterval(_cbtWaitPollTO);_cbtWaitPollTO=null;}}
+function cbtPollOnce(){
+  if(!combatPJData||combatPJData.phase!=='initiative'){cbtStopWaitPoll();return;}
   if(!db||!campCode)return;
   db.collection('parties').doc(campCode).get().then(function(snap){
     if(!snap.exists)return;
-    var d=snap.data();
-    majCombatPJ(d.combat||{actif:false});
+    var combat=snap.data().combat;
+    if(combat&&combat.phase!=='initiative')majCombatPJ(combat);
+    else if(!combat||!combat.actif)majCombatPJ({actif:false});
   }).catch(function(){});
+}
+function cbtStartWaitPoll(){
+  if(_cbtWaitPollTO)return;
+  cbtPollOnce();
+  _cbtWaitPollTO=setInterval(cbtPollOnce,2000);
+}
+function cbtForceRefresh(){
+  cbtPollOnce();
 }
 function cbtTogglePVPanel(){
   var p=el('cbt-pv-panel');
