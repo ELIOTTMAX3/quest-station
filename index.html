@@ -9165,6 +9165,7 @@ var combatPJData=null, combatMute=false, _audioCtx=null, _dernierMonTour=false;
 var cbtActionUsed=false, cbtBonusUsed=false;
 var cbtForceCombat=false;
 var _cbtFicheOpen=false;
+var _cbtInitSoumise=false;
 
 function cbtGetAudio(){if(!_audioCtx)_audioCtx=new(window.AudioContext||window.webkitAudioContext)();return _audioCtx;}
 function cbtBip(){
@@ -9205,7 +9206,7 @@ function cbtConfirmerInit(){
   if(!db||!campCode||!joueurId)return;
   db.collection('parties').doc(campCode).collection('joueurs').doc(joueurId)
     .set({_initScore:val},{merge:true}).catch(function(){});
-  el('cbt-init-saisie').style.display='none';
+  _cbtInitSoumise=true;
   cbtMajUI();
 }
 
@@ -9253,7 +9254,7 @@ function cbtMajUI(){
   // Phase initiative
   if(phase==='initiative'){
     var maCbt2=data.combattants&&data.combattants.find(function(cc){return cc.type==='pj'&&cc.id===joueurId;});
-    var dejaSoumis=maCbt2&&maCbt2.initiative!==null&&maCbt2.initiative!==undefined;
+    var dejaSoumis=_cbtInitSoumise||(maCbt2&&maCbt2.initiative!==null&&maCbt2.initiative!==undefined);
     el('cbt-init-saisie').style.display=dejaSoumis?'none':'';
     el('cbt-mon-tour').style.display='none';
     el('cbt-actions-panel').style.display='none';
@@ -9270,6 +9271,7 @@ function cbtMajUI(){
     return;
   }
   el('cbt-init-saisie').style.display='none';
+  _cbtInitSoumise=false;
   // À terre
   var pvAct=parseInt(v('pv-act'))||0,pvMax=parseInt(v('pv-max'))||0;
   var aterre=pvAct===0&&pvMax>0;
