@@ -9182,6 +9182,7 @@ document.addEventListener('visibilitychange',function(){
 
 // ―― COMBAT PJ
 var combatPJData=null, combatMute=false, _audioCtx=null, _dernierMonTour=false;
+var _cbtDescs=[];
 var cbtActionUsed=false, cbtBonusUsed=false;
 var cbtForceCombat=false;
 var _cbtFicheOpen=false;
@@ -9350,6 +9351,7 @@ function cbtMajUI(){
 function cbtRendreActions(monTour){
   var cont=el('cbt-actions-content');if(!cont)return;
   var cl=gCl(),niv=parseInt(v('niveau'))||1,html='';
+  _cbtDescs=[];
   var hdrAp=el('cbt-actions-titre');
   if(hdrAp)hdrAp.textContent=monTour?'Tes actions — À toi de jouer !':'Tes ressources';
   // === ACTION ===
@@ -9437,13 +9439,28 @@ function cbtRendreActions(monTour){
       var ts=SORTS.filter(function(s){return prepares.has(s.n);});
       ts.sort(function(a,b){return a.nv-b.nv||a.n.localeCompare(b.n);});
       ts.forEach(function(s){
-        html+='<div class="cbt-sort-item">'
+        var idx=_cbtDescs.length;
+        var meta=(s.nv===0?'Tour de magie':'Niveau '+s.nv)+' · '+s.e
+          +(s.i?' · '+s.i:'')+(s.p?' · Portée '+s.p:'')+(s.d?' · '+s.d:'');
+        _cbtDescs.push({titre:s.n,texte:s.t||'Aucune description.',meta:meta});
+        html+='<div class="cbt-sort-item" style="cursor:pointer;" onclick="cbtShowDesc('+idx+')">'
           +'<span class="cbt-sort-niv">'+(s.nv===0?'C':'N'+s.nv)+'</span>'
-          +'<span>'+s.n+'</span>'
-          +'<span style="font-size:10px;color:var(--txt3);margin-left:auto;">'+s.e.replace(/\s*\(rituel\)/i,'').trim()+'</span>'
+          +'<span style="flex:1;">'+s.n+'</span>'
+          +'<span style="font-size:10px;color:var(--txt3);">'+s.e.replace(/\s*\(rituel\)/i,'').trim()+' ℹ</span>'
           +'</div>';
       });
     }
+  }
+  // === CAPACITÉS DE CLASSE ===
+  var capsData=window.CAPS_DATA&&window.CAPS_DATA.classes&&window.CAPS_DATA.classes[cl]||[];
+  var capsUnlocked=capsData.filter(function(c){return (c.niveau||1)<=niv;});
+  if(capsUnlocked.length){
+    html+='<p class="cbt-section-titre">📖 Capacités</p>';
+    capsUnlocked.forEach(function(cap){
+      var idx=_cbtDescs.length;
+      _cbtDescs.push({titre:cap.nom,texte:cap.desc||'Aucune description.',meta:cap.type==='choix'?'Capacité de choix':null});
+      html+='<button class="cbt-action-btn" style="text-align:left;" onclick="cbtShowDesc('+idx+')">'+cap.nom+' <span style="font-size:10px;opacity:.6;">ℹ</span></button>';
+    });
   }
   cont.innerHTML=html;
 }
@@ -9585,6 +9602,30 @@ function cbtToggleInfoBtn(btn,desc){
   var d=document.createElement('div');d.className='cbt-weapon-desc';d.style.display='block';d.textContent=desc;
   btn.parentNode.insertBefore(d,btn.nextSibling);
 }
+function cbtShowDesc(idx){
+  var d=_cbtDescs[idx];if(!d)return;
+  var ov=el('cbt-desc-overlay');
+  if(!ov){
+    ov=document.createElement('div');
+    ov.id='cbt-desc-overlay';
+    ov.style.cssText='position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.55);display:flex;align-items:flex-end;';
+    ov.onclick=function(e){if(e.target===ov)cbtCloseDesc();};
+    var sh=document.createElement('div');
+    sh.id='cbt-desc-sheet';
+    sh.style.cssText='background:var(--bg2);border-radius:16px 16px 0 0;width:100%;max-height:72vh;overflow-y:auto;padding:1.2rem 1rem 2.5rem;';
+    ov.appendChild(sh);
+    document.body.appendChild(ov);
+  }
+  var sh=el('cbt-desc-sheet');
+  sh.innerHTML='<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem;">'
+    +'<b style="font-size:15px;color:var(--or);">'+d.titre+'</b>'
+    +'<button onclick="cbtCloseDesc()" style="font-size:22px;line-height:1;background:none;border:none;color:var(--txt3);cursor:pointer;padding:0 4px;">×</button>'
+    +'</div>'
+    +(d.meta?'<p style="font-size:11px;color:var(--txt3);margin-bottom:.8rem;font-style:italic;">'+d.meta+'</p>':'')
+    +'<p style="font-size:13px;line-height:1.65;color:var(--txt2);white-space:pre-wrap;">'+d.texte+'</p>';
+  ov.style.display='flex';
+}
+function cbtCloseDesc(){var ov=el('cbt-desc-overlay');if(ov)ov.style.display='none';}
 
 // === C5 PASSER TOUR / MODIFIER PV ===
 function cbtPasserTour(){
