@@ -9576,28 +9576,34 @@ function cbtPasserTour(){
   campEcrireJoueur({_passeTour:true});
 }
 var _cbtWaitPollTO=null;
-function cbtStopWaitPoll(){if(_cbtWaitPollTO){clearInterval(_cbtWaitPollTO);_cbtWaitPollTO=null;}}
+var _cbtWatchUnsub=null;
+function cbtStopWait(){
+  if(_cbtWaitPollTO){clearInterval(_cbtWaitPollTO);_cbtWaitPollTO=null;}
+  if(_cbtWatchUnsub){_cbtWatchUnsub();_cbtWatchUnsub=null;}
+}
+function cbtStopWaitPoll(){cbtStopWait();}
+function _cbtOnCombatData(combat){
+  if(!combat||!combat.actif){cbtStopWait();majCombatPJ({actif:false});return;}
+  if(combat.phase!=='initiative'){cbtStopWait();majCombatPJ(combat);}
+}
 function cbtPollOnce(){
   if(!db||!campCode)return;
-  // Force lecture serveur (bypass cache Firestore)
-  db.collection('parties').doc(campCode).get({source:'server'}).then(function(snap){
+  db.collection('parties').doc(campCode).get().then(function(snap){
     if(!snap.exists)return;
-    var combat=snap.data().combat;
-    if(!combat||!combat.actif){cbtStopWaitPoll();majCombatPJ({actif:false});return;}
-    if(combat.phase!=='initiative'){cbtStopWaitPoll();majCombatPJ(combat);}
-  }).catch(function(){
-    // Fallback cache si hors ligne
-    db.collection('parties').doc(campCode).get().then(function(snap){
-      if(!snap.exists)return;
-      var combat=snap.data().combat;
-      if(combat&&combat.phase!=='initiative'){cbtStopWaitPoll();majCombatPJ(combat);}
-    }).catch(function(){});
-  });
+    _cbtOnCombatData(snap.data().combat);
+  }).catch(function(){});
 }
 function cbtStartWaitPoll(){
-  cbtStopWaitPoll();
-  cbtPollOnce();
-  _cbtWaitPollTO=setInterval(cbtPollOnce,2000);
+  cbtStopWait();
+  // Listener dédié — se déclenche immédiatement + à chaque changement Firestore
+  if(db&&campCode){
+    _cbtWatchUnsub=db.collection('parties').doc(campCode).onSnapshot(function(snap){
+      if(!snap.exists)return;
+      _cbtOnCombatData(snap.data().combat);
+    },function(){_cbtWatchUnsub=null;});
+  }
+  // Polling de secours toutes les 3s
+  _cbtWaitPollTO=setInterval(cbtPollOnce,3000);
 }
 function cbtForceRefresh(){
   cbtPollOnce();
