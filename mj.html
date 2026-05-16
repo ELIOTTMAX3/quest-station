@@ -258,8 +258,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <button class="btn ok" id="btn-debut-combat" onclick="prepCombat()">Préparer le combat</button>
         <button class="btn ok" id="btn-commencer" onclick="commencerCombat()" style="display:none;">▶ Commencer !</button>
         <button class="btn" id="btn-tour-suiv" onclick="tourSuivant()" style="display:none;">Tour suivant ▶</button>
-        <button class="btn" id="btn-nouveau-round" onclick="nouveauRound()" style="display:none;">Nouveau round</button>
-        <button class="btn danger" onclick="nouveauCombat()">Nouveau combat</button>
+        <button class="btn danger" onclick="nouveauCombat()">Fin du combat</button>
         <span class="round-badge" id="combat-round-badge" style="display:none;">Round <span id="combat-round-num">1</span></span>
       </div>
       <!-- Sélection PJ pour le combat -->
@@ -962,14 +961,17 @@ function verifierInitiativesCompletes(){
 
 function tourSuivant(){
   if(!combatants.length)return;
+  var prev=combatants[combatTour];
   combatTour=(combatTour+1)%combatants.length;
   if(combatTour===0)combatRound++;
   var cur=combatants[combatTour];
   if(cur&&cur.type==='monstre'&&!cur.revele)cur.revele=true;
+  // Réinitialiser _passeTour du joueur précédent
+  if(prev&&prev.type==='pj'&&prev.jid&&db&&campagneActive){
+    db.collection('parties').doc(campagneActive.id).collection('joueurs').doc(prev.jid)
+      .set({_passeTour:false},{merge:true}).catch(function(){});
+  }
   majRoundBadge();rendreCombat();syncCombatFirestore();sauvegarderCombat();
-  // Scroller vers le combattant actif
-  var actif=document.querySelector('.combat-row.actif');
-  if(actif)actif.scrollIntoView({behavior:'smooth',block:'nearest'});
 }
 
 function nouveauRound(){
@@ -1035,10 +1037,9 @@ function majRoundBadge(){
 
 function majControlsCombat(){
   majRoundBadge();
-  var bd=el('btn-debut-combat'),ts=el('btn-tour-suiv'),nr=el('btn-nouveau-round');
+  var bd=el('btn-debut-combat'),ts=el('btn-tour-suiv');
   if(bd)bd.style.display=(!combatActif&&combatPhase==='')?'':'none';
   if(ts)ts.style.display=(combatActif&&combatPhase==='combat')?'':'none';
-  if(nr)nr.style.display=(combatActif&&combatPhase==='combat')?'':'none';
   verifierInitiativesCompletes();
 }
 
@@ -1164,7 +1165,7 @@ function mjToggleEtats(idx){
   var cg=el('mj-etats-conds');if(!cg)return;
   cg.innerHTML=CONDITIONS_DD.map(function(cn){
     var on=cc.conditions.indexOf(cn)>=0;
-    return '<button class="mj-etat-btn'+(on?' on':'')+'\'onclick="mjToggleCond('+idx+',\''+cn+'\');">'+cn+'</button>';
+    return '<button class="mj-etat-btn'+(on?' on':'')+'" onclick="mjToggleCond('+idx+',\''+cn+'\');">'+cn+'</button>';
   }).join('');
   mjRendreEffets(idx);
   panel.style.display='';

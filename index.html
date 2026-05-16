@@ -9566,8 +9566,7 @@ function cbtToggleInfoBtn(btn,desc){
 function cbtPasserTour(){
   if(!combatPJData||!combatPJData.actif)return;
   if(combatPJData.joueurActifId!==joueurId)return;
-  if(!db||!campCode)return;
-  db.collection('parties').doc(campCode).set({combat:{passeTour:joueurId}},{merge:true}).catch(function(){});
+  campEcrireJoueur({_passeTour:true});
 }
 function cbtTogglePVPanel(){
   var p=el('cbt-pv-panel');
