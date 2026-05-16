@@ -9016,7 +9016,10 @@ function campEcouter(){
     majConditions(conds);
     majCombatPJ(d.combat||{actif:false});
     campRendreJoueurs();
-  },function(){});
+  },function(){
+    // Listener mort : se réabonner après 4s si toujours dans la campagne
+    if(campCode)setTimeout(campEcouter,4000);
+  });
   // Écouter aussi la collection joueurs de la campagne
   db.collection("parties").doc(campCode).collection("joueurs").onSnapshot(function(qs){
     campRendreJoueurs(qs);
@@ -9240,9 +9243,10 @@ function majCombatPJ(data){
     if(bBtn)bBtn.parentNode.removeChild(bBtn);
     el('s-combat').style.display='none';
     _dernierMonTour=false;cbtActionUsed=false;cbtBonusUsed=false;
+    _cbtInitSoumise=false;_cbtInitVal=null;
     if(db&&campCode&&joueurId){
       db.collection('parties').doc(campCode).collection('joueurs').doc(joueurId)
-        .set({_initScore:null},{merge:true}).catch(function(){});
+        .set({_initScore:null,_passeTour:false},{merge:true}).catch(function(){});
     }
   }
 }
@@ -9265,8 +9269,10 @@ function cbtMajUI(){
       el('cbt-liste').innerHTML='<div style="text-align:center;padding:1.5rem;background:var(--bg2);border-radius:10px;margin-bottom:1rem;">'
         +'<div style="font-size:28px;margin-bottom:.5rem;">✓</div>'
         +'<p style="font-size:14px;font-weight:700;color:#4ade80;">Initiative '+(_cbtInitVal!==null?_cbtInitVal:(maCbt2?maCbt2.initiative:'?'))+' enregistrée !</p>'
-        +'<p style="font-size:12px;color:var(--txt3);margin-top:.5rem;">En attente que tous les joueurs soumettent leur initiative…</p>'
+        +'<p style="font-size:12px;color:var(--txt3);margin-top:.5rem;">En attente que le MJ démarre le combat…</p>'
+        +'<button onclick="cbtForceRefresh()" style="margin-top:1rem;font-size:11px;padding:6px 16px;border-radius:8px;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt2);cursor:pointer;">↻ Actualiser</button>'
         +'</div>';
+      cbtStartWaitPoll();
     } else {
       el('cbt-liste').innerHTML='<p style="font-size:12px;color:var(--txt3);text-align:center;padding:.5rem;">Le MJ lance un nouveau combat. Entre ton initiative !</p>';
     }
@@ -9567,6 +9573,26 @@ function cbtPasserTour(){
   if(!combatPJData||!combatPJData.actif)return;
   if(combatPJData.joueurActifId!==joueurId)return;
   campEcrireJoueur({_passeTour:true});
+}
+var _cbtWaitPollTO=null;
+function cbtStartWaitPoll(){
+  if(_cbtWaitPollTO)return;
+  _cbtWaitPollTO=setInterval(function(){
+    if(!_cbtInitSoumise){clearInterval(_cbtWaitPollTO);_cbtWaitPollTO=null;return;}
+    if(db&&campCode)db.collection('parties').doc(campCode).get().then(function(snap){
+      if(!snap.exists)return;
+      var combat=snap.data().combat;
+      if(combat&&combat.phase!=='initiative')majCombatPJ(combat);
+    }).catch(function(){});
+  },5000);
+}
+function cbtForceRefresh(){
+  if(!db||!campCode)return;
+  db.collection('parties').doc(campCode).get().then(function(snap){
+    if(!snap.exists)return;
+    var d=snap.data();
+    majCombatPJ(d.combat||{actif:false});
+  }).catch(function(){});
 }
 function cbtTogglePVPanel(){
   var p=el('cbt-pv-panel');
