@@ -9183,6 +9183,13 @@ document.addEventListener('visibilitychange',function(){
 // ―― COMBAT PJ
 var combatPJData=null, combatMute=false, _audioCtx=null, _dernierMonTour=false;
 var _cbtDescs=[];
+var _capExclNom=['Incantation','Emplacements de sorts','Sorts mineurs','Sorts connus de niveau 1 et supérieur','Caractéristique d\'incantation','Focaliseur d\'incantation','Rituel','Amélioration de caractéristiques','Compétence hors-pair','Maîtrise des armures','Touche-à-tout','Chant reposant','Expertise','Quêteur spirituel','Langue supplémentaire','Disciple de la vie'];
+var _capExclPfx=['Collège ','Voie du ','Voie de ','Voie des ','Pacte de ','Serment ','Archétype ','Sens de ','Domaine de ','Cercle de '];
+function _capEstCombat(cap){
+  for(var i=0;i<_capExclNom.length;i++)if(cap.nom===_capExclNom[i])return false;
+  for(var i=0;i<_capExclPfx.length;i++)if(cap.nom.indexOf(_capExclPfx[i])===0)return false;
+  return true;
+}
 var cbtActionUsed=false, cbtBonusUsed=false;
 var cbtForceCombat=false;
 var _cbtFicheOpen=false;
@@ -9434,33 +9441,15 @@ function cbtRendreActions(monTour){
   if(isSpellcasterClass(cl)){
     html+='<p class="cbt-section-titre">✨ Emplacements de sorts</p>';
     html+=cbtRendreSlotsDots();
-    if(prepares.size){
-      html+='<p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);margin:8px 0 5px;">Sorts préparés</p>';
-      var ts=SORTS.filter(function(s){return prepares.has(s.n);});
-      ts.sort(function(a,b){return a.nv-b.nv||a.n.localeCompare(b.n);});
-      ts.forEach(function(s){
-        var idx=_cbtDescs.length;
-        var meta=(s.nv===0?'Tour de magie':'Niveau '+s.nv)+' · '+s.e
-          +(s.i?' · '+s.i:'')+(s.p?' · Portée '+s.p:'')+(s.d?' · '+s.d:'');
-        _cbtDescs.push({titre:s.n,texte:s.t||'Aucune description.',meta:meta});
-        html+='<div class="cbt-sort-item" style="cursor:pointer;" onclick="cbtShowDesc('+idx+')">'
-          +'<span class="cbt-sort-niv">'+(s.nv===0?'C':'N'+s.nv)+'</span>'
-          +'<span style="flex:1;">'+s.n+'</span>'
-          +'<span style="font-size:10px;color:var(--txt3);">'+s.e.replace(/\s*\(rituel\)/i,'').trim()+' ℹ</span>'
-          +'</div>';
-      });
-    }
   }
   // === CAPACITÉS DE CLASSE ===
   var capsData=window.CAPS_DATA&&window.CAPS_DATA.classes&&window.CAPS_DATA.classes[cl]||[];
-  var capsUnlocked=capsData.filter(function(c){return (c.niveau||1)<=niv;});
+  var capsUnlocked=capsData.filter(function(c){return (c.niveau||1)<=niv&&_capEstCombat(c);});
   if(capsUnlocked.length){
-    html+='<p class="cbt-section-titre">📖 Capacités</p>';
-    capsUnlocked.forEach(function(cap){
-      var idx=_cbtDescs.length;
-      _cbtDescs.push({titre:cap.nom,texte:cap.desc||'Aucune description.',meta:cap.type==='choix'?'Capacité de choix':null});
-      html+='<button class="cbt-action-btn" style="text-align:left;" onclick="cbtShowDesc('+idx+')">'+cap.nom+' <span style="font-size:10px;opacity:.6;">ℹ</span></button>';
-    });
+    html+='<div class="cbt-dropdown-wrap">';
+    html+='<button class="cbt-action-btn" onclick="cbtToggleCaps(event)">📖 Capacités ▾</button>';
+    html+='<div id="cbt-caps-menu" class="cbt-dropdown" style="display:none;"></div>';
+    html+='</div>';
   }
   cont.innerHTML=html;
 }
@@ -9589,6 +9578,29 @@ function cbtToggleSorts(e){
   setTimeout(function(){
     document.addEventListener('click',function _sm(ev){
       if(!menu.contains(ev.target)){menu.style.display='none';document.removeEventListener('click',_sm);}
+    });
+  },0);
+}
+function cbtToggleCaps(e){
+  e.stopPropagation();
+  var menu=el('cbt-caps-menu');if(!menu)return;
+  if(menu.style.display!=='none'){menu.style.display='none';return;}
+  var cl=gCl(),niv=parseInt(v('niveau'))||1;
+  var capsData=window.CAPS_DATA&&window.CAPS_DATA.classes&&window.CAPS_DATA.classes[cl]||[];
+  var caps=capsData.filter(function(c){return (c.niveau||1)<=niv&&_capEstCombat(c);});
+  if(!caps.length){menu.innerHTML='<p style="font-size:12px;color:var(--txt3);padding:6px;">Aucune capacité.</p>';menu.style.display='';return;}
+  menu.innerHTML=caps.map(function(cap){
+    var idx=_cbtDescs.length;
+    _cbtDescs.push({titre:cap.nom,texte:cap.desc||'Aucune description.'});
+    return '<div class="cbt-sort-item" style="cursor:pointer;" onclick="cbtShowDesc('+idx+')">'
+      +'<span style="flex:1;font-size:12px;">'+cap.nom+'</span>'
+      +'<span style="font-size:10px;color:var(--txt3);">ℹ</span>'
+      +'</div>';
+  }).join('');
+  menu.style.display='';
+  setTimeout(function(){
+    document.addEventListener('click',function _cm(ev){
+      if(!menu.contains(ev.target)){menu.style.display='none';document.removeEventListener('click',_cm);}
     });
   },0);
 }
