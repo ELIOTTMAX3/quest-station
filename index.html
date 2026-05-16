@@ -9166,6 +9166,7 @@ var cbtActionUsed=false, cbtBonusUsed=false;
 var cbtForceCombat=false;
 var _cbtFicheOpen=false;
 var _cbtInitSoumise=false;
+var _cbtInitVal=null;
 
 function cbtGetAudio(){if(!_audioCtx)_audioCtx=new(window.AudioContext||window.webkitAudioContext)();return _audioCtx;}
 function cbtBip(){
@@ -9207,6 +9208,7 @@ function cbtConfirmerInit(){
   db.collection('parties').doc(campCode).collection('joueurs').doc(joueurId)
     .set({_initScore:val},{merge:true}).catch(function(){});
   _cbtInitSoumise=true;
+  _cbtInitVal=val;
   cbtMajUI();
 }
 
@@ -9262,7 +9264,7 @@ function cbtMajUI(){
     if(dejaSoumis){
       el('cbt-liste').innerHTML='<div style="text-align:center;padding:1.5rem;background:var(--bg2);border-radius:10px;margin-bottom:1rem;">'
         +'<div style="font-size:28px;margin-bottom:.5rem;">✓</div>'
-        +'<p style="font-size:14px;font-weight:700;color:#4ade80;">Initiative '+maCbt2.initiative+' enregistrée !</p>'
+        +'<p style="font-size:14px;font-weight:700;color:#4ade80;">Initiative '+(_cbtInitVal!==null?_cbtInitVal:(maCbt2?maCbt2.initiative:'?'))+' enregistrée !</p>'
         +'<p style="font-size:12px;color:var(--txt3);margin-top:.5rem;">En attente que tous les joueurs soumettent leur initiative…</p>'
         +'</div>';
     } else {
@@ -9272,6 +9274,7 @@ function cbtMajUI(){
   }
   el('cbt-init-saisie').style.display='none';
   _cbtInitSoumise=false;
+  _cbtInitVal=null;
   // À terre
   var pvAct=parseInt(v('pv-act'))||0,pvMax=parseInt(v('pv-max'))||0;
   var aterre=pvAct===0&&pvMax>0;
