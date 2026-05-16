@@ -9033,9 +9033,21 @@ function campEcouter(){
           setTimeout(function(){alert('Tu as été retiré de la campagne par le MJ.');},100);
           return;
         }
-        // Signal direct du MJ pour démarrage du combat (bypass cache parties doc)
+        // Signal direct du MJ : forcer la transition immédiatement sans dépendre de Firestore
         if(snap.exists&&snap.data()&&snap.data()._combatPhase==='combat'){
-          cbtPollOnce();
+          if(combatPJData&&combatPJData.actif){
+            combatPJData.phase='combat';
+            if(!combatPJData.round||combatPJData.round<1)combatPJData.round=1;
+            cbtMajUI();
+          }
+          // Lire depuis le serveur (bypass cache) pour récupérer les données complètes
+          if(db&&campCode){
+            db.collection('parties').doc(campCode).get({source:'server'}).then(function(sv){
+              if(!sv.exists)return;
+              var c=sv.data().combat;
+              if(c&&c.actif)majCombatPJ(c);
+            }).catch(function(){});
+          }
         }
       },function(){});
   }
