@@ -135,6 +135,13 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .round-badge{background:var(--bg3);border:1px solid var(--bord2);border-radius:6px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--or);}
 .monster-form{background:var(--bg3);border:1px solid var(--bord2);border-radius:10px;padding:12px;margin-bottom:1rem;}
 .mf-grid{display:grid;grid-template-columns:1fr 64px 54px 64px;gap:8px;margin-bottom:8px;align-items:end;}
+.non-revele-badge{font-size:9px;padding:1px 5px;border-radius:4px;background:rgba(107,114,128,.25);color:var(--txt3);border:1px solid var(--bord);margin-left:4px;vertical-align:middle;}
+.pjsel-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg3);border:1px solid var(--bord);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:border-color .12s;user-select:none;}
+.pjsel-item:hover:not(.off){border-color:var(--rouge);}
+.pjsel-item.off{opacity:.45;cursor:not-allowed;}
+.pjsel-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--rouge);flex-shrink:0;pointer-events:none;}
+.init-wait{font-size:11px;color:var(--txt3);font-style:italic;}
+.init-ok{font-size:11px;color:#4ade80;font-weight:700;}
 </style>
 </head>
 <body>
@@ -229,11 +236,22 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       </div>
       <!-- Contrôles -->
       <div class="combat-controls">
-        <button class="btn ok" id="btn-debut-combat" onclick="debutCombat()">Début du combat</button>
+        <button class="btn ok" id="btn-debut-combat" onclick="prepCombat()">Préparer le combat</button>
+        <button class="btn ok" id="btn-commencer" onclick="commencerCombat()" style="display:none;">▶ Commencer !</button>
         <button class="btn" id="btn-tour-suiv" onclick="tourSuivant()" style="display:none;">Tour suivant ▶</button>
         <button class="btn" id="btn-nouveau-round" onclick="nouveauRound()" style="display:none;">Nouveau round</button>
         <button class="btn danger" onclick="nouveauCombat()">Nouveau combat</button>
         <span class="round-badge" id="combat-round-badge" style="display:none;">Round <span id="combat-round-num">1</span></span>
+      </div>
+      <!-- Sélection PJ pour le combat -->
+      <div id="combat-select" class="card" style="display:none;">
+        <p class="st">Sélectionner les participants</p>
+        <p style="font-size:12px;color:var(--txt3);margin-bottom:.75rem;">Coche les PJ qui participent au combat. Les PJ hors ligne ne peuvent pas être sélectionnés.</p>
+        <div id="pjsel-list"></div>
+        <div style="display:flex;gap:8px;margin-top:.75rem;">
+          <button class="btn ok" style="flex:1;" onclick="lancerCombat()">Lancer le combat →</button>
+          <button class="btn" onclick="el('combat-select').style.display='none';el('btn-debut-combat').style.display='';">Annuler</button>
+        </div>
       </div>
       <!-- Formulaire monstre -->
       <div class="monster-form">
@@ -487,6 +505,7 @@ function ouvrirPanel(code){
       }
     });
     if(combatants.length&&el('pt-combat')&&el('pt-combat').style.display!=='none')rendreCombat();
+    verifierInitiativesCompletes();
   },function(){});
 }
 
@@ -721,12 +740,13 @@ function supprimerCampagne(){
 // ══════════════════════════════════════════
 var combatants=[], combatTour=-1, combatRound=0, combatActif=false;
 var monstreInstances={};
+var joueursCombat=[], combatPhase='';
 
 function combatKey(){return campagneActive?'combat_'+campagneActive.id:null;}
 
 function sauvegarderCombat(){
   var k=combatKey();if(!k)return;
-  localStorage.setItem(k,JSON.stringify({combatants:combatants,combatTour:combatTour,combatRound:combatRound,combatActif:combatActif}));
+  localStorage.setItem(k,JSON.stringify({combatants:combatants,combatTour:combatTour,combatRound:combatRound,combatActif:combatActif,combatPhase:combatPhase,joueursCombat:joueursCombat}));
 }
 
 function chargerCombatLocal(){
@@ -737,8 +757,11 @@ function chargerCombatLocal(){
 function effacerCombat(){
   var k=combatKey();if(k)localStorage.removeItem(k);
   combatants=[];combatTour=-1;combatRound=0;combatActif=false;monstreInstances={};
-  importerPJsCombat();
-  el('combat-reprise').style.display='none';
+  joueursCombat=[];combatPhase='';
+  if(el('combat-reprise'))el('combat-reprise').style.display='none';
+  if(el('combat-select'))el('combat-select').style.display='none';
+  if(el('btn-debut-combat'))el('btn-debut-combat').style.display='';
+  if(el('btn-commencer'))el('btn-commencer').style.display='none';
   rendreCombat();majControlsCombat();
   syncCombatFirestore();resetInitScoresPJ();
 }
@@ -778,23 +801,83 @@ function ajouterMonstre(){
     if(premier)premier.nom=nom+' #1';
   }
   var nomAff=count>=2?nom+' #'+count:nom;
-  combatants.push({id:'m-'+Date.now(),nom:nomAff,type:'monstre',pvact:pvmax,pvmax:pvmax,ca:ca,init:init,avatar:null});
+  combatants.push({id:'m-'+Date.now(),nom:nomAff,type:'monstre',pvact:pvmax,pvmax:pvmax,ca:ca,init:init,avatar:null,revele:false});
   trierCombatants();
   el('m-nom').value='';el('m-pvmax').value='';el('m-ca').value='';el('m-init').value='';
   el('m-nom').focus();
   rendreCombat();majBtnDebut();syncCombatFirestore();sauvegarderCombat();
 }
 
-function debutCombat(){
-  trierCombatants();
-  combatActif=true;combatRound=1;combatTour=0;
+function prepCombat(){
+  var jids=Object.keys(joueursData).filter(function(jid){return joueursData[jid]._nom;});
+  if(!jids.length){toast('Aucun joueur dans la campagne.');return;}
+  var html='';
+  jids.forEach(function(jid){
+    var d=joueursData[jid];
+    var online=!!d.enLigne;
+    var av=d.avatar
+      ?'<img src="'+d.avatar+'" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
+      :'<div style="width:28px;height:28px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--txt3);flex-shrink:0;">?</div>';
+    html+='<div class="pjsel-item'+(online?'':' off')+'" onclick="'+(online?'togglePJSel(this)':'')+'">';
+    html+='<input type="checkbox" data-jid="'+jid+'"'+(online?'':' disabled')+'>';
+    html+=av;
+    html+='<span style="font-weight:600;font-size:13px;flex:1;">'+(d._nom||jid)+'</span>';
+    html+=(online?'<span style="width:8px;height:8px;border-radius:50%;background:#4ade80;flex-shrink:0;"></span>'
+      :'<span style="font-size:11px;color:var(--txt3);">Hors ligne</span>');
+    html+='</div>';
+  });
+  el('pjsel-list').innerHTML=html;
+  el('combat-select').style.display='';
+  el('btn-debut-combat').style.display='none';
+  el('btn-commencer').style.display='none';
+}
+function togglePJSel(item){
+  var cb=item.querySelector('input[type=checkbox]');
+  if(cb&&!cb.disabled)cb.checked=!cb.checked;
+}
+function lancerCombat(){
+  joueursCombat=[];
+  document.querySelectorAll('#pjsel-list input[type=checkbox]:checked').forEach(function(cb){
+    if(cb.dataset.jid)joueursCombat.push(cb.dataset.jid);
+  });
+  if(!joueursCombat.length){toast('Sélectionne au moins un PJ.');return;}
+  el('combat-select').style.display='none';
+  combatPhase='initiative';
+  var monstres=combatants.filter(function(cc){return cc.type==='monstre';});
+  combatants=[];
+  joueursCombat.forEach(function(jid){
+    var d=joueursData[jid];if(!d)return;
+    combatants.push({id:'pj-'+jid,jid:jid,nom:d._nom,type:'pj',
+      pvact:d._pvact||0,pvmax:d._pvmax||0,ca:d._ca||'—',init:null,avatar:d.avatar||null});
+  });
+  combatants=combatants.concat(monstres);
+  combatActif=true;combatRound=0;combatTour=-1;
   rendreCombat();majControlsCombat();syncCombatFirestore();sauvegarderCombat();
+  resetInitScoresPJ();
+}
+function commencerCombat(){
+  trierCombatants();
+  combatPhase='combat';combatActif=true;combatRound=1;combatTour=0;
+  var cur=combatants[0];if(cur&&cur.type==='monstre'&&!cur.revele)cur.revele=true;
+  rendreCombat();majControlsCombat();syncCombatFirestore();sauvegarderCombat();
+  if(el('btn-commencer'))el('btn-commencer').style.display='none';
+}
+function verifierInitiativesCompletes(){
+  if(combatPhase!=='initiative')return;
+  var tous=joueursCombat.length>0&&joueursCombat.every(function(jid){
+    var cc=combatants.find(function(x){return x.jid===jid;});
+    return cc&&cc.init!==null&&cc.init!==undefined;
+  });
+  var btn=el('btn-commencer');
+  if(btn)btn.style.display=tous?'':'none';
 }
 
 function tourSuivant(){
   if(!combatants.length)return;
   combatTour=(combatTour+1)%combatants.length;
   if(combatTour===0)combatRound++;
+  var cur=combatants[combatTour];
+  if(cur&&cur.type==='monstre'&&!cur.revele)cur.revele=true;
   majRoundBadge();rendreCombat();syncCombatFirestore();sauvegarderCombat();
   // Scroller vers le combattant actif
   var actif=document.querySelector('.combat-row.actif');
@@ -851,14 +934,10 @@ function majPvMonstre(idx,type){
 // Sync PV PJ vers combat tracker (appelé après appliquerHp)
 function syncPvCombat(jid,newPvact){
   var c=combatants.find(function(x){return x.jid===jid;});
-  if(c){c.pvact=newPvact;rendreCombat();sauvegarderCombat();}
+  if(c){c.pvact=newPvact;rendreCombat();sauvegarderCombat();syncCombatFirestore();}
 }
 
-function majBtnDebut(){
-  var btn=el('btn-debut-combat');if(!btn)return;
-  var hasInit=combatants.some(function(c){return c.init!==null;});
-  btn.disabled=!hasInit||combatActif;
-}
+function majBtnDebut(){}
 
 function majRoundBadge(){
   var b=el('combat-round-badge'),n=el('combat-round-num');
@@ -867,10 +946,12 @@ function majRoundBadge(){
 }
 
 function majControlsCombat(){
-  majBtnDebut();majRoundBadge();
-  var ts=el('btn-tour-suiv'),nr=el('btn-nouveau-round');
-  if(ts)ts.style.display=combatActif?'':'none';
-  if(nr)nr.style.display=combatActif?'':'none';
+  majRoundBadge();
+  var bd=el('btn-debut-combat'),ts=el('btn-tour-suiv'),nr=el('btn-nouveau-round');
+  if(bd)bd.style.display=(!combatActif&&combatPhase==='')?'':'none';
+  if(ts)ts.style.display=(combatActif&&combatPhase==='combat')?'':'none';
+  if(nr)nr.style.display=(combatActif&&combatPhase==='combat')?'':'none';
+  verifierInitiativesCompletes();
 }
 
 function rendreCombat(){
@@ -895,14 +976,17 @@ function rendreCombat(){
       +'<div class="combat-indicateur">'+(estActif?'▶':'')+'</div>'
       +'<div class="combat-num">'+(idx+1)+'</div>'
       +avHtml
-      +'<div class="combat-info"><div class="combat-nom">'+(mort?'<s>':'')+c.nom+(mort?'</s>':'')+'</div>'
+      +'<div class="combat-info"><div class="combat-nom">'+(mort?'<s>':'')+c.nom+(mort?'</s>':'')
+      +(c.type==='monstre'&&!c.revele?' <span class="non-revele-badge">👁 Non révélé</span>':'')+'</div>'
       +'<div class="combat-type">'+(c.type==='pj'?'PJ':'Monstre')+'</div></div>'
       +'<div class="combat-pv"><div class="combat-pv-val">'+c.pvact+'/'+c.pvmax+'</div>'
       +'<div class="combat-pv-bg"><div class="combat-pv-fill" style="width:'+pct+'%;background:'+pvCol+';"></div></div></div>'
       +'<div class="combat-ca" title="CA">'+c.ca+'</div>'
-      +'<div class="combat-init"><input type="number" value="'+(c.init!==null?c.init:'')+'" placeholder="Init"'
-      +' oninput="majInitiativeCombat('+idx+',this.value)"'
-      +' style="background:'+(estActif?'var(--bg)':'var(--bg3)')+'"></div>'
+      +(c.type==='pj'&&combatPhase==='initiative'
+        ?'<div class="combat-init" style="width:72px;">'+(c.init!==null?'<span class="init-ok">✓ '+c.init+'</span>':'<span class="init-wait">⏳…</span>')+'</div>'
+        :'<div class="combat-init"><input type="number" value="'+(c.init!==null?c.init:'')+'" placeholder="Init"'
+          +' oninput="majInitiativeCombat('+idx+',this.value)"'
+          +' style="background:'+(estActif?'var(--bg)':'var(--bg3)')+'"></div>')
       +'<div class="combat-btns">'+pvBtns
       +'<button class="cbtn d" onclick="retirerCombattant('+idx+')" title="Retirer">✕</button>'
       +'</div></div>';
@@ -916,6 +1000,8 @@ function ouvrirOngletCombat(){
     combatTour=sauvegarde.combatTour;
     combatRound=sauvegarde.combatRound;
     combatActif=sauvegarde.combatActif;
+    combatPhase=sauvegarde.combatPhase||'';
+    joueursCombat=sauvegarde.joueursCombat||[];
     var reprise=el('combat-reprise');
     if(reprise){
       reprise.style.display='flex';
@@ -942,11 +1028,13 @@ function syncCombatFirestore(){
   }
   db.collection("parties").doc(campagneActive.id).set({
     combat:{
-      actif:combatActif,round:combatRound,tourActif:combatTour,joueurActifId:curJid,
+      actif:combatActif,phase:combatPhase,round:combatRound,tourActif:combatTour,joueurActifId:curJid,
+      joueursCombat:joueursCombat,
       combattants:combatants.map(function(c){
         return {id:c.jid||c.id,type:c.type,nom:c.nom,
           initiative:c.init!==null?c.init:null,
-          pvact:c.pvact,pvmax:c.pvmax,avatar:c.avatar||null};
+          pvact:c.pvact,pvmax:c.pvmax,avatar:c.avatar||null,
+          revele:c.type==='monstre'?(c.revele===true):true};
       })
     }
   },{merge:true}).catch(function(){});
