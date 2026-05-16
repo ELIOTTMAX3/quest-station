@@ -9031,6 +9031,11 @@ function campEcouter(){
         if(!snap.exists&&campCode){
           campQuitter();
           setTimeout(function(){alert('Tu as été retiré de la campagne par le MJ.');},100);
+          return;
+        }
+        // Signal direct du MJ pour démarrage du combat (bypass cache parties doc)
+        if(snap.exists&&snap.data()&&snap.data()._combatPhase==='combat'){
+          cbtPollOnce();
         }
       },function(){});
   }
