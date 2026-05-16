@@ -9183,12 +9183,14 @@ document.addEventListener('visibilitychange',function(){
 // ―― COMBAT PJ
 var combatPJData=null, combatMute=false, _audioCtx=null, _dernierMonTour=false;
 var _cbtDescs=[];
-var _capExclNom=['Incantation','Emplacements de sorts','Sorts mineurs','Sorts connus de niveau 1 et supérieur','Caractéristique d\'incantation','Focaliseur d\'incantation','Rituel','Amélioration de caractéristiques','Compétence hors-pair','Maîtrise des armures','Touche-à-tout','Chant reposant','Expertise','Quêteur spirituel','Langue supplémentaire','Disciple de la vie'];
-var _capExclPfx=['Collège ','Voie du ','Voie de ','Voie des ','Pacte de ','Serment ','Archétype ','Sens de ','Domaine de ','Cercle de '];
+var _capExclPfx=['Collège ','Voie du ','Voie de ','Voie des ','Pacte de ','Serment ','Archétype ','Domaine de ','Cercle de ','Amélioration','Sorts mineurs','Emplacements','Caractéristique d\'','Focaliseur','Rituel','Compétence','Expertise','Touche-à','Chant repos'];
 function _capEstCombat(cap){
-  for(var i=0;i<_capExclNom.length;i++)if(cap.nom===_capExclNom[i])return false;
-  for(var i=0;i<_capExclPfx.length;i++)if(cap.nom.indexOf(_capExclPfx[i])===0)return false;
-  return true;
+  for(var i=0;i<_capExclPfx.length;i++){
+    if(cap.nom.indexOf(_capExclPfx[i])===0||cap.nom===_capExclPfx[i].trim())return false;
+  }
+  // Seulement les capacités nécessitant une action ou action bonus
+  var d=(cap.desc||'').toLowerCase().replace(/réaction/g,'rxx');
+  return d.indexOf('action')>=0||d.indexOf('attaque')>=0;
 }
 var cbtActionUsed=false, cbtBonusUsed=false;
 var cbtForceCombat=false;
@@ -9563,14 +9565,21 @@ function cbtToggleSorts(e){
     var ts=SORTS.filter(function(s){return sortSet.has(s.n);});
     ts.sort(function(a,b){return a.nv-b.nv||a.n.localeCompare(b.n,'fr');});
     html+=ts.map(function(s,i){
-      var descs=s.t?s.t.replace(/</g,'&lt;').substring(0,300):'(aucune description)';
+      var meta='';
+      if(s.i)meta+='<span><b>Incantation :</b> '+s.i+'</span>';
+      if(s.p)meta+='<span><b>Portée :</b> '+s.p+'</span>';
+      if(s.c)meta+='<span><b>Composantes :</b> '+s.c+'</span>';
+      if(s.d)meta+='<span><b>Durée :</b> '+s.d+'</span>';
+      var texte=s.t?s.t.replace(/</g,'&lt;'):'(aucune description)';
+      var desc=(meta?'<div style="display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--txt2);margin-bottom:6px;">'+meta+'</div>':'')
+        +'<div style="font-size:12px;line-height:1.55;color:var(--txt2);white-space:pre-wrap;">'+texte+'</div>';
       return '<div class="cbt-sort-item" style="cursor:pointer;flex-direction:column;align-items:flex-start;" onclick="cbtToggleSortDesc(\'csd'+i+'\')">'+
         '<div style="display:flex;align-items:center;gap:6px;width:100%;">'+
         '<span class="cbt-sort-niv">'+(s.nv===0?'C':'N'+s.nv)+'</span>'+
         '<span style="flex:1;font-size:12px;">'+s.n+'</span>'+
-        '<span style="font-size:10px;color:var(--txt3);">'+s.e+'</span>'+
+        '<span style="font-size:10px;color:var(--txt3);">'+s.e+' ▾</span>'+
         '</div>'+
-        '<div class="cbt-weapon-desc" id="csd'+i+'">'+descs+(s.t&&s.t.length>300?'…':'')+'</div>'+
+        '<div class="cbt-weapon-desc" id="csd'+i+'">'+desc+'</div>'+
         '</div>';
     }).join('');
   }
@@ -9589,12 +9598,15 @@ function cbtToggleCaps(e){
   var capsData=window.CAPS_DATA&&window.CAPS_DATA.classes&&window.CAPS_DATA.classes[cl]||[];
   var caps=capsData.filter(function(c){return (c.niveau||1)<=niv&&_capEstCombat(c);});
   if(!caps.length){menu.innerHTML='<p style="font-size:12px;color:var(--txt3);padding:6px;">Aucune capacité.</p>';menu.style.display='';return;}
-  menu.innerHTML=caps.map(function(cap){
-    var idx=_cbtDescs.length;
-    _cbtDescs.push({titre:cap.nom,texte:cap.desc||'Aucune description.'});
-    return '<div class="cbt-sort-item" style="cursor:pointer;" onclick="cbtShowDesc('+idx+')">'
+  menu.innerHTML=caps.map(function(cap,i){
+    var did='ccap'+i;
+    var texte=(cap.desc||'Aucune description.').replace(/</g,'&lt;');
+    return '<div class="cbt-sort-item" style="cursor:pointer;flex-direction:column;align-items:flex-start;" onclick="cbtToggleSortDesc(\''+did+'\')">'
+      +'<div style="display:flex;align-items:center;width:100%;gap:6px;">'
       +'<span style="flex:1;font-size:12px;">'+cap.nom+'</span>'
-      +'<span style="font-size:10px;color:var(--txt3);">ℹ</span>'
+      +'<span style="font-size:10px;color:var(--txt3);">▾</span>'
+      +'</div>'
+      +'<div class="cbt-weapon-desc" id="'+did+'" style="white-space:pre-wrap;font-size:12px;line-height:1.55;">'+texte+'</div>'
       +'</div>';
   }).join('');
   menu.style.display='';

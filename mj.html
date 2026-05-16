@@ -595,6 +595,13 @@ function ouvrirPanel(code){
     });
     if(combatants.length&&el('pt-combat')&&el('pt-combat').style.display!=='none')rendreCombat();
     verifierInitiativesCompletes();
+    // Auto-avance si le PJ actif a passé son tour
+    if(combatActif&&combatPhase==='combat'&&combatTour>=0){
+      var cur=combatants[combatTour];
+      if(cur&&cur.type==='pj'&&cur.jid&&joueursData[cur.jid]&&joueursData[cur.jid]._passeTour){
+        tourSuivant();
+      }
+    }
   },function(){});
 }
 
