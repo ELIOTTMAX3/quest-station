@@ -142,6 +142,25 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .pjsel-item input[type=checkbox]{width:16px;height:16px;accent-color:var(--rouge);flex-shrink:0;pointer-events:none;}
 .init-wait{font-size:11px;color:var(--txt3);font-style:italic;}
 .init-ok{font-size:11px;color:#4ade80;font-weight:700;}
+.mj-hlist{display:flex;gap:8px;overflow-x:auto;padding:22px 0 8px;margin-bottom:.75rem;scrollbar-width:thin;scrollbar-color:var(--bord) transparent;}
+.mj-hlist::-webkit-scrollbar{height:4px;}.mj-hlist::-webkit-scrollbar-thumb{background:var(--bord);border-radius:2px;}
+.mj-hcard{flex-shrink:0;width:100px;background:var(--bg2);border:2px solid var(--bord);border-radius:10px;padding:8px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;cursor:pointer;transition:border-color .15s;}
+.mj-hcard:hover{border-color:var(--bord2);}
+.mj-hcard.actif{border-color:var(--rouge);background:rgba(217,119,6,.1);}
+.mj-hcard.mort{opacity:.5;}
+.mj-hcard-indicator{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:800;color:var(--rouge);white-space:nowrap;background:rgba(217,119,6,.15);padding:2px 6px;border-radius:4px;border:1px solid rgba(217,119,6,.5);}
+.mj-hcard-nom{font-size:10px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:88px;}
+.mj-hcard-pv{font-size:9px;color:var(--txt2);}
+.mj-hcard-sub{font-size:8px;color:var(--txt3);}
+.mj-hcard-btns{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap;justify-content:center;}
+.mj-hcard-btns button{font-size:9px;padding:2px 5px;border-radius:4px;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt2);cursor:pointer;}
+.mj-hcard-btns button:hover{background:var(--rouge);color:white;border-color:var(--rouge);}
+.mj-hcard-conds{display:flex;flex-wrap:wrap;gap:2px;justify-content:center;margin-top:2px;}
+.mj-cond-badge{font-size:8px;padding:1px 4px;border-radius:3px;background:rgba(220,38,38,.4);color:#fca5a5;font-weight:700;}
+#mj-etats-panel{background:var(--bg2);border:1px solid var(--bord2);border-radius:10px;padding:12px;margin-bottom:.75rem;display:none;}
+.mj-etats-grid{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}
+.mj-etat-btn{font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt2);cursor:pointer;}
+.mj-etat-btn.on{background:rgba(220,38,38,.3);color:#fca5a5;border-color:#dc2626;}
 </style>
 </head>
 <body>
@@ -266,6 +285,19 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       </div>
       <!-- Liste d'initiative -->
       <div id="combat-list"></div>
+      <!-- C7 États panel -->
+      <div id="mj-etats-panel">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+          <p class="st" id="mj-etats-titre" style="flex:1;margin:0;">États du combattant</p>
+          <button class="btn" style="font-size:11px;padding:4px 10px;" onclick="el('mj-etats-panel').style.display='none';">✕</button>
+        </div>
+        <div class="mj-etats-grid" id="mj-etats-conds"></div>
+        <div style="display:flex;gap:8px;margin-top:6px;">
+          <input type="text" id="mj-effet-input" placeholder="Effet personnalisé…" style="flex:1;font-size:12px;">
+          <button class="btn ok" style="font-size:12px;" onclick="mjAjouterEffet()">+ Ajouter</button>
+        </div>
+        <div id="mj-etats-effets" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;"></div>
+      </div>
     </div>
 
     <!-- Onglet Campagne -->
@@ -284,6 +316,10 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           <label>Notes MJ (privées)</label>
           <textarea id="camp-notes" rows="5" style="min-height:100px;" oninput="majCampagneNotes()"></textarea>
         </div>
+      </div>
+      <div class="card">
+        <p class="st">Joueurs inscrits</p>
+        <div id="camp-joueurs-list"><p style="font-size:12px;color:var(--txt3);">Chargement…</p></div>
       </div>
       <div class="card">
         <p class="st">Danger</p>
@@ -352,6 +388,25 @@ var joueursData = {}; // joueurId → data
 var condTarget = null; // joueurId en cours d'édition conditions
 var condActives = {};  // joueurId → Set de conditions actives
 var hpTarget = null;   // joueurId en cours d'édition HP
+
+// C8 Online detection using lastSeen heartbeat
+function estEnLigne(d){
+  if(!d)return false;
+  if(d.lastSeen&&Date.now()-d.lastSeen<40000)return true;
+  return !!d.enLigne;
+}
+// Refresh online status every 15s without waiting Firestore snapshot
+setInterval(function(){
+  var ids=Object.keys(joueursData);
+  var changed=false;
+  ids.forEach(function(id){
+    var d=joueursData[id];
+    var wasOnline=d._wasOnline;
+    var isNow=estEnLigne(d);
+    if(isNow!==wasOnline){d._wasOnline=isNow;changed=true;}
+  });
+  if(changed)rendreJoueurs();
+},15000);
 
 var CONDITIONS_DD = [
   "Aveuglé","Charmé","Assourdi","Épouvanté","Agrippé","Incapacité",
@@ -489,6 +544,7 @@ function ouvrirPanel(code){
   joueursUnsub=db.collection("parties").doc(code).collection("joueurs").onSnapshot(function(qs){
     joueursData={};
     qs.forEach(function(d){joueursData[d.id]=d.data();});
+    renderJoueursInscrits();
     rendreJoueurs();
     // Auto-fill _initScore dans le tracker
     qs.forEach(function(d){
@@ -502,6 +558,7 @@ function ouvrirPanel(code){
       if(c.type==='pj'&&c.jid&&joueursData[c.jid]){
         c.pvact=joueursData[c.jid]._pvact||c.pvact;
         c.pvmax=joueursData[c.jid]._pvmax||c.pvmax;
+        c.passeTour=!!(joueursData[c.jid]._passeTour);
       }
     });
     if(combatants.length&&el('pt-combat')&&el('pt-combat').style.display!=='none')rendreCombat();
@@ -518,7 +575,7 @@ function rendreJoueurs(){
     return;
   }
   // Trier : en ligne d'abord
-  ids.sort(function(a,b){return (joueursData[b].enLigne?1:0)-(joueursData[a].enLigne?1:0);});
+  ids.sort(function(a,b){return (estEnLigne(joueursData[b])?1:0)-(estEnLigne(joueursData[a])?1:0);});
   cont.innerHTML=ids.map(function(jid){
     return rendreCartJoueur(jid,joueursData[jid]);
   }).join("");
@@ -528,7 +585,7 @@ function rendreCartJoueur(jid,d){
   var pvact=d._pvact||0,pvmax=d._pvmax||0;
   var pct=pvmax?Math.round(Math.max(0,Math.min(100,pvact/pvmax*100))):0;
   var pvColor=pct>50?"var(--vert)":pct>25?"#d97706":"#dc2626";
-  var online=d.enLigne;
+  var online=estEnLigne(d);
   var conds=Array.from(condActives[jid]||new Set());
   var condBadges=conds.length?conds.map(function(c){
     return '<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(220,38,38,.5);color:#fecaca;border:1px solid rgba(220,38,38,.4);">'+c+'</span>';
@@ -699,6 +756,36 @@ function ouvrirFiche(jid){
 }
 function fermerModal(){el("modal-fiche").style.display="none";}
 
+// === C9 JOUEURS INSCRITS + KICK ===
+function renderJoueursInscrits(){
+  var cont=el('camp-joueurs-list');if(!cont)return;
+  var jids=Object.keys(joueursData);
+  if(!jids.length){cont.innerHTML='<p style="font-size:12px;color:var(--txt3);">Aucun joueur inscrit.</p>';return;}
+  cont.innerHTML=jids.map(function(jid){
+    var d=joueursData[jid];
+    var online=estEnLigne(d);
+    var av=d.avatar?'<img src="'+d.avatar+'" style="width:28px;height:28px;border-radius:50%;object-fit:cover;">':
+      '<div style="width:28px;height:28px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:12px;">?</div>';
+    return '<div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--bord);">'
+      +av+
+      '<div style="flex:1;">'+
+      '<div style="font-size:13px;font-weight:700;">'+(d._nom||jid)+'</div>'+
+      '<div style="font-size:11px;color:var(--txt3);">'+(d._cl||'—')+' · <span style="color:'+(online?'#4ade80':'var(--txt3)') +';">'+(online?'En ligne':'Hors ligne')+'</span></div>'+
+      '</div>'+
+      '<button class="btn danger" style="font-size:11px;padding:4px 10px;" onclick="kickJoueur(\''+jid+'\');">Kick</button>'+
+      '</div>';
+  }).join('');
+}
+function kickJoueur(jid){
+  var d=joueursData[jid];var nom=(d&&d._nom)||jid;
+  if(!confirm('Retirer '+nom+' de la campagne ?'))return;
+  if(!db||!campagneActive)return;
+  db.collection('parties').doc(campagneActive.id).collection('joueurs').doc(jid)
+    .delete().then(function(){
+      toast(nom+' a été retiré de la campagne.');
+    }).catch(function(e){toast('Erreur: '+e.message);});
+}
+
 // ══════════════════════════════════════════
 // CAMPAGNE — ÉDITION (onglet Campagne)
 // ══════════════════════════════════════════
@@ -814,12 +901,12 @@ function prepCombat(){
   var html='';
   jids.forEach(function(jid){
     var d=joueursData[jid];
-    var online=!!d.enLigne;
+    var online=estEnLigne(d);
     var av=d.avatar
       ?'<img src="'+d.avatar+'" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
       :'<div style="width:28px;height:28px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--txt3);flex-shrink:0;">?</div>';
-    html+='<div class="pjsel-item'+(online?'':' off')+'" onclick="'+(online?'togglePJSel(this)':'')+'">';
-    html+='<input type="checkbox" data-jid="'+jid+'"'+(online?'':' disabled')+'>';
+    html+='<div class="pjsel-item" onclick="togglePJSel(this)">';
+    html+='<input type="checkbox" data-jid="'+jid+'">';
     html+=av;
     html+='<span style="font-weight:600;font-size:13px;flex:1;">'+(d._nom||jid)+'</span>';
     html+=(online?'<span style="width:8px;height:8px;border-radius:50%;background:#4ade80;flex-shrink:0;"></span>'
@@ -957,40 +1044,47 @@ function majControlsCombat(){
 function rendreCombat(){
   var cont=el('combat-list');if(!cont)return;
   if(!combatants.length){
-    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);text-align:center;padding:1.5rem 0;">Aucun combattant — ajoute des monstres ou clique "Nouveau combat" pour importer les PJ.</p>';
+    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);text-align:center;padding:1.5rem 0;">Aucun combattant — ajoute des monstres ou prépare le combat.</p>';
     return;
   }
-  cont.innerHTML=combatants.map(function(c,idx){
+  // Vérifier passeTour signal
+  var html='<div class="mj-hlist">';
+  combatants.forEach(function(cc,idx){
     var estActif=combatActif&&idx===combatTour;
-    var pct=c.pvmax?Math.round(Math.max(0,Math.min(100,c.pvact/c.pvmax*100))):0;
+    var pct=cc.pvmax?Math.round(Math.max(0,Math.min(100,cc.pvact/cc.pvmax*100))):0;
     var pvCol=pct>50?'var(--vert)':pct>25?'#d97706':'#dc2626';
-    var mort=c.pvact===0&&c.pvmax>0;
-    var avHtml=c.avatar
-      ?'<div class="combat-av"><img src="'+c.avatar+'"></div>'
-      :'<div class="combat-av">'+(c.type==='pj'?'PJ':'M')+'</div>';
-    var pvBtns=c.type==='pj'
-      ?'<button class="cbtn" onclick="ouvrirHp(\''+c.jid+'\')">PV</button>'
-      :'<button class="cbtn" onclick="majPvMonstre('+idx+',\'degats\')" style="color:#fca5a5;">-</button>'
-       +'<button class="cbtn" onclick="majPvMonstre('+idx+',\'soins\')" style="color:#86efac;">+</button>';
-    return '<div class="combat-row'+(estActif?' actif':'')+(mort?' mort':'')+'">'
-      +'<div class="combat-indicateur">'+(estActif?'▶':'')+'</div>'
-      +'<div class="combat-num">'+(idx+1)+'</div>'
-      +avHtml
-      +'<div class="combat-info"><div class="combat-nom">'+(mort?'<s>':'')+c.nom+(mort?'</s>':'')
-      +(c.type==='monstre'&&!c.revele?' <span class="non-revele-badge">👁 Non révélé</span>':'')+'</div>'
-      +'<div class="combat-type">'+(c.type==='pj'?'PJ':'Monstre')+'</div></div>'
-      +'<div class="combat-pv"><div class="combat-pv-val">'+c.pvact+'/'+c.pvmax+'</div>'
-      +'<div class="combat-pv-bg"><div class="combat-pv-fill" style="width:'+pct+'%;background:'+pvCol+';"></div></div></div>'
-      +'<div class="combat-ca" title="CA">'+c.ca+'</div>'
-      +(c.type==='pj'&&combatPhase==='initiative'
-        ?'<div class="combat-init" style="width:72px;">'+(c.init!==null?'<span class="init-ok">✓ '+c.init+'</span>':'<span class="init-wait">⏳…</span>')+'</div>'
-        :'<div class="combat-init"><input type="number" value="'+(c.init!==null?c.init:'')+'" placeholder="Init"'
-          +' oninput="majInitiativeCombat('+idx+',this.value)"'
-          +' style="background:'+(estActif?'var(--bg)':'var(--bg3)')+'"></div>')
-      +'<div class="combat-btns">'+pvBtns
-      +'<button class="cbtn d" onclick="retirerCombattant('+idx+')" title="Retirer">✕</button>'
-      +'</div></div>';
-  }).join('');
+    var mort=cc.pvact===0&&cc.pvmax>0;
+    var avH=cc.avatar
+      ?'<img src="'+cc.avatar+'" style="width:32px;height:32px;border-radius:50%;object-fit:cover;">'
+      :(cc.type==='pj'?'<div class="combat-av" style="width:32px;height:32px;font-size:9px;">PJ</div>':'<div class="combat-av" style="width:32px;height:32px;">👾</div>');
+    var pvBarH=cc.pvmax?('<div class="combat-pv-bg" style="width:100%;height:4px;margin:2px 0;"><div class="combat-pv-fill" style="width:'+pct+'%;background:'+pvCol+';"></div></div>'):''
+    var pvTxt='<div class="mj-hcard-pv">'+(mort?'💀 ':'')+cc.pvact+'/'+cc.pvmax+'</div>';
+    var initTxt='<div class="mj-hcard-sub">Init: '+(cc.init!==null?cc.init:'?')+'</div>';
+    var condBadgesH=(cc.conditions&&cc.conditions.length
+      ?'<div class="mj-hcard-conds">'+cc.conditions.slice(0,3).map(function(cn){return '<span class="mj-cond-badge">'+cn+'</span>';}).join('')+(cc.conditions.length>3?'<span class="mj-cond-badge">+'+( cc.conditions.length-3)+'</span>':'')+'</div>'
+      :'');
+    var passeTourH=(cc.passeTour?'<div style="font-size:8px;color:var(--or);">⏭ passe</div>':'');
+    var btnsH='<div class="mj-hcard-btns">';
+    if(cc.type==='pj')
+      btnsH+='<button onclick="ouvrirHp(\''+cc.jid+'\');event.stopPropagation();">PV</button>';
+    else{
+      btnsH+='<button onclick="majPvMonstre('+idx+',\'degats\');event.stopPropagation();" style="color:#fca5a5;">−</button>';
+      btnsH+='<button onclick="majPvMonstre('+idx+',\'soins\');event.stopPropagation();" style="color:#86efac;">+</button>';
+    }
+    btnsH+='<button onclick="mjToggleEtats('+idx+');event.stopPropagation();">États</button>';
+    btnsH+='<button onclick="retirerCombattant('+idx+');event.stopPropagation();" style="color:#fca5a5;">✕</button>';
+    btnsH+='</div>';
+    html+='<div class="mj-hcard'+(estActif?' actif':'')+(mort?' mort':'')+'" onclick="mjSelCard('+idx+')">';
+    if(estActif)html+='<div class="mj-hcard-indicator">▶ Tour</div>';
+    html+=avH;
+    html+='<div class="mj-hcard-nom">'+(mort?'<s>':'')+cc.nom+(mort?'</s>':'')+'</div>';
+    if(cc.type==='monstre'&&!cc.revele)html+='<div class="mj-hcard-sub">👁 Non révélé</div>';
+    html+=pvTxt+pvBarH+initTxt+condBadgesH+passeTourH+btnsH;
+    html+='<div class="mj-hcard-sub">'+( combatPhase==='initiative'&&cc.type==='pj'?(cc.init!==null?'<span class="init-ok">✓ '+cc.init+'</span>':'<span class="init-wait">⏳…</span>'):(cc.ca?'CA '+cc.ca:''))+'</div>';
+    html+='</div>';
+  });
+  html+='</div>';
+  cont.innerHTML=html;
 }
 
 function ouvrirOngletCombat(){
@@ -1034,7 +1128,8 @@ function syncCombatFirestore(){
         return {id:c.jid||c.id,type:c.type,nom:c.nom,
           initiative:c.init!==null?c.init:null,
           pvact:c.pvact,pvmax:c.pvmax,avatar:c.avatar||null,
-          revele:c.type==='monstre'?(c.revele===true):true};
+          revele:c.type==='monstre'?(c.revele===true):true,
+          conditions:(c.type==='pj'?c.conditions||[]:undefined)};
       })
     }
   },{merge:true}).catch(function(){});
@@ -1046,6 +1141,60 @@ function resetInitScoresPJ(){
     db.collection("parties").doc(campagneActive.id).collection("joueurs").doc(jid)
       .set({_initScore:null},{merge:true}).catch(function(){});
   });
+}
+
+// === C7 ÉTATS ===
+var _mjEtatsIdx=-1;
+function mjSelCard(idx){
+  // Highlight selected
+  document.querySelectorAll('.mj-hcard').forEach(function(el,i){
+    el.style.outline=i===idx?'2px solid var(--or)':'';
+  });
+}
+function mjToggleEtats(idx){
+  var panel=el('mj-etats-panel');if(!panel)return;
+  if(_mjEtatsIdx===idx&&panel.style.display!=='none'){panel.style.display='none';_mjEtatsIdx=-1;return;}
+  _mjEtatsIdx=idx;
+  var cc=combatants[idx];if(!cc)return;
+  if(!cc.conditions)cc.conditions=[];
+  if(!cc.effets)cc.effets=[];
+  var titre=el('mj-etats-titre');if(titre)titre.textContent='États — '+cc.nom;
+  // Conditions
+  var cg=el('mj-etats-conds');if(!cg)return;
+  cg.innerHTML=CONDITIONS_DD.map(function(cn){
+    var on=cc.conditions.indexOf(cn)>=0;
+    return '<button class="mj-etat-btn'+(on?' on':'')+'\'onclick="mjToggleCond('+idx+',\''+cn+'\');">'+cn+'</button>';
+  }).join('');
+  mjRendreEffets(idx);
+  panel.style.display='';
+}
+function mjToggleCond(idx,cond){
+  var cc=combatants[idx];if(!cc)return;
+  if(!cc.conditions)cc.conditions=[];
+  var i=cc.conditions.indexOf(cond);
+  if(i>=0)cc.conditions.splice(i,1);else cc.conditions.push(cond);
+  rendreCombat();syncCombatFirestore();sauvegarderCombat();
+  mjToggleEtats(idx);
+}
+function mjAjouterEffet(){
+  var inp=el('mj-effet-input');if(!inp||!inp.value.trim())return;
+  var cc=combatants[_mjEtatsIdx];if(!cc)return;
+  if(!cc.effets)cc.effets=[];
+  cc.effets.push(inp.value.trim());inp.value='';
+  mjRendreEffets(_mjEtatsIdx);
+  rendreCombat();sauvegarderCombat();
+}
+function mjRendreEffets(idx){
+  var cc=combatants[idx];if(!cc)return;
+  var cont=el('mj-etats-effets');if(!cont)return;
+  cont.innerHTML=(cc.effets||[]).map(function(ef,i){
+    return '<span style="font-size:11px;padding:3px 8px;border-radius:6px;background:var(--bg3);border:1px solid var(--bord2);display:flex;align-items:center;gap:5px;">'+ef+
+      '<button onclick="mjSupprimerEffet('+idx+','+i+')" style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:11px;">×</button></span>';
+  }).join('');
+}
+function mjSupprimerEffet(idx,i){
+  var cc=combatants[idx];if(!cc||!cc.effets)return;
+  cc.effets.splice(i,1);mjRendreEffets(idx);rendreCombat();sauvegarderCombat();
 }
 
 // ══════════════════════════════════════════
