@@ -277,13 +277,23 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .r-timeline-item{position:relative;padding:10px 10px 10px 20px;border-left:2px solid var(--rouge);margin-bottom:6px;}
 .r-timeline-item::before{content:'';position:absolute;left:-5px;top:14px;width:8px;height:8px;border-radius:50%;background:var(--rouge);}
 /* ── REGLES CONTENT ──────────────────────────────────── */
-#regles-container h2,#regles-container h3,#regles-container h4{color:var(--txt);margin:10px 0 5px;}
-#regles-container p,#regles-container li{font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:4px;}
-#regles-container ul,#regles-container ol{padding-left:16px;margin-bottom:6px;}
-#regles-container table{width:100%;border-collapse:collapse;font-size:11px;margin:8px 0;}
-#regles-container th{background:var(--bg3);color:var(--txt3);padding:5px 8px;text-align:left;border-bottom:1px solid var(--bord);}
-#regles-container td{padding:4px 8px;border-bottom:1px solid var(--bord);color:var(--txt2);}
-#regles-container tr:hover td{background:rgba(255,255,255,.04);}
+.rq-regles-body h2,.rq-regles-body h3,.rq-regles-body h4,
+#regles-container h2,#regles-container h3,#regles-container h4,
+#er-regles-container h2,#er-regles-container h3,#er-regles-container h4{color:var(--txt);margin:8px 0 4px;font-size:12px;}
+.rq-regles-body p,.rq-regles-body li,
+#regles-container p,#regles-container li,
+#er-regles-container p,#er-regles-container li{font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:4px;}
+.rq-regles-body ul,.rq-regles-body ol,
+#regles-container ul,#regles-container ol,
+#er-regles-container ul,#er-regles-container ol{padding-left:16px;margin-bottom:6px;}
+.rq-regles-body table,
+#regles-container table,#er-regles-container table{width:100%;border-collapse:collapse;font-size:11px;margin:8px 0;}
+.rq-regles-body th,
+#regles-container th,#er-regles-container th{background:var(--bg3);color:var(--txt3);padding:5px 8px;text-align:left;border-bottom:1px solid var(--bord);}
+.rq-regles-body td,
+#regles-container td,#er-regles-container td{padding:4px 8px;border-bottom:1px solid var(--bord);color:var(--txt2);}
+.rq-regles-body tr:hover td,
+#regles-container tr:hover td,#er-regles-container tr:hover td{background:rgba(255,255,255,.04);}
 /* ── SCROLLBARS ──────────────────────────────────────── */
 ::-webkit-scrollbar{width:6px;height:6px;}
 ::-webkit-scrollbar-track{background:var(--bg);}
@@ -337,7 +347,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .cbt-hcard-nom{font-size:11px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:96px;}
 .cbt-hcard-sub{font-size:10px;color:var(--txt3);}
 .cbt-dropdown-wrap{position:relative;margin-bottom:6px;}
-.cbt-dropdown{background:var(--bg2);border:1px solid var(--bord2);border-radius:8px;padding:8px;margin-top:4px;max-height:260px;overflow-y:auto;}
+.cbt-dropdown{background:var(--bg2);border:1px solid var(--bord2);border-radius:8px;padding:8px;margin-top:4px;}
 .cbt-weapon-item{background:var(--bg3);border-radius:6px;padding:8px 10px;margin-bottom:6px;cursor:pointer;border:1px solid var(--bord);text-align:left;}
 .cbt-weapon-item:hover{border-color:var(--rouge);}
 .cbt-weapon-desc{font-size:11px;color:var(--txt3);margin-top:6px;padding-top:6px;border-top:1px solid var(--bord);display:none;}
@@ -6234,8 +6244,8 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <div><label>Défauts</label><textarea id="defauts" oninput="sauvegarder()"></textarea></div>
       </div>
     </div>
-    <div class="card"><label>Histoire du personnage</label><textarea id="capacites" style="min-height:100px;" oninput="sauvegarder()"></textarea></div>
-    <div class="card"><label>Notes libres</label><textarea id="notes" style="min-height:100px;" oninput="sauvegarder()"></textarea></div>
+    <div class="card"><label>Histoire du personnage</label><textarea id="capacites" style="min-height:100px;resize:none;overflow:hidden;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';sauvegarder()"></textarea></div>
+    <div class="card"><label>Notes libres</label><textarea id="notes" style="min-height:100px;resize:none;overflow:hidden;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';sauvegarder()"></textarea></div>
   </div>
 
 
@@ -6898,6 +6908,11 @@ function chargerRace(contId) {
   }
 }
 
+function _newCard(parent){
+  var card=document.createElement('div');
+  card.className='card';card.style.marginBottom='8px';
+  parent.appendChild(card);return card;
+}
 function chargerRegles(contId) {
   var cl = gCl();
   var container = el(contId || 'regles-container');
@@ -6914,7 +6929,6 @@ function chargerRegles(contId) {
     'Rôdeur':'Rodeur','Roublard':'Roublard'
   };
   var id = map[cl] || cl;
-  // Lire depuis le <template> embarqué dans la page
   if (!window._reglesDoc) {
     var tpl = document.getElementById('regles-data');
     if (!tpl) { container.innerHTML = '<p style="padding:20px;color:var(--txt3);">Template introuvable.</p>'; return; }
@@ -6922,24 +6936,51 @@ function chargerRegles(contId) {
     window._reglesDoc = parser.parseFromString(tpl.innerHTML, 'text/html');
   }
   var ICONS_CL = {
-    'Barbare':'','Barde':'','Clerc':'','Druide':'',
-    'Ensorceleur':'','Guerrier':'','Magicien':'','Moine':'',
-    'Occultiste':'','Paladin':'','Rôdeur':'','Roublard':''
+    'Barbare':'⚔','Barde':'🎵','Clerc':'✨','Druide':'🌿',
+    'Ensorceleur':'🔮','Guerrier':'🛡','Magicien':'📚','Moine':'👊',
+    'Occultiste':'🕯','Paladin':'⚡','Rôdeur':'🏹','Roublard':'🗡'
   };
   var niv = parseInt(v('niveau')) || 1;
   var sec = window._reglesDoc.getElementById('regles-' + id);
   container.style.padding = '16px';
-  // En-tête classe
-  container.innerHTML =
-    '<div style="display:flex;align-items:center;gap:12px;padding-bottom:12px;margin-bottom:14px;border-bottom:2px solid var(--rouge);">'
-    + '<span style="font-size:36px;line-height:1;">' + (ICONS_CL[cl]||'') + '</span>'
-    + '<div><h2 style="font-size:20px;font-weight:800;color:var(--txt);margin:0;">' + cl + '</h2>'
-    + '<p style="font-size:12px;color:var(--txt2);margin:2px 0 0;">Niveau ' + niv + ' · ' + (v('race')||'—') + ' · ' + (v('joueur')||'—') + '</p></div>'
-    + '</div>';
+  container.innerHTML = '';
+  _rqHeader(container, ICONS_CL[cl]||'⚔', cl, 'Niveau '+niv+' · '+(v('race')||'—')+' · '+(v('joueur')||'—'));
   if (sec) {
-    container.innerHTML += sec.innerHTML;
+    // Parse template content into uniform card layout
+    var nodes = Array.from(sec.childNodes);
+    var currentCard = null;
+    nodes.forEach(function(node){
+      if(node.nodeType!==1&&node.nodeType!==3)return;
+      if(node.nodeType===3){
+        var txt=(node.textContent||'').trim();
+        if(!txt)return;
+        if(!currentCard)currentCard=_newCard(container);
+        var sp=document.createElement('p');
+        sp.style.cssText='font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:4px;';
+        sp.textContent=txt;
+        currentCard.appendChild(sp);
+        return;
+      }
+      var tag=node.nodeName;
+      if(tag==='H2'||tag==='H3'){
+        currentCard=null;
+        var lbl=document.createElement('p');lbl.className='cap-section';
+        lbl.textContent=node.textContent;container.appendChild(lbl);
+      } else if(tag==='H4'){
+        if(!currentCard)currentCard=_newCard(container);
+        var sub=document.createElement('p');
+        sub.style.cssText='font-size:12px;font-weight:700;color:var(--txt);margin:6px 0 3px;';
+        sub.textContent=node.textContent;
+        currentCard.appendChild(sub);
+      } else {
+        if(!currentCard)currentCard=_newCard(container);
+        currentCard.appendChild(node.cloneNode(true));
+      }
+    });
   } else {
-    container.innerHTML += '<p style="color:var(--txt3);">Règles de la classe "' + cl + '" introuvables dans le template.</p>';
+    var p=document.createElement('p');p.style.color='var(--txt3)';
+    p.textContent='Règles de la classe "'+cl+'" introuvables dans le template.';
+    container.appendChild(p);
   }
 }
 function rTab(name,btn){
@@ -7261,6 +7302,11 @@ function chargerFiche(data){
     if(CAPS_DATA && CAPS_DATA.classes) rRendreCaps();
     renderEquipEquipes();
     majVisibiliteSorts(); // synchronise l'état des onglets sorts au chargement
+    // Auto-resize textareas with existing content
+    ['notes','capacites'].forEach(function(id){
+      var ta=el(id);if(!ta)return;
+      ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';
+    });
     show("s-resume");
   }
   // Attendre uniquement CAPS_DATA (SORTS peut être vide si sorts.js absent)
@@ -9663,11 +9709,6 @@ function cbtRendreActions(monTour){
     var imUsed=(ressourcesClasse['imposition-mains']||0);
     var imRest=Math.max(0,imMax-imUsed);
     if(imMax>0)html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="font-size:12px;color:var(--txt2);">🤚 Imposition des mains : <b>'+imRest+'/'+imMax+'</b> PV</span><button class="cbt-action-btn" style="flex:1;" onclick="cbtRes(\'imposition-mains\',-5)">Soigner 5 PV</button></div>';
-  }
-  // === SORTS ===
-  if(isSpellcasterClass(cl)){
-    html+='<p class="cbt-section-titre">✨ Emplacements de sorts</p>';
-    html+=cbtRendreSlotsDots();
   }
   // === CAPACITÉS DE CLASSE ===
   var capsData=window.CAPS_DATA&&window.CAPS_DATA.classes&&window.CAPS_DATA.classes[cl]||[];
