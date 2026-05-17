@@ -6993,6 +6993,7 @@ function rTab(name,btn){
   if(name==="sorts")rRendreSorts();
   if(name==="comps"){rRendreComps();rRendreCaps();}
   if(name==="caps")rRendreCaps();
+  if(name==="perso"){var rne=el('r-notes-edit');if(rne){rne.style.height='auto';rne.style.height=rne.scrollHeight+'px';}}
   if(name==="regles"){
     // Recharger le sous-onglet actif (Classe par défaut)
     var stabs=document.querySelectorAll('#rt-regles .rq-stab');
@@ -7302,12 +7303,16 @@ function chargerFiche(data){
     if(CAPS_DATA && CAPS_DATA.classes) rRendreCaps();
     renderEquipEquipes();
     majVisibiliteSorts(); // synchronise l'état des onglets sorts au chargement
-    // Auto-resize textareas with existing content
-    ['notes','capacites'].forEach(function(id){
-      var ta=el(id);if(!ta)return;
-      ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';
-    });
     show("s-resume");
+    // Resize auto-height textareas AFTER elements are visible
+    requestAnimationFrame(function(){
+      ['notes','capacites'].forEach(function(id){
+        var ta=el(id);if(!ta)return;
+        ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';
+      });
+      var rne=el('r-notes-edit');
+      if(rne){rne.style.height='auto';rne.style.height=rne.scrollHeight+'px';}
+    });
   }
   // Attendre uniquement CAPS_DATA (SORTS peut être vide si sorts.js absent)
   if (Object.keys(CAPS_DATA.classes||{}).length > 0) {
@@ -8771,9 +8776,9 @@ function rafraichirResume(){
   syncInvResume();
   updateLangResume();
 
-  // Notes libres
+  // Notes libres (resize après affichage via doRefresh/rNotesResizeLater)
   var notes=v("notes");var rne=el("r-notes-edit");
-  if(rne&&document.activeElement!==rne){rne.value=notes||"";rne.style.height='auto';rne.style.height=rne.scrollHeight+'px';}
+  if(rne&&document.activeElement!==rne){rne.value=notes||"";}
 
   // Liens
   var liens=v("liens");var lw=el("r-liens-card");
@@ -8786,6 +8791,7 @@ function rafraichirResume(){
 function rNotesInput(){
   var ta=el("r-notes-edit");var hn=el("notes");
   if(ta&&hn)hn.value=ta.value;
+  if(ta){ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';}
   sauvegarder();
 }
 function rendreHexagone(){
