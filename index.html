@@ -6046,8 +6046,11 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
             <option>Demi-Orc</option>
             <option>Drakéide</option>
             <option>Elfe</option>
+            <option>Elfe des bois</option>
+            <option>Elfe noir</option>
             <option>Gnome</option>
             <option>Halfelin</option>
+            <option>Haut-elfe</option>
             <option>Humain</option>
             <option>Nain</option>
             <option>Tieffelin</option>
@@ -6745,21 +6748,57 @@ function _rqPageComplete(cont, icon, titre, sousTitre, caps, labelCaps) {
   });
 }
 var HIST_DETAILS = {
-  "Hanté":       {comps:["Perspicacité","Médecine"],   langues:[],                           outils:[],                                         equip:"Amulette morbide, livre de rêves, vêtements de voyage, 1 po"},
-  "Soldat":      {comps:["Athlétisme","Intimidation"], langues:[],                           outils:["Jeu de dés ou de cartes","Véhicules (terrestres)"],  equip:"Insigne de grade, trophée de bataille, jeu de dés ou cartes, vêtements ordinaires, 10 po"},
-  "Acolyte":     {comps:["Perspicacité","Religion"],   langues:["Deux langues au choix"],    outils:[],                                         equip:"Symbole sacré, livre de prières, 5 bâtons d'encens, robes, 15 po"},
-  "Artisan de guilde": {comps:["Perspicacité","Persuasion"], langues:["Une langue au choix"], outils:["Outils d'artisan (un type au choix)"],   equip:"Outils d'artisan, lettre d'introduction de guilde, vêtements de voyage, 15 po"}
+  "Acolyte":           {comps:["Perspicacité","Religion"],     langues:["Deux langues au choix"],       outils:[],                                                         equip:"Symbole sacré, livre de prières, 5 bâtons d'encens, robes, 15 po"},
+  "Artisan de guilde": {comps:["Perspicacité","Persuasion"],   langues:["Une langue au choix"],         outils:["Outils d'artisan (un type au choix)"],                    equip:"Outils d'artisan, lettre d'introduction de guilde, vêtements de voyage, 15 po"},
+  "Artiste":           {comps:["Acrobaties","Représentation"], langues:[],                              outils:["Instrument de musique (au choix)","Kit de déguisement"],  equip:"Instrument de musique, costume, 15 po"},
+  "Charlatan":         {comps:["Tromperie","Escamotage"],      langues:[],                              outils:["Kit de déguisement","Kit de faussaire"],                  equip:"Petits objets pour escroqueries, vêtements fins, kit de déguisement, 15 po"},
+  "Criminel":          {comps:["Tromperie","Discrétion"],      langues:[],                              outils:["Jeu d'une sorte","Outils de voleur"],                     equip:"Pied-de-biche, vêtements sombres à capuche, 15 po"},
+  "Ermite":            {comps:["Médecine","Religion"],         langues:["Une langue au choix"],         outils:["Kit d'herboriste"],                                       equip:"Kit d'herboriste, parchemin de vos études, vêtements ordinaires, 5 po"},
+  "Hanté":             {comps:["Perspicacité","Médecine"],     langues:[],                              outils:[],                                                         equip:"Amulette morbide, livre de rêves, vêtements de voyage, 1 po"},
+  "Héros du peuple":   {comps:["Dressage","Survie"],           langues:[],                              outils:["Outils d'artisan (un type au choix)","Véhicules (terrestres)"], equip:"Outils d'artisan, pelle, pot en fer, vêtements ordinaires, 10 po"},
+  "Marin":             {comps:["Athlétisme","Perception"],     langues:[],                              outils:["Outils de navigateur","Véhicules (maritimes)"],            equip:"Filet, coutelas, 50 pieds de soie, chiffre de port, vêtements ordinaires, 10 po"},
+  "Noble":             {comps:["Histoire","Persuasion"],       langues:["Une langue au choix"],         outils:["Jeu d'une sorte"],                                        equip:"Vêtements fins, chevalière, parchemin de généalogie, bourse de 25 po"},
+  "Sauvageon":         {comps:["Athlétisme","Survie"],         langues:["Une langue au choix"],         outils:["Instrument de musique (au choix)"],                       equip:"Bâton, couteau de chasse, trophée d'animal, vêtements de voyageur, 10 po"},
+  "Soldat":            {comps:["Athlétisme","Intimidation"],   langues:[],                              outils:["Jeu de dés ou de cartes","Véhicules (terrestres)"],        equip:"Insigne de grade, trophée de bataille, jeu de dés ou de cartes, vêtements ordinaires, 10 po"}
 };
 var RACES_DETAILS = {
   "Drakéide": {bonus:"+2 FOR, +1 CHA", vitesse:"9m", taille:"Moyenne (~1,90m)", langues:["Commun","Draconique"]},
   "Gnome":    {bonus:"+2 INT",          vitesse:"7,5m", taille:"Petite (~1m)",   langues:["Commun","Gnome"]},
   "Demi-Elfe":{bonus:"+2 CHA, +1 dans deux autres", vitesse:"9m", taille:"Moyenne (~1,70m)", langues:["Commun","Elfique","Une langue au choix"]},
   "Demi-Orc": {bonus:"+2 FOR, +1 CON", vitesse:"9m", taille:"Moyenne (~1,85m)", langues:["Commun","Orc"]},
-  "Elfe":     {bonus:"+2 DEX",          vitesse:"9m", taille:"Moyenne (~1,65m)", langues:["Commun","Elfique"]},
+  "Elfe":         {bonus:"+2 DEX",          vitesse:"9m",    taille:"Moyenne (~1,65m)", langues:["Commun","Elfique"]},
+  "Haut-elfe":    {bonus:"+2 DEX, +1 INT", vitesse:"9m",    taille:"Moyenne (~1,65m)", langues:["Commun","Elfique","Une langue supplémentaire au choix"], sousrace:"Elfe"},
+  "Elfe des bois":{bonus:"+2 DEX, +1 SAG", vitesse:"10,5m", taille:"Moyenne (~1,65m)", langues:["Commun","Elfique"], sousrace:"Elfe"},
+  "Elfe noir":    {bonus:"+2 DEX, +1 CHA", vitesse:"9m",    taille:"Moyenne (~1,65m)", langues:["Commun","Elfique","Sous-commun"], sousrace:"Elfe"},
   "Humain":   {bonus:"+1 à toutes les caractéristiques", vitesse:"9m", taille:"Moyenne (~1,70m)", langues:["Commun","Une langue au choix"]},
   "Nain":     {bonus:"+2 CON",          vitesse:"7,5m", taille:"Moyenne (~1,40m)", langues:["Commun","Nain"]},
   "Halfelin": {bonus:"+2 DEX",          vitesse:"7,5m", taille:"Petite (~90cm)", langues:["Commun","Halfelin"]},
   "Tieffelin":{bonus:"+1 INT, +2 CHA", vitesse:"9m", taille:"Moyenne (~1,70m)", langues:["Commun","Infernal"]}
+};
+var HIST_CAPS_EXTRA = {
+  "Artiste":         [{nom:"Don de représentation", desc:"Tu maîtrises un instrument de musique ou le kit de déguisement de ton choix. Lorsque tu te produis devant un public, tu peux subvenir à ton besoin et à celui de tes compagnons (hébergement modeste et nourriture) pendant 1 semaine."}],
+  "Charlatan":       [{nom:"Fausse identité", desc:"Tu t'es créé une seconde identité avec documents, déguisements et faux antécédents. Tu peux aussi falsifier des documents, et tu te souviens facilement des manières, des accents et des comportements pour te faire passer pour quelqu'un d'autre."},
+                      {nom:"Arnaque", desc:"Si tu travailles avec un complice, tu peux arnaquer les gens sur des longues arnaques (escroqueries à la confiance, paris truqués, etc.)."}],
+  "Criminel":        [{nom:"Contact criminel", desc:"Tu as un contact fiable au sein des réseaux criminels. Ce contact peut te fournir des informations, un accès à d'autres criminels, ou des services illégaux en échange de services similaires."}],
+  "Ermite":          [{nom:"Découverte", desc:"Lors de ton isolement, tu as mis la main sur une information ou une vérité unique — peut-être une grande vérité cosmique, une information cachée, ou une voie vers une puissance inconnue. Le MJ te dira exactement de quoi il s'agit."}],
+  "Héros du peuple": [{nom:"Rustaud", desc:"Tu t'adaptes facilement aux gens de milieu rural ou paysan. Tu peux trouver un endroit pour te cacher, te reposer ou te remettre sur pied parmi les gens ordinaires — à moins que tu aies prouvé que tu étais dangereux pour eux."}],
+  "Marin":           [{nom:"Passage sur un navire", desc:"Lorsque tu en as besoin, tu peux obtenir un passage gratuit sur un navire pour toi et tes compagnons, en échange d'un coup de main pendant le voyage. Tu peux aussi naviguer sur des navires de commerce ou de guerre."}],
+  "Noble":           [{nom:"Privilège de rang", desc:"Grâce à ton rang noble, les gens t'accordent du respect et de la déférence. Tu es reçu dans la haute société et as accès aux dirigeants et à la noblesse locale. Si tu as besoin d'aide, la plupart des gens hésiteront à s'opposer à un noble."}],
+  "Sauvageon":       [{nom:"Survivant de la nature", desc:"Tu mémorises et retranscriras facilement cartes de territoires, et tu peux toujours te rappeler d'où tu viens et te situer globalement. Tu as aussi l'habitude de vivre sans commodités, et tu souffres moins des conditions difficiles de l'environnement."}]
+};
+var RACES_CAPS_EXTRA = {
+  "Haut-elfe": [
+    {nom:"Cantrip supplémentaire", desc:"Tu connais un cantrip supplémentaire de ton choix issu de la liste du Magicien. L'Intelligence est ta caractéristique d'incantation pour ce cantrip."}
+  ],
+  "Elfe des bois": [
+    {nom:"Foulée de la forêt", desc:"Traverser des zones de sous-bois non magiques difficiles ne te coûte aucun mouvement supplémentaire."},
+    {nom:"Camouflage dans la nature", desc:"Tu peux tenter de te cacher même si tu n'es que légèrement obscurci par des feuillages, de la pluie, de la neige, de la brume ou d'autres phénomènes naturels."}
+  ],
+  "Elfe noir": [
+    {nom:"Magie drow", desc:"Tu connais le cantrip Lumières dansantes. Au niveau 3, tu peux lancer Lueurs féeriques une fois par repos long. Au niveau 5, tu peux lancer Ténèbres une fois par repos long. Le Charisme est ta caractéristique d'incantation."},
+    {nom:"Sensibilité à la lumière du soleil", desc:"Tu as le désavantage aux jets d'attaque et aux jets de Perception basés sur la vue lorsque tu es exposé à la lumière directe du soleil."},
+    {nom:"Vision dans le noir supérieure", desc:"Ta vision dans le noir s'étend à 36 mètres (120 pieds) au lieu de 18 mètres."}
+  ]
 };
 function _rqInfosSection(items, label) {
   if(!items||!items.length)return '';
@@ -6780,15 +6819,12 @@ function chargerHistorique(contId) {
     return;
   }
   var caps = (window.CAPS_DATA && CAPS_DATA.historiques) ? CAPS_DATA.historiques[hist] : null;
+  var capsExtra = HIST_CAPS_EXTRA ? HIST_CAPS_EXTRA[hist] : null;
+  if(!caps&&capsExtra) caps=capsExtra;
+  else if(caps&&capsExtra) caps=caps.concat(capsExtra);
   var det = HIST_DETAILS ? HIST_DETAILS[hist] : null;
   cont.innerHTML = '';
-  // En-tête
-  var hd=document.createElement('div');
-  hd.style.cssText='display:flex;align-items:center;gap:12px;padding-bottom:12px;margin-bottom:14px;border-bottom:2px solid var(--rouge);';
-  hd.innerHTML='<span style="font-size:36px;line-height:1;">📜</span>'
-    +'<div><h2 style="font-size:20px;font-weight:800;color:var(--txt);margin:0;">'+hist+'</h2>'
-    +'<p style="font-size:12px;color:var(--txt2);margin:2px 0 0;">Historique de '+(v('nom')||'ton personnage')+'</p></div>';
-  cont.appendChild(hd);
+  _rqHeader(cont, '📜', hist, 'Historique de '+(v('nom')||'ton personnage'));
   if(det){
     var info=document.createElement('div');
     info.className='card';info.style.marginBottom='12px';
@@ -6800,17 +6836,28 @@ function chargerHistorique(contId) {
     info.innerHTML=rows;
     cont.appendChild(info);
   }
-  if(caps&&caps.length){
-    var lbl=document.createElement('p');lbl.className='cap-section';lbl.textContent='Capacités d\'historique';cont.appendChild(lbl);
-    caps.forEach(function(cap){
-      var card=document.createElement('div');card.className='card';card.style.marginBottom='8px';
-      var t=document.createElement('p');t.style.cssText='font-size:13px;font-weight:700;color:var(--txt);margin-bottom:6px;';t.textContent=cap.nom||'—';
-      var d=document.createElement('div');d.style.cssText='font-size:12px;color:var(--txt2);line-height:1.7;';d.innerHTML=cap.desc||cap.description||'';
-      card.appendChild(t);card.appendChild(d);cont.appendChild(card);
-    });
-  } else if(!det){
-    var msg=document.createElement('p');msg.style.cssText='font-size:12px;color:var(--txt3);';msg.textContent='Aucune capacité disponible pour cet historique.';cont.appendChild(msg);
+  _rqRendreCaps(cont, caps, 'Capacités d\'historique');
+  if(!caps&&!det){
+    var msg=document.createElement('p');msg.style.cssText='font-size:12px;color:var(--txt3);';msg.textContent='Aucune donnée disponible pour cet historique.';cont.appendChild(msg);
   }
+}
+function _rqRendreCaps(cont, caps, titre){
+  if(!caps||!caps.length)return;
+  var lbl=document.createElement('p');lbl.className='cap-section';lbl.textContent=titre||'Capacités';cont.appendChild(lbl);
+  caps.forEach(function(cap){
+    var card=document.createElement('div');card.className='card';card.style.marginBottom='8px';
+    var t=document.createElement('p');t.style.cssText='font-size:13px;font-weight:700;color:var(--txt);margin-bottom:6px;';t.textContent=cap.nom||'—';
+    var d=document.createElement('div');d.style.cssText='font-size:12px;color:var(--txt2);line-height:1.7;';d.innerHTML=cap.desc||cap.description||'';
+    card.appendChild(t);card.appendChild(d);cont.appendChild(card);
+  });
+}
+function _rqHeader(cont, icon, titre, sousTitre){
+  var hd=document.createElement('div');
+  hd.style.cssText='display:flex;align-items:center;gap:12px;padding-bottom:12px;margin-bottom:14px;border-bottom:2px solid var(--rouge);';
+  hd.innerHTML='<span style="font-size:36px;line-height:1;">'+icon+'</span>'
+    +'<div><h2 style="font-size:20px;font-weight:800;color:var(--txt);margin:0;">'+titre+'</h2>'
+    +'<p style="font-size:12px;color:var(--txt2);margin:2px 0 0;">'+sousTitre+'</p></div>';
+  cont.appendChild(hd);
 }
 function chargerRace(contId) {
   var race = v('race');
@@ -6820,15 +6867,20 @@ function chargerRace(contId) {
     cont.innerHTML = '<p style="padding:16px;color:var(--txt3);">Aucune race sélectionnée — choisis ta race dans <b>Modifier la fiche</b>.</p>';
     return;
   }
-  var caps = (window.CAPS_DATA && CAPS_DATA.races) ? CAPS_DATA.races[race] : null;
   var det = RACES_DETAILS ? RACES_DETAILS[race] : null;
+  var parentRace = det && det.sousrace ? det.sousrace : null;
+  // caps: sous-race utilise les traits du parent + extras spécifiques
+  var caps = (window.CAPS_DATA && CAPS_DATA.races) ? (CAPS_DATA.races[race] || (parentRace && CAPS_DATA.races[parentRace]) || null) : null;
+  var capsExtra = RACES_CAPS_EXTRA ? RACES_CAPS_EXTRA[race] || null : null;
   cont.innerHTML = '';
-  var hd=document.createElement('div');
-  hd.style.cssText='display:flex;align-items:center;gap:12px;padding-bottom:12px;margin-bottom:14px;border-bottom:2px solid var(--rouge);';
-  hd.innerHTML='<span style="font-size:36px;line-height:1;">🧬</span>'
-    +'<div><h2 style="font-size:20px;font-weight:800;color:var(--txt);margin:0;">'+race+'</h2>'
-    +'<p style="font-size:12px;color:var(--txt2);margin:2px 0 0;">Race de '+(v('nom')||'ton personnage')+'</p></div>';
-  cont.appendChild(hd);
+  var sousTitre = parentRace ? 'Sous-race de l\'Elfe · '+(v('nom')||'ton personnage') : 'Race de '+(v('nom')||'ton personnage');
+  _rqHeader(cont, '🧬', race, sousTitre);
+  if(parentRace){
+    var noteSR=document.createElement('div');
+    noteSR.style.cssText='background:rgba(147,197,253,.08);border:1px solid rgba(147,197,253,.25);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:var(--txt2);';
+    noteSR.innerHTML='<b style="color:#93c5fd;">Sous-race Elfe</b> — Tu bénéficies de tous les traits raciaux de l\'Elfe, plus les traits spécifiques au '+race+' ci-dessous.';
+    cont.appendChild(noteSR);
+  }
   if(det){
     var info=document.createElement('div');info.className='card';info.style.marginBottom='12px';
     var rows='';
@@ -6839,15 +6891,9 @@ function chargerRace(contId) {
     info.innerHTML=rows;
     cont.appendChild(info);
   }
-  if(caps&&caps.length){
-    var lbl=document.createElement('p');lbl.className='cap-section';lbl.textContent='Traits raciaux';cont.appendChild(lbl);
-    caps.forEach(function(cap){
-      var card=document.createElement('div');card.className='card';card.style.marginBottom='8px';
-      var t=document.createElement('p');t.style.cssText='font-size:13px;font-weight:700;color:var(--txt);margin-bottom:6px;';t.textContent=cap.nom||'—';
-      var d=document.createElement('div');d.style.cssText='font-size:12px;color:var(--txt2);line-height:1.7;';d.innerHTML=cap.desc||cap.description||'';
-      card.appendChild(t);card.appendChild(d);cont.appendChild(card);
-    });
-  } else if(!det){
+  _rqRendreCaps(cont, caps, 'Traits raciaux');
+  if(capsExtra&&capsExtra.length) _rqRendreCaps(cont, capsExtra, 'Traits spécifiques — '+race);
+  if(!caps&&!capsExtra&&!det){
     var msg=document.createElement('p');msg.style.cssText='font-size:12px;color:var(--txt3);';msg.textContent='Aucun trait disponible pour cette race.';cont.appendChild(msg);
   }
 }
@@ -9432,12 +9478,12 @@ function cbtConfirmerInit(){
     return;
   }
   el('cbt-init-val').style.borderColor='';
-  if(!db||!campCode||!joueurId)return;
-  db.collection('parties').doc(campCode).collection('joueurs').doc(joueurId)
-    .set({_initScore:val},{merge:true}).catch(function(){});
   _cbtInitSoumise=true;
   _cbtInitVal=val;
   cbtMajUI();
+  if(!db||!campCode||!joueurId)return;
+  db.collection('parties').doc(campCode).collection('joueurs').doc(joueurId)
+    .set({_initScore:val},{merge:true}).catch(function(){});
 }
 
 function majCombatPJ(data){
@@ -9635,6 +9681,20 @@ function cbtRendreActions(monTour){
   cont.innerHTML=html;
 }
 
+function cbtRes(id,delta){
+  var cl=gCl();
+  var defs=RESSOURCES_CL[cl]||[];
+  var def=null;
+  for(var i=0;i<defs.length;i++){if(defs[i].id===id){def=defs[i];break;}}
+  if(!def)return;
+  var maxVal=def.max(gNiv());
+  var cur=ressourcesClasse[id]||0;
+  var newUsed=Math.max(0,Math.min(maxVal,cur-delta));
+  ressourcesClasse[id]=newUsed;
+  majRessourcesClasse();
+  sauvegarder();
+  cbtRendreActions(!!(combatPJData&&combatPJData.joueurActifId===joueurId));
+}
 function cbtMakeBtn(type,label,resEmpty,onUseFn){
   var typeUsed=(type==='action'?cbtActionUsed:cbtBonusUsed);
   var isDisabled=resEmpty&&!typeUsed;

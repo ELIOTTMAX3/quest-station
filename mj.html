@@ -1363,7 +1363,7 @@ function mjToggleEtats(idx){
     return '<button class="mj-etat-btn'+(on?' on':'')+'" onclick="mjToggleCond('+idx+',\''+cn+'\');">'+cn+'</button>';
   }).join('');
   mjRendreEffets(idx);
-  panel.style.display='';
+  panel.style.display='block';
 }
 function mjToggleCond(idx,cond){
   var cc=combatants[idx];if(!cc)return;
