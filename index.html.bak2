@@ -497,6 +497,13 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       </div>
     </div>
 
+    <!-- JDS ACCORDION ──────────────────────────────── -->
+    <button class="r-acc-btn" onclick="(function(btn){var b=btn.nextElementSibling;b.classList.toggle('on');btn.querySelector('.r-acc-arr').textContent=b.classList.contains('on')?'▴':'▾';})(this)">
+      <span> Jets de sauvegarde</span><span class="r-acc-arr">▾</span>
+    </button>
+    <div class="r-acc-body">
+      <div id="r-jds-section"></div>
+    </div>
 
     <!-- ÉQUIPEMENT ÉQUIPÉ ──────────────────────────── -->
     <div class="r-section">
@@ -535,7 +542,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     </div>
 
     <!-- INVENTAIRE ─────────────────────────────────── -->
-    <div class="r-section" id="r-inv-card">
+    <div class="r-section" id="r-inv-card" style="display:none;">
       <p class="st">Inventaire</p>
       <div class="g3" style="margin-bottom:10px;">
         <div><label>PO</label><input type="number" id="po" value="0" min="0" oninput="syncInvResume();sauvegarder()"></div>
@@ -6112,21 +6119,12 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
   <!-- COMPÉTENCES -->
   <div id="et-comps" class="tc">
     <div class="card">
-      <div style="margin-bottom:8px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <p class="st" style="border:none;padding:0;margin:0;">Compétences</p>
+        <span id="e-comp-count" style="font-size:11px;color:var(--txt3);"></span>
       </div>
+      <p style="font-size:11px;color:var(--txt3);margin-bottom:8px;">● = recommandée par ta classe, race ou historique. Tu peux cocher librement.</p>
       <div id="e-clist"></div>
-    </div>
-    <div class="card" style="margin-top:10px;">
-      <p class="st" style="border:none;padding:0;margin-bottom:10px;">Jets de sauvegarde</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="jds-for" onchange="updateJDSResume();sauvegarder()"> Force</label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="jds-dex" onchange="updateJDSResume();sauvegarder()"> Dextérité</label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="jds-con" onchange="updateJDSResume();sauvegarder()"> Constitution</label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="jds-int" onchange="updateJDSResume();sauvegarder()"> Intelligence</label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="jds-sag" onchange="updateJDSResume();sauvegarder()"> Sagesse</label>
-        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="jds-cha" onchange="updateJDSResume();sauvegarder()"> Charisme</label>
-      </div>
     </div>
   </div>
 
@@ -7029,7 +7027,6 @@ function collecterDonnees(){
   document.querySelectorAll(".erow[data-ci]").forEach(function(r){cm.push(r.querySelector(".comp-check").checked);});
   data.comps=cm;
   ["jr1","jr2","jr3","je1","je2","je3"].forEach(function(id){data[id]=el(id)&&el(id).checked;});
-  ["jds-for","jds-dex","jds-con","jds-int","jds-sag","jds-cha"].forEach(function(id){data[id]=el(id)&&el(id).checked;});
   data.grimoire=Array.from(grimoire);
   data.prepares=Array.from(prepares);
   data.compsExtra=Array.from(compsExtra);
@@ -7058,9 +7055,6 @@ function chargerFiche(data){
   // Stocker comps — seront appliquées après buildComps (dans updateAll/onClasseChange)
   var _compsData=data.comps||null;
   ["jr1","jr2","jr3","je1","je2","je3"].forEach(function(id){
-    if(data[id]!==undefined&&el(id))el(id).checked=data[id];
-  });
-  ["jds-for","jds-dex","jds-con","jds-int","jds-sag","jds-cha"].forEach(function(id){
     if(data[id]!==undefined&&el(id))el(id).checked=data[id];
   });
   if(data.grimoire)grimoire=new Set(data.grimoire);
@@ -7237,9 +7231,12 @@ function updateComps(){
     chk.disabled=false;
     row.style.opacity="1";
   });
-}
-function updateJDSResume(){
-  rRendreComps();
+  // Compteur
+  var cnt=el("e-comp-count");
+  if(cnt&&regle){
+    cnt.textContent=nbCoches+" compétences"+(regle?" (max "+regle.max+" de classe)":"");
+    cnt.style.color=nbCoches>regle.max?"#a32d2d":"var(--txt3)";
+  } else if(cnt){cnt.textContent=nbCoches+" compétences";}
 }
 function updatePV(){
   var max=parseInt(v("pv-max"))||1,act=parseInt(v("pv-act"))||0;
@@ -7381,7 +7378,7 @@ function syncInvResume() {
   var pc = v("pc") || "0";
   var inv = v("inventaire");
   var hasInv = inv || parseInt(po) > 0 || parseInt(pa) > 0 || parseInt(pc) > 0;
-  iw.style.display = "block";
+  iw.style.display = hasInv ? "block" : "none";
 }
 
 function onRaceChange() {
@@ -8752,10 +8749,9 @@ function rRendreComps(){
   if(cnt)cnt.textContent=total+' compétences maîtrisées';
   var jc=el("r-jlist");if(!jc)return;
   jc.innerHTML="";
+  var cl=gCl(),mai=JDS_CL[cl]||[];
   CARACS.forEach(function(k){
-    var val=parseInt(v(k))||10,m=gMod(val);
-    var chkEl=el("jds-"+k);
-    var ok=chkEl?chkEl.checked:false;
+    var val=parseInt(v(k))||10,m=gMod(val),ok=mai.indexOf(k)>=0;
     var d=document.createElement("div");d.className="rcrow";
     d.innerHTML="<span class='rcdot"+(ok?" on":"")+"'></span><span style='flex:1;'>"+CNOM[k]+"</span><span style='font-weight:700;color:var(--txt);'>"+fMod(m+(ok?bm:0))+"</span>";
     jc.appendChild(d);
