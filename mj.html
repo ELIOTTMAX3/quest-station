@@ -1371,6 +1371,7 @@ function mjToggleCond(idx,cond){
   var i=cc.conditions.indexOf(cond);
   if(i>=0)cc.conditions.splice(i,1);else cc.conditions.push(cond);
   rendreCombat();syncCombatFirestore();sauvegarderCombat();
+  _mjEtatsIdx=-1;
   mjToggleEtats(idx);
 }
 function mjAjouterEffet(){

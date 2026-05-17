@@ -574,10 +574,16 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <p style="font-size:12px;color:var(--txt2);line-height:1.7;white-space:pre-wrap;" id="r-cap"></p>
     </div>
 
+    <!-- LANGUES ─────────────────────────────────────── -->
+    <div class="r-section" id="r-lang-card" style="display:none;">
+      <p class="st">Langues maîtrisées</p>
+      <div id="r-lang-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;"></div>
+    </div>
+
     <!-- NOTES ──────────────────────────────────────── -->
     <div class="r-section" id="r-notes-card">
       <p class="st">Notes libres</p>
-      <textarea id="r-notes-edit" style="min-height:80px;max-height:200px;font-size:12px;resize:none;overflow-y:auto;" placeholder="Tes notes personnelles..." oninput="rNotesInput()"></textarea>
+      <textarea id="r-notes-edit" style="min-height:80px;font-size:12px;resize:none;overflow:hidden;" placeholder="Tes notes personnelles..." oninput="rNotesInput()"></textarea>
     </div>
 
   </div><!-- /rt-perso -->
@@ -6128,6 +6134,31 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="jds-cha" onchange="updateJDSResume();sauvegarder()"> Charisme</label>
       </div>
     </div>
+    <div class="card" style="margin-top:10px;">
+      <p class="st" style="border:none;padding:0;margin-bottom:10px;">Langues maîtrisées</p>
+      <p style="font-size:11px;color:var(--txt3);margin-bottom:10px;">Langues standards</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="lang-commun" onchange="updateLangResume();sauvegarder()"> Commun</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="lang-nain" onchange="updateLangResume();sauvegarder()"> Nain</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="lang-elfique" onchange="updateLangResume();sauvegarder()"> Elfique</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="lang-geant" onchange="updateLangResume();sauvegarder()"> Géant</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="lang-gnome" onchange="updateLangResume();sauvegarder()"> Gnome</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="lang-gobelin" onchange="updateLangResume();sauvegarder()"> Gobelin</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="lang-halfelin" onchange="updateLangResume();sauvegarder()"> Halfelin</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="lang-orc" onchange="updateLangResume();sauvegarder()"> Orc</label>
+      </div>
+      <p style="font-size:11px;color:var(--txt3);margin-bottom:10px;">Langues exotiques</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="lang-abyssal" onchange="updateLangResume();sauvegarder()"> Abyssal</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="lang-celeste" onchange="updateLangResume();sauvegarder()"> Céleste</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="lang-draconique" onchange="updateLangResume();sauvegarder()"> Draconique</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="lang-profondeurs" onchange="updateLangResume();sauvegarder()"> Parler des Profondeurs</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="lang-infernal" onchange="updateLangResume();sauvegarder()"> Infernal</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="lang-primordial" onchange="updateLangResume();sauvegarder()"> Primordial</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="lang-sylvestre" onchange="updateLangResume();sauvegarder()"> Sylvestre</label>
+        <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="lang-souterrain" onchange="updateLangResume();sauvegarder()"> Souterrain</label>
+      </div>
+    </div>
   </div>
 
   <!-- SORTS -->
@@ -6315,6 +6346,8 @@ var COMPS_HIST = {
 };
 
 var CNOM      = {for:"Force",dex:"Dextérité",con:"Constitution",int:"Intelligence",sag:"Sagesse",cha:"Charisme"};
+var LANG_IDS=["lang-commun","lang-nain","lang-elfique","lang-geant","lang-gnome","lang-gobelin","lang-halfelin","lang-orc","lang-abyssal","lang-celeste","lang-draconique","lang-profondeurs","lang-infernal","lang-primordial","lang-sylvestre","lang-souterrain"];
+var LANG_NOMS={"lang-commun":"Commun","lang-nain":"Nain","lang-elfique":"Elfique","lang-geant":"Géant","lang-gnome":"Gnome","lang-gobelin":"Gobelin","lang-halfelin":"Halfelin","lang-orc":"Orc","lang-abyssal":"Abyssal","lang-celeste":"Céleste","lang-draconique":"Draconique","lang-profondeurs":"Parler des Profondeurs","lang-infernal":"Infernal","lang-primordial":"Primordial","lang-sylvestre":"Sylvestre","lang-souterrain":"Souterrain"};
 var COMPS     = [
   {n:"Acrobaties",c:"dex"},{n:"Arcanes",c:"int"},{n:"Athlétisme",c:"for"},
   {n:"Discrétion",c:"dex"},{n:"Dressage",c:"sag"},{n:"Escamotage",c:"dex"},
@@ -6614,6 +6647,7 @@ function allerResume(){
   rendreHexagone();
   syncInvResume();
   rRendreComps();
+  updateLangResume();
   if(CAPS_DATA && CAPS_DATA.classes) rRendreCaps();
   renderEquipEquipes();
   // Afficher section slots uniquement pour les lanceurs
@@ -6710,6 +6744,33 @@ function _rqPageComplete(cont, icon, titre, sousTitre, caps, labelCaps) {
     cont.appendChild(card);
   });
 }
+var HIST_DETAILS = {
+  "Hanté":       {comps:["Perspicacité","Médecine"],   langues:[],                           outils:[],                                         equip:"Amulette morbide, livre de rêves, vêtements de voyage, 1 po"},
+  "Soldat":      {comps:["Athlétisme","Intimidation"], langues:[],                           outils:["Jeu de dés ou de cartes","Véhicules (terrestres)"],  equip:"Insigne de grade, trophée de bataille, jeu de dés ou cartes, vêtements ordinaires, 10 po"},
+  "Acolyte":     {comps:["Perspicacité","Religion"],   langues:["Deux langues au choix"],    outils:[],                                         equip:"Symbole sacré, livre de prières, 5 bâtons d'encens, robes, 15 po"},
+  "Artisan de guilde": {comps:["Perspicacité","Persuasion"], langues:["Une langue au choix"], outils:["Outils d'artisan (un type au choix)"],   equip:"Outils d'artisan, lettre d'introduction de guilde, vêtements de voyage, 15 po"}
+};
+var RACES_DETAILS = {
+  "Drakéide": {bonus:"+2 FOR, +1 CHA", vitesse:"9m", taille:"Moyenne (~1,90m)", langues:["Commun","Draconique"]},
+  "Gnome":    {bonus:"+2 INT",          vitesse:"7,5m", taille:"Petite (~1m)",   langues:["Commun","Gnome"]},
+  "Demi-Elfe":{bonus:"+2 CHA, +1 dans deux autres", vitesse:"9m", taille:"Moyenne (~1,70m)", langues:["Commun","Elfique","Une langue au choix"]},
+  "Demi-Orc": {bonus:"+2 FOR, +1 CON", vitesse:"9m", taille:"Moyenne (~1,85m)", langues:["Commun","Orc"]},
+  "Elfe":     {bonus:"+2 DEX",          vitesse:"9m", taille:"Moyenne (~1,65m)", langues:["Commun","Elfique"]},
+  "Humain":   {bonus:"+1 à toutes les caractéristiques", vitesse:"9m", taille:"Moyenne (~1,70m)", langues:["Commun","Une langue au choix"]},
+  "Nain":     {bonus:"+2 CON",          vitesse:"7,5m", taille:"Moyenne (~1,40m)", langues:["Commun","Nain"]},
+  "Halfelin": {bonus:"+2 DEX",          vitesse:"7,5m", taille:"Petite (~90cm)", langues:["Commun","Halfelin"]},
+  "Tieffelin":{bonus:"+1 INT, +2 CHA", vitesse:"9m", taille:"Moyenne (~1,70m)", langues:["Commun","Infernal"]}
+};
+function _rqInfosSection(items, label) {
+  if(!items||!items.length)return '';
+  return '<div style="display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 8px;">'
+    +items.map(function(it){return '<span style="font-size:11px;padding:2px 8px;border-radius:999px;background:rgba(147,197,253,.15);border:1px solid rgba(147,197,253,.3);color:#93c5fd;">'+it+'</span>';}).join('')+'</div>';
+}
+function _rqInfosRow(label, val) {
+  return '<div style="display:flex;gap:8px;align-items:baseline;margin-bottom:4px;font-size:12px;">'
+    +'<span style="color:var(--txt3);width:130px;flex-shrink:0;">'+label+'</span>'
+    +'<span style="color:var(--txt);">'+val+'</span></div>';
+}
 function chargerHistorique(contId) {
   var hist = v('historique');
   var cont = el(contId || 'rq-hist-content');
@@ -6719,7 +6780,37 @@ function chargerHistorique(contId) {
     return;
   }
   var caps = (window.CAPS_DATA && CAPS_DATA.historiques) ? CAPS_DATA.historiques[hist] : null;
-  _rqPageComplete(cont, '', hist, 'Historique de ' + (v('nom') || 'ton personnage'), caps, 'Capacités d\'historique');
+  var det = HIST_DETAILS ? HIST_DETAILS[hist] : null;
+  cont.innerHTML = '';
+  // En-tête
+  var hd=document.createElement('div');
+  hd.style.cssText='display:flex;align-items:center;gap:12px;padding-bottom:12px;margin-bottom:14px;border-bottom:2px solid var(--rouge);';
+  hd.innerHTML='<span style="font-size:36px;line-height:1;">📜</span>'
+    +'<div><h2 style="font-size:20px;font-weight:800;color:var(--txt);margin:0;">'+hist+'</h2>'
+    +'<p style="font-size:12px;color:var(--txt2);margin:2px 0 0;">Historique de '+(v('nom')||'ton personnage')+'</p></div>';
+  cont.appendChild(hd);
+  if(det){
+    var info=document.createElement('div');
+    info.className='card';info.style.marginBottom='12px';
+    var rows='';
+    if(det.comps&&det.comps.length) rows+='<div style="margin-bottom:8px;"><p style="font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Maîtrises de compétences</p>'+_rqInfosSection(det.comps,'')+'</div>';
+    if(det.outils&&det.outils.length) rows+='<div style="margin-bottom:8px;"><p style="font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Maîtrises d\'outils</p>'+_rqInfosSection(det.outils,'')+'</div>';
+    if(det.langues&&det.langues.length) rows+='<div style="margin-bottom:8px;"><p style="font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Langues</p>'+_rqInfosSection(det.langues,'')+'</div>';
+    if(det.equip) rows+='<div><p style="font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Équipement de départ</p><p style="font-size:12px;color:var(--txt2);">'+det.equip+'</p></div>';
+    info.innerHTML=rows;
+    cont.appendChild(info);
+  }
+  if(caps&&caps.length){
+    var lbl=document.createElement('p');lbl.className='cap-section';lbl.textContent='Capacités d\'historique';cont.appendChild(lbl);
+    caps.forEach(function(cap){
+      var card=document.createElement('div');card.className='card';card.style.marginBottom='8px';
+      var t=document.createElement('p');t.style.cssText='font-size:13px;font-weight:700;color:var(--txt);margin-bottom:6px;';t.textContent=cap.nom||'—';
+      var d=document.createElement('div');d.style.cssText='font-size:12px;color:var(--txt2);line-height:1.7;';d.innerHTML=cap.desc||cap.description||'';
+      card.appendChild(t);card.appendChild(d);cont.appendChild(card);
+    });
+  } else if(!det){
+    var msg=document.createElement('p');msg.style.cssText='font-size:12px;color:var(--txt3);';msg.textContent='Aucune capacité disponible pour cet historique.';cont.appendChild(msg);
+  }
 }
 function chargerRace(contId) {
   var race = v('race');
@@ -6730,7 +6821,35 @@ function chargerRace(contId) {
     return;
   }
   var caps = (window.CAPS_DATA && CAPS_DATA.races) ? CAPS_DATA.races[race] : null;
-  _rqPageComplete(cont, '', race, 'Race de ' + (v('nom') || 'ton personnage'), caps, 'Traits raciaux');
+  var det = RACES_DETAILS ? RACES_DETAILS[race] : null;
+  cont.innerHTML = '';
+  var hd=document.createElement('div');
+  hd.style.cssText='display:flex;align-items:center;gap:12px;padding-bottom:12px;margin-bottom:14px;border-bottom:2px solid var(--rouge);';
+  hd.innerHTML='<span style="font-size:36px;line-height:1;">🧬</span>'
+    +'<div><h2 style="font-size:20px;font-weight:800;color:var(--txt);margin:0;">'+race+'</h2>'
+    +'<p style="font-size:12px;color:var(--txt2);margin:2px 0 0;">Race de '+(v('nom')||'ton personnage')+'</p></div>';
+  cont.appendChild(hd);
+  if(det){
+    var info=document.createElement('div');info.className='card';info.style.marginBottom='12px';
+    var rows='';
+    if(det.bonus) rows+=_rqInfosRow('Bonus de caractéristique',det.bonus);
+    if(det.vitesse) rows+=_rqInfosRow('Vitesse',det.vitesse);
+    if(det.taille) rows+=_rqInfosRow('Taille',det.taille);
+    if(det.langues&&det.langues.length) rows+='<div style="margin-top:8px;"><p style="font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px;">Langues</p>'+_rqInfosSection(det.langues,'')+'</div>';
+    info.innerHTML=rows;
+    cont.appendChild(info);
+  }
+  if(caps&&caps.length){
+    var lbl=document.createElement('p');lbl.className='cap-section';lbl.textContent='Traits raciaux';cont.appendChild(lbl);
+    caps.forEach(function(cap){
+      var card=document.createElement('div');card.className='card';card.style.marginBottom='8px';
+      var t=document.createElement('p');t.style.cssText='font-size:13px;font-weight:700;color:var(--txt);margin-bottom:6px;';t.textContent=cap.nom||'—';
+      var d=document.createElement('div');d.style.cssText='font-size:12px;color:var(--txt2);line-height:1.7;';d.innerHTML=cap.desc||cap.description||'';
+      card.appendChild(t);card.appendChild(d);cont.appendChild(card);
+    });
+  } else if(!det){
+    var msg=document.createElement('p');msg.style.cssText='font-size:12px;color:var(--txt3);';msg.textContent='Aucun trait disponible pour cette race.';cont.appendChild(msg);
+  }
 }
 
 function chargerRegles(contId) {
@@ -7025,6 +7144,7 @@ function collecterDonnees(){
   data.comps=cm;
   ["jr1","jr2","jr3","je1","je2","je3"].forEach(function(id){data[id]=el(id)&&el(id).checked;});
   ["jds-for","jds-dex","jds-con","jds-int","jds-sag","jds-cha"].forEach(function(id){data[id]=el(id)&&el(id).checked;});
+  LANG_IDS.forEach(function(id){data[id]=el(id)&&el(id).checked;});
   data.grimoire=Array.from(grimoire);
   data.prepares=Array.from(prepares);
   data.compsExtra=Array.from(compsExtra);
@@ -7058,6 +7178,7 @@ function chargerFiche(data){
   ["jds-for","jds-dex","jds-con","jds-int","jds-sag","jds-cha"].forEach(function(id){
     if(data[id]!==undefined&&el(id))el(id).checked=data[id];
   });
+  LANG_IDS.forEach(function(id){if(data[id]!==undefined&&el(id))el(id).checked=data[id];});
   if(data.grimoire)grimoire=new Set(data.grimoire);
   if(data.prepares)prepares=new Set(data.prepares);
   if(data.compsExtra)compsExtra=new Set(data.compsExtra);
@@ -7090,6 +7211,7 @@ function chargerFiche(data){
     rendreHexagone();
     syncInvResume();
     rRendreComps();
+    updateLangResume();
     if(CAPS_DATA && CAPS_DATA.classes) rRendreCaps();
     renderEquipEquipes();
     majVisibiliteSorts(); // synchronise l'état des onglets sorts au chargement
@@ -7235,6 +7357,16 @@ function updateComps(){
 }
 function updateJDSResume(){
   rRendreComps();
+}
+function updateLangResume(){
+  var lc=el("r-lang-card"),ll=el("r-lang-list");if(!lc||!ll)return;
+  var maitrisees=LANG_IDS.filter(function(id){var e=el(id);return e&&e.checked;});
+  if(maitrisees.length){
+    lc.style.display="";
+    ll.innerHTML=maitrisees.map(function(id){return '<span style="font-size:12px;padding:3px 10px;border-radius:999px;background:rgba(147,197,253,.15);border:1px solid rgba(147,197,253,.3);color:#93c5fd;">'+LANG_NOMS[id]+'</span>';}).join('');
+  } else {
+    lc.style.display="none";
+  }
 }
 function updatePV(){
   var max=parseInt(v("pv-max"))||1,act=parseInt(v("pv-act"))||0;
@@ -8545,10 +8677,11 @@ function rafraichirResume(){
 
   // Inventaire — visible si rempli
   syncInvResume();
+  updateLangResume();
 
   // Notes libres
   var notes=v("notes");var rne=el("r-notes-edit");
-  if(rne&&document.activeElement!==rne)rne.value=notes||"";
+  if(rne&&document.activeElement!==rne){rne.value=notes||"";rne.style.height='auto';rne.style.height=rne.scrollHeight+'px';}
 
   // Liens
   var liens=v("liens");var lw=el("r-liens-card");
