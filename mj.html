@@ -350,7 +350,8 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         </div>
         <div>
           <label>Notes MJ (privées)</label>
-          <textarea id="camp-notes" rows="5" style="min-height:100px;" oninput="majCampagneNotes()"></textarea>
+          <div id="mj-notes-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
+          <textarea id="camp-notes" rows="5" style="min-height:100px;" oninput="mjNoteInput()"></textarea>
         </div>
       </div>
       <div class="card">
@@ -567,8 +568,8 @@ function ouvrirPanel(code){
     campagneActive=Object.assign({id:code},snap.data());
     el("panel-nom").textContent=campagneActive.nom||"Campagne";
     el("camp-edit-nom").value=campagneActive.nom||"";
-    el("camp-notes").value=campagneActive.notes||"";
     el("camp-infos-mj").value=campagneActive.infosMJ||"";
+    _mjNotesTabs=_parseMjTabs(campagneActive.notes);_mjNotesIdx=0;mjRendreNotesTabs();
     // Lire condActives depuis le doc
     if(campagneActive.conditions){
       Object.keys(campagneActive.conditions).forEach(function(jid){
@@ -964,6 +965,23 @@ function majCampagneInfosMJ(){
     db.collection("parties").doc(campagneActive.id).update({infosMJ:el("camp-infos-mj").value}).catch(function(){});
   },1000);
 }
+// === NOTES MJ — onglets ===
+var _mjNotesTabs=[{nom:"Notes",contenu:""}],_mjNotesIdx=0;
+function _parseMjTabs(raw){if(!raw)return [{nom:"Notes",contenu:""}];if(typeof raw==="string"&&raw)return [{nom:"Notes",contenu:raw}];if(Array.isArray(raw)&&raw.length)return raw;return [{nom:"Notes",contenu:""}];}
+function mjRendreNotesTabs(){
+  var bar=el("mj-notes-tabbar");if(!bar)return;
+  bar.innerHTML=_mjNotesTabs.map(function(t,i){
+    var a=i===_mjNotesIdx?"background:var(--bg);border:1px solid var(--or);color:var(--or);":"border:1px solid var(--bord);";
+    var del=_mjNotesTabs.length>1?"<span onclick=\"event.stopPropagation();mjDelNoteTab("+i+")\" style=\"margin-left:4px;opacity:.5;cursor:pointer;\">×</span>":"";
+    return "<button style=\"font-size:11px;padding:3px 8px;border-radius:4px;background:var(--bg3);cursor:pointer;"+a+"\" onclick=\"mjSelectNoteTab("+i+")\">"+t.nom+del+"</button>";
+  }).join("")+"<button style=\"font-size:11px;padding:3px 8px;border-radius:4px;background:var(--bg3);border:1px solid var(--bord);cursor:pointer;opacity:.7;\" onclick=\"mjAddNoteTab()\">+ Onglet</button>";
+  var ta=el("camp-notes");if(ta)ta.value=_mjNotesTabs[_mjNotesIdx].contenu||"";
+}
+function mjSelectNoteTab(i){var ta=el("camp-notes");if(ta)_mjNotesTabs[_mjNotesIdx].contenu=ta.value;_mjNotesIdx=i;mjRendreNotesTabs();}
+function mjAddNoteTab(){var n=prompt("Nom de l'onglet :","Onglet "+(_mjNotesTabs.length+1));if(!n)return;var ta=el("camp-notes");if(ta)_mjNotesTabs[_mjNotesIdx].contenu=ta.value;_mjNotesTabs.push({nom:n,contenu:""});_mjNotesIdx=_mjNotesTabs.length-1;mjRendreNotesTabs();mjSaveNotesTabs();}
+function mjDelNoteTab(i){if(_mjNotesTabs.length<=1)return;if(!confirm("Supprimer l'onglet ?"))return;_mjNotesTabs.splice(i,1);if(_mjNotesIdx>=_mjNotesTabs.length)_mjNotesIdx=_mjNotesTabs.length-1;mjRendreNotesTabs();mjSaveNotesTabs();}
+function mjNoteInput(){var ta=el("camp-notes");if(ta)_mjNotesTabs[_mjNotesIdx].contenu=ta.value;clearTimeout(notesTO);notesTO=setTimeout(mjSaveNotesTabs,1000);}
+function mjSaveNotesTabs(){if(!campagneActive)return;db.collection("parties").doc(campagneActive.id).update({notes:_mjNotesTabs}).catch(function(){});}
 function supprimerCampagne(){
   if(!campagneActive)return;
   if(!confirm("Supprimer la campagne "+campagneActive.nom+" ? Cette action est irréversible."))return;

@@ -623,13 +623,23 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <div id="rc-joueurs"><p style="font-size:12px;color:var(--txt3);">Chargement…</p></div>
       </div>
       <div class="r-section" id="rc-infos-mj-card" style="display:none;">
-        <p class="st">📋 Infos du MJ</p>
-        <div id="rc-infos-mj" style="font-size:13px;line-height:1.6;color:var(--txt2);white-space:pre-wrap;"></div>
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="rcToggle('rc-infos-mj-body',this)">
+          <p class="st" style="margin:0;border:none;padding:0;">📋 Infos du MJ</p>
+          <span style="font-size:12px;color:var(--txt3);">▾</span>
+        </div>
+        <div id="rc-infos-mj-body" style="display:none;margin-top:8px;">
+          <div id="rc-infos-mj" style="font-size:13px;line-height:1.6;color:var(--txt2);white-space:pre-wrap;"></div>
+        </div>
       </div>
       <div class="r-section">
-        <p class="st">📝 Notes partagées</p>
-        <p style="font-size:11px;color:var(--txt3);margin-bottom:6px;">Visibles par tous les joueurs de la campagne.</p>
-        <textarea id="rc-notes-partage" placeholder="Partagez vos notes…" style="width:100%;min-height:100px;font-size:13px;resize:vertical;" oninput="campEcrireNotesPartage()"></textarea>
+        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="rcToggle('rc-notes-body',this)">
+          <p class="st" style="margin:0;border:none;padding:0;">📝 Notes partagées</p>
+          <span style="font-size:12px;color:var(--txt3);">▾</span>
+        </div>
+        <div id="rc-notes-body" style="display:none;margin-top:8px;">
+          <div id="rc-notes-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
+          <textarea id="rc-notes-partage" placeholder="Écris ici…" style="width:100%;min-height:100px;font-size:13px;resize:vertical;" oninput="rcNoteInput()"></textarea>
+        </div>
       </div>
     </div>
   </div>
@@ -641,7 +651,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <p class="st" style="margin:0;border:none;padding:0;">Compétences</p>
         <span id="r-comp-count" style="font-size:12px;color:var(--txt3);"></span>
       </div>
-      <p style="font-size:11px;color:var(--txt3);margin-bottom:8px;"> Accordées par règles · Cochable librement pour les autres</p>
+      <p style="font-size:11px;color:var(--txt3);margin-bottom:8px;">Coche librement tes compétences maîtrisées.</p>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px;" id="r-clist"></div>
     </div>
     <div class="card">
@@ -8723,23 +8733,19 @@ function rRendreComps(){
   var total=0;
   COMPS.forEach(function(cp,i){
     var val=parseInt(v(cp.c))||10,m=gMod(val);
-    var isDefaut=defaut.has(cp.n);
     // Lire l'état coché depuis le mode édition (même DOM, juste masqué)
     var editRow=document.querySelector(".erow[data-ci='"+i+"'] .comp-check");
-    var isEditChecked=editRow?editRow.checked:false;
-    var ok=isDefaut||isEditChecked;
+    var ok=editRow?editRow.checked:false;
     if(ok)total++;
     var d=document.createElement("div");d.className="rcrow";
     d.style.cursor="default";
-    // Dot : vert si règles, bleu si coché en édition, gris sinon
-    var dotColor=isDefaut?"#6ee7a1":isEditChecked?"#93c5fd":"rgba(255,255,255,.2)";
-    var dotTitle=isDefaut?"Accordée par classe/race/historique":isEditChecked?"Cochée en mode édition":"";
-    d.innerHTML="<span style='width:10px;height:10px;border-radius:50%;background:"+dotColor+";flex-shrink:0;margin-right:6px;border:1px solid "+dotColor+";' title='"+dotTitle+"'></span><span style='flex:1;font-size:13px;'>"+cp.n+"</span><span style='font-weight:700;color:var(--txt);font-size:13px;'>"+fMod(m+(ok?bm:0))+"</span>";
+    var dotColor=ok?"#6ee7a1":"rgba(255,255,255,.2)";
+    d.innerHTML="<span style='width:10px;height:10px;border-radius:50%;background:"+dotColor+";flex-shrink:0;margin-right:6px;' ></span><span style='flex:1;font-size:13px;'>"+cp.n+"</span><span style='font-weight:700;color:var(--txt);font-size:13px;'>"+fMod(m+(ok?bm:0))+"</span>";
     cc.appendChild(d);
   });
   // Compteur
   var cnt=el("r-comp-count");
-  if(cnt)cnt.textContent=total+" maîtrisées (règles: "+defaut.size+")";
+  if(cnt)cnt.textContent=total+' compétences maîtrisées';
   var jc=el("r-jlist");if(!jc)return;
   jc.innerHTML="";
   var cl=gCl(),mai=JDS_CL[cl]||[];
@@ -9013,8 +9019,15 @@ function campEcouter(){
     var _imj=d.infosMJ||"";
     var _ic=el("rc-infos-mj-card"),_id=el("rc-infos-mj");
     if(_ic&&_id){_ic.style.display=_imj?"":"none";_id.textContent=_imj;}
-    var _np=el("rc-notes-partage");
-    if(_np&&document.activeElement!==_np)_np.value=d.notesPartage||"";
+    // Notes partagees — sync onglets
+    var _rawNp=d.notesPartage;
+    if(_rawNp!==undefined){
+      var _tabs2=_parseTabs(_rawNp);
+      // Ne pas ecraser si meme contenu (evite de sauter le curseur)
+      var _np=el("rc-notes-partage");
+      var _focused=_np&&document.activeElement===_np;
+      if(!_focused){_rcNotesTabs=_tabs2;if(_rcNotesIdx>=_tabs2.length)_rcNotesIdx=0;rcRendreNotesTabs();}
+    }
   },function(){
     // Listener mort : se réabonner après 4s si toujours dans la campagne
     if(campCode)setTimeout(campEcouter,4000);
@@ -9082,14 +9095,36 @@ function majConditions(conds){
   cont.style.display="flex";
 }
 
-var _npTO=null;
+// === NOTES PARTAGEES — onglets ===
+var _rcNotesTabs=[{nom:"Notes",contenu:""}],_rcNotesIdx=0,_npTO=null;
+function _parseTabs(raw){if(!raw)return [{nom:"Notes",contenu:""}];if(typeof raw==="string"&&raw)return [{nom:"Notes",contenu:raw}];if(Array.isArray(raw)&&raw.length)return raw;return [{nom:"Notes",contenu:""}];}
+function rcRendreNotesTabs(){
+  var bar=el("rc-notes-tabbar");if(!bar)return;
+  bar.innerHTML=_rcNotesTabs.map(function(t,i){
+    var a=i===_rcNotesIdx?"background:var(--bg);border-color:var(--or);color:var(--or);":"";
+    var del=_rcNotesTabs.length>1?"<span onclick=\"event.stopPropagation();rcDelNoteTab("+i+")\" style=\"margin-left:4px;opacity:.5;cursor:pointer;\">x</span>":"";
+    return "<button class=\"btn\" style=\"font-size:11px;padding:3px 8px;"+a+"\" onclick=\"rcSelectNoteTab("+i+")\">"+t.nom+del+"</button>";
+  }).join("")+"<button class=\"btn\" style=\"font-size:11px;padding:3px 8px;opacity:.7;\" onclick=\"rcAddNoteTab()\">+ Onglet</button>";
+  var ta=el("rc-notes-partage");if(ta)ta.value=_rcNotesTabs[_rcNotesIdx].contenu||"";
+}
+function rcSelectNoteTab(i){var ta=el("rc-notes-partage");if(ta)_rcNotesTabs[_rcNotesIdx].contenu=ta.value;_rcNotesIdx=i;rcRendreNotesTabs();}
+function rcAddNoteTab(){var n=prompt("Nom de l'onglet :","Onglet "+(_rcNotesTabs.length+1));if(!n)return;var ta=el("rc-notes-partage");if(ta)_rcNotesTabs[_rcNotesIdx].contenu=ta.value;_rcNotesTabs.push({nom:n,contenu:""});_rcNotesIdx=_rcNotesTabs.length-1;rcRendreNotesTabs();campEcrireNotesPartage();}
+function rcDelNoteTab(i){if(_rcNotesTabs.length<=1)return;if(!confirm("Supprimer l'onglet ?"))return;_rcNotesTabs.splice(i,1);if(_rcNotesIdx>=_rcNotesTabs.length)_rcNotesIdx=_rcNotesTabs.length-1;rcRendreNotesTabs();campEcrireNotesPartage();}
+function rcNoteInput(){var ta=el("rc-notes-partage");if(ta)_rcNotesTabs[_rcNotesIdx].contenu=ta.value;campEcrireNotesPartage();}
 function campEcrireNotesPartage(){
   clearTimeout(_npTO);
   _npTO=setTimeout(function(){
     if(!db||!campCode)return;
-    var val=el("rc-notes-partage");if(!val)return;
-    db.collection("parties").doc(campCode).set({notesPartage:val.value},{merge:true}).catch(function(){});
+    db.collection("parties").doc(campCode).set({notesPartage:_rcNotesTabs},{merge:true}).catch(function(){});
   },1200);
+}
+function rcToggle(id,hdr){
+  var d=document.getElementById(id);if(!d)return;
+  var open=d.style.display!=="none";
+  d.style.display=open?"none":"";
+  var arr=hdr?hdr.querySelector("span:last-child"):null;
+  if(arr)arr.textContent=open?"▾":"▴";
+  if(!open&&id==="rc-notes-body")rcRendreNotesTabs();
 }
 function majAffichageCampagne(){
   var joinEl=el("rc-join"),panelEl=el("rc-panel");
