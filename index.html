@@ -622,6 +622,15 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <p class="st">Autres joueurs</p>
         <div id="rc-joueurs"><p style="font-size:12px;color:var(--txt3);">Chargement…</p></div>
       </div>
+      <div class="r-section" id="rc-infos-mj-card" style="display:none;">
+        <p class="st">📋 Infos du MJ</p>
+        <div id="rc-infos-mj" style="font-size:13px;line-height:1.6;color:var(--txt2);white-space:pre-wrap;"></div>
+      </div>
+      <div class="r-section">
+        <p class="st">📝 Notes partagées</p>
+        <p style="font-size:11px;color:var(--txt3);margin-bottom:6px;">Visibles par tous les joueurs de la campagne.</p>
+        <textarea id="rc-notes-partage" placeholder="Partagez vos notes…" style="width:100%;min-height:100px;font-size:13px;resize:vertical;" oninput="campEcrireNotesPartage()"></textarea>
+      </div>
     </div>
   </div>
 
@@ -7164,11 +7173,7 @@ function appliquerCompsDefaut(){
   document.querySelectorAll(".erow[data-ci]").forEach(function(row){
     var cp=COMPS[parseInt(row.dataset.ci)];
     var chk=row.querySelector(".comp-check");
-    // Les compétences "règles" sont toujours cochées et non modifiables
-    if(defaut.has(cp.n)){
-      chk.checked=true;
-    }
-    // Les compétences manuelles (non-règles) restent inchangées
+    // Les PJ cochent librement leurs compétences
   });
   updateComps();
 }
@@ -7210,22 +7215,10 @@ function updateComps(){
     var bon=row.querySelector(".comp-bon");if(bon)bon.textContent=fMod(m+(ok?bm:0));
     // Indicateur source
     var src=row.querySelector(".comp-src");
-    var isDefaut=defaut.has(cp.n);
-    if(src){
-      src.textContent=isDefaut?"●":"";
-      src.title=isDefaut?"Maîtrisée via classe/race/historique — non modifiable":"";
-      src.style.color="var(--vert)";
-    }
-    // Bloquer les compétences données par les règles (non modifiables)
-    // + tout bloquer si on est en mode résumé
-    var enResume=el("s-resume")&&el("s-resume").classList.contains("on");
-    if(isDefaut || enResume){
-      chk.disabled=true;
-      row.style.opacity=isDefaut?"1":"0.6";
-    } else {
-      chk.disabled=false;
-      row.style.opacity="1";
-    }
+    if(src){src.textContent="";src.title="";}
+    // Les PJ peuvent cocher/décocher librement toutes les compétences
+    chk.disabled=false;
+    row.style.opacity="1";
   });
   // Compteur
   var cnt=el("e-comp-count");
@@ -8385,7 +8378,7 @@ function renderEquipEquipes(){
     var tdDel=document.createElement("td");
     var btnDel=document.createElement("button");
     btnDel.className="eq-del";
-    btnDel.innerHTML="";
+    btnDel.innerHTML="🗑";
     btnDel.title="Supprimer";
     (function(i){
       btnDel.onclick=function(){equipEquipes.splice(i,1);sauvegarder();renderEquipEquipes();};
@@ -9016,6 +9009,12 @@ function campEcouter(){
     majConditions(conds);
     majCombatPJ(d.combat||{actif:false});
     campRendreJoueurs();
+    // Infos MJ + notes partagees
+    var _imj=d.infosMJ||"";
+    var _ic=el("rc-infos-mj-card"),_id=el("rc-infos-mj");
+    if(_ic&&_id){_ic.style.display=_imj?"":"none";_id.textContent=_imj;}
+    var _np=el("rc-notes-partage");
+    if(_np&&document.activeElement!==_np)_np.value=d.notesPartage||"";
   },function(){
     // Listener mort : se réabonner après 4s si toujours dans la campagne
     if(campCode)setTimeout(campEcouter,4000);
@@ -9083,6 +9082,15 @@ function majConditions(conds){
   cont.style.display="flex";
 }
 
+var _npTO=null;
+function campEcrireNotesPartage(){
+  clearTimeout(_npTO);
+  _npTO=setTimeout(function(){
+    if(!db||!campCode)return;
+    var val=el("rc-notes-partage");if(!val)return;
+    db.collection("parties").doc(campCode).set({notesPartage:val.value},{merge:true}).catch(function(){});
+  },1200);
+}
 function majAffichageCampagne(){
   var joinEl=el("rc-join"),panelEl=el("rc-panel");
   if(campCode){
@@ -9386,59 +9394,37 @@ function cbtRendreActions(monTour){
     html+='<div id="cbt-sorts-menu" class="cbt-dropdown" style="display:none;"></div>';
     html+='</div>';
   }
-  // === ACTION BONUS ===
-  html+='<p class="cbt-section-titre">⚡ Action bonus</p>';
-  var hasBonus=false;
+  // === RESSOURCES (actions bonus / classe) ===
   if(cl==='Barde'){
     var iMax=(RESSOURCES_CL['Barde'][0].max(niv)||0);
     var iRest=iMax-(ressourcesClasse['insp-bardique']||0);
-    if(iMax>0){html+=cbtMakeBtn('bonus','🎵 Inspiration bardique ('+iRest+')',iRest<=0,'cbtRes(\'insp-bardique\',-1)');hasBonus=true;}
+    if(iMax>0)html+=cbtMakeBtn('bonus','🎵 Inspiration bardique ('+iRest+')',iRest<=0,'cbtRes(\'insp-bardique\',-1)');
   }
   if(cl==='Moine'){
     var kiMax=(RESSOURCES_CL['Moine'][0].max(niv)||0);
     var kiRest=kiMax-(ressourcesClasse['ki']||0);
     if(kiMax>0){
-      html+=cbtMakeBtn('bonus','🌬 Pas de vent — 1 ki ('+kiRest+' restant'+(kiRest>1?'s':'')+')',kiRest<1,'cbtRes(\'ki\',-1)');
+      html+=cbtMakeBtn('bonus','🌬 Pas de vent — 1 ki ('+kiRest+')',kiRest<1,'cbtRes(\'ki\',-1)');
       html+=cbtMakeBtn('bonus','👊 Déluge de coups',false,null);
-      hasBonus=true;
     }
   }
   if(cl==='Guerrier'){
     var ssMax=(RESSOURCES_CL['Guerrier'][0].max(niv)||0);
     var ssRest=ssMax-(ressourcesClasse['second-souffle']||0);
-    if(ssMax>0){html+=cbtMakeBtn('bonus','❤ Second souffle ('+ssRest+')',ssRest<=0,'cbtRes(\'second-souffle\',-1)');hasBonus=true;}
+    if(ssMax>0)html+=cbtMakeBtn('bonus','❤ Second souffle ('+ssRest+')',ssRest<=0,'cbtRes(\'second-souffle\',-1)');
     var saMax=(RESSOURCES_CL['Guerrier'][1]&&RESSOURCES_CL['Guerrier'][1].max(niv))||0;
     var saRest=saMax-(ressourcesClasse['sursaut-action']||0);
-    if(saMax>0){html+=cbtMakeBtn('bonus','⚡ Fougue ('+saRest+')',saRest<=0,'cbtRes(\'sursaut-action\',-1)');hasBonus=true;}
+    if(saMax>0)html+=cbtMakeBtn('bonus','⚡ Fougue ('+saRest+')',saRest<=0,'cbtRes(\'sursaut-action\',-1)');
     var inMax=(RESSOURCES_CL['Guerrier'][2]&&RESSOURCES_CL['Guerrier'][2].max(niv))||0;
     var inRest=inMax-(ressourcesClasse['indomptable']||0);
-    if(inMax>0){html+=cbtMakeBtn('bonus','🛡 Indomptable ('+inRest+')',inRest<=0,'cbtRes(\'indomptable\',-1)');hasBonus=true;}
-  }
-  if(['Guerrier','Rôdeur','Barbare','Moine'].indexOf(cl)>=0){
-    html+=cbtMakeBtn('bonus','🗡 Attaque bonus',false,null);hasBonus=true;
+    if(inMax>0)html+=cbtMakeBtn('bonus','🛡 Indomptable ('+inRest+')',inRest<=0,'cbtRes(\'indomptable\',-1)');
   }
   if(cl==='Paladin'){
     var imMax=(RESSOURCES_CL['Paladin']&&RESSOURCES_CL['Paladin'][0].max(niv))||0;
     var imUsed=(ressourcesClasse['imposition-mains']||0);
     var imRest=Math.max(0,imMax-imUsed);
-    if(imMax>0)html+='<div class="cbt-section-titre">🤚 Imposition des mains</div>'+
-      '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'+
-      '<span style="font-size:12px;color:var(--txt2);">Réserve : <b>'+imRest+'/'+imMax+'</b> PV</span>'+
-      '<button class="cbt-action-btn" style="flex:1;" onclick="cbtRes(\'imposition-mains\',-5)">Soigner 5 PV (1 ch.)</button>'+
-      '</div>';
+    if(imMax>0)html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="font-size:12px;color:var(--txt2);">🤚 Imposition des mains : <b>'+imRest+'/'+imMax+'</b> PV</span><button class="cbt-action-btn" style="flex:1;" onclick="cbtRes(\'imposition-mains\',-5)">Soigner 5 PV</button></div>';
   }
-  if(cl==='Rôdeur'){
-    html+='<p class="cbt-section-titre">🏹 Capacités passives</p>';
-    html+='<button class="cbt-action-btn" onclick="cbtToggleInfoBtn(this,\'Ennemi juré : avantage sur jets d\'attaque, pisage et mémoire contre ton type d\'ennemi juré.\')">Ennemi juré ℹ</button>';
-    html+='<button class="cbt-action-btn" onclick="cbtToggleInfoBtn(this,\'Explorateur né : non ralenti par terrain difficile naturel, ne te perd pas, avantages divers selon environnement favori.\')">Explorateur né ℹ</button>';
-  }
-  if(cl==='Roublard'){
-    var asMax=(RESSOURCES_CL['Roublard']&&RESSOURCES_CL['Roublard'][0])?Math.ceil(niv/2):0;
-    html+='<p class="cbt-section-titre">🗡 Roublard</p>';
-    html+='<button class="cbt-action-btn" onclick="cbtToggleInfoBtn(this,\'Attaque sournoise : '+asMax+'d6 dégâts bonus si avantage ou allié adjacent.\')">Attaque sournoise ('+asMax+'d6) ℹ</button>';
-    if(niv>=7)html+='<button class="cbt-action-btn" onclick="cbtToggleInfoBtn(this,\'Esquive totale : si tu réussis un JS de DEX, tu subit 0 dégât au lieu de la moitié.\')">Esquive totale ℹ</button>';
-  }
-  if(!hasBonus)html+='<p style="font-size:12px;color:var(--txt3);">Aucune action bonus pour cette classe.</p>';
   // === SORTS ===
   if(isSpellcasterClass(cl)){
     html+='<p class="cbt-section-titre">✨ Emplacements de sorts</p>';

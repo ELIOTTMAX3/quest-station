@@ -344,6 +344,10 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           <label>Code d'invitation</label>
           <div class="code-big" id="camp-code-big" style="font-size:24px;letter-spacing:.25em;">——</div>
         </div>
+        <div style="margin-bottom:1rem;">
+          <label>Infos pour les joueurs <span style="font-size:10px;color:var(--txt3);">(visible par les PJ)</span></label>
+          <textarea id="camp-infos-mj" rows="4" style="min-height:80px;" oninput="majCampagneInfosMJ()" placeholder="Résumé de session, quête en cours, lieux importants…"></textarea>
+        </div>
         <div>
           <label>Notes MJ (privées)</label>
           <textarea id="camp-notes" rows="5" style="min-height:100px;" oninput="majCampagneNotes()"></textarea>
@@ -564,6 +568,7 @@ function ouvrirPanel(code){
     el("panel-nom").textContent=campagneActive.nom||"Campagne";
     el("camp-edit-nom").value=campagneActive.nom||"";
     el("camp-notes").value=campagneActive.notes||"";
+    el("camp-infos-mj").value=campagneActive.infosMJ||"";
     // Lire condActives depuis le doc
     if(campagneActive.conditions){
       Object.keys(campagneActive.conditions).forEach(function(jid){
@@ -949,6 +954,14 @@ function majCampagneNotes(){
   notesTO=setTimeout(function(){
     if(!campagneActive)return;
     db.collection("parties").doc(campagneActive.id).update({notes:el("camp-notes").value}).catch(function(){});
+  },1000);
+}
+var infosMJTO=null;
+function majCampagneInfosMJ(){
+  clearTimeout(infosMJTO);
+  infosMJTO=setTimeout(function(){
+    if(!campagneActive)return;
+    db.collection("parties").doc(campagneActive.id).update({infosMJ:el("camp-infos-mj").value}).catch(function(){});
   },1000);
 }
 function supprimerCampagne(){
