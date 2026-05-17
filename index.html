@@ -297,7 +297,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .cbt-row.moi{border-left:3px solid #4ade80;}
 .cbt-indicateur{font-size:13px;color:var(--rouge);width:14px;flex-shrink:0;}
 .cbt-num{font-size:10px;color:var(--txt3);width:18px;text-align:center;flex-shrink:0;}
-.cbt-av{width:30px;height:30px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;overflow:hidden;}
+.cbt-av{width:42px;height:42px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;overflow:hidden;}
 .cbt-av img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .cbt-info{flex:1;min-width:0;}
 .cbt-nom{font-size:13px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -330,12 +330,12 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 /* === Combat PJ extras === */
 .cbt-hlist{display:flex;gap:8px;overflow-x:auto;padding:20px 0 10px;margin-bottom:.75rem;scrollbar-width:thin;scrollbar-color:var(--bord) transparent;-webkit-overflow-scrolling:touch;}
 .cbt-hlist::-webkit-scrollbar{height:4px;}.cbt-hlist::-webkit-scrollbar-thumb{background:var(--bord);border-radius:2px;}
-.cbt-hcard{flex-shrink:0;width:80px;background:var(--bg2);border:2px solid var(--bord);border-radius:10px;padding:8px 5px 6px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px;position:relative;transition:border-color .15s;}
+.cbt-hcard{flex-shrink:0;width:110px;background:var(--bg2);border:2px solid var(--bord);border-radius:10px;padding:10px 7px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;transition:border-color .15s;}
 .cbt-hcard.actif{border-color:var(--rouge);background:rgba(217,119,6,.1);}
 .cbt-hcard.moi{border-color:#4ade80;}.cbt-hcard.actif.moi{border-color:var(--rouge);outline:2px solid #4ade80;}
 .cbt-hcard-indicator{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:800;color:var(--rouge);white-space:nowrap;background:rgba(217,119,6,.15);padding:1px 5px;border-radius:4px;border:1px solid rgba(217,119,6,.5);}
-.cbt-hcard-nom{font-size:9px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:68px;}
-.cbt-hcard-sub{font-size:8px;color:var(--txt3);}
+.cbt-hcard-nom{font-size:11px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:96px;}
+.cbt-hcard-sub{font-size:10px;color:var(--txt3);}
 .cbt-dropdown-wrap{position:relative;margin-bottom:6px;}
 .cbt-dropdown{background:var(--bg2);border:1px solid var(--bord2);border-radius:8px;padding:8px;margin-top:4px;max-height:260px;overflow-y:auto;}
 .cbt-weapon-item{background:var(--bg3);border-radius:6px;padding:8px 10px;margin-bottom:6px;cursor:pointer;border:1px solid var(--bord);text-align:left;}
@@ -575,9 +575,9 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     </div>
 
     <!-- NOTES ──────────────────────────────────────── -->
-    <div class="r-section" id="r-notes-card" style="display:none;">
-      <p class="st">Notes</p>
-      <p style="font-size:12px;color:var(--txt2);line-height:1.7;white-space:pre-wrap;max-height:280px;overflow-y:auto;" id="r-notes"></p>
+    <div class="r-section" id="r-notes-card">
+      <p class="st">Notes libres</p>
+      <textarea id="r-notes-edit" style="min-height:80px;max-height:200px;font-size:12px;resize:none;overflow-y:auto;" placeholder="Tes notes personnelles..." oninput="rNotesInput()"></textarea>
     </div>
 
   </div><!-- /rt-perso -->
@@ -6202,13 +6202,8 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     </div>
     <div class="card"><label>Histoire du personnage</label><textarea id="capacites" style="min-height:100px;" oninput="sauvegarder()"></textarea></div>
     <div class="card"><label>Notes libres</label><textarea id="notes" style="min-height:100px;" oninput="sauvegarder()"></textarea></div>
-    <div class="card">
-      <p class="st">Inventaire & Monnaies</p>
-      <p style="font-size:12px;color:var(--txt3);font-style:italic;">
-        L'inventaire est modifiable directement depuis l'onglet Personnage de la vue résumé.
-      </p>
-    </div>
   </div>
+
 
   <!-- RÈGLES (édition) -->
   <div id="et-regles" class="tc">
@@ -8552,8 +8547,8 @@ function rafraichirResume(){
   syncInvResume();
 
   // Notes libres
-  var notes=v("notes");var nw=el("r-notes-card");
-  if(nw){if(notes){el("r-notes").textContent=notes;nw.style.display="block";}else nw.style.display="none";}
+  var notes=v("notes");var rne=el("r-notes-edit");
+  if(rne&&document.activeElement!==rne)rne.value=notes||"";
 
   // Liens
   var liens=v("liens");var lw=el("r-liens-card");
@@ -8563,6 +8558,11 @@ function rafraichirResume(){
 
 }
 
+function rNotesInput(){
+  var ta=el("r-notes-edit");var hn=el("notes");
+  if(ta&&hn)hn.value=ta.value;
+  sauvegarder();
+}
 function rendreHexagone(){
   var vals=[parseInt(v("for"))||10,parseInt(v("dex"))||10,parseInt(v("con"))||10,
             parseInt(v("int"))||10,parseInt(v("sag"))||10,parseInt(v("cha"))||10];
@@ -9406,11 +9406,14 @@ function cbtMajUI(){
     }
         var nomHtml=estMoi?'<b>'+cc.nom+'</b>':cc.nom;
     var indic=estActif?'<div class="cbt-hcard-indicator">▶ Tour</div>':'';
+    var condH=(cc.conditions&&cc.conditions.length
+      ?'<div style="display:flex;flex-wrap:wrap;gap:2px;justify-content:center;margin-top:1px;">'+cc.conditions.slice(0,3).map(function(cn){return '<span style="font-size:8px;padding:1px 4px;border-radius:4px;background:rgba(251,191,36,.2);border:1px solid rgba(251,191,36,.5);color:#fbbf24;">'+cn+'</span>';}).join('')+(cc.conditions.length>3?'<span style="font-size:8px;padding:1px 4px;border-radius:4px;background:var(--bg3);color:var(--txt3);">+'+( cc.conditions.length-3)+'</span>':'')+'</div>':'');
     return '<div class="cbt-hcard'+(estActif?' actif':'')+(estMoi?' moi':'')+'">'+
       indic+avH+
       '<div class="cbt-hcard-nom">'+nomHtml+'</div>'+
       (cc.type==='pj'?pvH:'<div class="cbt-hcard-sub">👾</div>')+
       '<div class="cbt-hcard-sub">Init '+(cc.initiative!==null&&cc.initiative!==undefined?cc.initiative:'?')+'</div>'+
+      condH+
       '</div>';
   }).join('')+'</div>'||'<p style="font-size:12px;color:var(--txt3);">En attente des combattants…</p>';
   var passBtn=el('cbt-btn-passer');if(passBtn){passBtn.disabled=!monTour;}
