@@ -7172,6 +7172,19 @@ function ecouterJoueur(){
   }
 }
 
+window.addEventListener('beforeunload',function(){
+  if(!joueurId)return;
+  clearTimeout(saveTO);
+  var data=collecterDonnees();
+  sauvegarderLocal(data);
+  // Tentative Firebase synchrone (best-effort, peut ne pas aboutir selon le browser)
+  if(db){
+    try{
+      db.collection("parties").doc(PARTIE).collection("joueurs").doc(joueurId)
+        .set(data,{merge:true}).catch(function(){});
+    }catch(e){}
+  }
+});
 function sauvegarder(){
   if(!joueurId)return;
   setSyncStatus("saving","r");setSyncStatus("saving","e");
@@ -9149,12 +9162,9 @@ function rBuildChips(){
   if(typePrepare==="connus"){
     // Barde/Ensorceleur/Sorcier/Ranger : sorts connus dans le grimoire
     ss=SORTS.filter(function(s){return grimoire.has(s.n);});
-  } else if(edMode==="grimoire_limite"){
-    // Magicien : prépare depuis le grimoire
-    ss=SORTS.filter(function(s){return grimoire.has(s.n);});
   } else {
-    // Clerc/Druide/Paladin : toute la liste de classe pour préparer
-    var clF2=cl==="Occultiste"?"Sorcier":cl==="Rôdeur"?"Ranger":cl;ss=cl&&LANCEURS.indexOf(cl)>=0?SORTS.filter(function(s){return s.cl.indexOf(clF2)>=0;}):SORTS;
+    // Magicien, Clerc, Druide, Paladin : prépare uniquement depuis les sorts connus (grimoire)
+    ss=SORTS.filter(function(s){return grimoire.has(s.n);});
   }
   var nivs=[];ss.forEach(function(s){if(nivs.indexOf(s.nv)<0)nivs.push(s.nv);});
   nivs.sort(function(a,b){return a-b;});
@@ -9172,17 +9182,13 @@ function rSearchSorts(){
   var typePrepare=getClassePreparationType(),edMode=getEditionMode();
   var ss,titre="";
   if(typePrepare==="connus"){
-    // Barde/Ensorceleur/Sorcier/Ranger : sorts connus
+    // Barde/Ensorceleur/Sorcier/Ranger : sorts connus = sorts préparés (lecture seule en résumé)
     ss=SORTS.filter(function(s){return grimoire.has(s.n);});
     titre="Sorts connus";
-  } else if(edMode==="grimoire_limite"){
-    // Magicien : prépare depuis le grimoire
-    ss=SORTS.filter(function(s){return grimoire.has(s.n);});
-    titre="Grimoire (choisir lesquels préparer)";
   } else {
-    // Clerc/Druide/Paladin : toute la liste de classe
-    var clF2=cl==="Occultiste"?"Sorcier":cl==="Rôdeur"?"Ranger":cl;ss=cl&&LANCEURS.indexOf(cl)>=0?SORTS.filter(function(s){return s.cl.indexOf(clF2)>=0;}):SORTS;
-    titre="Liste complète (choisir lesquels préparer)";
+    // Magicien, Clerc, Druide, Paladin : prépare depuis les sorts connus (grimoire)
+    ss=SORTS.filter(function(s){return grimoire.has(s.n);});
+    titre=grimoire.size>0?"Sorts connus — choisir lesquels préparer":"Aucun sort ajouté — utilise l'onglet Sorts pour apprendre des sorts";
   }
   if(rFilNiv.size)ss=ss.filter(function(s){return rFilNiv.has(s.nv);});
   if(rech)ss=ss.filter(function(s){return s.n.toLowerCase().indexOf(rech)>=0||s.e.toLowerCase().indexOf(rech)>=0;});
