@@ -9687,15 +9687,12 @@ function _mjviewBandeau(jid){
   app.style.paddingTop='calc((var(--app-pt,0px)) + 30px)';
 }
 function _mjrulesInit(){
-  // Mode règles MJ : masquer tout ce qui est visible sans toucher aux templates
-  // 1. Screens classiques (display:none via CSS .screen)
+  // ── Masquer tout le contenu PJ sans détruire les templates ───
   document.querySelectorAll('.screen').forEach(function(s){s.style.display='none';});
-  // 2. Sections contrôlées par la classe .on (s-login, s-loading, s-resume, s-edit)
   ['s-login','s-loading','s-resume','s-edit'].forEach(function(id){
     var e=document.getElementById(id);
     if(e){e.classList.remove('on');e.style.display='none';}
   });
-  // 3. Div .app principale (menu onglets PJ)
   var appMain=document.querySelector('body > .app');
   if(appMain) appMain.style.display='none';
 
@@ -9703,51 +9700,79 @@ function _mjrulesInit(){
   var RACES=['Humain','Elfe','Haut-elfe','Elfe des bois','Elfe noir','Nain des collines','Nain des montagnes','Halfelin','Gnome','Demi-elfe','Demi-orc','Tiefelin','Dragonide'];
   var HISTS=['Acolyte','Artisan de guilde','Artiste','Charlatan','Criminel','Ermite','Hanté','Héros du peuple','Marin','Noble','Sauvageon','Soldat'];
 
+  // Chemin vers les fichiers HTML de référence (relatif à index.html)
+  var RPATH='../../13_DONNEES_QUESTSTATION/REGLES/';
   var TABS=[
-    {id:'classe',    label:'Classe'},
-    {id:'race',      label:'Race'},
-    {id:'historique',label:'Historique'},
-    {id:'creation',  label:'Création'},
-    {id:'equip',     label:'Équipement'}
+    {id:'classe',    label:'Classe',           type:'content'},
+    {id:'race',      label:'Race',             type:'content'},
+    {id:'historique',label:'Historique',       type:'content'},
+    {id:'equip',     label:'Équipement',       type:'content'},
+    {id:'monstres',  label:'Monstres',         type:'iframe', file:'Monstres » Donjons & Dragons - D&D 5e.html'},
+    {id:'carac',     label:'Caractéristiques', type:'iframe', file:'caractéristiques » Donjons & Dragons - D&D 5e.html'},
+    {id:'objmag',    label:'Objets magiques',  type:'iframe', file:'Objets magiques » Donjons & Dragons - D&D 5e.html'},
+    {id:'objets',    label:'Objets',           type:'iframe', file:'Objets » Donjons & Dragons - D&D 5e.html'},
+    {id:'etats',     label:'États',            type:'iframe', file:'États » Donjons & Dragons - D&D 5e.html'}
   ];
 
-  // Conteneur principal
+  // ── Conteneur principal (flex column, plein écran) ───────────
   var root=document.createElement('div');
   root.id='mjr-root';
-  root.style.cssText='background:var(--bg);min-height:100vh;padding:12px;box-sizing:border-box;';
+  root.style.cssText='background:var(--bg);height:100vh;display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;';
+  document.body.style.margin='0';
   document.body.appendChild(root);
 
-  // Tab bar
+  // Tab bar scrollable horizontalement
   var tbar=document.createElement('div');
-  tbar.style.cssText='display:flex;background:var(--bg2);border-radius:10px 10px 0 0;overflow:hidden;border:1px solid var(--bord2);border-bottom:none;';
+  tbar.style.cssText='display:flex;background:var(--bg2);border-bottom:2px solid var(--bord2);overflow-x:auto;flex-shrink:0;scrollbar-width:none;';
   root.appendChild(tbar);
 
-  // Contenu
+  // Zone de contenu (prend tout l'espace restant)
   var content=document.createElement('div');
-  content.style.cssText='background:var(--bg2);border:1px solid var(--bord2);border-radius:0 0 10px 10px;overflow-y:auto;';
+  content.style.cssText='flex:1;overflow:hidden;position:relative;background:var(--bg2);';
   root.appendChild(content);
 
+  // ── Patch gCl / v avant tout appel aux fonctions règles ──────
+  window._mjrClasseTemp=CLASSES[0];
+  window._mjrRaceTemp=RACES[0];
+  window._mjrHistTemp=HISTS[0];
+  var _origV=window.v;
+  window.gCl=function(){ return window._mjrClasseTemp||null; };
+  window.v=function(key){
+    if(key==='race')       return window._mjrRaceTemp||'';
+    if(key==='historique') return window._mjrHistTemp||'';
+    if(key==='niveau')     return '20';
+    if(key==='joueur')     return 'MJ';
+    return _origV?_origV(key):'';
+  };
+
   var pages={};
+  var selStyle='width:100%;font-family:inherit;font-size:13px;color:var(--txt);background:var(--bg3);border:1px solid var(--bord2);border-radius:6px;padding:7px 8px;margin-bottom:10px;';
+
   TABS.forEach(function(tab){
+    // Bouton onglet
     var btn=document.createElement('button');
     btn.textContent=tab.label;
-    btn.style.cssText='flex:1;font-family:inherit;font-size:12px;font-weight:600;padding:10px 4px;cursor:pointer;border:none;background:none;color:var(--txt2);border-right:1px solid var(--bord);';
+    btn.style.cssText='flex-shrink:0;font-family:inherit;font-size:12px;font-weight:600;padding:9px 14px;cursor:pointer;border:none;border-right:1px solid var(--bord);background:none;color:var(--txt2);white-space:nowrap;transition:background .15s;';
     btn.onclick=function(){switchTab(tab.id,btn);};
     tbar.appendChild(btn);
     tab._btn=btn;
+
+    // Page (content ou iframe)
     var page=document.createElement('div');
-    page.style.cssText='display:none;padding:12px;';
+    if(tab.type==='iframe'){
+      page.style.cssText='display:none;height:100%;';
+    } else {
+      page.style.cssText='display:none;height:100%;overflow-y:auto;padding:12px;box-sizing:border-box;';
+    }
     content.appendChild(page);
     pages[tab.id]=page;
   });
   tbar.lastChild.style.borderRight='none';
 
-  var selStyle='width:100%;font-family:inherit;font-size:13px;color:var(--txt);background:var(--bg3);border:1px solid var(--bord2);border-radius:6px;padding:7px 8px;margin-bottom:10px;';
-
   // ── Classe ───────────────────────────────────────────────────
   var selCl=document.createElement('select');selCl.style.cssText=selStyle;
-  selCl.innerHTML='<option value="">— Choisir une classe —</option>';
   CLASSES.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;selCl.appendChild(o);});
+  selCl.value=CLASSES[0];
   var clInner=document.createElement('div');clInner.id='mjr-cl';
   pages['classe'].appendChild(selCl);
   pages['classe'].appendChild(clInner);
@@ -9759,8 +9784,8 @@ function _mjrulesInit(){
 
   // ── Race ─────────────────────────────────────────────────────
   var selRa=document.createElement('select');selRa.style.cssText=selStyle;
-  selRa.innerHTML='<option value="">— Choisir une race —</option>';
   RACES.forEach(function(r){var o=document.createElement('option');o.value=r;o.textContent=r;selRa.appendChild(o);});
+  selRa.value=RACES[0];
   var raInner=document.createElement('div');raInner.id='mjr-ra';
   pages['race'].appendChild(selRa);
   pages['race'].appendChild(raInner);
@@ -9772,8 +9797,8 @@ function _mjrulesInit(){
 
   // ── Historique ───────────────────────────────────────────────
   var selHi=document.createElement('select');selHi.style.cssText=selStyle;
-  selHi.innerHTML='<option value="">— Choisir un historique —</option>';
   HISTS.forEach(function(h){var o=document.createElement('option');o.value=h;o.textContent=h;selHi.appendChild(o);});
+  selHi.value=HISTS[0];
   var hiInner=document.createElement('div');hiInner.id='mjr-hi';
   pages['historique'].appendChild(selHi);
   pages['historique'].appendChild(hiInner);
@@ -9783,42 +9808,38 @@ function _mjrulesInit(){
     if(this.value) chargerHistorique('mjr-hi');
   };
 
-  // ── Création : cloner le contenu statique ────────────────────
-  var srcCr=document.getElementById('rq-creation');
-  if(srcCr){pages['creation'].innerHTML=srcCr.innerHTML;}
-  else{pages['creation'].innerHTML='<p style="color:var(--txt3);">Contenu indisponible.</p>';}
-
-  // ── Équipement : cloner les tables ───────────────────────────
-  ['armes','armures','outils'].forEach(function(tab){
-    var src=document.getElementById('rq-eq-'+tab);
+  // ── Équipement : cloner les tables depuis les templates ───────
+  ['armes','armures','outils'].forEach(function(t){
+    var src=document.getElementById('rq-eq-'+t);
     if(src){var d=document.createElement('div');d.innerHTML=src.innerHTML;pages['equip'].appendChild(d);}
   });
 
-  // ── Patch gCl / v pour que les fonctions de règles marchent ─
-  window._mjrClasseTemp=null;
-  window._mjrRaceTemp=null;
-  window._mjrHistTemp=null;
-  var _origGCl=window.gCl, _origV=window.v;
-  window.gCl=function(){ return window._mjrClasseTemp||null; };
-  window.v=function(key){
-    if(key==='race')       return window._mjrRaceTemp||'';
-    if(key==='historique') return window._mjrHistTemp||'';
-    if(key==='niveau')     return '20';
-    if(key==='joueur')     return 'MJ';
-    return _origV?_origV(key):'';
-  };
-
+  // ── switchTab : gère pages + lazy-load iframes ────────────────
   function switchTab(id,btn){
     TABS.forEach(function(t){
       pages[t.id].style.display='none';
-      t._btn.style.cssText=t._btn.style.cssText.replace(/background:[^;]+;/,'background:none;').replace(/color:[^;]+;/,'color:var(--txt2);');
-      t._btn.style.background='none';t._btn.style.color='var(--txt2)';
+      t._btn.style.background='none';
+      t._btn.style.color='var(--txt2)';
     });
     pages[id].style.display='';
-    btn.style.background='var(--rouge)';btn.style.color='white';
+    btn.style.background='var(--rouge)';
+    btn.style.color='white';
+    // Lazy-load des pages HTML externes
+    var tab=TABS.find(function(t){return t.id===id;});
+    if(tab && tab.type==='iframe' && !pages[id].querySelector('iframe')){
+      var f=document.createElement('iframe');
+      f.style.cssText='width:100%;height:100%;border:none;';
+      f.src=RPATH+tab.file;
+      pages[id].appendChild(f);
+    }
+    // Auto-chargement des onglets contenu à la première ouverture
+    if(id==='classe'    && !clInner.firstChild) chargerRegles('mjr-cl');
+    if(id==='race'      && !raInner.firstChild) chargerRace('mjr-ra');
+    if(id==='historique'&& !hiInner.firstChild) chargerHistorique('mjr-hi');
   }
 
-  switchTab('classe',TABS[0]._btn);
+  // Afficher Classe par défaut avec données pré-chargées
+  switchTab('classe', TABS[0]._btn);
 }
 
 // ―― PRESENCE visibilitychange
