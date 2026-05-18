@@ -434,6 +434,8 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <button class="tbtn on" onclick="rTab('perso',this)">Personnage</button>
     <button class="tbtn" onclick="rTab('comps',this)">Compétences & Capacités</button>
     <button class="tbtn" id="r-tbtn-sorts" onclick="rTab('sorts',this)">Sorts</button>
+    <button class="tbtn" onclick="rTab('equip',this)">⚔️ Équip.</button>
+    <button class="tbtn" onclick="rTab('boutique',this)">🛒 Boutique</button>
     <button class="tbtn" onclick="rTab('regles',this)">Règles</button>
     <button class="tbtn" onclick="rTab('notes',this)">📝 Notes</button>
     <button class="tbtn" onclick="rTab('campagne',this)">Campagne</button>
@@ -713,7 +715,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <p class="st">Sorts préparés <span id="r-sprep-n" style="font-weight:400;color:var(--txt3);"></span></p>
       <div class="sl-list" id="r-sprep"></div>
     </div>
-    <div class="card">
+    <div class="card" id="r-grimoire-card">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <p class="st" id="r-grimoire-titre" style="border:none;padding:0;margin:0;">Choisir les sorts à préparer</p>
         <span id="r-prep-count" style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:rgba(45,138,78,.2);color:#6ee7a1;white-space:nowrap;">0/0 préparés</span>
@@ -5871,8 +5873,94 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     </template>
   </div>
 
-  <!-- ONGLET ÉQUIPEMENTS — contenu déplacé dans regles.html -->
-  <div id="rt-equip" class="tc" style="display:none!important;">
+  <!-- ONGLET ÉQUIPEMENTS — Inventaire & slots d'équipement -->
+  <div id="rt-equip" class="tc">
+
+    <!-- SECTION SLOTS D'ÉQUIPEMENT -->
+    <div class="card" style="margin-bottom:1rem;">
+      <p class="st">Équipement</p>
+      <div style="position:relative;width:200px;height:340px;margin:0 auto;">
+        <!-- Silhouette SVG -->
+        <svg viewBox="0 0 200 340" width="200" height="340" style="position:absolute;top:0;left:0;pointer-events:none;opacity:0.12;" aria-hidden="true">
+          <!-- Tête -->
+          <ellipse cx="100" cy="36" rx="28" ry="32" fill="white"/>
+          <!-- Corps -->
+          <rect x="62" y="72" width="76" height="110" rx="12" fill="white"/>
+          <!-- Bras gauche -->
+          <rect x="26" y="76" width="34" height="90" rx="10" fill="white"/>
+          <!-- Bras droit -->
+          <rect x="140" y="76" width="34" height="90" rx="10" fill="white"/>
+          <!-- Jambe gauche -->
+          <rect x="64" y="186" width="32" height="110" rx="10" fill="white"/>
+          <!-- Jambe droite -->
+          <rect x="104" y="186" width="32" height="110" rx="10" fill="white"/>
+        </svg>
+        <!-- Slots positionnés sur la silhouette -->
+        <!-- Chapeau -->
+        <button id="equip-slot-chapeau" onclick="equip_clickSlot('chapeau')" style="position:absolute;top:0%;left:50%;transform:translate(-50%,0);min-width:52px;font-size:11px;padding:4px 6px;border-radius:8px;border:1px dashed var(--bord2);background:var(--bg3);color:var(--txt3);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit;">
+          <span id="equip-slot-chapeau-ico" style="font-size:18px;">🎩</span>
+          <span id="equip-slot-chapeau-lbl" style="max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Chapeau</span>
+        </button>
+        <!-- Amulette -->
+        <button id="equip-slot-amulette" onclick="equip_clickSlot('amulette')" style="position:absolute;top:30%;left:50%;transform:translate(-50%,0);min-width:52px;font-size:11px;padding:4px 6px;border-radius:8px;border:1px dashed var(--bord2);background:var(--bg3);color:var(--txt3);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit;">
+          <span id="equip-slot-amulette-ico" style="font-size:18px;">📿</span>
+          <span id="equip-slot-amulette-lbl" style="max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Amulette</span>
+        </button>
+        <!-- Cape -->
+        <button id="equip-slot-cape" onclick="equip_clickSlot('cape')" style="position:absolute;top:26%;left:2%;min-width:52px;font-size:11px;padding:4px 6px;border-radius:8px;border:1px dashed var(--bord2);background:var(--bg3);color:var(--txt3);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit;">
+          <span id="equip-slot-cape-ico" style="font-size:18px;">🧣</span>
+          <span id="equip-slot-cape-lbl" style="max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Cape</span>
+        </button>
+        <!-- Anneau 1 -->
+        <button id="equip-slot-anneau1" onclick="equip_clickSlot('anneau1')" style="position:absolute;top:52%;left:0%;min-width:52px;font-size:11px;padding:4px 6px;border-radius:8px;border:1px dashed var(--bord2);background:var(--bg3);color:var(--txt3);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit;">
+          <span id="equip-slot-anneau1-ico" style="font-size:18px;">💍</span>
+          <span id="equip-slot-anneau1-lbl" style="max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Anneau 1</span>
+        </button>
+        <!-- Anneau 2 -->
+        <button id="equip-slot-anneau2" onclick="equip_clickSlot('anneau2')" style="position:absolute;top:52%;right:0%;left:auto;min-width:52px;font-size:11px;padding:4px 6px;border-radius:8px;border:1px dashed var(--bord2);background:var(--bg3);color:var(--txt3);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit;">
+          <span id="equip-slot-anneau2-ico" style="font-size:18px;">💍</span>
+          <span id="equip-slot-anneau2-lbl" style="max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Anneau 2</span>
+        </button>
+        <!-- Ceinture -->
+        <button id="equip-slot-ceinture" onclick="equip_clickSlot('ceinture')" style="position:absolute;top:54%;left:50%;transform:translate(-50%,0);min-width:52px;font-size:11px;padding:4px 6px;border-radius:8px;border:1px dashed var(--bord2);background:var(--bg3);color:var(--txt3);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit;">
+          <span id="equip-slot-ceinture-ico" style="font-size:18px;">🔗</span>
+          <span id="equip-slot-ceinture-lbl" style="max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Ceinture</span>
+        </button>
+        <!-- Bottes -->
+        <button id="equip-slot-bottes" onclick="equip_clickSlot('bottes')" style="position:absolute;top:84%;left:50%;transform:translate(-50%,0);min-width:52px;font-size:11px;padding:4px 6px;border-radius:8px;border:1px dashed var(--bord2);background:var(--bg3);color:var(--txt3);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit;">
+          <span id="equip-slot-bottes-ico" style="font-size:18px;">👢</span>
+          <span id="equip-slot-bottes-lbl" style="max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Bottes</span>
+        </button>
+      </div>
+      <!-- Panneau déséquiper (inline) -->
+      <div id="equip-desequiper-panel" style="display:none;margin-top:12px;background:var(--bg3);border:1px solid var(--bord2);border-radius:8px;padding:10px;text-align:center;">
+        <p id="equip-desequiper-txt" style="font-size:12px;color:var(--txt2);margin-bottom:8px;">Déséquiper ?</p>
+        <div style="display:flex;gap:6px;justify-content:center;">
+          <button class="btn danger" style="font-size:11px;padding:4px 12px;" onclick="equip_desequiper()">Déséquiper</button>
+          <button class="btn" style="font-size:11px;padding:4px 10px;" onclick="el('equip-desequiper-panel').style.display='none'">Annuler</button>
+        </div>
+      </div>
+      <!-- Sélecteur slot vide (inline) -->
+      <div id="equip-slot-selector" style="display:none;margin-top:12px;background:var(--bg3);border:1px solid var(--bord2);border-radius:8px;padding:10px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <p id="equip-slot-selector-titre" style="font-size:12px;font-weight:700;color:var(--txt);">Choisir un objet</p>
+          <button class="btn" style="font-size:11px;padding:2px 8px;" onclick="el('equip-slot-selector').style.display='none'">✕</button>
+        </div>
+        <div id="equip-slot-selector-list"></div>
+      </div>
+    </div>
+
+    <!-- SECTION INVENTAIRE -->
+    <div class="card">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+        <p class="st" style="margin:0;border:none;padding:0;">Inventaire</p>
+        <span id="equip-inv-count" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--bg3);color:var(--txt3);">0</span>
+      </div>
+      <div id="equip-inventaire-list"><p style="font-size:12px;color:var(--txt3);font-style:italic;">Ton inventaire est vide.</p></div>
+    </div>
+
+    <!-- Ancien contenu de référence des armes (préservé pour compatibilité JS eq-armes etc.) -->
+    <div style="display:none;">
     <div class="eq-sub-tbar">
       <button class="eq-sub-btn on" onclick="eqTab('armes',this)">Armes</button>
       <button class="eq-sub-btn" onclick="eqTab('armures',this)">Armures</button>
@@ -6017,7 +6105,17 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         </div>
       </div>
     </div>
-  </div>
+    </div><!-- /hidden old eq content -->
+  </div><!-- /rt-equip -->
+
+  <!-- ONGLET BOUTIQUE -->
+  <div id="rt-boutique" class="tc">
+    <div class="card">
+      <p class="st">🛒 Boutique</p>
+      <p style="font-size:12px;color:var(--txt3);margin-bottom:1rem;">Objets mis en vente par le MJ.</p>
+      <div id="equip-boutique-list"><p style="font-size:12px;color:var(--txt3);font-style:italic;">La boutique est vide pour l'instant.</p></div>
+    </div>
+  </div><!-- /rt-boutique -->
 
 </div>
 </div>
@@ -7173,17 +7271,19 @@ function chargerRegles(contId) {
   }
 }
 function rTab(name,btn){
-  ["perso","comps","sorts","caps","equip","regles","notes","campagne"].forEach(function(n){
+  ["perso","comps","sorts","caps","equip","boutique","regles","notes","campagne"].forEach(function(n){
     var e=el("rt-"+n);if(e)e.classList.remove("on");
   });
   document.querySelectorAll("#s-resume .tbtn").forEach(function(b){b.classList.remove("on");});
-  el("rt-"+name).classList.add("on");
+  var target=el("rt-"+name);if(target)target.classList.add("on");
   btn.classList.add("on");
   if(name==="sorts")rRendreSorts();
   if(name==="comps"){rRendreComps();rRendreCaps();}
   if(name==="caps")rRendreCaps();
   if(name==="notes"){rcRendreNotesTabs();rcRendreInfosTabs();}
   if(name==="perso"){var rne=el('r-notes-edit');if(rne){rne.style.height='auto';rne.style.height=rne.scrollHeight+'px';}}
+  if(name==="equip"){equip_rendreAll();}
+  if(name==="boutique"){equip_initBoutique();}
   if(name==="regles"){
     // Recharger le sous-onglet actif (Classe par défaut)
     var stabs=document.querySelectorAll('#rt-regles .rq-stab');
@@ -9275,20 +9375,29 @@ function rRendreSorts(){
   var info=LANCEURS.indexOf(cl)>=0?calcNbSorts():null;
   rMajInfosSorts(cl,bm,mod,info);
   rendreSlots("r-slots",true);
+  var prepType=getClassePreparationType();
+  // Classes qui préparent depuis la liste complète : sélection en édition uniquement
+  var selectionEditionSeulement=(prepType==="prepare"||prepType==="prepare_direct");
+  var gc=el("r-grimoire-card");
+  if(gc)gc.style.display=selectionEditionSeulement?"none":"";
   var pc=el("r-prep-count");
-  if(pc)pc.style.display=getClassePreparationType()==="connus"?"none":"";
+  if(pc)pc.style.display=(prepType==="connus"||selectionEditionSeulement)?"none":"";
   majCompteurPrepares();
   rRendreSortsPrep();
-  rBuildChips();rSearchSorts();
+  if(!selectionEditionSeulement){rBuildChips();rSearchSorts();}
 }
 
 function rRendreSortsPrep(){
   var c=el("r-sprep");if(!c)return;
-  var isConnus=getClassePreparationType()==="connus";
+  var prepType=getClassePreparationType();
+  var isConnus=prepType==="connus";
+  var isEditionOnly=prepType==="prepare"||prepType==="prepare_direct";
   var triés=SORTS.filter(function(s){return prepares.has(s.n);});
   triés.sort(function(a,b){return a.nv-b.nv||a.n.localeCompare(b.n);});
   if(!triés.length){
-    var msg=isConnus?"Aucun sort connu. Ajoute des sorts dans l'onglet Sorts  > Édition.":"Aucun sort préparé. Coche des sorts dans la liste ci-dessous.";
+    var msg=isConnus?"Aucun sort connu. Ajoute des sorts dans l'onglet Sorts > Édition."
+      :isEditionOnly?"Aucun sort préparé. Va dans l'onglet Sorts > Édition pour choisir tes sorts."
+      :"Aucun sort préparé. Coche des sorts dans la liste ci-dessous.";
     c.innerHTML="<p style='font-size:13px;color:var(--txt3);'>"+msg+"</p>";
     el("r-sprep-n").textContent="";
     return;
@@ -9395,6 +9504,7 @@ function campJoindre(){
     campEcrireJoueur({enLigne:true});
     campEcouter();
     majAffichageCampagne();
+    equip_init();
     var nomCamp=snap.data()&&snap.data().nom?snap.data().nom:"Campagne "+code;
     var nomEl=el("rc-nom");if(nomEl)nomEl.textContent=nomCamp;
     var codeEl=el("rc-code-aff");if(codeEl)codeEl.textContent=code;
@@ -9610,6 +9720,7 @@ function initCampagne(){
     campEcrireJoueur({enLigne:true});
     campEcouter();
     majAffichageCampagne();
+    equip_init();
     // Charger le nom de la campagne
     db.collection("parties").doc(campCode).get().then(function(snap){
       if(snap.exists){
@@ -9629,6 +9740,322 @@ window.addEventListener("beforeunload",function(){if(campCode&&db&&joueurId)camp
 window.addEventListener("pagehide",function(){if(campCode&&db&&joueurId)campEcrireJoueur({enLigne:false,lastSeen:0});});
 // C8 Heartbeat lastSeen toutes les 20s
 setInterval(function(){if(campCode&&db&&joueurId)campEcrireJoueur({lastSeen:Date.now()});},20000);
+
+// ══════════════════════════════════════════
+// SYSTÈME D'ÉQUIPEMENT PJ
+// ══════════════════════════════════════════
+window._equip_items = {};          // itemId → item data
+window._equip_inventaire = [];     // array of itemIds
+window._equip_equipe = {};         // slot → itemId|null
+window._equip_itemsUnsub = null;
+window._equip_joueurUnsub = null;
+window._equip_boutiqueUnsub = null;
+window._equip_desequiperSlotTarget = null;
+
+var _EQUIP_RARETE_COLORS = {
+  "commun":"#9ca3af","peu commun":"#4ade80","rare":"#60a5fa",
+  "très rare":"#c084fc","légendaire":"var(--or)"
+};
+var _EQUIP_SLOT_LABELS = {
+  "chapeau":"Chapeau","amulette":"Amulette","cape":"Cape",
+  "anneau":"Anneau","anneau1":"Anneau 1","anneau2":"Anneau 2",
+  "ceinture":"Ceinture","bottes":"Bottes","inventaire":"Inventaire"
+};
+var _EQUIP_SLOT_DEFAULT_ICONS = {
+  "chapeau":"🎩","amulette":"📿","cape":"🧣",
+  "anneau1":"💍","anneau2":"💍","ceinture":"🔗","bottes":"👢"
+};
+
+function equip_init(){
+  // Arrêter les anciens listeners
+  if(window._equip_itemsUnsub){window._equip_itemsUnsub();window._equip_itemsUnsub=null;}
+  if(window._equip_joueurUnsub){window._equip_joueurUnsub();window._equip_joueurUnsub=null;}
+  if(!db||!campCode||!joueurId)return;
+
+  // Listener 1 : tous les items (collection globale)
+  window._equip_itemsUnsub=db.collection("items").onSnapshot(function(qs){
+    window._equip_items={};
+    qs.forEach(function(d){window._equip_items[d.id]=Object.assign({id:d.id},d.data());});
+    equip_rendreAll();
+  },function(e){console.error("equip items listener",e);});
+
+  // Listener 2 : doc joueur dans la campagne (inventaire + equipe)
+  window._equip_joueurUnsub=db.collection("parties").doc(campCode).collection("joueurs").doc(joueurId)
+    .onSnapshot(function(snap){
+      if(!snap.exists)return;
+      var d=snap.data();
+      window._equip_inventaire=d.inventaire||[];
+      window._equip_equipe=d.equipe||{chapeau:null,amulette:null,cape:null,anneau1:null,anneau2:null,ceinture:null,bottes:null};
+      equip_rendreAll();
+    },function(e){console.error("equip joueur listener",e);});
+}
+
+function equip_rendreAll(){
+  equip_rendreSlots();
+  equip_rendreInventaire();
+}
+
+function equip_rendreSlots(){
+  var equipe=window._equip_equipe||{};
+  var slots=["chapeau","amulette","cape","anneau1","anneau2","ceinture","bottes"];
+  slots.forEach(function(slot){
+    var btn=el("equip-slot-"+slot);
+    var icoEl=el("equip-slot-"+slot+"-ico");
+    var lblEl=el("equip-slot-"+slot+"-lbl");
+    if(!btn)return;
+    var itemId=equipe[slot];
+    var item=itemId?(window._equip_items||{})[itemId]:null;
+    if(item){
+      btn.style.border="1px solid var(--or)";
+      btn.style.background="rgba(201,162,39,0.1)";
+      btn.style.color="var(--txt)";
+      if(icoEl)icoEl.textContent=item.icone&&!item.icone.startsWith("http")?item.icone:"✨";
+      if(lblEl)lblEl.textContent=(item.nom||"").substring(0,8)+(item.nom&&item.nom.length>8?"…":"");
+    } else {
+      btn.style.border="1px dashed var(--bord2)";
+      btn.style.background="var(--bg3)";
+      btn.style.color="var(--txt3)";
+      if(icoEl)icoEl.textContent=_EQUIP_SLOT_DEFAULT_ICONS[slot]||"?";
+      if(lblEl)lblEl.textContent=_EQUIP_SLOT_LABELS[slot]||slot;
+    }
+  });
+}
+
+function equip_rendreInventaire(){
+  var cont=el("equip-inventaire-list");if(!cont)return;
+  var inv=window._equip_inventaire||[];
+  var items=window._equip_items||{};
+  var equipe=window._equip_equipe||{};
+  var countEl=el("equip-inv-count");if(countEl)countEl.textContent=inv.length;
+  if(!inv.length){
+    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);font-style:italic;">Ton inventaire est vide.</p>';
+    return;
+  }
+  // Construire set des items équipés
+  var equipes={};
+  Object.keys(equipe).forEach(function(slot){if(equipe[slot])equipes[equipe[slot]]=slot;});
+
+  cont.innerHTML=inv.map(function(itemId){
+    var item=items[itemId];
+    if(!item)return '<div style="font-size:12px;color:var(--txt3);padding:6px 0;border-bottom:1px solid var(--bord);">Objet inconnu ('+itemId+')</div>';
+    var rarColor=_EQUIP_RARETE_COLORS[item.rarete]||"#9ca3af";
+    var slotLbl=_EQUIP_SLOT_LABELS[item.slot]||item.slot||"Inventaire";
+    var icone=item.icone||"📦";
+    var isEquipe=!!equipes[itemId];
+    var equipSlot=equipes[itemId]||"";
+    var effetsHtml="";
+    if(item.effets&&Object.keys(item.effets).length>0){
+      effetsHtml='<div style="margin-top:4px;font-size:11px;color:var(--txt3);">'
+        +Object.keys(item.effets).map(function(k){return k+' : '+item.effets[k];}).join(" · ")
+        +'</div>';
+    }
+    return '<div style="background:var(--bg3);border:1px solid var(--bord);border-radius:8px;padding:10px;margin-bottom:8px;">'
+      +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+      +'<span style="font-size:22px;flex-shrink:0;">'+(icone.startsWith("http")?'<img src="'+icone+'" style="width:24px;height:24px;object-fit:contain;">':icone)+'</span>'
+      +'<div style="flex:1;min-width:0;">'
+      +'<span style="font-size:13px;font-weight:700;color:var(--txt);">'+item.nom+'</span>'
+      +' <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(0,0,0,.3);color:'+rarColor+';">'+item.rarete+'</span>'
+      +'<div style="font-size:11px;color:var(--txt3);">'+slotLbl+(isEquipe?' · <span style="color:var(--or);">Équipé ('+(_EQUIP_SLOT_LABELS[equipSlot]||equipSlot)+')</span>':'')+'</div>'
+      +'</div>'
+      +(item.slot!=="inventaire"?'<button class="btn" style="font-size:11px;padding:4px 10px;'+(isEquipe?"opacity:.5;cursor:not-allowed;":"")+'" '+(isEquipe?'disabled':'')+' onclick="equip_equiperItem(\''+itemId+'\')">Équiper</button>':'')
+      +'</div>'
+      +'<div id="equip-item-desc-'+itemId+'" style="display:none;margin-top:8px;font-size:12px;color:var(--txt2);line-height:1.6;">'
+      +(item.description||"Aucune description.")
+      +effetsHtml
+      +'</div>'
+      +'<button style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:11px;margin-top:4px;padding:0;font-family:inherit;" onclick="equip_toggleDesc(\''+itemId+'\',this)">▸ Détails</button>'
+      +'</div>';
+  }).join("");
+}
+
+function equip_toggleDesc(itemId,btn){
+  var d=el("equip-item-desc-"+itemId);if(!d)return;
+  var open=d.style.display!=="none";
+  d.style.display=open?"none":"";
+  btn.textContent=open?"▸ Détails":"▴ Masquer";
+}
+
+function equip_clickSlot(slot){
+  var equipe=window._equip_equipe||{};
+  var itemId=equipe[slot];
+  // Fermer les deux panneaux au départ
+  if(el("equip-desequiper-panel"))el("equip-desequiper-panel").style.display="none";
+  if(el("equip-slot-selector"))el("equip-slot-selector").style.display="none";
+  if(itemId){
+    // Slot occupé → proposer de déséquiper
+    var item=(window._equip_items||{})[itemId];
+    window._equip_desequiperSlotTarget=slot;
+    var txt=el("equip-desequiper-txt");
+    if(txt)txt.textContent="Déséquiper "+(item?'"'+item.nom+'"':itemId)+" ("+(_EQUIP_SLOT_LABELS[slot]||slot)+") ?";
+    if(el("equip-desequiper-panel"))el("equip-desequiper-panel").style.display="";
+  } else {
+    // Slot vide → ouvrir sélecteur d'items compatibles
+    equip_ouvrirSelectorSlot(slot);
+  }
+}
+function equip_ouvrirSelectorSlot(slot){
+  var inv=window._equip_inventaire||[];
+  var items=window._equip_items||{};
+  var equipe=window._equip_equipe||{};
+  // Clé de slot à comparer dans le champ item.slot
+  // anneau1/anneau2 → chercher items avec slot="anneau"
+  var slotCle=(slot==="anneau1"||slot==="anneau2")?"anneau":slot;
+  var compatibles=inv.filter(function(id){
+    var it=items[id];
+    if(!it)return false;
+    if(it.slot!==slotCle)return false;
+    // Exclure si déjà équipé dans un autre slot
+    var autreSlotsEquipes=Object.keys(equipe).filter(function(s){return s!==slot&&equipe[s]===id;});
+    return autreSlotsEquipes.length===0;
+  });
+  var titre=el("equip-slot-selector-titre");
+  var list=el("equip-slot-selector-list");
+  var panel=el("equip-slot-selector");
+  if(!list||!panel)return;
+  if(titre)titre.textContent="Équiper dans : "+(_EQUIP_SLOT_LABELS[slot]||slot);
+  if(!compatibles.length){
+    list.innerHTML="<p style='font-size:12px;color:var(--txt3);font-style:italic;'>Aucun objet compatible dans ton inventaire.</p>";
+  } else {
+    list.innerHTML=compatibles.map(function(id){
+      var it=items[id];
+      var rarColor=(_EQUIP_RARETE_COLORS&&_EQUIP_RARETE_COLORS[it.rarete])||"#9ca3af";
+      return "<div style='display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bord);'>"
+        +"<span style='font-size:20px;'>"+(it.icone||"📦")+"</span>"
+        +"<div style='flex:1;min-width:0;'>"
+        +"<p style='font-size:13px;font-weight:600;color:var(--txt);'>"+(it.nom||"?")+"</p>"
+        +"<span style='font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;background:rgba(0,0,0,.3);color:"+rarColor+";'>"+it.rarete+"</span>"
+        +"</div>"
+        +"<button class='btn ok' style='font-size:11px;padding:4px 10px;flex-shrink:0;' onclick='equip_equiperDansSlot(\""+id+"\",\""+slot+"\")'>Équiper</button>"
+        +"</div>";
+    }).join("");
+  }
+  panel.style.display="";
+}
+function equip_equiperDansSlot(itemId,slot){
+  var equipe=Object.assign({},window._equip_equipe||{});
+  equipe[slot]=itemId;
+  window._equip_equipe=equipe;
+  equip_ecrireFirestore();
+  if(el("equip-slot-selector"))el("equip-slot-selector").style.display="none";
+  equip_rendreSlots();
+  equip_rendreInventaire();
+  toast("Objet équipé !");
+}
+
+function equip_desequiper(){
+  var slot=window._equip_desequiperSlotTarget;if(!slot)return;
+  equip_desequiperSlot(slot);
+  if(el("equip-desequiper-panel"))el("equip-desequiper-panel").style.display="none";
+  window._equip_desequiperSlotTarget=null;
+}
+
+function equip_equiperItem(itemId){
+  var item=(window._equip_items||{})[itemId];if(!item)return;
+  var slot=item.slot;
+  if(!slot||slot==="inventaire"){toast("Cet objet n'a pas de slot équipable.");return;}
+  var equipe=Object.assign({},window._equip_equipe||{});
+  // Pour les anneaux, utiliser anneau1 puis anneau2
+  if(slot==="anneau"){
+    if(!equipe["anneau1"]){slot="anneau1";}
+    else if(!equipe["anneau2"]){slot="anneau2";}
+    else{
+      // Les deux slots d'anneau sont pris — remplacer anneau1
+      slot="anneau1";
+    }
+  }
+  equipe[slot]=itemId;
+  window._equip_equipe=equipe;
+  equip_ecrireFirestore();
+  toast("Objet équipé !");
+}
+
+function equip_desequiperSlot(slot){
+  var equipe=Object.assign({},window._equip_equipe||{});
+  equipe[slot]=null;
+  window._equip_equipe=equipe;
+  equip_ecrireFirestore();
+  toast("Objet déséquipé.");
+}
+
+function equip_ecrireFirestore(){
+  if(!db||!campCode||!joueurId)return;
+  db.collection("parties").doc(campCode).collection("joueurs").doc(joueurId)
+    .set({equipe:window._equip_equipe},{merge:true})
+    .catch(function(e){console.error("equip_ecrireFirestore",e);});
+}
+
+function equip_initBoutique(){
+  if(window._equip_boutiqueUnsub)return; // déjà initialisé
+  if(!db)return;
+  window._equip_boutiqueUnsub=db.collection("items").where("enBoutique","==",true).onSnapshot(function(qs){
+    var items=[];
+    qs.forEach(function(d){items.push(Object.assign({id:d.id},d.data()));});
+    equip_rendreBoutique(items);
+  },function(e){console.error("equip boutique listener",e);});
+}
+
+function equip_rendreBoutique(items){
+  var cont=el("equip-boutique-list");if(!cont)return;
+  if(!items||!items.length){
+    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);font-style:italic;">La boutique est vide pour l\'instant.</p>';
+    return;
+  }
+  cont.style.display="grid";
+  cont.style.gridTemplateColumns="repeat(auto-fill,minmax(160px,1fr))";
+  cont.style.gap="10px";
+  cont.innerHTML=items.map(function(item){
+    var rarColor=_EQUIP_RARETE_COLORS[item.rarete]||"#9ca3af";
+    var slotLbl=_EQUIP_SLOT_LABELS[item.slot]||item.slot||"Inventaire";
+    var icone=item.icone||"📦";
+    var effetsHtml="";
+    if(item.effets&&Object.keys(item.effets).length>0){
+      effetsHtml='<div style="margin-top:6px;font-size:11px;color:var(--txt3);">'
+        +Object.keys(item.effets).map(function(k){return k+' : '+item.effets[k];}).join('<br>')
+        +'</div>';
+    }
+    return '<div style="background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:4px;">'
+      +'<div style="font-size:28px;text-align:center;">'+(icone.startsWith("http")?'<img src="'+icone+'" style="width:28px;height:28px;object-fit:contain;">':icone)+'</div>'
+      +'<div style="font-size:13px;font-weight:700;color:var(--txt);">'+item.nom+'</div>'
+      +'<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(0,0,0,.35);color:'+rarColor+';display:inline-block;width:fit-content;">'+item.rarete+'</span>'
+      +'<div style="font-size:11px;color:var(--txt3);">'+slotLbl+'</div>'
+      +(item.description?'<div style="font-size:12px;color:var(--txt2);line-height:1.5;margin-top:4px;">'+item.description+'</div>':"")
+      +effetsHtml
+      +'</div>';
+  }).join("");
+}
+
+// ══ EFFETS D'ÉQUIPEMENT ══════════════════════════
+// Clés d'effets prévues pour usage futur :
+//   bonusCA          : number  → bonus à la CA
+//   bonusInit        : number  → bonus à l'initiative
+//   bonusAttaque     : number  → bonus aux jets d'attaque
+//   resistances      : array   → types de dégâts résistés (ex: ["feu","froid"])
+//   immunites        : array   → types de dégâts immunisés
+//   bonusCarac       : object  → {for:0, dex:0, con:0, int:0, sag:0, cha:0}
+//   bonusPVMax       : number  → bonus aux PV maximum
+function appliquerEffetsEquipement(joueurData) {
+  var cumul = {bonusCA:0, bonusInit:0, bonusAttaque:0, resistances:[], immunites:[], bonusCarac:{}, bonusPVMax:0};
+  var equipe = joueurData.equipe || {};
+  Object.keys(equipe).forEach(function(slot) {
+    var itemId = equipe[slot];
+    if (!itemId) return;
+    var item = (window._equip_items || {})[itemId];
+    if (!item || !item.effets) return;
+    var e = item.effets;
+    if (e.bonusCA)      cumul.bonusCA      += (e.bonusCA || 0);
+    if (e.bonusInit)    cumul.bonusInit    += (e.bonusInit || 0);
+    if (e.bonusAttaque) cumul.bonusAttaque += (e.bonusAttaque || 0);
+    if (e.bonusPVMax)   cumul.bonusPVMax   += (e.bonusPVMax || 0);
+    if (Array.isArray(e.resistances))  cumul.resistances  = cumul.resistances.concat(e.resistances);
+    if (Array.isArray(e.immunites))    cumul.immunites    = cumul.immunites.concat(e.immunites);
+    if (e.bonusCarac && typeof e.bonusCarac === 'object') {
+      ['for','dex','con','int','sag','cha'].forEach(function(c) {
+        cumul.bonusCarac[c] = (cumul.bonusCarac[c] || 0) + (e.bonusCarac[c] || 0);
+      });
+    }
+  });
+  return cumul;
+}
 
 // ══════════════════════════════════════════
 // EXPORT

@@ -247,6 +247,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <button class="tbtn" onclick="panelTab('combat',this)">Combat</button>
       <button class="tbtn" onclick="panelTab('regles',this)">📖 Règles</button>
       <button class="tbtn" onclick="panelTab('notes',this)">📝 Notes</button>
+      <button class="tbtn" onclick="panelTab('objets',this)">⚔️ Objets</button>
       <button class="tbtn" onclick="panelTab('campagne',this)">Campagne</button>
     </div>
 
@@ -364,6 +365,72 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         </div>
         <div id="mj-img-progress" style="display:none;font-size:11px;color:var(--txt3);margin-bottom:8px;text-align:center;"></div>
         <div id="mj-img-gallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(85px,1fr));gap:6px;"></div>
+      </div>
+    </div>
+
+    <!-- Onglet Objets -->
+    <div id="pt-objets" style="display:none;">
+
+      <!-- Formulaire création/édition -->
+      <div id="equip-mj-form-section" class="card" style="display:none;margin-bottom:1rem;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+          <h3 id="equip-mj-form-titre" style="font-size:14px;font-weight:700;color:var(--txt);">Créer un objet</h3>
+          <button style="background:none;border:none;color:var(--txt3);font-size:20px;cursor:pointer;line-height:1;" onclick="equip_mj_fermerForm()">×</button>
+        </div>
+        <input type="hidden" id="equip-mj-edit-id">
+        <div style="margin-bottom:.75rem;">
+          <label>Nom</label>
+          <input type="text" id="equip-mj-nom" placeholder="Épée longue +1">
+        </div>
+        <div style="margin-bottom:.75rem;">
+          <label>Description</label>
+          <textarea id="equip-mj-desc" rows="3" placeholder="Description de l'objet…"></textarea>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.75rem;">
+          <div>
+            <label>Rareté</label>
+            <select id="equip-mj-rarete">
+              <option value="commun">Commun</option>
+              <option value="peu commun">Peu commun</option>
+              <option value="rare">Rare</option>
+              <option value="très rare">Très rare</option>
+              <option value="légendaire">Légendaire</option>
+            </select>
+          </div>
+          <div>
+            <label>Emplacement</label>
+            <select id="equip-mj-slot">
+              <option value="inventaire">Inventaire</option>
+              <option value="chapeau">Chapeau</option>
+              <option value="amulette">Amulette</option>
+              <option value="cape">Cape</option>
+              <option value="anneau">Anneau</option>
+              <option value="ceinture">Ceinture</option>
+              <option value="bottes">Bottes</option>
+            </select>
+          </div>
+        </div>
+        <div style="margin-bottom:.75rem;">
+          <label>Icône (emoji ou URL)</label>
+          <input type="text" id="equip-mj-icone" placeholder="🗡️ ou URL">
+        </div>
+        <div style="margin-bottom:1rem;display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="equip-mj-boutique" style="width:auto;">
+          <label for="equip-mj-boutique" style="display:inline;font-size:13px;color:var(--txt2);margin:0;">Disponible en boutique</label>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn ok" style="flex:1;" onclick="equip_mj_sauvegarder()">Sauvegarder</button>
+          <button class="btn" onclick="equip_mj_fermerForm()">Annuler</button>
+        </div>
+      </div>
+
+      <!-- Liste des objets -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+          <p class="st" style="margin:0;border:none;padding:0;">Objets créés</p>
+          <button class="btn ok" style="font-size:11px;padding:4px 12px;" onclick="equip_mj_ouvrirForm(null)">+ Créer un objet</button>
+        </div>
+        <div id="equip-mj-liste"><p style="font-size:12px;color:var(--txt3);">Aucun objet créé.</p></div>
       </div>
     </div>
 
@@ -511,7 +578,7 @@ function seDeconnecter(){
   window.location.href="index.html";
 }
 function panelTab(name,btn){
-  ["joueurs","combat","regles","notes","campagne"].forEach(function(n){var e=el("pt-"+n);if(e)e.style.display="none";});
+  ["joueurs","combat","regles","notes","objets","campagne"].forEach(function(n){var e=el("pt-"+n);if(e)e.style.display="none";});
   document.querySelectorAll("#s-panel .tbar .tbtn").forEach(function(b){b.classList.remove("on");});
   var t=el("pt-"+name);if(t)t.style.display="";
   btn.classList.add("on");
@@ -603,6 +670,9 @@ function ouvrirPanel(code){
   el("panel-code").textContent=code;
   el("camp-code-big").textContent=code;
   show("s-panel");
+
+  // Initialiser le système d'objets
+  equip_mj_init();
 
   // Écouter le doc campagne
   campagneUnsub=db.collection("parties").doc(code).onSnapshot(function(snap){
@@ -1587,6 +1657,184 @@ function rendreModalFiche(jid,mir,f){
     +'</div>';
 
   el("modal-content").innerHTML=html;
+}
+
+// ══════════════════════════════════════════
+// SYSTÈME D'OBJETS MJ
+// ══════════════════════════════════════════
+window._equip_mj_items = [];
+window._equip_mj_itemsUnsub = null;
+
+var _RARETE_COLORS = {
+  "commun": "#9ca3af",
+  "peu commun": "#4ade80",
+  "rare": "#60a5fa",
+  "très rare": "#c084fc",
+  "légendaire": "var(--or)"
+};
+var _SLOT_LABELS = {
+  "chapeau":"Chapeau","amulette":"Amulette","cape":"Cape",
+  "anneau":"Anneau","ceinture":"Ceinture","bottes":"Bottes","inventaire":"Inventaire"
+};
+
+function equip_mj_init(){
+  if(window._equip_mj_itemsUnsub){window._equip_mj_itemsUnsub();window._equip_mj_itemsUnsub=null;}
+  if(!db||!mjId)return;
+  window._equip_mj_itemsUnsub=db.collection("items").where("creePar","==",mjId).onSnapshot(function(qs){
+    window._equip_mj_items=[];
+    qs.forEach(function(d){window._equip_mj_items.push(Object.assign({id:d.id},d.data()));});
+    equip_mj_rendreItems();
+  },function(e){console.error("equip_mj_init listener error",e);});
+}
+
+function equip_mj_rendreItems(){
+  var cont=el("equip-mj-liste");if(!cont)return;
+  var items=window._equip_mj_items||[];
+  if(!items.length){
+    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);">Aucun objet créé. Clique sur "+ Créer un objet" pour commencer.</p>';
+    return;
+  }
+  cont.innerHTML=items.map(function(item){
+    var rarColor=_RARETE_COLORS[item.rarete]||"#9ca3af";
+    var slotLbl=_SLOT_LABELS[item.slot]||item.slot||"Inventaire";
+    var icone=item.icone||"📦";
+    var isBoutique=!!item.enBoutique;
+    return '<div style="background:var(--bg3);border:1px solid var(--bord);border-radius:8px;padding:10px 12px;margin-bottom:8px;">'
+      +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
+      +'<span style="font-size:22px;flex-shrink:0;">'+(icone.startsWith("http")?'<img src="'+icone+'" style="width:24px;height:24px;object-fit:contain;">':icone)+'</span>'
+      +'<div style="flex:1;min-width:0;">'
+      +'<span style="font-size:13px;font-weight:700;color:var(--txt);">'+item.nom+'</span>'
+      +' <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(0,0,0,.35);color:'+rarColor+';">'+item.rarete+'</span>'
+      +'<div style="font-size:11px;color:var(--txt3);margin-top:2px;">'+slotLbl+'</div>'
+      +'</div>'
+      +'<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--txt2);cursor:pointer;white-space:nowrap;">'
+      +'<input type="checkbox" '+(isBoutique?"checked":"")+' onchange="equip_mj_toggleBoutique(\''+item.id+'\',this.checked)" style="width:auto;accent-color:var(--rouge);">'
+      +'Boutique</label>'
+      +'</div>'
+      +'<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">'
+      +'<button class="btn ok" style="font-size:11px;padding:4px 10px;" onclick="equip_mj_ouvrirDonner(\''+item.id+'\')">Donner</button>'
+      +'<button class="btn" style="font-size:11px;padding:4px 10px;" onclick="equip_mj_ouvrirForm(\''+item.id+'\')">Modifier</button>'
+      +'<button class="btn danger" style="font-size:11px;padding:4px 10px;" onclick="equip_mj_supprimer(\''+item.id+'\')">Supprimer</button>'
+      +'</div>'
+      +'<div id="equip-mj-donner-'+item.id+'" style="display:none;margin-top:8px;background:var(--bg2);border:1px solid var(--bord2);border-radius:8px;padding:10px;">'
+      +'<p style="font-size:11px;font-weight:700;color:var(--txt2);margin-bottom:8px;">Donner à un ou plusieurs PJ :</p>'
+      +'<div id="equip-mj-donner-pj-'+item.id+'">'
+      +_equip_mj_rendreCheckboxPJ(item.id)
+      +'</div>'
+      +'<div style="display:flex;gap:6px;margin-top:8px;">'
+      +'<button class="btn ok" style="font-size:11px;padding:4px 10px;" onclick="equip_mj_attribuer(\''+item.id+'\')">Attribuer</button>'
+      +'<button class="btn" style="font-size:11px;padding:4px 10px;" onclick="el(\'equip-mj-donner-'+item.id+'\').style.display=\'none\'">Annuler</button>'
+      +'</div>'
+      +'</div>'
+      +'</div>';
+  }).join("");
+}
+
+function _equip_mj_rendreCheckboxPJ(itemId){
+  var jids=Object.keys(joueursData).filter(function(jid){return joueursData[jid]._nom;});
+  if(!jids.length)return '<p style="font-size:11px;color:var(--txt3);">Aucun joueur dans la campagne.</p>';
+  return jids.map(function(jid){
+    var d=joueursData[jid];
+    return '<label style="display:flex;align-items:center;gap:6px;padding:5px 0;cursor:pointer;font-size:12px;color:var(--txt2);">'
+      +'<input type="checkbox" data-jid="'+jid+'" class="equip-mj-pjcb-'+itemId+'" style="width:auto;accent-color:var(--rouge);">'
+      +(d._nom||jid)+'</label>';
+  }).join("");
+}
+
+function equip_mj_ouvrirForm(id){
+  var item=id?window._equip_mj_items.find(function(i){return i.id===id;}):null;
+  el("equip-mj-edit-id").value=id||"";
+  el("equip-mj-form-titre").textContent=id?"Modifier l'objet":"Créer un objet";
+  el("equip-mj-nom").value=item?item.nom:"";
+  el("equip-mj-desc").value=item?item.description:"";
+  el("equip-mj-rarete").value=item?item.rarete:"commun";
+  el("equip-mj-slot").value=item?item.slot:"inventaire";
+  el("equip-mj-icone").value=item?item.icone:"";
+  el("equip-mj-boutique").checked=item?!!item.enBoutique:false;
+  el("equip-mj-form-section").style.display="";
+  el("equip-mj-nom").focus();
+}
+
+function equip_mj_fermerForm(){
+  el("equip-mj-form-section").style.display="none";
+  el("equip-mj-edit-id").value="";
+}
+
+function equip_mj_sauvegarder(){
+  var id=el("equip-mj-edit-id").value;
+  var nom=(el("equip-mj-nom").value||"").trim();
+  if(!nom){el("equip-mj-nom").focus();toast("Le nom est requis.");return;}
+  var data={
+    nom:nom,
+    description:(el("equip-mj-desc").value||"").trim(),
+    rarete:el("equip-mj-rarete").value,
+    slot:el("equip-mj-slot").value,
+    icone:(el("equip-mj-icone").value||"").trim(),
+    enBoutique:el("equip-mj-boutique").checked,
+    effets:{}
+  };
+  if(!id){
+    data.creePar=mjId;
+    data.creeLe=new Date().toISOString();
+    db.collection("items").doc().set(data).then(function(){
+      equip_mj_fermerForm();
+      toast("Objet créé !");
+    }).catch(function(e){toast("Erreur : "+e.message);});
+  } else {
+    db.collection("items").doc(id).set(data,{merge:true}).then(function(){
+      equip_mj_fermerForm();
+      toast("Objet mis à jour !");
+    }).catch(function(e){toast("Erreur : "+e.message);});
+  }
+}
+
+function equip_mj_supprimer(id){
+  var item=window._equip_mj_items.find(function(i){return i.id===id;});
+  if(!confirm("Supprimer l'objet \""+(item?item.nom:id)+"\" ?"))return;
+  db.collection("items").doc(id).delete().then(function(){
+    toast("Objet supprimé.");
+  }).catch(function(e){toast("Erreur : "+e.message);});
+}
+
+function equip_mj_toggleBoutique(id,val){
+  db.collection("items").doc(id).update({enBoutique:!!val}).catch(function(e){toast("Erreur : "+e.message);});
+}
+
+function equip_mj_ouvrirDonner(id){
+  // Fermer tous les panneaux "donner" sauf celui-ci
+  (window._equip_mj_items||[]).forEach(function(item){
+    var p=el("equip-mj-donner-"+item.id);
+    if(p&&item.id!==id)p.style.display="none";
+  });
+  var panel=el("equip-mj-donner-"+id);
+  if(!panel)return;
+  var toggled=panel.style.display!=="none";
+  panel.style.display=toggled?"none":"";
+  if(!toggled){
+    // Rafraîchir la liste des PJ
+    var pjCont=el("equip-mj-donner-pj-"+id);
+    if(pjCont)pjCont.innerHTML=_equip_mj_rendreCheckboxPJ(id);
+  }
+}
+
+function equip_mj_attribuer(itemId){
+  if(!campagneActive)return;
+  var checks=document.querySelectorAll(".equip-mj-pjcb-"+itemId+":checked");
+  if(!checks||!checks.length){toast("Sélectionne au moins un joueur.");return;}
+  var promises=[];
+  checks.forEach(function(cb){
+    var jid=cb.dataset.jid;if(!jid)return;
+    promises.push(
+      db.collection("parties").doc(campagneActive.id).collection("joueurs").doc(jid)
+        .set({inventaire:firebase.firestore.FieldValue.arrayUnion(itemId)},{merge:true})
+    );
+  });
+  Promise.all(promises).then(function(){
+    var n=checks.length;
+    toast("Objet attribué à "+n+" joueur"+(n>1?"s":"")+" !");
+    var panel=el("equip-mj-donner-"+itemId);
+    if(panel)panel.style.display="none";
+  }).catch(function(e){toast("Erreur : "+e.message);});
 }
 
 // ══════════════════════════════════════════
