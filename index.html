@@ -9628,6 +9628,9 @@ function chargerScript(url){
   }
   if(params.get('mjrules')==='1'){
     window._mjrulesMode=true;
+    // Le script est en bas du body : DOM déjà prêt, DOMContentLoaded ne refira jamais.
+    // On appelle directement — _mjrulesInit est hoistée dans le même bloc script.
+    setTimeout(function(){ _mjrulesInit(); }, 0);
   }
 })();
 
@@ -9646,11 +9649,6 @@ chargerScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"
     var btn=document.getElementById("btn-login");
     if(btn){btn.classList.add("on");btn.textContent="Rejoindre la partie →";}
     console.log(" Firebase prêt");
-    // ── Mode règles MJ ────────────────────────────────────
-    if(window._mjrulesMode){
-      _mjrulesInit();
-      return;
-    }
     // ── Mode MJ : auto-connexion sur le joueur cible ──────
     if(window._mjviewJid){
       _mjviewAutoConnect(window._mjviewJid);
