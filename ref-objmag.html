@@ -5,87 +5,94 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Objets magiques – D&D 5e</title>
 <style>
+:root{--rouge:#d97706;--bg:#1a1a2e;--bg2:#16213e;--bg3:#0f3460;--txt:#e0e0e0;--txt2:#a0a0b0;--txt3:#6a6a8a;--bord:rgba(255,255,255,0.08);--bord2:rgba(255,255,255,0.14);--or:#c9a227;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:system-ui,sans-serif;background:#1a1a2e;color:#e0e0e0;font-size:14px;line-height:1.6;padding:16px;}
-h1{font-size:20px;font-weight:700;color:#d97706;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.1);}
-h2{font-size:16px;font-weight:700;color:#d97706;margin:18px 0 8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.07);}
-h3{font-size:15px;font-weight:700;color:#c9a227;margin:14px 0 6px;}
-h4{font-size:13px;font-weight:700;color:#e0e0e0;margin:12px 0 4px;background:rgba(217,119,6,.15);padding:5px 8px;border-left:3px solid #d97706;border-radius:0 4px 4px 0;}
-p{margin-bottom:10px;color:#d0d0e0;}
-ul,ol{margin:6px 0 10px 18px;}
-li{margin-bottom:4px;color:#d0d0e0;}
-table{width:100%;border-collapse:collapse;margin:10px 0;}
-th,td{border:1px solid rgba(255,255,255,.12);padding:6px 10px;text-align:left;font-size:13px;}
-th{background:#16213e;color:#d97706;font-weight:700;}
-tr:nth-child(even) td{background:rgba(255,255,255,.03);}
-strong{color:#e0e0e0;}
-em{color:#c9a227;}
-a{color:#d97706;text-decoration:none;}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;padding:12px;}
+.hd{display:flex;align-items:center;gap:12px;padding-bottom:12px;margin-bottom:14px;border-bottom:2px solid var(--rouge);}
+.hd-icon{font-size:36px;line-height:1;}
+.hd-title{font-size:16px;font-weight:700;color:var(--txt);}
+.hd-sub{font-size:12px;color:var(--txt2);margin-top:2px;}
+.card{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:1rem 1.25rem;margin-bottom:8px;}
+.cap-section{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--bord);}
+.cap-section:first-child{margin-top:0;}
+.txt{font-size:12px;color:var(--txt2);line-height:1.8;}
+b,strong{color:var(--txt);}
+ul{margin:4px 0 4px 16px;}
+li{font-size:12px;color:var(--txt2);margin-bottom:3px;}
+table{width:100%;border-collapse:collapse;margin:6px 0;}
+th{background:var(--bg3);color:var(--txt3);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:6px 8px;border:1px solid var(--bord2);text-align:left;}
+td{border:1px solid var(--bord);padding:6px 8px;font-size:12px;color:var(--txt2);}
+tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+td b{color:var(--txt);}
 </style>
 </head>
 <body>
-<h1>Objets magiques</h1>
-<p>Les objets magiques sont glanés dans le butin des monstres vaincus ou découverts dans des caveaux perdus. Ils accordent des capacités rares ou complètent les capacités de leur propriétaire.</p>
+<div class="hd">
+  <span class="hd-icon">✨</span>
+  <div>
+    <p class="hd-title">Objets magiques</p>
+    <p class="hd-sub">Rareté, identification, lien et catégories</p>
+  </div>
+</div>
 
-<h2>Rareté</h2>
-<table>
-<tr><th>Rareté</th><th>Niveau min.</th><th>Valeur indicative</th></tr>
-<tr><td><strong>Commun</strong></td><td>1+</td><td>50 – 100 po</td></tr>
-<tr><td><strong>Peu commun</strong></td><td>1+</td><td>101 – 500 po</td></tr>
-<tr><td><strong>Rare</strong></td><td>5+</td><td>501 – 5 000 po</td></tr>
-<tr><td><strong>Très rare</strong></td><td>11+</td><td>5 001 – 50 000 po</td></tr>
-<tr><td><strong>Légendaire</strong></td><td>17+</td><td>50 001+ po</td></tr>
-</table>
-<p>Les objets consommables (potions, parchemins) valent généralement la <strong>moitié</strong> d'un objet permanent de même rareté.</p>
+<div class="card">
+  <p class="cap-section">Rareté et valeur</p>
+  <table>
+    <tr><th>Rareté</th><th>Niveau min.</th><th>Valeur indicative</th></tr>
+    <tr><td><b>Commun</b></td><td>1+</td><td>50 – 100 po</td></tr>
+    <tr><td><b>Peu commun</b></td><td>1+</td><td>101 – 500 po</td></tr>
+    <tr><td><b>Rare</b></td><td>5+</td><td>501 – 5 000 po</td></tr>
+    <tr><td><b>Très rare</b></td><td>11+</td><td>5 001 – 50 000 po</td></tr>
+    <tr><td><b>Légendaire</b></td><td>17+</td><td>50 001+ po</td></tr>
+  </table>
+  <p class="txt" style="margin-top:6px;">Les objets <b>consommables</b> (potions, parchemins) valent généralement la moitié d'un objet permanent de même rareté.</p>
+</div>
 
-<h2>Identifier un objet magique</h2>
-<ul>
-<li>Sort <em>identification</em> : révèle les propriétés immédiatement.</li>
-<li>Repos court en contact physique avec l'objet : propriétés révélées à la fin du repos.</li>
-<li>Potions : goûter suffit à identifier.</li>
-<li>Certains objets donnent des indices par leur usage (sauts extraordinaires avec un <em>anneau de saut</em>, etc.).</li>
-</ul>
+<div class="card">
+  <p class="cap-section">Identifier un objet magique</p>
+  <ul>
+    <li>Sort <em>identification</em> – révèle les propriétés immédiatement.</li>
+    <li>Repos court en contact physique – propriétés révélées à la fin du repos.</li>
+    <li>Potions – goûter suffit à identifier.</li>
+    <li>Certains objets donnent des indices par leur usage.</li>
+  </ul>
+</div>
 
-<h2>Lien</h2>
-<p>Certains objets nécessitent qu'une créature se lie à eux. Le lien s'effectue lors d'un repos court dédié (en contact physique). Règles clés :</p>
-<ul>
-<li>Maximum <strong>3 objets liés</strong> par créature.</li>
-<li>Impossible de se lier à deux copies du même objet.</li>
-<li>Le lien se rompt si la créature ne remplit plus les conditions, si l'objet est à plus de 30 m durant plus de 24 h, si la créature meurt, ou si une autre créature se lie à l'objet.</li>
-</ul>
+<div class="card">
+  <p class="cap-section">Lien (Attunement)</p>
+  <p class="txt">Certains objets nécessitent un lien : repos court dédié en contact physique. Maximum <b>3 objets liés</b> par créature simultanément.</p>
+  <ul>
+    <li>Impossible de se lier à deux copies du même objet.</li>
+    <li>Lien rompu si : conditions non remplies, objet à +30 m pendant +24 h, mort de la créature, ou lien d'une autre créature.</li>
+    <li>Une créature sans lien n'obtient que les avantages non magiques de l'objet.</li>
+  </ul>
+</div>
 
-<h2>Catégories</h2>
-<h4>Anneaux</h4>
-<p>Portés à un doigt ou appendice similaire. Très grande variété de pouvoirs.</p>
-<h4>Armes</h4>
-<p>Convoitées par les aventuriers. Les munitions d'une arme magique à propriété munitions sont considérées comme magiques.</p>
-<h4>Armures</h4>
-<p>Doivent être portées pour que la magie fonctionne.</p>
-<h4>Baguettes</h4>
-<p>35–40 cm. En métal, os ou bois, avec extrémités en métal, cristal ou pierre.</p>
-<h4>Bâtons</h4>
-<p>1,50–1,80 m. Poids : 1–3,5 kg. Peut généralement être utilisé comme arme (bâton).</p>
-<h4>Objets merveilleux</h4>
-<p>Bottes, ceintures, capes, gants, bijoux, amulettes, sacs, tapis, boules de cristal, instruments, etc.</p>
-<h4>Parchemins</h4>
-<p>Sort stocké par écrit. Lire le parchemin déclenche la magie et le détruit. Toute créature comprenant une langue écrite peut tenter de l'activer.</p>
-<h4>Potions</h4>
-<p>~10 cl de liquide magique. Boire ou administrer = 1 action. Effet immédiat, objet dépensé.</p>
-<h4>Sceptres</h4>
-<p>60–90 cm, 1–2,5 kg. En métal, bois ou os.</p>
+<div class="card">
+  <p class="cap-section">Catégories d'objets</p>
+  <p class="txt"><b>Anneaux</b> – Portés à un doigt. Grande variété de pouvoirs.</p>
+  <p class="txt"><b>Armes</b> – Les munitions d'une arme magique à propriété munitions sont considérées comme magiques.</p>
+  <p class="txt"><b>Armures</b> – Doivent être portées pour que la magie fonctionne.</p>
+  <p class="txt"><b>Baguettes</b> – 35–40 cm, en métal, os ou bois.</p>
+  <p class="txt"><b>Bâtons</b> – 1,50–1,80 m. Peut généralement servir d'arme (bâton).</p>
+  <p class="txt"><b>Objets merveilleux</b> – Bottes, ceintures, capes, gants, bijoux, sacs, instruments, etc.</p>
+  <p class="txt"><b>Parchemins</b> – Sort stocké par écrit. Lire = déclenche et détruit le parchemin. Toute créature lisant une langue peut tenter de l'activer.</p>
+  <p class="txt"><b>Potions</b> – ~10 cl de liquide. Boire ou administrer = 1 action. Effet immédiat, objet dépensé.</p>
+  <p class="txt"><b>Sceptres</b> – 60–90 cm, 1–2,5 kg, en métal, bois ou os.</p>
+</div>
 
-<h2>Porter et manier</h2>
-<p>Un objet magique doit être porté/maniable de manière logique. La plupart s'adaptent à toute taille de créature. Un personnage ne peut pas porter plusieurs armures, deux paires de bottes, etc.</p>
-<p>Les objets vendus par paires (bottes, gants, bracelets) ne confèrent leurs avantages que si <strong>la paire entière est portée</strong>.</p>
+<div class="card">
+  <p class="cap-section">Porter et manier</p>
+  <p class="txt">Un objet magique doit être porté de manière logique. La plupart s'adaptent à toute taille. On ne peut pas porter plusieurs armures, deux paires de bottes, etc.</p>
+  <p class="txt">Objets par paires (bottes, gants, bracelets) : avantages uniquement si <b>la paire entière est portée</b>.</p>
+</div>
 
-<h2>Activer un objet</h2>
-<h4>Mot de commande</h4>
-<p>Mot/phrase à prononcer. Ne fonctionne pas dans une zone de <em>silence</em>.</p>
-<h4>Consommables</h4>
-<p>Avaler (potion), appliquer (huile), lire (parchemin) — perd sa magie après usage.</p>
-<h4>Sorts intégrés</h4>
-<p>Lancé au niveau le plus bas possible. Ne dépense pas d'emplacement de sort. Composantes non requises sauf indication contraire. La concentration s'applique normalement.</p>
-<h4>Charges</h4>
-<p>Nombre révélé par le sort <em>identification</em> ou lors du lien. La créature liée sait combien de charges ont été regagnées lors d'une recharge.</p>
+<div class="card">
+  <p class="cap-section">Activer un objet</p>
+  <p class="txt"><b>Mot de commande</b> – Mot/phrase à prononcer. Ne fonctionne pas dans une zone de <em>silence</em>.</p>
+  <p class="txt"><b>Consommables</b> – Avaler (potion), appliquer (huile), lire (parchemin). Perd sa magie après usage.</p>
+  <p class="txt"><b>Sorts intégrés</b> – Lancé au niveau le plus bas. Ne dépense pas d'emplacement. Composantes non requises sauf indication. Concentration s'applique normalement.</p>
+  <p class="txt"><b>Charges</b> – Nombre révélé par <em>identification</em> ou lors du lien. La créature liée sait combien de charges ont été regagnées.</p>
+</div>
 </body>
 </html>

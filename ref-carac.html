@@ -5,122 +5,149 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Caractéristiques – D&D 5e</title>
 <style>
+:root{--rouge:#d97706;--bg:#1a1a2e;--bg2:#16213e;--bg3:#0f3460;--txt:#e0e0e0;--txt2:#a0a0b0;--txt3:#6a6a8a;--bord:rgba(255,255,255,0.08);--bord2:rgba(255,255,255,0.14);--or:#c9a227;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:system-ui,sans-serif;background:#1a1a2e;color:#e0e0e0;font-size:14px;line-height:1.6;padding:16px;}
-h1{font-size:20px;font-weight:700;color:#d97706;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.1);}
-h2{font-size:16px;font-weight:700;color:#d97706;margin:18px 0 8px;padding:4px 0;border-bottom:1px solid rgba(255,255,255,.07);}
-h3{font-size:15px;font-weight:700;color:#c9a227;margin:14px 0 6px;}
-h4{font-size:13px;font-weight:700;color:#e0e0e0;margin:12px 0 4px;background:rgba(217,119,6,.15);padding:5px 8px;border-left:3px solid #d97706;border-radius:0 4px 4px 0;}
-p{margin-bottom:10px;color:#d0d0e0;}
-ul,ol{margin:6px 0 10px 18px;}
-li{margin-bottom:4px;color:#d0d0e0;}
-table{width:100%;border-collapse:collapse;margin:10px 0;}
-th,td{border:1px solid rgba(255,255,255,.12);padding:6px 10px;text-align:left;font-size:13px;}
-th{background:#16213e;color:#d97706;font-weight:700;}
-tr:nth-child(even) td{background:rgba(255,255,255,.03);}
-strong{color:#e0e0e0;}
-em{color:#c9a227;}
-a{color:#d97706;text-decoration:none;}
-.encadre{background:#16213e;border:1px solid rgba(201,162,39,.3);border-radius:6px;padding:12px;margin:10px 0;font-size:13px;}
-.encadre strong{color:#c9a227;}
+body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--txt);font-size:14px;line-height:1.5;padding:12px;}
+.hd{display:flex;align-items:center;gap:12px;padding-bottom:12px;margin-bottom:14px;border-bottom:2px solid var(--rouge);}
+.hd-icon{font-size:36px;line-height:1;}
+.hd-title{font-size:16px;font-weight:700;color:var(--txt);}
+.hd-sub{font-size:12px;color:var(--txt2);margin-top:2px;}
+.card{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:1rem 1.25rem;margin-bottom:8px;}
+.cap-section{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--bord);}
+.cap-section:first-child{margin-top:0;}
+.txt{font-size:12px;color:var(--txt2);line-height:1.8;}
+b,strong{color:var(--txt);}
+ul{margin:4px 0 4px 16px;}
+li{font-size:12px;color:var(--txt2);margin-bottom:3px;}
+table{width:100%;border-collapse:collapse;margin:6px 0;}
+th{background:var(--bg3);color:var(--txt3);font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:6px 8px;border:1px solid var(--bord2);text-align:left;}
+td{border:1px solid var(--bord);padding:6px 8px;font-size:12px;color:var(--txt2);text-align:center;}
+td:first-child{text-align:left;}
+tr:nth-child(even) td{background:rgba(255,255,255,.02);}
+.encadre{background:var(--bg3);border:1px solid var(--bord2);border-radius:8px;padding:10px 12px;margin:8px 0;font-size:12px;color:var(--txt2);line-height:1.7;}
+.encadre b{color:var(--or);}
 </style>
 </head>
 <body>
-<h1>Utiliser les caractéristiques</h1>
-<p>Six caractéristiques décrivent les capacités de toute créature : <strong>Force</strong> (puissance physique), <strong>Dextérité</strong> (agilité), <strong>Constitution</strong> (endurance), <strong>Intelligence</strong> (raisonnement), <strong>Sagesse</strong> (perception/intuition), <strong>Charisme</strong> (personnalité).</p>
-
-<h2>Valeurs et modificateurs</h2>
-<table>
-<tr><th>Valeur</th><th>2–3</th><th>4–5</th><th>6–7</th><th>8–9</th><th>10–11</th><th>12–13</th><th>14–15</th><th>16–17</th><th>18–19</th><th>20–21</th><th>28–29</th><th>30</th></tr>
-<tr><td><strong>Mod.</strong></td><td>−4</td><td>−3</td><td>−2</td><td>−1</td><td>+0</td><td>+1</td><td>+2</td><td>+3</td><td>+4</td><td>+5</td><td>+9</td><td>+10</td></tr>
-</table>
-<p>Formule : <strong>(valeur − 10) ÷ 2</strong>, arrondi à l'inférieur.</p>
-
-<h2>Avantage et désavantage</h2>
-<p>Avec un <strong>avantage</strong> : lancer 2d20, prendre le plus haut. Avec un <strong>désavantage</strong> : prendre le plus bas. Avantage et désavantage s'annulent mutuellement, quelles que soient les sources.</p>
-
-<h2>Bonus de maîtrise</h2>
-<p>Déterminé par le niveau (ou le FP pour les monstres). S'applique une seule fois par jet. Peut être doublé (expertise) ou divisé par deux selon les capacités.</p>
-<table>
-<tr><th>Niv./FP</th><th>Bonus</th><th>Niv./FP</th><th>Bonus</th><th>Niv./FP</th><th>Bonus</th></tr>
-<tr><td>1–4</td><td>+2</td><td>9–12</td><td>+4</td><td>17–20</td><td>+6</td></tr>
-<tr><td>5–8</td><td>+3</td><td>13–16</td><td>+5</td><td>21+</td><td>+7/+8/+9</td></tr>
-</table>
-
-<h2>Jets de caractéristique</h2>
-<p>Lancer 1d20 + modificateur de carac + bonus de maîtrise (si applicable). Comparer au DD fixé par le MD.</p>
-<table>
-<tr><th>Difficulté</th><th>DD</th></tr>
-<tr><td>Très facile</td><td>5</td></tr>
-<tr><td>Facile</td><td>10</td></tr>
-<tr><td>Moyenne</td><td>15</td></tr>
-<tr><td>Difficile</td><td>20</td></tr>
-<tr><td>Très difficile</td><td>25</td></tr>
-<tr><td>Quasi impossible</td><td>30</td></tr>
-</table>
-<h4>Jets passifs</h4>
-<p><strong>10 + tous les modificateurs applicables</strong>. Avantage : +5. Désavantage : −5.</p>
-<h4>Opposition</h4>
-<p>Deux participants font chacun le jet adapté. Le plus haut total l'emporte. Égalité = statu quo.</p>
-
-<h2>Compétences par caractéristique</h2>
-<ul>
-<li><strong>Force</strong> : Athlétisme</li>
-<li><strong>Dextérité</strong> : Acrobaties, Discrétion, Escamotage</li>
-<li><strong>Intelligence</strong> : Arcanes, Investigation, Histoire, Nature, Religion</li>
-<li><strong>Sagesse</strong> : Dressage, Intuition, Médecine, Perception, Survie</li>
-<li><strong>Charisme</strong> : Intimidation, Persuasion, Représentation, Tromperie</li>
-</ul>
-
-<h2>Jets de sauvegarde</h2>
-<p>Lancer 1d20 + modificateur de carac + bonus de maîtrise (si maîtrise du JS). Résultat ≥ DD = succès. Chaque classe confère la maîtrise d'au moins 2 jets de sauvegarde.</p>
-
-<h2>Force</h2>
-<p><strong>Athlétisme</strong> : grimper, sauter, nager dans des situations difficiles.</p>
-<p><strong>Capacité de charge</strong> : valeur de FOR × 7,5 kg. Pousser/tirer/soulever : × 15 kg.</p>
-<p>Taille G : double la charge. Taille TP : moitié. Jets d'attaque/dégâts CàC : ajouter le mod. de Force.</p>
-
-<h2>Dextérité</h2>
-<p><strong>Acrobaties</strong> : rester debout, acrobaties, équilibre.</p>
-<p><strong>Discrétion</strong> : se cacher, se déplacer sans bruit.</p>
-<p><strong>Escamotage</strong> : subtiliser, dissimuler des objets.</p>
-<p>Initiative = jet de DEX au début du combat. CA = inclut le mod. de DEX selon l'armure portée.</p>
-
-<div class="encadre"><strong>SE CACHER</strong><br><br>
-Jet de Dextérité (Discrétion) contre la Sagesse (Perception) passive des observateurs (10 + mod. SAG + maîtrise).<br>
-Avantage chez l'observateur : +5 à la Perception passive. Désavantage : −5.
+<div class="hd">
+  <span class="hd-icon">🎲</span>
+  <div>
+    <p class="hd-title">Utiliser les caractéristiques</p>
+    <p class="hd-sub">Jets de carac., compétences, avantage, bonus de maîtrise</p>
+  </div>
 </div>
 
-<h2>Constitution</h2>
-<p>Aucune compétence associée. Les jets de CON couvrent retenir sa respiration, marcher sans repos, survivre sans eau/nourriture.</p>
-<p>Mod. de CON ajouté à chaque dé de vie pour calculer les PV.</p>
+<div class="card">
+  <p class="cap-section">6 caractéristiques</p>
+  <p class="txt"><b>FOR</b> Force – puissance physique · <b>DEX</b> Dextérité – agilité · <b>CON</b> Constitution – endurance</p>
+  <p class="txt"><b>INT</b> Intelligence – raisonnement · <b>SAG</b> Sagesse – perception · <b>CHA</b> Charisme – personnalité</p>
+</div>
 
-<h2>Intelligence</h2>
-<p><strong>Arcanes</strong> : sorts, objets magiques, traditions arcanes.</p>
-<p><strong>Histoire</strong> : événements passés, anciens royaumes.</p>
-<p><strong>Investigation</strong> : trouver des indices, déduire des informations.</p>
-<p><strong>Nature</strong> : terrain, plantes, animaux, météo.</p>
-<p><strong>Religion</strong> : dieux, rites, hiérarchies religieuses.</p>
-<p>Caractéristique d'incantation des <strong>Magiciens</strong>.</p>
+<div class="card">
+  <p class="cap-section">Valeurs et modificateurs</p>
+  <table>
+    <tr><th>Valeur</th><th>1</th><th>2–3</th><th>4–5</th><th>6–7</th><th>8–9</th><th>10–11</th><th>12–13</th><th>14–15</th><th>16–17</th><th>18–19</th><th>20–21</th><th>30</th></tr>
+    <tr><td><b>Mod.</b></td><td>−5</td><td>−4</td><td>−3</td><td>−2</td><td>−1</td><td>+0</td><td>+1</td><td>+2</td><td>+3</td><td>+4</td><td>+5</td><td>+10</td></tr>
+  </table>
+  <p class="txt" style="margin-top:6px;">Formule : <b>(valeur − 10) ÷ 2</b>, arrondi à l'inférieur.</p>
+</div>
 
-<h2>Sagesse</h2>
-<p><strong>Dressage</strong> : calmer/contrôler des animaux.</p>
-<p><strong>Intuition</strong> : lire les intentions, détecter les mensonges.</p>
-<p><strong>Médecine</strong> : stabiliser un allié mourant, diagnostiquer.</p>
-<p><strong>Perception</strong> : repérer, entendre, détecter des présences ou objets cachés.</p>
-<p><strong>Survie</strong> : pister, chasser, naviguer en terrain hostile.</p>
-<p>Caractéristique d'incantation des <strong>Clercs, Druides, Rôdeurs</strong>.</p>
+<div class="card">
+  <p class="cap-section">Avantage et désavantage</p>
+  <p class="txt"><b>Avantage</b> – Lancer 2d20, prendre le plus haut.</p>
+  <p class="txt"><b>Désavantage</b> – Lancer 2d20, prendre le plus bas.</p>
+  <p class="txt">Avantage et désavantage s'annulent mutuellement quel que soit le nombre de sources. On ne lance jamais plus de 2d20.</p>
+</div>
 
-<h2>Charisme</h2>
-<p><strong>Intimidation</strong> : influencer par la menace ou la violence.</p>
-<p><strong>Persuasion</strong> : influencer avec tact et bonnes manières.</p>
-<p><strong>Représentation</strong> : enchanter un public (musique, danse, théâtre).</p>
-<p><strong>Tromperie</strong> : cacher la vérité, bluffer, se déguiser.</p>
-<p>Caractéristique d'incantation des <strong>Bardes, Ensorceleurs, Occultistes, Paladins</strong>.</p>
+<div class="card">
+  <p class="cap-section">Bonus de maîtrise</p>
+  <table>
+    <tr><th>Niveau / FP</th><th>Bonus</th><th>Niveau / FP</th><th>Bonus</th><th>Niveau / FP</th><th>Bonus</th></tr>
+    <tr><td>1 – 4</td><td>+2</td><td>9 – 12</td><td>+4</td><td>17 – 20</td><td>+6</td></tr>
+    <tr><td>5 – 8</td><td>+3</td><td>13 – 16</td><td>+5</td><td>21+</td><td>+7 / +8 / +9</td></tr>
+  </table>
+  <p class="txt" style="margin-top:6px;">S'applique une seule fois par jet. Peut être doublé (expertise) ou divisé par deux.</p>
+</div>
 
-<h2>Travailler ensemble</h2>
-<p>Un personnage qui aide donne l'<strong>avantage</strong> au meneur sur son jet (action Aider en combat). Le personnage doit pouvoir réaliser la tâche seul et la collaboration doit être productive.</p>
-<h4>Jet de groupe</h4>
-<p>Tout le monde fait le jet. Si <strong>au moins la moitié réussit</strong>, tout le groupe réussit. Sinon, tout le groupe échoue.</p>
+<div class="card">
+  <p class="cap-section">Degrés de difficulté (DD)</p>
+  <table>
+    <tr><th>Difficulté</th><th>DD</th><th>Difficulté</th><th>DD</th></tr>
+    <tr><td>Très facile</td><td>5</td><td>Difficile</td><td>20</td></tr>
+    <tr><td>Facile</td><td>10</td><td>Très difficile</td><td>25</td></tr>
+    <tr><td>Moyenne</td><td>15</td><td>Quasi impossible</td><td>30</td></tr>
+  </table>
+  <p class="txt" style="margin-top:6px;"><b>Jets passifs :</b> 10 + tous les modificateurs applicables. Avantage : +5. Désavantage : −5.</p>
+</div>
+
+<div class="card">
+  <p class="cap-section">Compétences par caractéristique</p>
+  <p class="txt"><b>Force</b> – Athlétisme</p>
+  <p class="txt"><b>Dextérité</b> – Acrobaties, Discrétion, Escamotage</p>
+  <p class="txt"><b>Intelligence</b> – Arcanes, Investigation, Histoire, Nature, Religion</p>
+  <p class="txt"><b>Sagesse</b> – Dressage, Intuition, Médecine, Perception, Survie</p>
+  <p class="txt"><b>Charisme</b> – Intimidation, Persuasion, Représentation, Tromperie</p>
+  <p class="txt" style="margin-top:6px;"><b>Constitution</b> – Aucune compétence. Mod. de CON ajouté à chaque dé de vie pour les PV.</p>
+</div>
+
+<div class="card">
+  <p class="cap-section">Force</p>
+  <p class="txt"><b>Athlétisme</b> – Grimper, sauter, nager dans des situations difficiles.</p>
+  <p class="txt"><b>Capacité de charge</b> – FOR × 7,5 kg. Pousser / tirer / soulever : FOR × 15 kg.</p>
+  <p class="txt">Taille G = double la charge. Taille TP = moitié. Jets d'attaque CàC et dégâts : ajouter mod. de FOR.</p>
+</div>
+
+<div class="card">
+  <p class="cap-section">Dextérité</p>
+  <p class="txt"><b>Acrobaties</b> – Équilibre, acrobaties, rester debout.</p>
+  <p class="txt"><b>Discrétion</b> – Se cacher, se déplacer sans bruit.</p>
+  <p class="txt"><b>Escamotage</b> – Subtiliser, dissimuler des objets.</p>
+  <p class="txt"><b>Initiative</b> = jet de DEX au début du combat.</p>
+  <p class="txt"><b>CA</b> – inclut tout ou partie du mod. de DEX selon l'armure portée.</p>
+  <div class="encadre"><b>SE CACHER</b><br>
+  Jet de DEX (Discrétion) contre la SAG (Perception) passive des observateurs (10 + mod. SAG + maîtrise). Avantage de l'observateur : +5. Désavantage : −5.
+  </div>
+</div>
+
+<div class="card">
+  <p class="cap-section">Intelligence</p>
+  <p class="txt"><b>Arcanes</b> – Sorts, objets magiques, traditions arcanes, plans d'existence.</p>
+  <p class="txt"><b>Histoire</b> – Événements passés, anciens royaumes, civilisations perdues.</p>
+  <p class="txt"><b>Investigation</b> – Trouver des indices, déduire des informations.</p>
+  <p class="txt"><b>Nature</b> – Terrain, plantes, animaux, météo, cycles naturels.</p>
+  <p class="txt"><b>Religion</b> – Dieux, rites, hiérarchies, symboles sacrés.</p>
+  <p class="txt" style="margin-top:4px;">Caractéristique d'incantation des <b>Magiciens</b>.</p>
+</div>
+
+<div class="card">
+  <p class="cap-section">Sagesse</p>
+  <p class="txt"><b>Dressage</b> – Calmer, contrôler des animaux.</p>
+  <p class="txt"><b>Intuition</b> – Lire les intentions, détecter les mensonges.</p>
+  <p class="txt"><b>Médecine</b> – Stabiliser un allié mourant, diagnostiquer.</p>
+  <p class="txt"><b>Perception</b> – Repérer, entendre, détecter présences ou objets cachés.</p>
+  <p class="txt"><b>Survie</b> – Pister, chasser, naviguer en terrain hostile.</p>
+  <p class="txt" style="margin-top:4px;">Caractéristique d'incantation des <b>Clercs, Druides, Rôdeurs</b>.</p>
+</div>
+
+<div class="card">
+  <p class="cap-section">Charisme</p>
+  <p class="txt"><b>Intimidation</b> – Influencer par la menace ou la violence.</p>
+  <p class="txt"><b>Persuasion</b> – Influencer avec tact et bonnes manières.</p>
+  <p class="txt"><b>Représentation</b> – Enchanter un public (musique, danse, théâtre).</p>
+  <p class="txt"><b>Tromperie</b> – Cacher la vérité, bluffer, se déguiser.</p>
+  <p class="txt" style="margin-top:4px;">Caractéristique d'incantation des <b>Bardes, Ensorceleurs, Occultistes, Paladins</b>.</p>
+</div>
+
+<div class="card">
+  <p class="cap-section">Jets de sauvegarde</p>
+  <p class="txt">1d20 + modificateur de carac. + bonus de maîtrise (si maîtrise du JS). Résultat ≥ DD = succès.</p>
+  <p class="txt">Chaque classe confère la maîtrise d'au moins <b>2 jets de sauvegarde</b>.</p>
+</div>
+
+<div class="card">
+  <p class="cap-section">Travailler ensemble</p>
+  <p class="txt"><b>Aide</b> – Un personnage peut donner l'avantage au meneur sur son jet (action Aider en combat). Le personnage aidant doit être capable de réaliser la tâche seul.</p>
+  <p class="txt"><b>Jet de groupe</b> – Tout le monde fait le jet. Si au moins la <b>moitié réussit</b>, le groupe entier réussit.</p>
+</div>
 </body>
 </html>
