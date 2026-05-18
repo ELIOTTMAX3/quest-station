@@ -6945,6 +6945,56 @@ function chargerRegles(contId) {
   container.style.padding = '16px';
   container.innerHTML = '';
   _rqHeader(container, ICONS_CL[cl]||'⚔', cl, 'Niveau '+niv+' · '+(v('race')||'—')+' · '+(v('joueur')||'—'));
+
+  // ── Capacités de classe depuis CAPS_DATA (sauf tableaux) ──
+  if(window.CAPS_DATA && CAPS_DATA.classes && CAPS_DATA.classes[cl]) {
+    var allCaps = CAPS_DATA.classes[cl];
+    var capsCL = [];
+    allCaps.slice()
+      .sort(function(a,b){return (a.niveau||1)-(b.niveau||1)||a.nom.localeCompare(b.nom,'fr');})
+      .forEach(function(cap){
+        if((cap.niveau||1)>niv) return;
+        if(!capEstActive(cap,allCaps,'cl')) return;
+        var parentCap=cap.parent?allCaps.find(function(c){return c.nom===cap.parent;}):null;
+        // Sauter les voies-enfants (sous-classes) : gérées via leur parent
+        if(cap.type==='choix'&&parentCap&&parentCap.type==='choix') return;
+        if(cap.type==='choix'){
+          // Afficher le choix fait (sous-classe / voie)
+          var chosen=choixCaps['cl_'+cap.nom];
+          var nomAff=chosen?cap.nom+' → '+chosen:cap.nom+' (choix à faire dans Capacités)';
+          capsCL.push({nom:nomAff,desc:chosen?'':cap.desc||'',niveau:cap.niveau||1});
+          // Ajouter les caps de la voie choisie
+          if(chosen){
+            allCaps.filter(function(c){return c.parent===chosen&&(c.niveau||1)<=niv;})
+              .sort(function(a,b){return (a.niveau||1)-(b.niveau||1);})
+              .forEach(function(vc){capsCL.push({nom:vc.nom,desc:vc.desc||'',niveau:vc.niveau||1});});
+          }
+        } else {
+          var nom=cap.nom,desc=cap.desc||'';
+          if(cap.options&&cap.options.length){var ch=choixCaps['cl_'+cap.nom];if(ch)nom=cap.nom+' : '+ch;}
+          capsCL.push({nom:nom,desc:desc,niveau:cap.niveau||1});
+        }
+      });
+    if(capsCL.length){
+      var capLbl=document.createElement('p');capLbl.className='cap-section';capLbl.textContent='Capacités de classe';container.appendChild(capLbl);
+      capsCL.forEach(function(cap){
+        var card=document.createElement('div');card.className='card';card.style.marginBottom='8px';
+        var hd=document.createElement('div');hd.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:'+(cap.desc?'6px':'0')+';cursor:'+(cap.desc?'pointer':'default')+';';
+        var badge=document.createElement('span');
+        badge.style.cssText='font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;background:rgba(45,138,78,.3);color:#6ee7a1;flex-shrink:0;white-space:nowrap;';
+        badge.textContent='Niv.'+cap.niveau;hd.appendChild(badge);
+        var t=document.createElement('p');t.style.cssText='font-size:13px;font-weight:700;color:var(--txt);margin:0;flex:1;';t.textContent=cap.nom;hd.appendChild(t);
+        card.appendChild(hd);
+        if(cap.desc){
+          var arr=document.createElement('span');arr.style.cssText='font-size:10px;color:var(--txt3);flex-shrink:0;';arr.textContent='▾';hd.appendChild(arr);
+          var d=document.createElement('div');d.style.cssText='font-size:12px;color:var(--txt2);line-height:1.7;display:none;';d.textContent=cap.desc;card.appendChild(d);
+          hd.addEventListener('click',function(){var open=d.style.display==='block';d.style.display=open?'none':'block';arr.textContent=open?'▾':'▴';});
+        }
+        container.appendChild(card);
+      });
+    }
+  }
+
   if (sec) {
     // Parse template content into uniform card layout
     var nodes = Array.from(sec.childNodes);
