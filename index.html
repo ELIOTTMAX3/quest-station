@@ -9689,15 +9689,14 @@ function _mjviewBandeau(jid){
   app.style.paddingTop='calc((var(--app-pt,0px)) + 30px)';
 }
 function _mjrulesInit(){
-  // Mode règles MJ : interface de navigation des règles sans connexion joueur
-  document.body.style.cssText='background:var(--bg);color:var(--txt);font-family:system-ui,sans-serif;margin:0;padding:0;min-height:100vh;';
-  document.body.innerHTML='';
+  // Mode règles MJ : NE PAS toucher au body existant (template regles-data doit rester accessible)
+  // Masquer toutes les screens existantes
+  document.querySelectorAll('.screen').forEach(function(s){s.style.display='none';});
 
   var CLASSES=['Barbare','Barde','Clerc','Druide','Ensorceleur','Guerrier','Magicien','Moine','Occultiste','Paladin','Rôdeur','Roublard'];
   var RACES=['Humain','Elfe','Haut-elfe','Elfe des bois','Elfe noir','Nain des collines','Nain des montagnes','Halfelin','Gnome','Demi-elfe','Demi-orc','Tiefelin','Dragonide'];
   var HISTS=['Acolyte','Artisan de guilde','Artiste','Charlatan','Criminel','Ermite','Hanté','Héros du peuple','Marin','Noble','Sauvageon','Soldat'];
 
-  // ── Onglets ──────────────────────────────────────────────────
   var TABS=[
     {id:'classe',    label:'Classe'},
     {id:'race',      label:'Race'},
@@ -9706,133 +9705,113 @@ function _mjrulesInit(){
     {id:'equip',     label:'Équipement'}
   ];
 
-  // Wrapper
-  var wrap=document.createElement('div');
-  wrap.style.cssText='max-width:700px;margin:0 auto;padding:12px;';
-  document.body.appendChild(wrap);
+  // Conteneur principal
+  var root=document.createElement('div');
+  root.id='mjr-root';
+  root.style.cssText='background:var(--bg);min-height:100vh;padding:12px;box-sizing:border-box;';
+  document.body.appendChild(root);
 
   // Tab bar
   var tbar=document.createElement('div');
-  tbar.style.cssText='display:flex;background:var(--bg2);border-radius:10px 10px 0 0;overflow:hidden;margin-bottom:0;border:1px solid var(--bord2);border-bottom:none;';
-  wrap.appendChild(tbar);
+  tbar.style.cssText='display:flex;background:var(--bg2);border-radius:10px 10px 0 0;overflow:hidden;border:1px solid var(--bord2);border-bottom:none;';
+  root.appendChild(tbar);
 
   // Contenu
   var content=document.createElement('div');
-  content.style.cssText='background:var(--bg2);border:1px solid var(--bord2);border-radius:0 0 10px 10px;min-height:400px;';
-  wrap.appendChild(content);
+  content.style.cssText='background:var(--bg2);border:1px solid var(--bord2);border-radius:0 0 10px 10px;overflow-y:auto;';
+  root.appendChild(content);
 
-  // Créer les pages
   var pages={};
   TABS.forEach(function(tab){
     var btn=document.createElement('button');
     btn.textContent=tab.label;
-    btn.style.cssText='flex:1;font-family:inherit;font-size:12px;font-weight:600;padding:10px 4px;cursor:pointer;border:none;background:none;color:var(--txt2);border-right:1px solid var(--bord);transition:background .12s;';
+    btn.style.cssText='flex:1;font-family:inherit;font-size:12px;font-weight:600;padding:10px 4px;cursor:pointer;border:none;background:none;color:var(--txt2);border-right:1px solid var(--bord);';
     btn.onclick=function(){switchTab(tab.id,btn);};
     tbar.appendChild(btn);
     tab._btn=btn;
-
     var page=document.createElement('div');
-    page.style.display='none';
+    page.style.cssText='display:none;padding:12px;';
     content.appendChild(page);
     pages[tab.id]=page;
   });
-  // Supprimer la bordure droite du dernier
   tbar.lastChild.style.borderRight='none';
 
-  // ── Sélecteur classe ─────────────────────────────────────────
-  var selClasse=document.createElement('select');
-  selClasse.style.cssText='width:100%;font-family:inherit;font-size:13px;color:var(--txt);background:var(--bg3);border:1px solid var(--bord2);border-radius:6px;padding:7px 8px;margin-bottom:10px;';
-  var optVide=document.createElement('option');optVide.value='';optVide.textContent='— Choisir une classe —';selClasse.appendChild(optVide);
-  CLASSES.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;selClasse.appendChild(o);});
-  var clCont=document.createElement('div');clCont.style.padding='12px';
-  var clInner=document.createElement('div');clInner.id='mjr-classe-cont';
-  clCont.appendChild(selClasse);clCont.appendChild(clInner);
-  pages['classe'].appendChild(clCont);
+  var selStyle='width:100%;font-family:inherit;font-size:13px;color:var(--txt);background:var(--bg3);border:1px solid var(--bord2);border-radius:6px;padding:7px 8px;margin-bottom:10px;';
 
-  selClasse.onchange=function(){
+  // ── Classe ───────────────────────────────────────────────────
+  var selCl=document.createElement('select');selCl.style.cssText=selStyle;
+  selCl.innerHTML='<option value="">— Choisir une classe —</option>';
+  CLASSES.forEach(function(c){var o=document.createElement('option');o.value=c;o.textContent=c;selCl.appendChild(o);});
+  var clInner=document.createElement('div');clInner.id='mjr-cl';
+  pages['classe'].appendChild(selCl);
+  pages['classe'].appendChild(clInner);
+  selCl.onchange=function(){
     clInner.innerHTML='';
-    if(!this.value)return;
-    // Temporairement mettre la classe dans v() via un hack
-    _mjrClasseTemp=this.value;
-    chargerRegles('mjr-classe-cont');
+    window._mjrClasseTemp=this.value||null;
+    if(this.value) chargerRegles('mjr-cl');
   };
 
-  // ── Sélecteur race ───────────────────────────────────────────
-  var selRace=document.createElement('select');
-  selRace.style.cssText=selClasse.style.cssText;
-  var optVideR=document.createElement('option');optVideR.value='';optVideR.textContent='— Choisir une race —';selRace.appendChild(optVideR);
-  RACES.forEach(function(r){var o=document.createElement('option');o.value=r;o.textContent=r;selRace.appendChild(o);});
-  var raCont=document.createElement('div');raCont.style.padding='12px';
-  var raInner=document.createElement('div');raInner.id='mjr-race-cont';
-  raCont.appendChild(selRace);raCont.appendChild(raInner);
-  pages['race'].appendChild(raCont);
-
-  selRace.onchange=function(){
+  // ── Race ─────────────────────────────────────────────────────
+  var selRa=document.createElement('select');selRa.style.cssText=selStyle;
+  selRa.innerHTML='<option value="">— Choisir une race —</option>';
+  RACES.forEach(function(r){var o=document.createElement('option');o.value=r;o.textContent=r;selRa.appendChild(o);});
+  var raInner=document.createElement('div');raInner.id='mjr-ra';
+  pages['race'].appendChild(selRa);
+  pages['race'].appendChild(raInner);
+  selRa.onchange=function(){
     raInner.innerHTML='';
-    if(!this.value)return;
-    _mjrRaceTemp=this.value;
-    chargerRace('mjr-race-cont');
+    window._mjrRaceTemp=this.value||null;
+    if(this.value) chargerRace('mjr-ra');
   };
 
-  // ── Sélecteur historique ─────────────────────────────────────
-  var selHist=document.createElement('select');
-  selHist.style.cssText=selClasse.style.cssText;
-  var optVideH=document.createElement('option');optVideH.value='';optVideH.textContent='— Choisir un historique —';selHist.appendChild(optVideH);
-  HISTS.forEach(function(h){var o=document.createElement('option');o.value=h;o.textContent=h;selHist.appendChild(o);});
-  var hiCont=document.createElement('div');hiCont.style.padding='12px';
-  var hiInner=document.createElement('div');hiInner.id='mjr-hist-cont';
-  hiCont.appendChild(selHist);hiCont.appendChild(hiInner);
-  pages['historique'].appendChild(hiCont);
-
-  selHist.onchange=function(){
+  // ── Historique ───────────────────────────────────────────────
+  var selHi=document.createElement('select');selHi.style.cssText=selStyle;
+  selHi.innerHTML='<option value="">— Choisir un historique —</option>';
+  HISTS.forEach(function(h){var o=document.createElement('option');o.value=h;o.textContent=h;selHi.appendChild(o);});
+  var hiInner=document.createElement('div');hiInner.id='mjr-hi';
+  pages['historique'].appendChild(selHi);
+  pages['historique'].appendChild(hiInner);
+  selHi.onchange=function(){
     hiInner.innerHTML='';
-    if(!this.value)return;
-    _mjrHistTemp=this.value;
-    chargerHistorique('mjr-hist-cont');
+    window._mjrHistTemp=this.value||null;
+    if(this.value) chargerHistorique('mjr-hi');
   };
 
-  // ── Création & Équipement : cloner depuis le template ───────
-  (function(){
-    var srcCr=document.getElementById('rq-creation');
-    if(srcCr){var d=document.createElement('div');d.style.padding='12px';d.innerHTML=srcCr.innerHTML;pages['creation'].appendChild(d);}
-    // Équipement : cloner les 3 sous-tables
-    var eqWrap=document.createElement('div');eqWrap.style.padding='12px';
-    ['armes','armures','outils'].forEach(function(tab){
-      var src=document.getElementById('rq-eq-'+tab);
-      if(src){var d=document.createElement('div');d.innerHTML=src.innerHTML;eqWrap.appendChild(d);}
-    });
-    pages['equip'].appendChild(eqWrap);
-  })();
+  // ── Création : cloner le contenu statique ────────────────────
+  var srcCr=document.getElementById('rq-creation');
+  if(srcCr){pages['creation'].innerHTML=srcCr.innerHTML;}
+  else{pages['creation'].innerHTML='<p style="color:var(--txt3);">Contenu indisponible.</p>';}
 
-  // ── Variables temporaires pour les fonctions existantes ──────
+  // ── Équipement : cloner les tables ───────────────────────────
+  ['armes','armures','outils'].forEach(function(tab){
+    var src=document.getElementById('rq-eq-'+tab);
+    if(src){var d=document.createElement('div');d.innerHTML=src.innerHTML;pages['equip'].appendChild(d);}
+  });
+
+  // ── Patch gCl / v pour que les fonctions de règles marchent ─
   window._mjrClasseTemp=null;
   window._mjrRaceTemp=null;
   window._mjrHistTemp=null;
-
-  // Patch temporaire de gCl / v pour les fonctions de règles
-  var _origGCl=window.gCl;
-  var _origV=window.v;
-  window.gCl=function(){ return window._mjrClasseTemp||(_origGCl?_origGCl():null); };
+  var _origGCl=window.gCl, _origV=window.v;
+  window.gCl=function(){ return window._mjrClasseTemp||null; };
   window.v=function(key){
-    if(key==='race')    return window._mjrRaceTemp||'';
+    if(key==='race')       return window._mjrRaceTemp||'';
     if(key==='historique') return window._mjrHistTemp||'';
-    if(key==='niveau')  return '20'; // MJ voit tout au niv max
-    if(key==='joueur')  return '';
+    if(key==='niveau')     return '20';
+    if(key==='joueur')     return 'MJ';
     return _origV?_origV(key):'';
   };
 
   function switchTab(id,btn){
     TABS.forEach(function(t){
       pages[t.id].style.display='none';
-      t._btn.style.background='none';
-      t._btn.style.color='var(--txt2)';
+      t._btn.style.cssText=t._btn.style.cssText.replace(/background:[^;]+;/,'background:none;').replace(/color:[^;]+;/,'color:var(--txt2);');
+      t._btn.style.background='none';t._btn.style.color='var(--txt2)';
     });
     pages[id].style.display='';
-    btn.style.background='var(--rouge)';
-    btn.style.color='white';
+    btn.style.background='var(--rouge)';btn.style.color='white';
   }
 
-  // Activer le premier onglet
   switchTab('classe',TABS[0]._btn);
 }
 
