@@ -9687,9 +9687,17 @@ function _mjviewBandeau(jid){
   app.style.paddingTop='calc((var(--app-pt,0px)) + 30px)';
 }
 function _mjrulesInit(){
-  // Mode règles MJ : NE PAS toucher au body existant (template regles-data doit rester accessible)
-  // Masquer toutes les screens existantes
+  // Mode règles MJ : masquer tout ce qui est visible sans toucher aux templates
+  // 1. Screens classiques (display:none via CSS .screen)
   document.querySelectorAll('.screen').forEach(function(s){s.style.display='none';});
+  // 2. Sections contrôlées par la classe .on (s-login, s-loading, s-resume, s-edit)
+  ['s-login','s-loading','s-resume','s-edit'].forEach(function(id){
+    var e=document.getElementById(id);
+    if(e){e.classList.remove('on');e.style.display='none';}
+  });
+  // 3. Div .app principale (menu onglets PJ)
+  var appMain=document.querySelector('body > .app');
+  if(appMain) appMain.style.display='none';
 
   var CLASSES=['Barbare','Barde','Clerc','Druide','Ensorceleur','Guerrier','Magicien','Moine','Occultiste','Paladin','Rôdeur','Roublard'];
   var RACES=['Humain','Elfe','Haut-elfe','Elfe des bois','Elfe noir','Nain des collines','Nain des montagnes','Halfelin','Gnome','Demi-elfe','Demi-orc','Tiefelin','Dragonide'];
