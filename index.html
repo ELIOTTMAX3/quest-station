@@ -8223,6 +8223,150 @@ function getSousOptions(cap, allCaps) {
   return [{ nom: cap.nom, desc: cap.desc }];
 }
 
+// ── Infos de base par classe (PV, maîtrises, équipement) ──────────────────
+var CLASSES_INFO = {
+  'Barbare': {
+    dv:'d12', pv1:'12 + mod. CON', pvSuiv:'1d12 (ou 7) + mod. CON',
+    armures:'Légères, intermédiaires, boucliers',
+    armes:'Courantes, de guerre', outils:'Aucun',
+    sauvegardes:'Force, Constitution',
+    competences:'2 parmi Athlétisme, Dressage, Intimidation, Nature, Perception, Survie',
+    equipement:['(a) hache à deux mains ou (b) arme de guerre corps à corps','(a) deux hachettes ou (b) arme courante','Sac d\'explorateur + 4 javelines']
+  },
+  'Barde': {
+    dv:'d8', pv1:'8 + mod. CON', pvSuiv:'1d8 (ou 5) + mod. CON',
+    armures:'Légères',
+    armes:'Courantes, arbalète de poing, épée longue, épée courte, rapière',
+    outils:'3 instruments de musique au choix',
+    sauvegardes:'Dextérité, Charisme',
+    competences:'3 compétences au choix',
+    equipement:['(a) rapière, (b) épée longue ou (c) arme courante','(a) sac de diplomate ou (b) sac d\'artiste','(a) luth ou (b) instrument de musique','Armure de cuir + dague']
+  },
+  'Clerc': {
+    dv:'d8', pv1:'8 + mod. CON', pvSuiv:'1d8 (ou 5) + mod. CON',
+    armures:'Légères, intermédiaires, boucliers',
+    armes:'Courantes', outils:'Aucun',
+    sauvegardes:'Sagesse, Charisme',
+    competences:'2 parmi Histoire, Intuition, Médecine, Persuasion, Religion',
+    equipement:['(a) masse d\'armes ou (b) marteau de guerre (si maîtrisé)','(a) armure d\'écailles, (b) armure de cuir ou (c) cotte de mailles (si maîtrisée)','(a) arbalète légère + 20 carreaux ou (b) arme courante','(a) sac d\'ecclésiastique ou (b) sac d\'explorateur','Bouclier + symbole sacré']
+  },
+  'Druide': {
+    dv:'d8', pv1:'8 + mod. CON', pvSuiv:'1d8 (ou 5) + mod. CON',
+    armures:'Légères, intermédiaires, boucliers (pas de métal)',
+    armes:'Gourdin, dague, fléchette, javeline, masse d\'armes, bâton, cimeterre, fronde, serpe, lance',
+    outils:'Kit d\'herboriste',
+    sauvegardes:'Intelligence, Sagesse',
+    competences:'2 parmi Arcanes, Dressage, Intuition, Médecine, Nature, Perception, Religion, Survie',
+    equipement:['(a) bouclier en bois ou (b) arme courante','(a) cimeterre ou (b) arme courante corps à corps','Armure de cuir + sac d\'explorateur + focaliseur druidique']
+  },
+  'Ensorceleur': {
+    dv:'d6', pv1:'6 + mod. CON', pvSuiv:'1d6 (ou 4) + mod. CON',
+    armures:'Aucune',
+    armes:'Dague, fléchette, fronde, bâton, arbalète légère', outils:'Aucun',
+    sauvegardes:'Constitution, Charisme',
+    competences:'2 parmi Arcanes, Intimidation, Intuition, Persuasion, Religion, Tromperie',
+    equipement:['(a) arbalète légère + 20 carreaux ou (b) arme courante','(a) sacoche à composantes ou (b) focaliseur arcanique','(a) sac d\'exploration souterraine ou (b) sac d\'explorateur','Deux dagues']
+  },
+  'Guerrier': {
+    dv:'d10', pv1:'10 + mod. CON', pvSuiv:'1d10 (ou 6) + mod. CON',
+    armures:'Toutes les armures, boucliers',
+    armes:'Courantes, de guerre', outils:'Aucun',
+    sauvegardes:'Force, Constitution',
+    competences:'2 parmi Acrobaties, Athlétisme, Dressage, Histoire, Intimidation, Intuition, Perception, Survie',
+    equipement:['(a) cotte de mailles ou (b) armure de cuir + arc long + 20 flèches','(a) arme de guerre + bouclier ou (b) deux armes de guerre','(a) arbalète légère + 20 carreaux ou (b) deux hachettes','(a) sac d\'exploration souterraine ou (b) sac d\'explorateur']
+  },
+  'Magicien': {
+    dv:'d6', pv1:'6 + mod. CON', pvSuiv:'1d6 (ou 4) + mod. CON',
+    armures:'Aucune',
+    armes:'Dague, fléchettes, fronde, bâton, arbalète légère', outils:'Aucun',
+    sauvegardes:'Intelligence, Sagesse',
+    competences:'2 parmi Arcanes, Histoire, Intuition, Investigation, Médecine, Religion',
+    equipement:['(a) bâton ou (b) dague','(a) sacoche à composantes ou (b) focaliseur arcanique','(a) sac d\'érudit ou (b) sac d\'explorateur','Un grimoire']
+  },
+  'Moine': {
+    dv:'d8', pv1:'8 + mod. CON', pvSuiv:'1d8 (ou 5) + mod. CON',
+    armures:'Aucune',
+    armes:'Courantes, épée courte',
+    outils:'1 outil d\'artisan ou instrument de musique au choix',
+    sauvegardes:'Force, Dextérité',
+    competences:'2 parmi Acrobaties, Athlétisme, Discrétion, Histoire, Intuition, Religion',
+    equipement:['(a) épée courte ou (b) arme courante','(a) sac d\'exploration souterraine ou (b) sac d\'explorateur','10 fléchettes']
+  },
+  'Occultiste': {
+    dv:'d8', pv1:'8 + mod. CON', pvSuiv:'1d8 (ou 5) + mod. CON',
+    armures:'Légères',
+    armes:'Courantes', outils:'Aucun',
+    sauvegardes:'Sagesse, Charisme',
+    competences:'2 parmi Arcanes, Histoire, Intimidation, Investigation, Nature, Religion, Tromperie',
+    equipement:['(a) arbalète légère + 20 carreaux ou (b) arme courante','(a) sacoche à composantes ou (b) focaliseur arcanique','(a) sac d\'érudit ou (b) sac d\'exploration souterraine','Armure de cuir + arme courante + 2 dagues']
+  },
+  'Paladin': {
+    dv:'d10', pv1:'10 + mod. CON', pvSuiv:'1d10 (ou 6) + mod. CON',
+    armures:'Toutes les armures, boucliers',
+    armes:'Courantes, de guerre', outils:'Aucun',
+    sauvegardes:'Sagesse, Charisme',
+    competences:'2 parmi Athlétisme, Intimidation, Intuition, Médecine, Persuasion, Religion',
+    equipement:['(a) arme de guerre + bouclier ou (b) deux armes de guerre','(a) 5 javelines ou (b) arme courante corps à corps','(a) sac d\'ecclésiastique ou (b) sac d\'explorateur','Cotte de mailles + symbole sacré']
+  },
+  'Rôdeur': {
+    dv:'d10', pv1:'10 + mod. CON', pvSuiv:'1d10 (ou 6) + mod. CON',
+    armures:'Légères, intermédiaires, boucliers',
+    armes:'Courantes, de guerre', outils:'Aucun',
+    sauvegardes:'Force, Dextérité',
+    competences:'3 parmi Athlétisme, Discrétion, Dressage, Intuition, Investigation, Nature, Perception, Survie',
+    equipement:['(a) armure d\'écailles ou (b) armure de cuir','(a) deux épées courtes ou (b) deux armes courantes corps à corps','(a) sac d\'exploration souterraine ou (b) sac d\'explorateur','Arc long + carquois de 20 flèches']
+  },
+  'Roublard': {
+    dv:'d8', pv1:'8 + mod. CON', pvSuiv:'1d8 (ou 5) + mod. CON',
+    armures:'Légères',
+    armes:'Courantes, arbalète de poing, épée courte, épée longue, rapière',
+    outils:'Outils de voleur',
+    sauvegardes:'Dextérité, Intelligence',
+    competences:'4 parmi Acrobaties, Athlétisme, Discrétion, Escamotage, Intimidation, Intuition, Investigation, Perception, Persuasion, Représentation, Tromperie',
+    equipement:['(a) rapière ou (b) épée courte','(a) arc court + 20 flèches ou (b) épée courte','(a) sac de cambrioleur, (b) sac d\'exploration souterraine ou (c) sac d\'explorateur','Armure de cuir + 2 dagues + outils de voleur']
+  }
+};
+
+function _rendreClasseInfo(container, cl) {
+  // Affiche les infos PV/maîtrises/équipements d'une classe dans un container
+  var info = CLASSES_INFO[cl];
+  if (!info) {
+    var msg = document.createElement('p');
+    msg.style.cssText = 'font-size:12px;color:var(--txt3);font-style:italic;';
+    msg.textContent = 'Infos non disponibles pour cette classe.';
+    container.appendChild(msg);
+    return;
+  }
+  // PV
+  var pvCard = document.createElement('div');
+  pvCard.style.cssText = 'background:var(--bg3);border-radius:8px;padding:8px 10px;margin-bottom:8px;';
+  pvCard.innerHTML = '<p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);margin-bottom:5px;">Points de vie</p>'
+    + '<p style="font-size:12px;color:var(--txt2);line-height:1.7;"><b style="color:var(--txt);">Dé de vie :</b> ' + info.dv
+    + '<br><b style="color:var(--txt);">Niv. 1 :</b> ' + info.pv1
+    + '<br><b style="color:var(--txt);">Niv. suiv. :</b> ' + info.pvSuiv + '</p>';
+  container.appendChild(pvCard);
+  // Maîtrises
+  var mCard = document.createElement('div');
+  mCard.style.cssText = 'background:var(--bg3);border-radius:8px;padding:8px 10px;margin-bottom:8px;';
+  mCard.innerHTML = '<p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);margin-bottom:5px;">Maîtrises</p>'
+    + '<p style="font-size:12px;color:var(--txt2);line-height:1.7;">'
+    + '<b style="color:var(--txt);">Armures :</b> ' + info.armures
+    + '<br><b style="color:var(--txt);">Armes :</b> ' + info.armes
+    + '<br><b style="color:var(--txt);">Outils :</b> ' + info.outils
+    + '<br><b style="color:var(--txt);">Sauvegardes :</b> ' + info.sauvegardes
+    + '<br><b style="color:var(--txt);">Compétences :</b> ' + info.competences + '</p>';
+  container.appendChild(mCard);
+  // Équipement
+  var eCard = document.createElement('div');
+  eCard.style.cssText = 'background:var(--bg3);border-radius:8px;padding:8px 10px;margin-bottom:8px;';
+  var eHtml = '<p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);margin-bottom:5px;">Équipement de départ</p>';
+  eHtml += '<ul style="font-size:12px;color:var(--txt2);line-height:1.8;padding-left:16px;">';
+  info.equipement.forEach(function(item){ eHtml += '<li>' + item + '</li>'; });
+  eHtml += '</ul>';
+  eCard.innerHTML = eHtml;
+  container.appendChild(eCard);
+}
+
 function rendreCapacites(containerId, niveauActuel) {
   var c = el(containerId);
   if (!c) return;
@@ -8237,7 +8381,7 @@ function rendreCapacites(containerId, niveauActuel) {
   ];
 
   sections.forEach(function(sec) {
-    if (!sec.items || !sec.items.length) return;
+    if (!gCl()) return; // pas de classe sélectionnée
 
     var sTitle = document.createElement("p");
     sTitle.className = "cap-section";
@@ -8252,8 +8396,9 @@ function rendreCapacites(containerId, niveauActuel) {
       var colAuto = document.createElement("div");
       var lblAuto = document.createElement("p");
       lblAuto.style.cssText = "font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--txt3);margin-bottom:6px;";
-      lblAuto.textContent = "Capacités possédées";
+      lblAuto.textContent = "Infos de classe";
       colAuto.appendChild(lblAuto);
+      _rendreClasseInfo(colAuto, gCl());
 
       var colChoix = document.createElement("div");
       var lblChoix = document.createElement("p");
@@ -8270,7 +8415,7 @@ function rendreCapacites(containerId, niveauActuel) {
         var p = items.find(function(c){ return c.nom === cap.parent; });
         return p ? profondeur(p, items, d+1) : d;
       }
-      var itemsTries = sec.items.slice().sort(function(a, b) {
+      var itemsTries = (sec.items||[]).slice().sort(function(a, b) {
         if (a.niveau !== b.niveau) return a.niveau - b.niveau;
         return a.nom.localeCompare(b.nom);
       });
@@ -8445,74 +8590,10 @@ function rendreCapacites(containerId, niveauActuel) {
 
           colChoix.appendChild(wrap);
 
-        } else {
-          // ── Colonne gauche : cap auto ──
-          hasAuto = true;
-          var row = document.createElement("div");
-          row.style.cssText = "margin-bottom:3px;";
-
-          var rowHd = document.createElement("div");
-          rowHd.style.cssText = "display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;background:var(--vbg);cursor:pointer;";
-
-          var badge = document.createElement("span");
-          badge.style.cssText = "font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;background:rgba(45,138,78,.3);color:#6ee7a1;flex-shrink:0;";
-          badge.textContent = "Niv." + cap.niveau;
-          rowHd.appendChild(badge);
-
-          var nomEl = document.createElement("span");
-          nomEl.style.cssText = "font-size:12px;font-weight:500;flex:1;color:var(--txt);";
-          var nomEdit = cap.nom;
-          if (cap.options && cap.options.length) {
-            var cleOpt = sec.src + "_" + cap.nom;
-            var choisiOpt = choixCaps[cleOpt];
-            if (choisiOpt) nomEdit = cap.nom + " : " + choisiOpt;
-          }
-          nomEl.textContent = nomEdit;
-          rowHd.appendChild(nomEl);
-
-          var arrEl = document.createElement("span");
-          arrEl.style.cssText = "font-size:10px;color:var(--txt3);";
-          arrEl.textContent = "▾";
-          rowHd.appendChild(arrEl);
-
-          var rowBd = document.createElement("div");
-          rowBd.style.cssText = "display:none;font-size:11px;color:var(--txt2);line-height:1.6;padding:6px 8px;background:var(--bg3);border-radius:0 0 6px 6px;";
-          var descEdit = cap.desc;
-          if (cap.options && cap.options.length) {
-            var cleOpt2 = sec.src + "_" + cap.nom;
-            var choisiOpt2 = choixCaps[cleOpt2];
-            if (choisiOpt2) {
-              var idxD = cap.desc.indexOf(choisiOpt2 + '.');
-              if (idxD >= 0) {
-                var suiteD = cap.desc.slice(idxD + choisiOpt2.length + 1).trim();
-                var idxFD = suiteD.length;
-                cap.options.forEach(function(a) {
-                  if (a !== choisiOpt2) { var p = suiteD.indexOf(a + '.'); if (p >= 0 && p < idxFD) idxFD = p; }
-                });
-                descEdit = suiteD.slice(0, idxFD).trim();
-              }
-            }
-          }
-          rowBd.textContent = descEdit;
-
-          rowHd.addEventListener("click", function() {
-            var open = rowBd.style.display === "block";
-            rowBd.style.display = open ? "none" : "block";
-            arrEl.textContent = open ? "▾" : "▴";
-          });
-
-          row.appendChild(rowHd);
-          row.appendChild(rowBd);
-          colAuto.appendChild(row);
         }
+        // (caps auto ignorées — PV/maîtrises/équipements déjà affichés via _rendreClasseInfo)
       });
 
-      if (!hasAuto) {
-        var msg = document.createElement("p");
-        msg.style.cssText = "font-size:12px;color:var(--txt3);font-style:italic;";
-        msg.textContent = "Aucune capacité à ce niveau.";
-        colAuto.appendChild(msg);
-      }
       if (!hasChoix) {
         var msg2 = document.createElement("p");
         msg2.style.cssText = "font-size:12px;color:var(--txt3);font-style:italic;";
@@ -8525,118 +8606,33 @@ function rendreCapacites(containerId, niveauActuel) {
       c.appendChild(grid);
 
     } else {
-      // ── MODE RÉSUMÉ : caps actives et débloquées ───────────
-      var itemsTries2 = sec.items.slice().sort(function(a, b) {
-        if (a.niveau !== b.niveau) return a.niveau - b.niveau;
-        return a.nom.localeCompare(b.nom);
+      // ── MODE RÉSUMÉ : PV / maîtrises / équipements ─────────
+      _rendreClasseInfo(c, gCl());
+      // Afficher aussi les choix de sous-classe faits
+      var choixFaits = (sec.items||[]).filter(function(cap){
+        if(cap.type!=='choix') return false;
+        var parentCap3=cap.parent?sec.items.find(function(c){return c.nom===cap.parent;}):null;
+        if(parentCap3&&parentCap3.type==='choix') return false;
+        if((cap.niveau||1)>niv) return false;
+        return capEstActive(cap,sec.items,sec.src);
       });
-      itemsTries2.forEach(function(cap) {
-        if (cap.niveau > niv) return;
-        if (!capEstActive(cap, sec.items, sec.src)) return;
-
-        var nomAffiche = cap.nom;
-        var descAffiche = cap.desc;
-
-if (cap.type === "auto" && cap.options && cap.options.length) {
-  var cle = sec.src + "_" + cap.nom;
-  var choisi = choixCaps[cle];
-  if (choisi) {
-    nomAffiche = cap.nom + " : " + choisi;
-    // Extraire la portion de desc correspondant à l'animal choisi
-    var regex = new RegExp(choisi + '\.\s*([^.]+(?:\.[^A-Z][^.]*)*)', 'i');
-    // Chercher le bloc "Animal. texte..." jusqu'au prochain animal ou fin
-    var options = cap.options;
-    var idxDebut = cap.desc.indexOf(choisi + '.');
-    if (idxDebut >= 0) {
-      var suite = cap.desc.slice(idxDebut + choisi.length + 1).trim();
-      // Couper au prochain animal (autre option)
-      var idxFin = suite.length;
-      options.forEach(function(autre) {
-        if (autre !== choisi) {
-          var pos = suite.indexOf(autre + '.');
-          if (pos >= 0 && pos < idxFin) idxFin = pos;
-        }
-      });
-      descAffiche = suite.slice(0, idxFin).trim();
-    }
-  }
-}
-
-        if (cap.type === "choix") {
-          var cle = sec.src + "_" + cap.nom;
-          var choisi = choixCaps[cle];
-          // Si c'est une voie enfant (parent = autre cap type:choix), ne pas afficher ici
-          var parentCap3 = cap.parent ? sec.items.find(function(c){ return c.nom === cap.parent; }) : null;
-          if (parentCap3 && parentCap3.type === "choix") return; // géré par le parent
-          if (!choisi) {
-            nomAffiche = cap.nom;
-            descAffiche = cap.desc;
-          } else {
-            // Chercher la desc dans les enfants directs (voies) ou options
-            var enfantChoisi = sec.items.find(function(c){ return c.parent === cap.nom && c.nom === choisi; });
-            nomAffiche = cap.nom + " : " + choisi;
-            if (enfantChoisi) {
-              descAffiche = enfantChoisi.desc || cap.desc;
-            } else {
-              var opts = getSousOptions(cap, sec.items);
-              var optChoisie = opts.find(function(o){ return o.nom === choisi; });
-              if (optChoisie) descAffiche = optChoisie.desc || cap.desc;
-            }
-          }
-        }
-
-        var item = document.createElement("div");
-        item.className = "cap-item";
-
-        var hd = document.createElement("div");
-        hd.className = "cap-hd";
-
-        var bd2 = document.createElement("span");
-        bd2.className = "cap-niv";
-        bd2.textContent = "Niv." + cap.niveau;
-        hd.appendChild(bd2);
-
-        var nomEl2 = document.createElement("span");
-        nomEl2.className = "cap-nom";
-        nomEl2.textContent = nomAffiche;
-        hd.appendChild(nomEl2);
-
-        // Étoile favori
-        var star = document.createElement("span");
-        var capKey = (sec.src||"") + "_" + cap.nom;
-        star.textContent = capsFavoris.has(capKey) ? "★" : "✩";
-        star.title = "Ajouter aux favoris";
-        star.style.cssText = "cursor:pointer;font-size:13px;padding:0 2px;flex-shrink:0;color:"+(capsFavoris.has(capKey)?"var(--or)":"var(--txt3)")+";";
-        star.addEventListener("click", function(e) {
-          e.stopPropagation();
-          if(capsFavoris.has(capKey)){ capsFavoris.delete(capKey); star.textContent="✩"; star.style.color="var(--txt3)"; }
-          else { capsFavoris.add(capKey); star.textContent="★"; star.style.color="var(--or)"; }
-          sauvegarder();
-          rMajFavoris();
+      if(choixFaits.length){
+        var scDiv=document.createElement('div');
+        scDiv.style.cssText='background:var(--bg3);border-radius:8px;padding:8px 10px;margin-top:4px;';
+        var scTitre=document.createElement('p');
+        scTitre.style.cssText='font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);margin-bottom:5px;';
+        scTitre.textContent='Choix de sous-classe';
+        scDiv.appendChild(scTitre);
+        choixFaits.forEach(function(cap){
+          var cle=sec.src+'_'+cap.nom;
+          var choisi=choixCaps[cle];
+          var row=document.createElement('p');
+          row.style.cssText='font-size:12px;color:var(--txt2);line-height:1.6;';
+          row.innerHTML='<b style="color:var(--txt);">'+cap.nom+' :</b> '+(choisi||'<em style="color:var(--txt3);">Non choisi</em>');
+          scDiv.appendChild(row);
         });
-        hd.appendChild(star);
-
-        var arr = document.createElement("span");
-        arr.className = "cap-arr";
-        arr.textContent = "▾";
-        hd.appendChild(arr);
-
-        var bd = document.createElement("div");
-        bd.className = "cap-bd";
-        var descEl = document.createElement("p");
-        descEl.style.cssText = "font-size:12px;color:var(--txt);line-height:1.6;";
-        descEl.textContent = descAffiche;
-        bd.appendChild(descEl);
-
-        hd.addEventListener("click", function() {
-          bd.classList.toggle("on");
-          arr.textContent = bd.classList.contains("on") ? "▴" : "▾";
-        });
-
-        item.appendChild(hd);
-        item.appendChild(bd);
-        c.appendChild(item);
-      });
+        c.appendChild(scDiv);
+      }
     }
   });
 
