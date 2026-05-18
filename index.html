@@ -9499,6 +9499,19 @@ function chargerScript(url){
     document.head.appendChild(s);
   });
 }
+// ── Détection mode MJ (iframe depuis mj.html) ──────────────
+(function(){
+  var params=new URLSearchParams(window.location.search);
+  if(params.get('mjview')==='1'){
+    var jid=params.get('jid')||'';
+    if(jid){
+      // Masquer l'écran login, afficher un bandeau MJ
+      window._mjviewJid=jid;
+      // On attend Firebase — l'auto-connexion se fait après initApp
+    }
+  }
+})();
+
 chargerScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js")
   .then(function(){return chargerScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js");})
   .then(function(){
@@ -9514,6 +9527,11 @@ chargerScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"
     var btn=document.getElementById("btn-login");
     if(btn){btn.classList.add("on");btn.textContent="Rejoindre la partie →";}
     console.log(" Firebase prêt");
+    // ── Mode MJ : auto-connexion sur le joueur cible ──────
+    if(window._mjviewJid){
+      _mjviewAutoConnect(window._mjviewJid);
+      return;
+    }
     // Reconnexion automatique campagne si déjà rejoint
     if(joueurId)initCampagne();
   })
@@ -9524,6 +9542,28 @@ chargerScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"
     if(d) d.innerHTML=" Firebase: "+e.message;
     console.error(" Firebase:",e);
   });
+
+function _mjviewAutoConnect(jid){
+  // Connecte la fiche du joueur jid en mode MJ (lecture/écriture complète)
+  joueurId=jid;
+  // Injecter un bandeau "Mode MJ" dans toutes les sections
+  _mjviewBandeau(jid);
+  show("s-loading");
+  updateHeader();
+  ecouterJoueur();
+}
+function _mjviewBandeau(jid){
+  // Bandeau persistant en haut de l'app
+  var b=document.createElement('div');
+  b.id='mj-view-bandeau';
+  b.style.cssText='position:fixed;top:0;left:0;right:0;z-index:8999;background:#b45309;color:#fff;'
+    +'font-size:12px;font-weight:700;text-align:center;padding:5px 8px;letter-spacing:.04em;';
+  b.textContent='👁 MODE MJ — Fiche de '+jid+' — toutes modifications sont sauvegardées';
+  document.body.prepend(b);
+  // Décaler le contenu pour ne pas être masqué par le bandeau
+  var app=document.querySelector('.app')||document.body;
+  app.style.paddingTop='calc((var(--app-pt,0px)) + 30px)';
+}
 // ―― PRESENCE visibilitychange
 document.addEventListener('visibilitychange',function(){
   if(!campCode||!db||!joueurId)return;

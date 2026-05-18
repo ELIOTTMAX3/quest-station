@@ -367,12 +367,21 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
   </div>
 </div>
 
-<!-- ══ MODAL FICHE JOUEUR ════════════════════════════════ -->
+<!-- ══ MODAL FICHE JOUEUR (résumé MJ) ════════════════════ -->
 <div id="modal-fiche" class="modal-bg" style="display:none;" onclick="if(event.target===this)fermerModal()">
   <div class="modal">
     <button class="modal-close" onclick="fermerModal()">×</button>
     <div id="modal-content"></div>
   </div>
+</div>
+
+<!-- ══ OVERLAY FICHE PJ COMPLÈTE (iframe) ═══════════════ -->
+<div id="overlay-fiche" style="display:none;position:fixed;inset:0;z-index:9000;background:var(--bg);flex-direction:column;">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 12px;background:var(--rouge);flex-shrink:0;">
+    <span id="overlay-fiche-titre" style="font-size:13px;font-weight:700;color:#fff;">Fiche joueur</span>
+    <button onclick="fermerFichePJ()" style="background:rgba(0,0,0,.3);border:none;color:#fff;font-size:18px;line-height:1;padding:4px 10px;border-radius:6px;cursor:pointer;">×</button>
+  </div>
+  <iframe id="overlay-fiche-iframe" src="" style="flex:1;border:none;width:100%;"></iframe>
 </div>
 
 <!-- ══ MODAL HP EDIT ════════════════════════════════════ -->
@@ -750,56 +759,6 @@ function sauvegarderConditions(){
   }).catch(function(e){toast("Erreur : "+e.message);});
 }
 
-// ══════════════════════════════════════════
-// VOIR FICHE (modale lecture seule)
-// ══════════════════════════════════════════
-function ouvrirFiche(jid){
-  var d=joueursData[jid]||{};
-  var pvact=d._pvact||0,pvmax=d._pvmax||0;
-  var pct=pvmax?Math.round(Math.max(0,Math.min(100,pvact/pvmax*100))):0;
-  var pvColor=pct>50?"var(--vert)":pct>25?"#d97706":"#dc2626";
-  var conds=Array.from(condActives[jid]||new Set());
-  var html='<div style="display:flex;align-items:center;gap:12px;margin-bottom:1rem;">'
-    +(d.avatar?'<img src="'+d.avatar+'" style="width:52px;height:52px;border-radius:50%;object-fit:cover;">'
-      :'<div style="width:52px;height:52px;border-radius:50%;background:var(--bg3);display:flex;align-items:center;justify-content:center;font-size:24px;color:var(--txt3);">?</div>')
-    +'<div>'
-    +'<div style="font-size:16px;font-weight:700;color:var(--txt);">'+(d._nom||jid)+'</div>'
-    +'<div style="font-size:12px;color:var(--txt3);">'+(d._cl||"—")+(d.enLigne?' · <span style="color:#4ade80;">En ligne</span>':" · Hors ligne")+'</div>'
-    +'</div>'
-    +'</div>';
-
-  if(pvmax){
-    html+='<div style="margin-bottom:1rem;">'
-      +'<div style="display:flex;justify-content:space-between;margin-bottom:4px;">'
-      +'<span style="font-size:11px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;font-weight:700;">Points de vie</span>'
-      +'<span style="font-size:14px;font-weight:700;color:var(--txt);">'+pvact+' / '+pvmax+'</span>'
-      +'</div>'
-      +'<div class="pvw" style="height:10px;"><div class="pvb" style="width:'+pct+'%;background:'+pvColor+'"></div></div>'
-      +'</div>';
-  }
-
-  html+='<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:1rem;">'
-    +'<div class="pcard-stat"><div class="pcard-stat-v">'+(d._ca||"—")+'</div><div class="pcard-stat-l">CA</div></div>'
-    +'<div class="pcard-stat"><div class="pcard-stat-v">'+(d._init!==undefined?(d._init>=0?"+"+d._init:d._init):"—")+'</div><div class="pcard-stat-l">Initiative</div></div>'
-    +'<div class="pcard-stat"><div class="pcard-stat-v">'+(d._cl||"—")+'</div><div class="pcard-stat-l">Classe</div></div>'
-    +'</div>';
-
-  if(conds.length){
-    html+='<div style="margin-bottom:1rem;">'
-      +'<p style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--txt3);margin-bottom:8px;">Conditions actives</p>'
-      +'<div style="display:flex;flex-wrap:wrap;gap:6px;">'
-      +conds.map(function(c){return '<span style="font-size:11px;font-weight:700;padding:3px 9px;border-radius:999px;background:rgba(220,38,38,.5);color:#fecaca;border:1px solid rgba(220,38,38,.4);">'+c+'</span>';}).join("")
-      +'</div></div>';
-  }
-
-  html+='<div style="display:flex;gap:8px;margin-top:1rem;">'
-    +'<button class="btn ok" style="flex:1;" onclick="fermerModal();ouvrirHp(\''+jid+'\')">Modifier PV</button>'
-    +'<button class="btn" style="flex:1;" onclick="fermerModal();ouvrirConditions(\''+jid+'\')">Conditions</button>'
-    +'</div>';
-
-  el("modal-content").innerHTML=html;
-  el("modal-fiche").style.display="flex";
-}
 function fermerModal(){el("modal-fiche").style.display="none";}
 
 // === C9 JOUEURS INSCRITS + KICK ===
@@ -1396,19 +1355,23 @@ function mjSupprimerEffet(idx,i){
 }
 
 // ══════════════════════════════════════════
-// FICHE PJ COMPLÈTE
+// FICHE PJ COMPLÈTE — iframe éditable
 // ══════════════════════════════════════════
 function ouvrirFiche(jid){
-  var mirror=joueursData[jid]||{};
-  el("modal-content").innerHTML='<p style="font-size:13px;color:var(--txt3);text-align:center;padding:2rem;">Chargement…</p>';
-  el("modal-fiche").style.display="flex";
-  if(db){
-    db.collection("parties").doc("campagne-1").collection("joueurs").doc(jid).get()
-      .then(function(snap){rendreModalFiche(jid,mirror,snap.exists?snap.data():{});})
-      .catch(function(){rendreModalFiche(jid,mirror,{});});
-  } else {
-    rendreModalFiche(jid,mirror,{});
-  }
+  var d=joueursData[jid]||{};
+  var nom=d._nom||jid;
+  var overlay=el("overlay-fiche");
+  var iframe=el("overlay-fiche-iframe");
+  var titre=el("overlay-fiche-titre");
+  if(titre) titre.textContent="Fiche de "+nom+" (mode MJ)";
+  iframe.src="index.html?mjview=1&jid="+encodeURIComponent(jid);
+  overlay.style.display="flex";
+}
+function fermerFichePJ(){
+  var overlay=el("overlay-fiche");
+  var iframe=el("overlay-fiche-iframe");
+  overlay.style.display="none";
+  iframe.src=""; // libère la page
 }
 
 function gModFiche(v){var m=Math.floor((parseInt(v)||10)-10)/2;return (m>=0?'+':'')+Math.floor(m);}
