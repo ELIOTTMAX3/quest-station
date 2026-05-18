@@ -697,16 +697,15 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
   <!-- ONGLET SORTS (lecture seule) -->
   <div id="rt-sorts" class="tc">
     <div class="card" style="padding:.75rem 1.25rem;margin-bottom:1rem;">
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
         <span style="font-size:13px;font-weight:700;color:var(--txt);" id="r-scl">—</span>
-        <div style="flex:1;"></div>
-        <span style="font-size:12px;color:var(--txt3);">Mod sorts : 
-          <button onclick="adjSortsMod(-1)" style="border:1px solid var(--bord);background:var(--bg3);border-radius:4px;padding:0 5px;cursor:pointer;font-size:11px;color:var(--txt2);">−</button>
-          <b style="color:var(--txt);min-width:28px;display:inline-block;text-align:center;" id="r-smod-val">0</b>
-          <button onclick="adjSortsMod(1)" style="border:1px solid var(--bord);background:var(--bg3);border-radius:4px;padding:0 5px;cursor:pointer;font-size:11px;color:var(--txt2);">+</button>
-        </span>
-        <span style="font-size:12px;color:var(--txt3);">Bonus : <b style="color:var(--txt);" id="r-sbonus">—</b></span>
-        <span style="font-size:12px;color:var(--txt3);">DD : <b style="color:var(--txt);" id="r-sdd">—</b></span>
+        <span style="font-size:11px;color:var(--txt3);" id="r-scl-carac"></span>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
+        <div class="sb"><div class="sl">DD sauvegarde</div><div class="sv" id="r-sdd">—</div></div>
+        <div class="sb"><div class="sl">Mod. attaque sort</div><div class="sv" id="r-sbonus">—</div></div>
+        <div class="sb"><div class="sl" id="r-sorts-label">Sorts connus</div><div class="sv" id="r-sorts-connus">—</div></div>
+        <div class="sb"><div class="sl">Cantrips</div><div class="sv" id="r-sorts-cantrips">—</div></div>
       </div>
       <div class="skg" id="r-slots" style="margin-top:10px;"></div>
     </div>
@@ -6194,11 +6193,10 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
         <span style="font-size:13px;font-weight:700;" id="e-scl">—</span>
         <div style="flex:1;"></div>
-        <span style="font-size:12px;color:var(--txt3);">Mod :</span>
-        <input type="number" id="sorts-mod" value="0" min="-5" max="10" style="width:60px;" oninput="calcSortsDD();sauvegarder()">
+        <span style="font-size:11px;color:var(--txt3);" id="e-scl-carac"></span>
       </div>
       <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px;">
-        <div class="sb"><div class="sl">Bonus incantation</div><div class="sv" id="s-bonus">—</div></div>
+        <div class="sb"><div class="sl">Mod. attaque sort</div><div class="sv" id="s-bonus">—</div></div>
         <div class="sb"><div class="sl">DD sauvegarde</div><div class="sv" id="s-dd">—</div></div>
         <div class="sb"><div class="sl">Cantrips</div><div class="sv" id="s-cantrips">—</div></div>
       </div>
@@ -7752,9 +7750,6 @@ function onClasseChange(){
   var dvv=el("dv-v");if(dvv)dvv.textContent=DV_CL[cl]||"d8";
   var scl=el("e-scl");if(scl)scl.textContent=cl||"—";
   updateAll();
-  if(LANCEURS.indexOf(cl)>=0&&CS_CL[cl]){
-    var mod=el("sorts-mod");if(mod)mod.value=gMod(parseInt(v(CS_CL[cl]))||10);
-  }
   calcSortsDD();
   if(SORTS.length) { eBuildChips();eFiltrerSorts(); }
   rendreSlots("e-slots",true);majCompteurGrimoire();majCompteurPrepares();
@@ -7831,7 +7826,8 @@ function onHistoriqueChange() {
 
 function calcMaxGrimoire() {
   // Retourne le nombre max de sorts que le joueur peut avoir dans son grimoire
-  var cl=gCl(), niv=gNiv(), mod=parseInt(v("sorts-mod"))||0, idx=niv-1;
+  var cl=gCl(), niv=gNiv(), idx=niv-1;
+  var mod=CS_CL[cl]?gMod(parseInt(v(CS_CL[cl]))||10):0;
   if(LANCEURS.indexOf(cl)<0) return 0;
   switch(cl) {
     case "Magicien":    return 6+(niv-1)*2;       // 6 au niv1 + 2/niveau
@@ -7847,7 +7843,8 @@ function calcMaxGrimoire() {
 
 function calcMaxPrepares() {
   // Retourne le nombre max de sorts préparés aujourd'hui
-  var cl=gCl(), niv=gNiv(), mod=parseInt(v("sorts-mod"))||0;
+  var cl=gCl(), niv=gNiv();
+  var mod=CS_CL[cl]?gMod(parseInt(v(CS_CL[cl]))||10):0;
   if(LANCEURS.indexOf(cl)<0) return 0;
   switch(cl) {
     case "Clerc": case "Druide": return Math.max(1, mod+niv);
@@ -7908,7 +7905,7 @@ var CANTRIPS = {
 function calcNbSorts() {
   var cl  = gCl();
   var niv = gNiv();
-  var mod = parseInt(v("sorts-mod")) || 0;
+  var mod = CS_CL[cl] ? gMod(parseInt(v(CS_CL[cl]))||10) : 0;
   var idx = niv - 1;
 
   if (LANCEURS.indexOf(cl) < 0) return null;
@@ -7973,51 +7970,49 @@ function calcNbSorts() {
 }
 
 function calcSortsDD() {
-  var bm  = gBM();
-  var mod = parseInt(v("sorts-mod")) || 0;
-  var cl  = gCl();
+  var bm = gBM();
+  var cl = gCl();
+  // Mod auto depuis la caractéristique d'incantation de la classe
+  var caracId = CS_CL[cl] || null;
+  var mod = caracId ? gMod(parseInt(v(caracId)) || 10) : 0;
+  var caracLabel = caracId ? caracId.toUpperCase() : "";
 
+  // Labels classe
   var scl = el("e-scl"); if(scl) scl.textContent = cl || "—";
+  var eclc = el("e-scl-carac"); if(eclc) eclc.textContent = caracLabel ? "Incantation : " + caracLabel : "";
 
   if (LANCEURS.indexOf(cl) < 0) {
-    ["s-bonus","s-dd","s-prep","s-grimoire-wrap"].forEach(function(i){
-      var e=el(i);if(e)e.textContent="—";
-    });
-    var sw = el("s-grimoire-wrap"); if(sw) sw.style.display="none";
+    ["s-bonus","s-dd","s-cantrips"].forEach(function(i){var e=el(i);if(e)e.textContent="—";});
+    var sp=el("s-prep");if(sp)sp.textContent="—";
+    var sw=el("s-grimoire-wrap");if(sw)sw.style.display="none";
     return;
   }
 
-  // Bonus et DD
+  // Bonus attaque et DD
   var sb = el("s-bonus"); if(sb) sb.textContent = fMod(mod + bm);
   var sd = el("s-dd");    if(sd) sd.textContent = 8 + bm + mod;
 
-  // Calcul nombre de sorts
+  // Sorts préparés/connus
   var info = calcNbSorts();
   if (!info) return;
-
-  // Sorts préparés/connus
-  var sp = el("s-prep");
-  if (sp) sp.textContent = info.detail;
+  var sp = el("s-prep"); if(sp) sp.textContent = info.detail;
 
   // Cantrips
   var sc = el("s-cantrips");
-  if (sc) sc.textContent = info.cantrips > 0 ? info.cantrips + " cantrips" : "—";
+  if(sc) sc.textContent = info.cantrips > 0 ? info.cantrips : "—";
 
-  // Grimoire (Magicien uniquement)
+  // Grimoire (Magicien)
   var gw = el("s-grimoire-wrap");
-  if (gw) {
-    if (info.type === "grimoire") {
+  if(gw){
+    if(info.type === "grimoire"){
       gw.style.display = "block";
       var sg = el("s-grimoire"); if(sg) sg.textContent = info.grimoire + " sorts";
-    } else {
-      gw.style.display = "none";
-    }
+    } else { gw.style.display = "none"; }
   }
 
-  // Mettre à jour aussi la vue résumé
-  var rs = el("r-sbonus"); if(rs) rs.textContent = fMod(mod + bm);
-  var rd = el("r-sdd");    if(rd) rd.textContent = 8 + bm + mod;
-  // Maj compteurs
+  // Synchroniser la vue résumé
+  rMajInfosSorts(cl, bm, mod, info);
+
   majCompteurGrimoire();
   majCompteurPrepares();
 }
@@ -9254,36 +9249,36 @@ function eRendrePrep(){
   });
 }
 
-function adjSortsMod(delta){
-  var e=el("sorts-mod");if(!e)return;
-  e.value=(parseInt(e.value)||0)+delta;
-  sauvegarder();rRendreSorts();
+function rMajInfosSorts(cl,bm,mod,info){
+  var caracId=CS_CL[cl]||null;
+  var caracLabel=caracId?caracId.toUpperCase():"";
+  var rscl=el("r-scl");if(rscl)rscl.textContent=LANCEURS.indexOf(cl)>=0?cl:(cl||"Pas de sorts");
+  var rclc=el("r-scl-carac");if(rclc)rclc.textContent=caracLabel?"Incantation : "+caracLabel:"";
+  var sb=el("r-sbonus"),sd=el("r-sdd");
+  if(LANCEURS.indexOf(cl)>=0){
+    if(sb)sb.textContent=fMod(mod+bm);
+    if(sd)sd.textContent=8+bm+mod;
+  } else {if(sb)sb.textContent="—";if(sd)sd.textContent="—";}
+  var lbl=el("r-sorts-label"),cnt=el("r-sorts-connus");
+  if(info&&LANCEURS.indexOf(cl)>=0){
+    var isPrep=info.type==="prepare"||info.type==="prepare_direct"||info.type==="grimoire";
+    if(lbl)lbl.textContent=isPrep?"Sorts préparés":"Sorts connus";
+    if(cnt)cnt.textContent=info.type==="grimoire"?info.prepares+(info.grimoire?" / "+info.grimoire+" grimoire":""):info.prepares;
+  } else {if(lbl)lbl.textContent="Sorts connus";if(cnt)cnt.textContent="—";}
+  var rc=el("r-sorts-cantrips");
+  if(rc)rc.textContent=(info&&info.cantrips>0)?info.cantrips:"—";
 }
 function rRendreSorts(){
-  var cl=gCl(),bm=gBM(),mod=parseInt(v("sorts-mod"))||0;
-  // Calculer automatiquement le mod depuis la stat de classe si pas overridé
-  if(CS_CL[cl]){
-    var autoMod=gMod(parseInt(v(CS_CL[cl]))||10);
-    // Si sorts-mod est à 0 ou correspond déjà à l'auto, on utilise l'auto
-    // Le PJ peut toujours ajuster via +/-
-    mod=parseInt(v("sorts-mod"))||autoMod;
-  }
-  // Afficher la valeur actuelle du mod
-  var smv=el("r-smod-val");if(smv)smv.textContent=fMod(mod);
-  // Header stats
-  var scl=el("r-scl");if(scl)scl.textContent=LANCEURS.indexOf(cl)>=0?cl:(cl||"Pas de sorts");
-  var sb=el("r-sbonus"),sd=el("r-sdd");
-  if(LANCEURS.indexOf(cl)>=0){if(sb)sb.textContent=fMod(mod+bm);if(sd)sd.textContent=8+bm+mod;}
-  else{if(sb)sb.textContent="—";if(sd)sd.textContent="—";}
-  // Emplacements lecture seule
+  var cl=gCl(),bm=gBM();
+  var caracId=CS_CL[cl]||null;
+  var mod=caracId?gMod(parseInt(v(caracId))||10):0;
+  var info=LANCEURS.indexOf(cl)>=0?calcNbSorts():null;
+  rMajInfosSorts(cl,bm,mod,info);
   rendreSlots("r-slots",true);
-  // Compteur préparés : masquer pour les classes "connus"
   var pc=el("r-prep-count");
   if(pc)pc.style.display=getClassePreparationType()==="connus"?"none":"";
   majCompteurPrepares();
-  // Sorts préparés (avec bouton retirer)
   rRendreSortsPrep();
-  // Grimoire pour choisir
   rBuildChips();rSearchSorts();
 }
 
