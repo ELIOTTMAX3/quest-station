@@ -246,6 +246,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <button class="tbtn on" onclick="panelTab('joueurs',this)">Joueurs</button>
       <button class="tbtn" onclick="panelTab('combat',this)">Combat</button>
       <button class="tbtn" onclick="panelTab('campagne',this)">Campagne</button>
+      <button class="tbtn" onclick="panelTab('regles',this)">📖 Règles</button>
     </div>
 
     <!-- Onglet Joueurs -->
@@ -330,6 +331,11 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         </div>
         <div id="mj-etats-effets" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;"></div>
       </div>
+    </div>
+
+    <!-- Onglet Règles -->
+    <div id="pt-regles" style="display:none;height:calc(100vh - 130px);margin:0 -1rem;">
+      <iframe id="mj-regles-iframe" src="" style="width:100%;height:100%;border:none;border-radius:0 0 10px 10px;"></iframe>
     </div>
 
     <!-- Onglet Campagne -->
@@ -486,11 +492,15 @@ function seDeconnecter(){
   window.location.href="index.html";
 }
 function panelTab(name,btn){
-  ["joueurs","combat","campagne"].forEach(function(n){var e=el("pt-"+n);if(e)e.style.display="none";});
+  ["joueurs","combat","campagne","regles"].forEach(function(n){var e=el("pt-"+n);if(e)e.style.display="none";});
   document.querySelectorAll("#s-panel .tbar .tbtn").forEach(function(b){b.classList.remove("on");});
   var t=el("pt-"+name);if(t)t.style.display="";
   btn.classList.add("on");
   if(name==="combat")ouvrirOngletCombat();
+  if(name==="regles"){
+    var iframe=el("mj-regles-iframe");
+    if(iframe&&!iframe.src){iframe.src="index.html?mjrules=1";}
+  }
 }
 
 // ══════════════════════════════════════════
