@@ -245,8 +245,9 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <div class="tbar">
       <button class="tbtn on" onclick="panelTab('joueurs',this)">Joueurs</button>
       <button class="tbtn" onclick="panelTab('combat',this)">Combat</button>
-      <button class="tbtn" onclick="panelTab('campagne',this)">Campagne</button>
       <button class="tbtn" onclick="panelTab('regles',this)">📖 Règles</button>
+      <button class="tbtn" onclick="panelTab('notes',this)">📝 Notes</button>
+      <button class="tbtn" onclick="panelTab('campagne',this)">Campagne</button>
     </div>
 
     <!-- Onglet Joueurs -->
@@ -338,6 +339,25 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <iframe id="mj-regles-iframe" style="width:100%;height:100%;border:none;border-radius:0 0 10px 10px;"></iframe>
     </div>
 
+    <!-- Onglet Notes -->
+    <div id="pt-notes" style="display:none;">
+      <div class="card">
+        <p class="st">📋 Infos du MJ <span style="font-size:10px;color:var(--txt3);font-weight:400;">(visible par les PJ)</span></p>
+        <div id="mj-infos-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
+        <textarea id="camp-infos-mj" rows="4" style="min-height:80px;" oninput="mjInfosInput()" placeholder="Résumé de session, quête en cours, lieux importants…"></textarea>
+      </div>
+      <div class="card">
+        <p class="st">📝 Notes partagées <span style="font-size:10px;color:var(--txt3);font-weight:400;">(PJ et MJ)</span></p>
+        <div id="mj-notes-partage-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
+        <textarea id="camp-notes-partage" rows="5" style="min-height:100px;" oninput="mjNotesPartageInput()" placeholder="Notes accessibles à tous…"></textarea>
+      </div>
+      <div class="card">
+        <p class="st">🔒 Notes MJ <span style="font-size:10px;color:var(--txt3);font-weight:400;">(privées)</span></p>
+        <div id="mj-notes-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
+        <textarea id="camp-notes" rows="5" style="min-height:100px;" oninput="mjNoteInput()"></textarea>
+      </div>
+    </div>
+
     <!-- Onglet Campagne -->
     <div id="pt-campagne" style="display:none;">
       <div class="card">
@@ -346,19 +366,9 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           <label>Nom de la campagne</label>
           <input type="text" id="camp-edit-nom" oninput="majCampagneNom()">
         </div>
-        <div style="margin-bottom:1rem;">
+        <div>
           <label>Code d'invitation</label>
           <div class="code-big" id="camp-code-big" style="font-size:24px;letter-spacing:.25em;">——</div>
-        </div>
-        <div style="margin-bottom:1rem;">
-          <label>Infos pour les joueurs <span style="font-size:10px;color:var(--txt3);">(visible par les PJ)</span></label>
-          <div id="mj-infos-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
-          <textarea id="camp-infos-mj" rows="4" style="min-height:80px;" oninput="mjInfosInput()" placeholder="Résumé de session, quête en cours, lieux importants…"></textarea>
-        </div>
-        <div>
-          <label>Notes MJ (privées)</label>
-          <div id="mj-notes-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
-          <textarea id="camp-notes" rows="5" style="min-height:100px;" oninput="mjNoteInput()"></textarea>
         </div>
       </div>
       <div class="card">
@@ -492,7 +502,7 @@ function seDeconnecter(){
   window.location.href="index.html";
 }
 function panelTab(name,btn){
-  ["joueurs","combat","campagne","regles"].forEach(function(n){var e=el("pt-"+n);if(e)e.style.display="none";});
+  ["joueurs","combat","regles","notes","campagne"].forEach(function(n){var e=el("pt-"+n);if(e)e.style.display="none";});
   document.querySelectorAll("#s-panel .tbar .tbtn").forEach(function(b){b.classList.remove("on");});
   var t=el("pt-"+name);if(t)t.style.display="";
   btn.classList.add("on");
@@ -593,6 +603,10 @@ function ouvrirPanel(code){
     el("camp-edit-nom").value=campagneActive.nom||"";
     _mjInfosTabs=_parseMjInfosTabs(campagneActive.infosMJ);_mjInfosIdx=0;mjRendreInfosTabs();
     _mjNotesTabs=_parseMjTabs(campagneActive.notes);_mjNotesIdx=0;mjRendreNotesTabs();
+    // Notes partagées (lecture/écriture MJ)
+    var _np=el("camp-notes-partage");
+    var _focused=_np&&document.activeElement===_np;
+    if(!_focused){_mjNotesPartageTabs=_parseMjTabs(campagneActive.notesPartage||"");_mjNotesPartageIdx=0;mjRendreNotesPartageTabs();}
     // Lire condActives depuis le doc
     if(campagneActive.conditions){
       Object.keys(campagneActive.conditions).forEach(function(jid){
@@ -965,6 +979,22 @@ function mjAddNoteTab(){var n=prompt("Nom de l'onglet :","Onglet "+(_mjNotesTabs
 function mjDelNoteTab(i){if(_mjNotesTabs.length<=1)return;if(!confirm("Supprimer l'onglet ?"))return;_mjNotesTabs.splice(i,1);if(_mjNotesIdx>=_mjNotesTabs.length)_mjNotesIdx=_mjNotesTabs.length-1;mjRendreNotesTabs();mjSaveNotesTabs();}
 function mjNoteInput(){var ta=el("camp-notes");if(ta)_mjNotesTabs[_mjNotesIdx].contenu=ta.value;clearTimeout(notesTO);notesTO=setTimeout(mjSaveNotesTabs,1000);}
 function mjSaveNotesTabs(){if(!campagneActive)return;db.collection("parties").doc(campagneActive.id).update({notes:_mjNotesTabs}).catch(function(){});}
+// === NOTES PARTAGÉES MJ ===
+var _mjNotesPartageTabs=[{nom:"Notes",contenu:""}],_mjNotesPartageIdx=0,_mjNpTO=null;
+function mjRendreNotesPartageTabs(){
+  var bar=el("mj-notes-partage-tabbar");if(!bar)return;
+  bar.innerHTML=_mjNotesPartageTabs.map(function(t,i){
+    var a=i===_mjNotesPartageIdx?"background:var(--bg);border:1px solid var(--or);color:var(--or);":"border:1px solid var(--bord);";
+    var del=_mjNotesPartageTabs.length>1?"<span onclick=\"event.stopPropagation();mjDelNpTab("+i+")\" style=\"margin-left:4px;opacity:.5;cursor:pointer;\">×</span>":"";
+    return "<button style=\"font-size:11px;padding:3px 8px;border-radius:4px;background:var(--bg3);cursor:pointer;"+a+"\" onclick=\"mjSelectNpTab("+i+")\">"+t.nom+del+"</button>";
+  }).join("")+"<button style=\"font-size:11px;padding:3px 8px;border-radius:4px;background:var(--bg3);border:1px solid var(--bord);cursor:pointer;opacity:.7;\" onclick=\"mjAddNpTab()\">+ Onglet</button>";
+  var ta=el("camp-notes-partage");if(ta)ta.value=_mjNotesPartageTabs[_mjNotesPartageIdx].contenu||"";
+}
+function mjSelectNpTab(i){var ta=el("camp-notes-partage");if(ta)_mjNotesPartageTabs[_mjNotesPartageIdx].contenu=ta.value;_mjNotesPartageIdx=i;mjRendreNotesPartageTabs();}
+function mjAddNpTab(){var n=prompt("Nom de l'onglet :","Onglet "+(_mjNotesPartageTabs.length+1));if(!n)return;var ta=el("camp-notes-partage");if(ta)_mjNotesPartageTabs[_mjNotesPartageIdx].contenu=ta.value;_mjNotesPartageTabs.push({nom:n,contenu:""});_mjNotesPartageIdx=_mjNotesPartageTabs.length-1;mjRendreNotesPartageTabs();mjSaveNotesPartage();}
+function mjDelNpTab(i){if(_mjNotesPartageTabs.length<=1)return;if(!confirm("Supprimer l'onglet ?"))return;_mjNotesPartageTabs.splice(i,1);if(_mjNotesPartageIdx>=_mjNotesPartageTabs.length)_mjNotesPartageIdx=_mjNotesPartageTabs.length-1;mjRendreNotesPartageTabs();mjSaveNotesPartage();}
+function mjNotesPartageInput(){var ta=el("camp-notes-partage");if(ta)_mjNotesPartageTabs[_mjNotesPartageIdx].contenu=ta.value;clearTimeout(_mjNpTO);_mjNpTO=setTimeout(mjSaveNotesPartage,1000);}
+function mjSaveNotesPartage(){if(!campagneActive)return;db.collection("parties").doc(campagneActive.id).update({notesPartage:_mjNotesPartageTabs}).catch(function(){});}
 function supprimerCampagne(){
   if(!campagneActive)return;
   if(!confirm("Supprimer la campagne "+campagneActive.nom+" ? Cette action est irréversible."))return;

@@ -435,6 +435,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <button class="tbtn" onclick="rTab('comps',this)">Compétences & Capacités</button>
     <button class="tbtn" id="r-tbtn-sorts" onclick="rTab('sorts',this)">Sorts</button>
     <button class="tbtn" onclick="rTab('regles',this)">Règles</button>
+    <button class="tbtn" onclick="rTab('notes',this)">📝 Notes</button>
     <button class="tbtn" onclick="rTab('campagne',this)">Campagne</button>
   </div>
 
@@ -631,6 +632,20 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <p class="st">Autres joueurs</p>
         <div id="rc-joueurs"><p style="font-size:12px;color:var(--txt3);">Chargement…</p></div>
       </div>
+    </div>
+  </div>
+
+  <!-- ONGLET NOTES (infos MJ + notes partagées) -->
+  <div id="rt-notes" class="tc">
+    <!-- Pas encore dans une campagne -->
+    <div id="rn-join">
+      <div class="r-section">
+        <p class="st">Notes partagées</p>
+        <p style="font-size:12px;color:var(--txt2);line-height:1.6;">Rejoins une campagne pour accéder aux infos du MJ et aux notes partagées.</p>
+      </div>
+    </div>
+    <!-- Dans une campagne -->
+    <div id="rn-panel" style="display:none;">
       <div class="r-section" id="rc-infos-mj-card" style="display:none;">
         <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="rcToggle('rc-infos-mj-body',this)">
           <p class="st" style="margin:0;border:none;padding:0;">📋 Infos du MJ</p>
@@ -642,14 +657,9 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         </div>
       </div>
       <div class="r-section">
-        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="rcToggle('rc-notes-body',this)">
-          <p class="st" style="margin:0;border:none;padding:0;">📝 Notes partagées</p>
-          <span style="font-size:12px;color:var(--txt3);">▾</span>
-        </div>
-        <div id="rc-notes-body" style="display:none;margin-top:8px;">
-          <div id="rc-notes-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
-          <textarea id="rc-notes-partage" placeholder="Écris ici…" style="width:100%;min-height:100px;font-size:13px;resize:vertical;" oninput="rcNoteInput()"></textarea>
-        </div>
+        <p class="st" style="margin-bottom:8px;">📝 Notes partagées</p>
+        <div id="rc-notes-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
+        <textarea id="rc-notes-partage" placeholder="Écris ici…" style="width:100%;min-height:120px;font-size:13px;resize:vertical;" oninput="rcNoteInput()"></textarea>
       </div>
     </div>
   </div>
@@ -7161,7 +7171,7 @@ function chargerRegles(contId) {
   }
 }
 function rTab(name,btn){
-  ["perso","comps","sorts","caps","equip","regles","campagne"].forEach(function(n){
+  ["perso","comps","sorts","caps","equip","regles","notes","campagne"].forEach(function(n){
     var e=el("rt-"+n);if(e)e.classList.remove("on");
   });
   document.querySelectorAll("#s-resume .tbtn").forEach(function(b){b.classList.remove("on");});
@@ -7170,6 +7180,7 @@ function rTab(name,btn){
   if(name==="sorts")rRendreSorts();
   if(name==="comps"){rRendreComps();rRendreCaps();}
   if(name==="caps")rRendreCaps();
+  if(name==="notes"){rcRendreNotesTabs();rcRendreInfosTabs();}
   if(name==="perso"){var rne=el('r-notes-edit');if(rne){rne.style.height='auto';rne.style.height=rne.scrollHeight+'px';}}
   if(name==="regles"){
     // Recharger le sous-onglet actif (Classe par défaut)
@@ -9555,13 +9566,18 @@ function rcToggle(id,hdr){
 }
 function majAffichageCampagne(){
   var joinEl=el("rc-join"),panelEl=el("rc-panel");
+  var rnJoin=el("rn-join"),rnPanel=el("rn-panel");
   if(campCode){
     if(joinEl)joinEl.style.display="none";
     if(panelEl)panelEl.style.display="";
+    if(rnJoin)rnJoin.style.display="none";
+    if(rnPanel)rnPanel.style.display="";
     var codeEl=el("rc-code-aff");if(codeEl)codeEl.textContent=campCode;
   } else {
     if(joinEl)joinEl.style.display="";
     if(panelEl)panelEl.style.display="none";
+    if(rnJoin)rnJoin.style.display="";
+    if(rnPanel)rnPanel.style.display="none";
   }
 }
 
