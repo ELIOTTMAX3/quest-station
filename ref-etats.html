@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>États – D&D 5e</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,sans-serif;background:#1a1a2e;color:#e0e0e0;font-size:14px;line-height:1.6;padding:16px;}
+h1{font-size:20px;font-weight:700;color:#d97706;margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid rgba(255,255,255,.1);}
+h2{font-size:16px;font-weight:700;color:#d97706;margin:18px 0 8px;}
+h3{font-size:15px;font-weight:700;color:#c9a227;margin:14px 0 6px;}
+h4{font-size:13px;font-weight:700;color:#e0e0e0;margin:12px 0 4px;background:rgba(217,119,6,.15);padding:5px 8px;border-left:3px solid #d97706;border-radius:0 4px 4px 0;}
+p{margin-bottom:10px;color:#d0d0e0;}
+ul,ol{margin:6px 0 10px 18px;}
+li{margin-bottom:4px;color:#d0d0e0;}
+table{width:100%;border-collapse:collapse;margin:10px 0;}
+th,td{border:1px solid rgba(255,255,255,.12);padding:6px 10px;text-align:left;font-size:13px;}
+th{background:#16213e;color:#d97706;font-weight:700;}
+tr:nth-child(even) td{background:rgba(255,255,255,.03);}
+strong{color:#e0e0e0;}
+em{color:#c9a227;}
+a{color:#d97706;text-decoration:none;}
+a:hover{text-decoration:underline;}
+.encadre{background:#16213e;border:1px solid rgba(201,162,39,.3);border-radius:6px;padding:12px;margin:10px 0;font-size:13px;}
+.encadre strong{color:#c9a227;}
+</style>
+</head>
+<body>
+<h1>États</h1>
+<p>Les états modifient les capacités d'une créature de différentes manières, et peuvent résulter d'un sort, d'une capacité de classe, de l'attaque d'un monstre ou d'un autre effet. La plupart des états, comme aveuglé, sont préjudiciables, mais quelques-uns, comme invisible, peuvent être des avantages. Un état dure jusqu'à ce qu'il soit contré (l'état À terre est contré par le fait de se relever par exemple) ou pour une durée déterminée par l'effet qui a imposé l'état.</p>
+<p>Si plusieurs effets imposent le même état à une créature, chaque instance de l'état conserve sa durée propre, mais les effets de l'état ne se cumulent pas. Une créature est soumise à un état ou ne l'est pas.</p>
+
+<h4>À terre [Prone]</h4>
+<ul>
+<li>La seule option de mouvement possible pour une créature à terre est de ramper, à moins qu'elle ne se relève et mette alors un terme à son état.</li>
+<li>La créature a un <strong>désavantage aux jets d'attaque</strong>.</li>
+<li>Un jet d'attaque contre la créature a un <strong>avantage</strong> si l'attaquant est à 1,50 m ou moins. Sinon, <strong>désavantage</strong>.</li>
+</ul>
+
+<h4>Agrippé [Grappled]</h4>
+<div class="encadre"><strong>ÉPUISEMENT</strong><br><br>
+L'épuisement se mesure en six niveaux :<br><br>
+<strong>1</strong> – Désavantage aux jets de caractéristique<br>
+<strong>2</strong> – Vitesse diminuée de moitié<br>
+<strong>3</strong> – Désavantage aux jets d'attaque et de sauvegarde<br>
+<strong>4</strong> – Maximum de PV diminué de moitié<br>
+<strong>5</strong> – Vitesse réduite à 0<br>
+<strong>6</strong> – Mort<br><br>
+Terminer un repos long réduit le niveau d'épuisement de 1 (si la créature a mangé et bu).
+</div>
+<ul>
+<li>La vitesse d'une créature agrippée passe à <strong>0</strong>, et elle ne peut bénéficier d'aucun bonus à sa vitesse.</li>
+<li>L'état prend fin si la créature qui agrippe est incapable d'agir.</li>
+<li>L'état se termine également si un effet met la créature hors de portée de ce qui l'agrippe.</li>
+</ul>
+
+<h4>Assourdi [Deafened]</h4>
+<ul>
+<li>Une créature assourdie n'entend pas et <strong>rate automatiquement</strong> tout jet nécessitant l'ouïe.</li>
+</ul>
+
+<h4>Aveuglé [Blinded]</h4>
+<ul>
+<li>Une créature aveuglée ne voit pas et <strong>rate automatiquement</strong> tout jet nécessitant la vue.</li>
+<li>Les jets d'attaque contre la créature ont un <strong>avantage</strong>, et les jets d'attaque de la créature ont un <strong>désavantage</strong>.</li>
+</ul>
+
+<h4>Charmé [Charmed]</h4>
+<ul>
+<li>Une créature charmée ne peut pas attaquer le charmeur ni le cibler avec des capacités nuisibles.</li>
+<li>Le charmeur a un <strong>avantage</strong> aux jets de caractéristique pour interagir socialement avec la créature.</li>
+</ul>
+
+<h4>Effrayé [Frightened]</h4>
+<ul>
+<li>Une créature effrayée a un <strong>désavantage aux jets de caractéristique et d'attaque</strong> tant que la source de sa peur est dans sa ligne de vue.</li>
+<li>La créature ne peut se rapprocher volontairement de la source de sa peur.</li>
+</ul>
+
+<h4>Empoisonné [Poisoned]</h4>
+<ul>
+<li>Une créature empoisonnée a un <strong>désavantage aux jets d'attaque et aux jets de caractéristique</strong>.</li>
+</ul>
+
+<h4>Entravé [Restrained]</h4>
+<ul>
+<li>La vitesse d'une créature entravée passe à <strong>0</strong>, sans aucun bonus possible.</li>
+<li>Les jets d'attaque contre la créature ont un <strong>avantage</strong>, et les jets d'attaque de la créature ont un <strong>désavantage</strong>.</li>
+<li>La créature a un <strong>désavantage</strong> à ses jets de sauvegarde de Dextérité.</li>
+</ul>
+
+<h4>Étourdi [Stunned]</h4>
+<ul>
+<li>Une créature étourdie est <strong>incapable d'agir</strong>, ne peut plus bouger et parle de manière hésitante.</li>
+<li>La créature <strong>rate automatiquement</strong> ses jets de sauvegarde de Force et de Dextérité.</li>
+<li>Les jets d'attaque contre la créature ont un <strong>avantage</strong>.</li>
+</ul>
+
+<h4>Incapable d'agir / Neutralisé [Incapacitated]</h4>
+<ul>
+<li>Une créature incapable d'agir ne peut effectuer <strong>aucune action ni aucune réaction</strong>.</li>
+</ul>
+
+<h4>Inconscient [Unconscious]</h4>
+<ul>
+<li>Incapable d'agir, ne peut plus bouger ni parler, n'est plus consciente de son environnement.</li>
+<li>La créature lâche ce qu'elle tenait et <strong>tombe à terre</strong>.</li>
+<li><strong>Rate automatiquement</strong> ses jets de sauvegarde de Force et de Dextérité.</li>
+<li>Les jets d'attaque contre la créature ont un <strong>avantage</strong>.</li>
+<li>Toute attaque qui touche est un <strong>coup critique</strong> si l'attaquant est à 1,50 m ou moins.</li>
+</ul>
+
+<h4>Invisible</h4>
+<ul>
+<li>Ne peut être vue sans magie ou sens particulier. Considérée dans une zone à <strong>visibilité nulle</strong>.</li>
+<li>Les jets d'attaque contre la créature ont un <strong>désavantage</strong>, et les jets d'attaque de la créature ont un <strong>avantage</strong>.</li>
+</ul>
+
+<h4>Paralysé [Paralyzed]</h4>
+<ul>
+<li>Incapable d'agir, ne peut plus bouger ni parler.</li>
+<li><strong>Rate automatiquement</strong> ses jets de sauvegarde de Force et de Dextérité.</li>
+<li>Les jets d'attaque contre la créature ont un <strong>avantage</strong>.</li>
+<li>Toute attaque qui touche est un <strong>coup critique</strong> si l'attaquant est à 1,50 m ou moins.</li>
+</ul>
+
+<h4>Pétrifié [Petrified]</h4>
+<ul>
+<li>Transformée en substance inanimée solide. Son poids est multiplié par dix, son vieillissement cesse.</li>
+<li>Incapable d'agir, ne peut plus bouger ni parler, n'est plus consciente de son environnement.</li>
+<li>Les jets d'attaque contre la créature ont un <strong>avantage</strong>.</li>
+<li><strong>Rate automatiquement</strong> ses jets de sauvegarde de Force et de Dextérité.</li>
+<li>Obtient la <strong>résistance contre tous les types de dégâts</strong>.</li>
+<li>Immunisée contre le poison et la maladie (mais un poison/maladie déjà présent est suspendu, pas neutralisé).</li>
+</ul>
+</body>
+</html>

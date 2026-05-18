@@ -9700,18 +9700,17 @@ function _mjrulesInit(){
   var RACES=['Humain','Elfe','Haut-elfe','Elfe des bois','Elfe noir','Nain des collines','Nain des montagnes','Halfelin','Gnome','Demi-elfe','Demi-orc','Tiefelin','Dragonide'];
   var HISTS=['Acolyte','Artisan de guilde','Artiste','Charlatan','Criminel','Ermite','Hanté','Héros du peuple','Marin','Noble','Sauvageon','Soldat'];
 
-  // Chemin vers les fichiers HTML de référence (relatif à index.html)
-  var RPATH='../../13_DONNEES_QUESTSTATION/REGLES/';
+  // Fichiers de référence dans le même dossier que index.html
   var TABS=[
     {id:'classe',    label:'Classe',           type:'content'},
     {id:'race',      label:'Race',             type:'content'},
     {id:'historique',label:'Historique',       type:'content'},
     {id:'equip',     label:'Équipement',       type:'content'},
-    {id:'monstres',  label:'Monstres',         type:'iframe', file:'Monstres » Donjons & Dragons - D&D 5e.html'},
-    {id:'carac',     label:'Caractéristiques', type:'iframe', file:'caractéristiques » Donjons & Dragons - D&D 5e.html'},
-    {id:'objmag',    label:'Objets magiques',  type:'iframe', file:'Objets magiques » Donjons & Dragons - D&D 5e.html'},
-    {id:'objets',    label:'Objets',           type:'iframe', file:'Objets » Donjons & Dragons - D&D 5e.html'},
-    {id:'etats',     label:'États',            type:'iframe', file:'États » Donjons & Dragons - D&D 5e.html'}
+    {id:'monstres',  label:'Monstres',         type:'iframe', file:'ref-monstres.html'},
+    {id:'carac',     label:'Caractéristiques', type:'iframe', file:'ref-carac.html'},
+    {id:'objmag',    label:'Objets magiques',  type:'iframe', file:'ref-objmag.html'},
+    {id:'objets',    label:'Objets',           type:'iframe', file:'ref-objets.html'},
+    {id:'etats',     label:'États',            type:'iframe', file:'ref-etats.html'}
   ];
 
   // ── Conteneur principal (flex column, plein écran) ───────────
@@ -9829,7 +9828,7 @@ function _mjrulesInit(){
     if(tab && tab.type==='iframe' && !pages[id].querySelector('iframe')){
       var f=document.createElement('iframe');
       f.style.cssText='width:100%;height:100%;border:none;';
-      f.src=RPATH+tab.file;
+      f.src=tab.file;
       pages[id].appendChild(f);
     }
     // Auto-chargement des onglets contenu à la première ouverture
