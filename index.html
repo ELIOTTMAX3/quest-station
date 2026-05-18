@@ -9486,6 +9486,87 @@ document.addEventListener('visibilitychange',function(){
 var combatPJData=null, combatMute=false, _audioCtx=null, _dernierMonTour=false;
 var _cbtDescs=[];
 var _capExclPfx=['Collège ','Voie du ','Voie de ','Voie des ','Pacte de ','Serment ','Archétype ','Domaine de ','Cercle de ','Amélioration','Sorts mineurs','Emplacements','Caractéristique d\'','Focaliseur','Rituel','Compétence','Expertise','Touche-à','Chant repos'];
+
+// Résumés courts des capacités pour l'interface de combat
+var CAPS_COMBAT_RESUME = {
+  // ── BARBARE ──────────────────────────────────────────
+  "Rage":                  "🔴 Action bonus — Avantage FOR, résistance dégâts physiques, +2/3 dégâts. Dure 1 min (fin si pas d'attaque ni dégâts reçus).",
+  "Attaque imprudente":    "⚠ Ce tour : avantage sur tes jets d'attaque au CàC. En contrepartie, les ennemis ont aussi l'avantage contre toi jusqu'à ton prochain tour.",
+  "Sens du danger":        "⚡ Réaction — Avantage aux JS DEX contre effets visibles (pièges, sorts).",
+  "Déplacement rapide":    "🏃 En Rage : +3 m de déplacement.",
+  "Présence effrayante":   "😱 Action — Terrifie jusqu'à 6 créatures dans 9 m (JS SAG). Condition Effrayé pendant 1 min.",
+  "Représailles":          "⚡ Réaction — Reçois des dégâts d'une créature à 1,5 m : fais 1 attaque de mêlée contre elle.",
+  "Brutalité":             "🔴 1×/tour — Relance 1 dé de dégâts et garde le meilleur résultat.",
+  "Attaque supplémentaire":"⚔ Tu effectues 2 attaques quand tu prends l'action Attaquer.",
+  // ── BARDE ────────────────────────────────────────────
+  "Inspiration bardique":  "🎵 Action bonus — Donne 1d6–d12 d'inspiration à un allié dans 18 m. Il l'ajoute à un jet dans les 10 min.",
+  "Contre-charme":         "🎶 Action — Concentration : les alliés dans 9 m ont l'avantage contre charme et frayeur.",
+  "Magie déstabilisatrice":"✨ Réaction — Après un sort raté par un ennemi : il relance et prend le pire résultat.",
+  "Coupe-botte":           "⚡ Réaction — Impose désavantage sur un jet d'attaque ou JS d'une créature visible dans 18 m (coûte 1 dé d'inspiration).",
+  "Mots cinglants":        "Action bonus — Impose désavantage sur le prochain jet d'attaque d'une créature dans 18 m (JS SAG pour résister).",
+  // ── CLERC ────────────────────────────────────────────
+  "Renvoi des morts-vivants": "☀ Action — Morts-vivants dans 9 m fuient pendant 1 min (JS SAG). Ceux dont les PV ≤ 5×niv sont détruits.",
+  "Frappe divine":         "✨ Action bonus — Ajoute +1d8 dégâts (selon domaine) au prochain coup réussi ce tour.",
+  "Intervention divine":   "🙏 Action — Chance = niv% que ta divinité intervienne (1×/repos long si réussite).",
+  "Destruction des morts-vivants": "☀ Détruit automatiquement les morts-vivants dont les PV sont inférieurs au seuil.",
+  // ── DRUIDE ───────────────────────────────────────────
+  "Forme sauvage":         "🐻 Action/bonus — Se transforme en bête (MC ≤ ¼ niv1, ≤ ½ niv2, ≤ 1 niv4). PV = PV de la bête. 2×/repos court.",
+  "Foulée tellurique":     "🌿 Ignore les terrains difficiles naturels. Pas de traces magiques.",
+  // ── ENSORCELEUR ──────────────────────────────────────
+  "Métamagie":             "⚙ Dépense des PS pour modifier un sort : Accéléré (+2 PS = action bonus), Puissant (+1 PS = relance dés), Subtil (pas de composante), Jumeau (+1 PS = 2 cibles).",
+  "Sort accéléré":         "⚡ +2 PS — Lance un sort (temps d'incant. 1 action) comme action bonus.",
+  "Sort puissant":         "💪 +1 PS — Relance jusqu'à CHA dés de dégâts/soins du sort.",
+  "Sort jumeau":           "🔁 +1-9 PS — Cible un deuxième ennemi/allié avec le même sort.",
+  "Sort discret":          "🤫 0 PS — Lance un sort sans composante verbale/somatique.",
+  // ── GUERRIER ─────────────────────────────────────────
+  "Second souffle":        "❤ Action bonus — Récupère 1d10+niv PV (1×/repos court).",
+  "Fougue":                "⚡ Action bonus — Prend 1 action supplémentaire immédiatement (1–2×/repos court).",
+  "Frappe décisive":       "🎯 Quand tu rates une attaque : relance le dé d'attaque (1×/tour).",
+  "Indomptable":           "🛡 Rater un JS : réussit à la place (1–3×/repos long).",
+  "Style de combat":       "⚔ Bonus passif selon style choisi (Défense, Duel, Tir à distance…).",
+  "Volonté de survivant":  "❤ Récupère 1d10+CON PV au début de ton tour si tu es à 0 PV (1×/repos court).",
+  "Frappe du champion":    "🏆 Critique sur 19-20 (ou 18-20 selon niveau).",
+  // ── MOINE ────────────────────────────────────────────
+  "Déluge de coups":       "👊 Action bonus + 1 ki — 2 attaques à mains nues supplémentaires après l'action Attaquer.",
+  "Frappe étourdissante":  "😵 Dépense 1 ki après un coup — JS CON (DD=8+BM+SAG) ou Étourdi jusqu'à ton prochain tour.",
+  "Parade de projectile":  "⚡ Réaction — Réduit les dégâts d'un projectile de 1d10+DEX+niv. Si réduit à 0 : renvoie la flèche.",
+  "Pas de vent":           "💨 Action bonus + 1 ki — Esquive OU Désengagement.",
+  "Réflexes fulgurants":   "⚡ Réaction — Dégâts d'une zone : moitié si JS réussi, 0 si échoué.",
+  "Corps et âme":          "☯ Rétablis 3 ki en dépensant 1 action bonus (1×/jour).",
+  "Frappe de l'âme":       "✨ Dépense 1 ki après un coup — +1d6 dégâts nécrotiques ou radieux.",
+  "Fléau de la discorde":  "👊 Action bonus — La prochaine attaque réussie contre toi ce tour : tu peux contre-attaquer.",
+  // ── OCCULTISTE ───────────────────────────────────────
+  "Magie de pacte":        "⚙ Lance des sorts grâce à des emplacements récupérés au repos court.",
+  "Fléau maudit":          "🔵 Action bonus — Cible une créature dans 18 m : +1d6 dégâts nécro à chaque coup (concentration). Durée 1 min.",
+  "Armure des ombres":     "🌑 Action bonus — Sorts de mage armure sur soi-même sans emplacement.",
+  // ── PALADIN ──────────────────────────────────────────
+  "Frappe châtiment":      "⚡ Action bonus avant l'attaque — +2d8 dégâts rad. ou nécro. Aveugle/Effraie/Empoisonne selon serment.",
+  "Détection du mal et du bien": "🔎 Action — Détecte créatures aberrantes, célestes, élémentaires, fées, fiélons et morts-vivants dans 18 m (10 min, concentration).",
+  "Aura de protection":    "🛡 Passif — Alliés dans 3/6 m (niv 6/18) ajoutent ton mod. CHA aux JS.",
+  "Aura de courage":       "💪 Passif — Alliés dans 3/6 m (niv 6/18) sont immunisés à la frayeur.",
+  "Frappe sacrée":         "✨ Passif — 1×/tour : +1d8 dégâts rayon. sur attaque d'arme (niv 11 : +2d8).",
+  // ── RÔDEUR ───────────────────────────────────────────
+  "Frappe des chasseurs":  "🏹 Action bonus — +1d8 dégâts de ton type d'ennemi juré au prochain coup réussi ce tour.",
+  "Ennemi juré":           "🎯 Avantage aux jets de Survie/Perspicacité contre ton ennemi juré. +1d8 dégâts (Frappe des chasseurs).",
+  "Défense du rôdeur":     "🛡 Passif — +1 CA si port d'armure légère ou intermédiaire.",
+  // ── ROUBLARD ─────────────────────────────────────────
+  "Attaque sournoise":     "🗡 1×/tour — +1d6/tranche de 2 niv si avantage OU allié adj. à la cible et pas désavantage.",
+  "Esquive totale":        "⚡ Réaction — JS DEX contre dégâts de zone : réussi = 0 dégâts, raté = moitié.",
+  "Ruse":                  "💨 Action bonus — Désengagement, Esquive ou Foncer.",
+  "Embuscade":             "⚡ Initiative : si surpris, agis normalement. Premier tour : 2× vitesse et avantage attaques.",
+  "Esprit sans prise":     "🧠 Immunisé contre charme et frayeur. Pas de désavantage Sagesse contre sorts d'esprit."
+};
+
+// Extrait un résumé court depuis la description complète (fallback)
+function _cbtResumeCap(cap){
+  if(CAPS_COMBAT_RESUME[cap.nom]) return CAPS_COMBAT_RESUME[cap.nom];
+  var full=(cap.desc||'').replace(/<[^>]+>/g,' ').replace(/\s+/g,' ').trim();
+  // Première phrase <= 160 chars
+  var dot=full.search(/\.\s+[A-ZÀ-Ü]/);
+  var phrase=dot>0&&dot<160?full.slice(0,dot+1):full;
+  if(phrase.length>160)phrase=phrase.slice(0,157)+'…';
+  return phrase;
+}
 function _capEstCombat(cap){
   for(var i=0;i<_capExclPfx.length;i++){
     if(cap.nom.indexOf(_capExclPfx[i])===0||cap.nom===_capExclPfx[i].trim())return false;
@@ -9892,13 +9973,17 @@ function cbtToggleCaps(e){
   if(!caps.length){menu.innerHTML='<p style="font-size:12px;color:var(--txt3);padding:6px;">Aucune capacité.</p>';menu.style.display='';return;}
   menu.innerHTML=caps.map(function(cap,i){
     var did='ccap'+i;
-    var texte=(cap.desc||'Aucune description.').replace(/</g,'&lt;');
-    return '<div class="cbt-sort-item" style="cursor:pointer;flex-direction:column;align-items:flex-start;" onclick="cbtToggleSortDesc(\''+did+'\')">'
-      +'<div style="display:flex;align-items:center;width:100%;gap:6px;">'
-      +'<span style="flex:1;font-size:12px;">'+cap.nom+'</span>'
-      +'<span style="font-size:10px;color:var(--txt3);">▾</span>'
+    var resume=_cbtResumeCap(cap);
+    var full=(cap.desc||'').replace(/</g,'&lt;');
+    // Afficher le bouton "règles complètes" seulement si la desc est nettement plus riche que le résumé
+    var hasFull=full.length>220;
+    return '<div class="cbt-sort-item" style="flex-direction:column;align-items:flex-start;cursor:default;margin-bottom:2px;">'
+      +'<div style="display:flex;align-items:center;width:100%;gap:6px;margin-bottom:2px;">'
+      +'<span style="flex:1;font-size:12px;font-weight:600;color:var(--txt);">'+cap.nom+'</span>'
+      +(hasFull?'<span style="font-size:10px;color:var(--txt3);cursor:pointer;text-decoration:underline;text-underline-offset:2px;" onclick="cbtToggleSortDesc(\''+did+'\')">règles ▾</span>':'')
       +'</div>'
-      +'<div class="cbt-weapon-desc" id="'+did+'" style="white-space:pre-wrap;font-size:12px;line-height:1.55;">'+texte+'</div>'
+      +'<p style="font-size:11px;color:var(--txt2);line-height:1.5;margin:0;white-space:pre-wrap;">'+resume+'</p>'
+      +(hasFull?'<div class="cbt-weapon-desc" id="'+did+'" style="white-space:pre-wrap;font-size:11px;color:var(--txt3);line-height:1.5;margin-top:6px;padding-top:6px;border-top:1px solid var(--bord);">'+full+'</div>':'')
       +'</div>';
   }).join('');
   menu.style.display='';
