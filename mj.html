@@ -356,6 +356,15 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <div id="mj-notes-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
         <textarea id="camp-notes" rows="5" style="min-height:100px;" oninput="mjNoteInput()"></textarea>
       </div>
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <p class="st" style="margin:0;">🖼️ Images <span style="font-size:10px;color:var(--txt3);font-weight:400;">(visible par les PJ)</span></p>
+          <label for="mj-img-input" class="btn" style="font-size:11px;padding:4px 10px;cursor:pointer;border-radius:6px;">📷 Ajouter</label>
+          <input type="file" id="mj-img-input" accept="image/png,image/jpeg" style="display:none;" onchange="mjUploadImage(this)">
+        </div>
+        <div id="mj-img-progress" style="display:none;font-size:11px;color:var(--txt3);margin-bottom:8px;text-align:center;"></div>
+        <div id="mj-img-gallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(85px,1fr));gap:6px;"></div>
+      </div>
     </div>
 
     <!-- Onglet Campagne -->
@@ -443,6 +452,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 // VARIABLES GLOBALES
 // ══════════════════════════════════════════
 var db = null;
+var storage = null;
 var mjId = null;
 var campagneActive = null; // {id, nom, notes, ...}
 var joueursUnsub = null;
@@ -607,6 +617,8 @@ function ouvrirPanel(code){
     var _np=el("camp-notes-partage");
     var _focused=_np&&document.activeElement===_np;
     if(!_focused){_mjNotesPartageTabs=_parseMjTabs(campagneActive.notesPartage||"");_mjNotesPartageIdx=0;mjRendreNotesPartageTabs();}
+    // Images partagées
+    _mjImages=campagneActive.images||[];mjRendreImagesGallery();
     // Lire condActives depuis le doc
     if(campagneActive.conditions){
       Object.keys(campagneActive.conditions).forEach(function(jid){
@@ -995,6 +1007,51 @@ function mjAddNpTab(){var n=prompt("Nom de l'onglet :","Onglet "+(_mjNotesPartag
 function mjDelNpTab(i){if(_mjNotesPartageTabs.length<=1)return;if(!confirm("Supprimer l'onglet ?"))return;_mjNotesPartageTabs.splice(i,1);if(_mjNotesPartageIdx>=_mjNotesPartageTabs.length)_mjNotesPartageIdx=_mjNotesPartageTabs.length-1;mjRendreNotesPartageTabs();mjSaveNotesPartage();}
 function mjNotesPartageInput(){var ta=el("camp-notes-partage");if(ta)_mjNotesPartageTabs[_mjNotesPartageIdx].contenu=ta.value;clearTimeout(_mjNpTO);_mjNpTO=setTimeout(mjSaveNotesPartage,1000);}
 function mjSaveNotesPartage(){if(!campagneActive)return;db.collection("parties").doc(campagneActive.id).update({notesPartage:_mjNotesPartageTabs}).catch(function(){});}
+// === IMAGES PARTAGÉES ===
+var _mjImages=[];
+function mjUploadImage(input){
+  var file=input.files&&input.files[0];input.value="";
+  if(!file)return;
+  if(!storage||!campagneActive){toast("Firebase Storage non disponible");return;}
+  if(file.size>8*1024*1024){toast("Image trop lourde (max 8 Mo)");return;}
+  var prog=el("mj-img-progress");
+  if(prog){prog.style.display="";prog.textContent="⏳ Envoi en cours…";}
+  var ts=Date.now();
+  var safeName=file.name.replace(/[^a-zA-Z0-9._-]/g,"_");
+  var ref=storage.ref("campImages/"+campagneActive.id+"/"+ts+"_"+safeName);
+  var task=ref.put(file);
+  task.on("state_changed",
+    function(snap){var pct=Math.round(snap.bytesTransferred/snap.totalBytes*100);if(prog)prog.textContent="⏳ "+pct+" %";},
+    function(err){if(prog)prog.style.display="none";toast("Erreur : "+err.message);},
+    function(){
+      ref.getDownloadURL().then(function(url){
+        if(prog)prog.style.display="none";
+        _mjImages=(_mjImages||[]).slice();
+        _mjImages.push({url:url,nom:file.name,ts:ts});
+        mjRendreImagesGallery();
+        db.collection("parties").doc(campagneActive.id).update({images:_mjImages}).catch(function(){});
+      });
+    }
+  );
+}
+function mjRendreImagesGallery(){
+  var gal=el("mj-img-gallery");if(!gal)return;
+  if(!_mjImages||!_mjImages.length){gal.innerHTML="<p style='font-size:11px;color:var(--txt3);text-align:center;padding:8px 0;'>Aucune image ajoutée.</p>";return;}
+  gal.innerHTML=_mjImages.map(function(img,i){
+    return "<div style='position:relative;border-radius:8px;overflow:hidden;background:var(--bg3);aspect-ratio:1;'>"
+      +"<img src='"+img.url+"' title='"+img.nom+"' loading='lazy' style='width:100%;height:100%;object-fit:cover;cursor:pointer;display:block;' onclick='window.open(\""+img.url+"\",\"_blank\")'>"
+      +"<button onclick='mjSupprimerImage("+i+")' title='Supprimer' style='position:absolute;top:3px;right:3px;background:rgba(0,0,0,.75);border:none;color:#f87171;border-radius:4px;font-size:13px;width:20px;height:20px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;'>×</button>"
+      +"</div>";
+  }).join("");
+}
+function mjSupprimerImage(i){
+  if(!confirm("Supprimer cette image ?"))return;
+  var img=_mjImages[i];
+  _mjImages.splice(i,1);
+  mjRendreImagesGallery();
+  db.collection("parties").doc(campagneActive.id).update({images:_mjImages}).catch(function(){});
+  if(storage&&img&&img.url){try{storage.refFromURL(img.url).delete().catch(function(){});}catch(e){}}
+}
 function supprimerCampagne(){
   if(!campagneActive)return;
   if(!confirm("Supprimer la campagne "+campagneActive.nom+" ? Cette action est irréversible."))return;
@@ -1547,6 +1604,7 @@ var _fbTimeout=setTimeout(function(){
 
 chargerScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js")
   .then(function(){return chargerScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js");})
+  .then(function(){return chargerScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js");})
   .then(function(){
     clearTimeout(_fbTimeout);
     firebase.initializeApp({
@@ -1558,6 +1616,7 @@ chargerScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"
       appId:"1:382512497035:web:cfc3de3255e885a1adaf8e"
     });
     db=firebase.firestore();
+    storage=firebase.storage();
     console.log("Firebase MJ prêt");
     // Vérifier la session MJ
     mjId=localStorage.getItem("mj_id");
