@@ -7601,7 +7601,17 @@ function ecouterJoueur(){
         var data=snap.data();
         if(premier){
           premier=false;
-          chargerFiche(data);
+          // Comparer avec localStorage : préférer la version la plus récente
+          var local=chargerLocal();
+          var fbTs=data._savedAt||0;
+          var lcTs=(local&&local._savedAt)||0;
+          if(local&&lcTs>fbTs){
+            chargerFiche(local);
+            // Remonter localStorage vers Firebase pour cohérence
+            ref.set(local,{merge:true}).catch(function(){});
+          } else {
+            chargerFiche(data);
+          }
           setSyncStatus("synced","r");setSyncStatus("synced","e");
         } else {
           majMJ(data);setSyncStatus("synced","r");
@@ -7728,6 +7738,7 @@ function collecterDonnees(){
   data._cl=gCl();
   data._nom=v("nom");
   if(avatarUrl) data.avatar=avatarUrl;
+  data._savedAt=Date.now();
   return data;
 }
 
@@ -7759,7 +7770,7 @@ function chargerFiche(data){
   el("prep-n").textContent=prepares.size?"("+prepares.size+")":"";
   // updateAll() → buildComps() crée les .erow dans le DOM
   updateAll();
-  onClasseChange();
+  onClasseChange(true); // fromLoad=true : ne pas effacer grimoire/prepares/ressources
   // Appliquer les compétences maintenant que le DOM est prêt
   if(_compsData){
     document.querySelectorAll(".erow[data-ci]").forEach(function(r,i){
@@ -8014,14 +8025,17 @@ function rReposLong(){
 }
 
 function resetJM(){["jr1","jr2","jr3","je1","je2","je3"].forEach(function(id){if(el(id))el(id).checked=false;});sauvegarder();}
-function onClasseChange(){
-  // Réinitialisation au changement de classe
-  grimoire.clear();
-  prepares.clear();
-  capsFavoris.clear();
-  compsExtra.clear();
+function onClasseChange(fromLoad){
+  // Réinitialisation au changement de classe (pas au chargement de fiche)
+  if(!fromLoad){
+    grimoire.clear();
+    prepares.clear();
+    capsFavoris.clear();
+    compsExtra.clear();
+    ressourcesClasse={};
+  }
   // Décocher toutes les compétences (appliquerCompsDefaut les remet ensuite)
-  document.querySelectorAll(".erow[data-ci] .comp-check").forEach(function(chk){chk.checked=false;});
+  if(!fromLoad)document.querySelectorAll(".erow[data-ci] .comp-check").forEach(function(chk){chk.checked=false;});
 
   var cl=gCl();
   var dvv=el("dv-v");if(dvv)dvv.textContent=DV_CL[cl]||"d8";
@@ -8039,9 +8053,9 @@ function onClasseChange(){
   if(el("r-caps-list") && CAPS_DATA && CAPS_DATA.classes) rRendreCaps();
   appliquerCompsDefaut();
   majVisibiliteSorts(); // masque/affiche sorts selon la classe
-  ressourcesClasse = {}; // réinitialiser les ressources au changement de classe
+  if(!fromLoad) ressourcesClasse={}; // réinitialiser les ressources au changement de classe
   majRessourcesClasse();
-  sauvegarder();
+  if(!fromLoad) sauvegarder();
 }
 
 // ══════════════════════════════════════════
