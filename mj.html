@@ -1712,11 +1712,43 @@ function equip_mj_rendreItems(){
   cont.innerHTML=items.map(function(item){
     var rarColor=_RARETE_COLORS[item.rarete]||"#9ca3af";
     var slotLbl=_SLOT_LABELS[item.slot]||item.slot||"Inventaire";
-    var icone=item.icone||"📦";
+    var icone=item.icone&&!item.icone.startsWith("http")?item.icone:"📦";
     var isBoutique=!!item.enBoutique;
+
+    // — Qui possède / équipe cet item ?
+    var possedeursHtml="";
+    var jids=Object.keys(joueursData);
+    var possesseurs=[];
+    jids.forEach(function(jid){
+      var d=joueursData[jid];
+      if(!d||!d._nom)return;
+      var inv=d.inventaire||[];
+      if(inv.indexOf(item.id)<0)return;
+      // Vérifier si équipé dans un slot
+      var equipe=d.equipe||{};
+      var slotEquipe=null;
+      Object.keys(equipe).forEach(function(s){if(equipe[s]===item.id)slotEquipe=s;});
+      possesseurs.push({nom:d._nom,slotEquipe:slotEquipe});
+    });
+    if(possesseurs.length){
+      possedeursHtml='<div style="margin-top:7px;display:flex;flex-wrap:wrap;gap:4px;">'
+        +possesseurs.map(function(p){
+          var equipped=!!p.slotEquipe;
+          var slotNom=equipped?(_SLOT_LABELS[p.slotEquipe]||p.slotEquipe):"";
+          return '<span style="font-size:10px;padding:2px 7px;border-radius:999px;'
+            +(equipped
+              ?'background:rgba(201,162,39,.2);color:var(--or);border:1px solid rgba(201,162,39,.4);'
+              :'background:var(--bg2);color:var(--txt3);border:1px solid var(--bord);')
+            +'">'
+            +p.nom+(equipped?' ✓ '+slotNom:'')
+            +'</span>';
+        }).join("")
+        +'</div>';
+    }
+
     return '<div style="background:var(--bg3);border:1px solid var(--bord);border-radius:8px;padding:10px 12px;margin-bottom:8px;">'
       +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
-      +'<span style="font-size:22px;flex-shrink:0;">'+(icone.startsWith("http")?'<img src="'+icone+'" style="width:24px;height:24px;object-fit:contain;">':icone)+'</span>'
+      +'<span style="font-size:22px;flex-shrink:0;">'+icone+'</span>'
       +'<div style="flex:1;min-width:0;">'
       +'<span style="font-size:13px;font-weight:700;color:var(--txt);">'+item.nom+'</span>'
       +' <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(0,0,0,.35);color:'+rarColor+';">'+item.rarete+'</span>'
@@ -1726,6 +1758,7 @@ function equip_mj_rendreItems(){
       +'<input type="checkbox" '+(isBoutique?"checked":"")+' onchange="equip_mj_toggleBoutique(\''+item.id+'\',this.checked)" style="width:auto;accent-color:var(--rouge);">'
       +'Boutique</label>'
       +'</div>'
+      +possedeursHtml
       +'<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">'
       +'<button class="btn ok" style="font-size:11px;padding:4px 10px;" onclick="equip_mj_ouvrirDonner(\''+item.id+'\')">Donner</button>'
       +'<button class="btn" style="font-size:11px;padding:4px 10px;" onclick="equip_mj_ouvrirForm(\''+item.id+'\')">Modifier</button>'

@@ -10026,7 +10026,8 @@ function equip_rendreInventaire(){
         var v=item.effets[k];return k.replace("bonus","")+(v>0?"+":"")+v;
       }).join(" ");
     }
-    var html='<div class="equip-item-row">'
+    var descId="eqd-"+itemId;
+    var html='<div class="equip-item-row" style="flex-wrap:wrap;">'
       +'<div class="equip-item-ico">'+(icone.startsWith("http")?'<img src="'+icone+'" style="width:20px;height:20px;object-fit:contain;">':icone)+'</div>'
       +'<div class="equip-item-info">'
       +'<div class="equip-item-nom">'+item.nom+'</div>'
@@ -10044,7 +10045,27 @@ function equip_rendreInventaire(){
       }
     }
     html+='<button class="btn" style="font-size:10px;padding:2px 7px;" onclick="equip_ouvrirDonner(\''+itemId+'\')">Donner</button>';
-    html+='</div></div>';
+    html+='<button class="btn ko" style="font-size:10px;padding:2px 7px;" onclick="equip_supprimerDeInventaire(\''+itemId+'\')">Retirer</button>';
+    html+='</div>';
+    // Description + effets dépliables
+    var hasDesc=!!(item.description&&item.description.trim());
+    var hasEffets=!!(item.effets&&Object.keys(item.effets).length>0);
+    if(hasDesc||hasEffets){
+      html+='<div style="width:100%;margin-top:4px;">'
+        +'<button style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:10px;padding:0;font-family:inherit;" onclick="equip_toggleDesc(\''+descId+'\',this)">▸ Détails</button>'
+        +'<div id="'+descId+'" style="display:none;margin-top:5px;padding:8px;background:var(--bg2);border-radius:6px;">'
+        +(hasDesc?'<p style="font-size:11px;color:var(--txt2);line-height:1.55;white-space:pre-wrap;">'+item.description+'</p>':'')
+        +(hasEffets?'<div style="margin-top:'+(hasDesc?'6px':'0')+';">'
+          +Object.keys(item.effets).map(function(k){
+            var v=item.effets[k];
+            return '<span style="font-size:10px;background:var(--bg3);border-radius:4px;padding:2px 6px;margin-right:4px;color:var(--or);">'+k.replace("bonus","")+(v>0?"+":"")+v+'</span>';
+          }).join("")
+          +'</div>'
+        :'')
+        +'</div>'
+        +'</div>';
+    }
+    html+='</div>';
     return html;
   }
   invEq.innerHTML=equipeIds.length?equipeIds.map(function(id){return renderItem(id,true);}).join("")
@@ -10157,8 +10178,8 @@ function equip_switchView(view,btn){
   }
 }
 
-function equip_toggleDesc(itemId,btn){
-  var d=el("equip-item-desc-"+itemId);if(!d)return;
+function equip_toggleDesc(descId,btn){
+  var d=el(descId);if(!d)return;
   var open=d.style.display!=="none";
   d.style.display=open?"none":"";
   btn.textContent=open?"▸ Détails":"▴ Masquer";
@@ -10331,6 +10352,24 @@ function equip_donnerA(targetId){
       console.error("equip_donnerA",e);
       toast("Erreur lors du transfert.");
     });
+}
+
+function equip_supprimerDeInventaire(itemId){
+  if(!db||!campCode||!joueurId)return;
+  var item=(window._equip_items||{})[itemId];
+  var nomItem=item?'"'+item.nom+'"':itemId;
+  if(!confirm("Retirer "+nomItem+" de ton inventaire ?"))return;
+  // Déséquiper si nécessaire
+  var equipe=Object.assign({},window._equip_equipe||{});
+  var wasEquipe=false;
+  _EQUIP_SLOTS.forEach(function(s){if(equipe[s]===itemId){equipe[s]=null;wasEquipe=true;}});
+  var newInv=(window._equip_inventaire||[]).filter(function(id){return id!==itemId;});
+  var update={inventaire:newInv};
+  if(wasEquipe)update.equipe=equipe;
+  db.collection("parties").doc(campCode).collection("joueurs").doc(joueurId)
+    .set(update,{merge:true})
+    .then(function(){toast(nomItem+" retiré de l'inventaire.");})
+    .catch(function(e){console.error("equip_supprimerDeInventaire",e);toast("Erreur.");});
 }
 
 function equip_initBoutique(){
@@ -10981,6 +11020,29 @@ function cbtRendreActions(monTour){
     html+='<button class="cbt-action-btn" onclick="cbtToggleCaps(event)">📖 Capacités ▾</button>';
     html+='<div id="cbt-caps-menu" class="cbt-dropdown" style="display:none;"></div>';
     html+='</div>';
+  }
+  // === ÉQUIPEMENT ACTIF ===
+  var eqItems=window._equip_items||{};
+  var eqEquipe=window._equip_equipe||{};
+  var eqRows=[];
+  _EQUIP_SLOTS.forEach(function(s){
+    var id=eqEquipe[s];if(!id)return;
+    var item=eqItems[id];if(!item)return;
+    var ico=item.icone&&!item.icone.startsWith("http")?item.icone:"✨";
+    var effStr="";
+    if(item.effets&&Object.keys(item.effets).length>0){
+      effStr=" · "+Object.keys(item.effets).map(function(k){var vv=item.effets[k];return k.replace("bonus","")+(vv>0?"+":"")+vv;}).join(" ");
+    }
+    eqRows.push('<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--bord);font-size:11px;color:var(--txt2);">'
+      +'<span style="font-size:15px;">'+ico+'</span>'
+      +'<span style="flex:1;font-weight:600;color:var(--txt);">'+item.nom+'</span>'
+      +'<span style="font-size:10px;color:var(--txt3);">'+(_EQUIP_SLOT_LABELS[s]||s)+'</span>'
+      +(effStr?'<span style="font-size:10px;color:var(--or);">'+effStr+'</span>':'')
+      +'</div>');
+  });
+  if(eqRows.length){
+    html+='<p class="cbt-section-titre">🛡 Équipement</p>';
+    html+=eqRows.join('');
   }
   cont.innerHTML=html;
 }
