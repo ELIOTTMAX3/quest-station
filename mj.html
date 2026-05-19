@@ -169,6 +169,12 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .mj-etats-grid{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0;}
 .mj-etat-btn{font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt2);cursor:pointer;}
 .mj-etat-btn.on{background:rgba(220,38,38,.3);color:#fca5a5;border-color:#dc2626;}
+/* ── EMOJI PICKER ── */
+.emoji-picker-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;max-height:180px;overflow-y:auto;}
+.emoji-picker-btn{font-size:20px;padding:3px;border-radius:6px;cursor:pointer;border:1px solid transparent;background:none;transition:background .1s;line-height:1.2;}
+.emoji-picker-btn:hover{background:var(--bg2);border-color:var(--bord2);}
+.emoji-cat-btn{font-family:inherit;font-size:11px;padding:3px 8px;border-radius:6px;cursor:pointer;border:1px solid var(--bord2);background:var(--bg2);color:var(--txt2);}
+.emoji-cat-btn.on{background:var(--rouge);color:white;border-color:var(--rouge);}
 </style>
 </head>
 <body>
@@ -402,6 +408,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
             <select id="equip-mj-slot">
               <option value="inventaire">Inventaire</option>
               <option value="chapeau">Chapeau</option>
+              <option value="armure">Armure</option>
               <option value="amulette">Amulette</option>
               <option value="cape">Cape</option>
               <option value="anneau">Anneau</option>
@@ -411,8 +418,16 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           </div>
         </div>
         <div style="margin-bottom:.75rem;">
-          <label>Icône (emoji ou URL)</label>
-          <input type="text" id="equip-mj-icone" placeholder="🗡️ ou URL">
+          <label>Icône</label>
+          <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
+            <input type="text" id="equip-mj-icone" placeholder="🗡️ ou URL" style="flex:1;">
+            <button type="button" class="btn" style="font-size:11px;padding:4px 8px;flex-shrink:0;" onclick="equip_mj_toggleEmojiPicker()">😀</button>
+          </div>
+          <!-- Emoji picker -->
+          <div id="equip-mj-emoji-picker" style="display:none;background:var(--bg3);border:1px solid var(--bord2);border-radius:10px;padding:10px;">
+            <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;" id="equip-mj-emoji-cats"></div>
+            <div class="emoji-picker-grid" id="equip-mj-emoji-grid"></div>
+          </div>
         </div>
         <div style="margin-bottom:1rem;display:flex;align-items:center;gap:8px;">
           <input type="checkbox" id="equip-mj-boutique" style="width:auto;">
@@ -1751,6 +1766,7 @@ function equip_mj_ouvrirForm(id){
   el("equip-mj-slot").value=item?item.slot:"inventaire";
   el("equip-mj-icone").value=item?item.icone:"";
   el("equip-mj-boutique").checked=item?!!item.enBoutique:false;
+  var ep=el("equip-mj-emoji-picker");if(ep)ep.style.display="none";
   el("equip-mj-form-section").style.display="";
   el("equip-mj-nom").focus();
 }
@@ -1758,6 +1774,60 @@ function equip_mj_ouvrirForm(id){
 function equip_mj_fermerForm(){
   el("equip-mj-form-section").style.display="none";
   el("equip-mj-edit-id").value="";
+  var ep=el("equip-mj-emoji-picker");if(ep)ep.style.display="none";
+}
+
+// ── Emoji Picker ──────────────────────────────────────
+var _EMOJI_CATS = [
+  {label:"⚔ Armes",  emojis:["⚔️","🗡️","🏹","🪃","🔱","🪖","🛡","🗡","⚡","🔥","❄️","💥","🩸","🎯"]},
+  {label:"🛡 Armures",emojis:["🛡","🧥","👘","🥋","🎽","🧣","🧤","🧦","👒","🎩","⛑️","🪖","👑","💍"]},
+  {label:"✨ Magie",  emojis:["✨","💫","⭐","🌟","🔮","🪄","💎","🌀","🔯","☄️","🌙","☀️","⚗️","📜"]},
+  {label:"🧪 Potions",emojis:["🧪","🍶","🫙","🧴","💊","🩹","🩺","🌿","🍄","🌺","🌸","🌼","🍯","🫗"]},
+  {label:"💰 Richesse",emojis:["💰","💎","🪙","💍","👑","🏺","🗝️","🔑","📦","🎁","🏆","🎖️","🪬","🧿"]},
+  {label:"🌿 Nature",  emojis:["🌿","🍃","🍂","🌲","🌳","🌾","🌻","🍀","🦷","🦴","🐉","🦅","🐺","🐻"]},
+  {label:"🔧 Outils",  emojis:["🔧","⚙️","🪛","🔩","⛏️","🪝","🧲","🔗","📿","🎻","🥁","🎺","🎸","🪕"]},
+  {label:"🎭 Divers",  emojis:["🎭","🃏","🎲","🎱","🎪","🗺️","🧭","🔭","📖","📿","🏺","🪆","🧸","🪅"]}
+];
+var _EMOJI_CAT_IDX = 0;
+
+function equip_mj_toggleEmojiPicker(){
+  var ep=el("equip-mj-emoji-picker");if(!ep)return;
+  var open=ep.style.display==="none";
+  ep.style.display=open?"":"none";
+  if(open)equip_mj_buildEmojiPicker();
+}
+
+function equip_mj_buildEmojiPicker(){
+  var cats=el("equip-mj-emoji-cats");
+  var grid=el("equip-mj-emoji-grid");
+  if(!cats||!grid)return;
+  // Catégories
+  if(!cats.innerHTML){
+    cats.innerHTML=_EMOJI_CATS.map(function(c,i){
+      return '<button type="button" class="emoji-cat-btn'+(i===0?" on":"")+'\" onclick="equip_mj_showEmojiCat('+i+',this)">'+c.label+'</button>';
+    }).join("");
+  }
+  equip_mj_renderEmojiGrid(_EMOJI_CAT_IDX);
+}
+
+function equip_mj_showEmojiCat(idx,btn){
+  _EMOJI_CAT_IDX=idx;
+  document.querySelectorAll(".emoji-cat-btn").forEach(function(b){b.classList.remove("on");});
+  btn.classList.add("on");
+  equip_mj_renderEmojiGrid(idx);
+}
+
+function equip_mj_renderEmojiGrid(idx){
+  var grid=el("equip-mj-emoji-grid");if(!grid)return;
+  var cat=_EMOJI_CATS[idx];if(!cat)return;
+  grid.innerHTML=cat.emojis.map(function(e){
+    return '<button type="button" class="emoji-picker-btn" onclick="equip_mj_selectEmoji(\''+e+'\')" title="'+e+'">'+e+'</button>';
+  }).join("");
+}
+
+function equip_mj_selectEmoji(emoji){
+  var inp=el("equip-mj-icone");if(inp)inp.value=emoji;
+  var ep=el("equip-mj-emoji-picker");if(ep)ep.style.display="none";
 }
 
 function equip_mj_sauvegarder(){
@@ -1788,11 +1858,11 @@ function equip_mj_sauvegarder(){
   }
 }
 
-function equip_mj_supprimer(id){
+function equip_mj_supprimer(id){  // Note: les joueurs qui possèdent cet objet le conservent dans leur inventaire
   var item=window._equip_mj_items.find(function(i){return i.id===id;});
   if(!confirm("Supprimer l'objet \""+(item?item.nom:id)+"\" ?"))return;
   db.collection("items").doc(id).delete().then(function(){
-    toast("Objet supprimé.");
+    toast("Objet supprimé. Les joueurs qui le possèdent le conservent.");
   }).catch(function(e){toast("Erreur : "+e.message);});
 }
 

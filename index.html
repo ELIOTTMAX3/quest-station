@@ -354,6 +354,58 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 #cbt-retour-fiche-btn{position:fixed;bottom:24px;right:16px;z-index:600;background:var(--rouge);color:white;border:none;border-radius:12px;padding:11px 16px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 24px rgba(0,0,0,.5);display:none;}
 .cbt-perm-bar{display:flex;gap:8px;margin-top:.75rem;padding-bottom:.5rem;}
 .cbt-perm-bar .btn{flex:1;font-size:12px;padding:8px;}
+/* ── ÉQUIPEMENT REDESIGN ─────────────────────────────── */
+.equip-hd{display:flex;gap:2px;margin-bottom:10px;background:var(--bg3);border:1px solid var(--bord);border-radius:10px;padding:3px;}
+.equip-view-btn{flex:1;font-family:inherit;font-size:12px;font-weight:600;padding:8px 6px;cursor:pointer;border:none;border-radius:7px;background:none;color:var(--txt3);}
+.equip-view-btn.on{background:linear-gradient(135deg,#1a2e4a,#0f3460);color:var(--or);}
+.equip-view-btn:hover:not(.on){background:rgba(255,255,255,.05);}
+.equip-two-col{display:grid;grid-template-columns:180px 1fr;gap:10px;align-items:start;}
+@media(max-width:500px){.equip-two-col{grid-template-columns:1fr;}}
+.equip-sil-wrap{position:relative;width:180px;height:350px;margin:0 auto;flex-shrink:0;}
+.equip-slot{position:absolute;width:50px;height:50px;border-radius:10px;border:1.5px dashed #3d5a8a;background:#1e2d45;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-family:inherit;transition:all .15s;padding:2px;line-height:1;}
+.equip-slot:hover{border-color:var(--or);background:rgba(201,162,39,.1);}
+.equip-slot.occupied{border:1.5px solid var(--or);background:rgba(201,162,39,.12);}
+.equip-slot-ico{font-size:18px;}
+.equip-slot-lbl{font-size:8px;font-weight:600;color:#9a8a6a;text-transform:uppercase;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:46px;text-align:center;}
+.equip-slot.occupied .equip-slot-lbl{color:#e8dcc8;}
+.equip-inv-col{display:flex;flex-direction:column;gap:0;}
+.equip-inv-section-hd{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);padding:6px 0 4px;border-bottom:1px solid var(--bord);margin-bottom:6px;}
+.equip-item-row{background:var(--bg3);border:1px solid var(--bord);border-radius:8px;padding:7px 8px;margin-bottom:5px;display:flex;align-items:flex-start;gap:7px;}
+.equip-item-ico{font-size:20px;flex-shrink:0;width:26px;text-align:center;padding-top:1px;}
+.equip-item-info{flex:1;min-width:0;}
+.equip-item-nom{font-size:12px;font-weight:700;color:var(--txt);}
+.equip-item-sub{font-size:10px;color:var(--txt3);margin-top:1px;}
+.equip-item-btns{display:flex;flex-direction:column;gap:3px;flex-shrink:0;}
+.equip-footer{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 10px;background:var(--bg2);border:1px solid var(--bord);border-radius:8px;margin-top:10px;font-size:11px;color:var(--txt3);}
+.equip-footer-bonus{display:inline-flex;align-items:center;gap:3px;background:var(--bg3);border-radius:4px;padding:2px 5px;font-size:10px;}
+.equip-panel{background:var(--bg3);border:1px solid var(--bord2);border-radius:10px;padding:12px;margin-top:10px;}
+.equip-panel-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.equip-panel-title{font-size:13px;font-weight:700;color:var(--txt);}
+.boutique-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:8px;}
+.boutique-card{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:3px;}
+.boutique-card-ico{font-size:26px;text-align:center;margin-bottom:3px;}
+.boutique-card-nom{font-size:12px;font-weight:700;color:var(--txt);}
+.boutique-card-rar{font-size:10px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(0,0,0,.35);display:inline-block;width:fit-content;}
+.boutique-card-slot{font-size:10px;color:var(--txt3);}
+.boutique-card-desc{font-size:11px;color:var(--txt2);line-height:1.45;margin-top:3px;}
+.equip-actif-toggle{width:100%;text-align:left;background:var(--bg3);border:1px solid var(--bord);border-radius:8px;padding:9px 14px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:var(--txt2);display:flex;align-items:center;justify-content:space-between;transition:background .15s;}
+.equip-actif-toggle:hover{background:rgba(255,255,255,.06);}
+.equip-actif-toggle.open{border-radius:8px 8px 0 0;}
+.equip-actif-body{display:none;border:1px solid var(--bord);border-top:none;border-radius:0 0 8px 8px;padding:8px;background:var(--bg);}
+.equip-actif-body.on{display:block;}
+.equip-actif-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bord);font-size:12px;}
+.equip-actif-row:last-child{border-bottom:none;}
+.equip-combat-toggle{width:100%;text-align:left;background:var(--bg3);border:1px solid var(--bord);border-radius:8px;padding:7px 12px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:var(--txt2);display:flex;align-items:center;justify-content:space-between;margin-top:8px;transition:background .15s;}
+.equip-combat-toggle:hover{background:rgba(255,255,255,.06);}
+.equip-combat-body{display:none;background:var(--bg3);border:1px solid var(--bord);border-top:none;border-radius:0 0 8px 8px;padding:8px 10px;}
+.equip-combat-body.on{display:block;}
+.equip-combat-item{display:flex;align-items:center;gap:6px;padding:4px 0;border-bottom:1px solid var(--bord);font-size:11px;color:var(--txt2);}
+.equip-combat-item:last-child{border-bottom:none;}
+/* ── EMOJI PICKER ────────────────────────────────────── */
+.emoji-picker-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-top:8px;max-height:200px;overflow-y:auto;}
+.emoji-picker-btn{font-size:20px;padding:4px;border-radius:6px;cursor:pointer;border:1px solid transparent;background:none;transition:background .1s;}
+.emoji-picker-btn:hover{background:var(--bg3);border-color:var(--bord2);}
+.emoji-picker-btn.selected{background:rgba(201,162,39,.2);border-color:var(--or);}
 </style>
 <script src="sorts.js"></script>
 </head>
@@ -435,7 +487,6 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <button class="tbtn" onclick="rTab('comps',this)">Compétences & Capacités</button>
     <button class="tbtn" id="r-tbtn-sorts" onclick="rTab('sorts',this)">Sorts</button>
     <button class="tbtn" onclick="rTab('equip',this)">⚔️ Équip.</button>
-    <button class="tbtn" onclick="rTab('boutique',this)">🛒 Boutique</button>
     <button class="tbtn" onclick="rTab('regles',this)">Règles</button>
     <button class="tbtn" onclick="rTab('notes',this)">📝 Notes</button>
     <button class="tbtn" onclick="rTab('campagne',this)">Campagne</button>
@@ -506,6 +557,11 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
             <div class="spill"><div class="spl">Maîtrise</div><div class="spv" id="r-bm">+2</div></div>
             <div class="spill"><div class="spl">Dé de vie</div><div class="spv" id="r-dv">d8</div></div>
           </div>
+          <!-- Équipement actif dans combat -->
+          <button class="equip-combat-toggle" id="equip-combat-toggle-btn" onclick="equip_toggleCombat(this)">🛡 Équipement actif <span>▸</span></button>
+          <div class="equip-combat-body" id="equip-combat-body">
+            <div id="equip-combat-list"><p style="font-size:11px;color:var(--txt3);font-style:italic;">Aucun objet équipé.</p></div>
+          </div>
         </div>
       </div>
     </div>
@@ -556,6 +612,17 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <div><label>PC</label><input type="number" id="pc" value="0" min="0" oninput="syncInvResume();sauvegarder()"></div>
       </div>
       <textarea id="inventaire" placeholder="Liste ton équipement..." style="min-height:60px;max-height:120px;font-size:12px;resize:none;overflow-y:auto;" oninput="syncInvResume();sauvegarder()"></textarea>
+    </div>
+
+    <!-- ÉQUIPEMENT ACTIF accordion -->
+    <div class="r-section" id="r-equip-actif-card" style="display:none;">
+      <button class="equip-actif-toggle" onclick="equip_toggleActif(this)">
+        🛡 Équipement actif <span id="equip-actif-count" style="font-size:11px;color:var(--txt3);margin-left:4px;font-weight:400;"></span>
+        <span id="equip-actif-arrow" style="font-size:10px;color:var(--txt3);">▸</span>
+      </button>
+      <div class="equip-actif-body" id="equip-actif-body">
+        <div id="equip-actif-list"></div>
+      </div>
     </div>
 
     <!-- PERSONNALITÉ ───────────────────────────────── -->
@@ -5876,9 +5943,126 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
   <!-- ONGLET ÉQUIPEMENTS — Inventaire & slots d'équipement -->
   <div id="rt-equip" class="tc">
 
-    <!-- SECTION SLOTS D'ÉQUIPEMENT -->
-    <div class="card" style="margin-bottom:1rem;">
-      <p class="st">Équipement</p>
+    <!-- Toggle sub-vue : Équipement / Boutique -->
+    <div class="equip-hd">
+      <button id="equip-view-equip-btn" class="equip-view-btn on" onclick="equip_switchView('equip',this)">⚔ Équipement</button>
+      <button id="equip-view-boutique-btn" class="equip-view-btn" onclick="equip_switchView('boutique',this)">🏪 Boutique</button>
+    </div>
+
+    <!-- ── VUE ÉQUIPEMENT ── -->
+    <div id="equip-main-view">
+      <!-- Deux colonnes : silhouette + inventaire -->
+      <div class="equip-two-col">
+        <!-- Gauche : silhouette + slots -->
+        <div class="equip-sil-wrap">
+          <svg viewBox="0 0 180 350" width="180" height="350" style="position:absolute;top:0;left:0;pointer-events:none;opacity:0.11;" aria-hidden="true">
+            <ellipse cx="90" cy="34" rx="26" ry="30" fill="white"/>
+            <rect x="56" y="68" width="68" height="100" rx="12" fill="white"/>
+            <rect x="20" y="72" width="34" height="85" rx="10" fill="white"/>
+            <rect x="126" y="72" width="34" height="85" rx="10" fill="white"/>
+            <rect x="58" y="172" width="30" height="115" rx="10" fill="white"/>
+            <rect x="92" y="172" width="30" height="115" rx="10" fill="white"/>
+          </svg>
+          <!-- chapeau -->
+          <button class="equip-slot" id="esl-chapeau" onclick="equip_clickSlot('chapeau')" style="top:0;left:50%;transform:translate(-50%,0);">
+            <span class="equip-slot-ico" id="esl-chapeau-ico">🎩</span>
+            <span class="equip-slot-lbl" id="esl-chapeau-lbl">Chapeau</span>
+          </button>
+          <!-- amulette -->
+          <button class="equip-slot" id="esl-amulette" onclick="equip_clickSlot('amulette')" style="top:19%;left:50%;transform:translate(-50%,0);">
+            <span class="equip-slot-ico" id="esl-amulette-ico">📿</span>
+            <span class="equip-slot-lbl" id="esl-amulette-lbl">Amulette</span>
+          </button>
+          <!-- armure -->
+          <button class="equip-slot" id="esl-armure" onclick="equip_clickSlot('armure')" style="top:34%;left:50%;transform:translate(-50%,0);">
+            <span class="equip-slot-ico" id="esl-armure-ico">🛡</span>
+            <span class="equip-slot-lbl" id="esl-armure-lbl">Armure</span>
+          </button>
+          <!-- cape -->
+          <button class="equip-slot" id="esl-cape" onclick="equip_clickSlot('cape')" style="top:21%;left:0;">
+            <span class="equip-slot-ico" id="esl-cape-ico">🧣</span>
+            <span class="equip-slot-lbl" id="esl-cape-lbl">Cape</span>
+          </button>
+          <!-- anneau -->
+          <button class="equip-slot" id="esl-anneau" onclick="equip_clickSlot('anneau')" style="top:48%;left:0;">
+            <span class="equip-slot-ico" id="esl-anneau-ico">💍</span>
+            <span class="equip-slot-lbl" id="esl-anneau-lbl">Anneau</span>
+          </button>
+          <!-- ceinture -->
+          <button class="equip-slot" id="esl-ceinture" onclick="equip_clickSlot('ceinture')" style="top:55%;left:50%;transform:translate(-50%,0);">
+            <span class="equip-slot-ico" id="esl-ceinture-ico">🔗</span>
+            <span class="equip-slot-lbl" id="esl-ceinture-lbl">Ceinture</span>
+          </button>
+          <!-- bottes -->
+          <button class="equip-slot" id="esl-bottes" onclick="equip_clickSlot('bottes')" style="top:80%;left:50%;transform:translate(-50%,0);">
+            <span class="equip-slot-ico" id="esl-bottes-ico">👢</span>
+            <span class="equip-slot-lbl" id="esl-bottes-lbl">Bottes</span>
+          </button>
+        </div>
+        <!-- Droite : inventaire scindé équipés / non équipés -->
+        <div class="equip-inv-col">
+          <div>
+            <div class="equip-inv-section-hd">Équipés</div>
+            <div id="equip-inv-equipes"><p style="font-size:11px;color:var(--txt3);font-style:italic;padding:4px 0;">Aucun objet équipé.</p></div>
+          </div>
+          <div style="margin-top:10px;">
+            <div class="equip-inv-section-hd">Non équipés</div>
+            <div id="equip-inv-non-equipes"><p style="font-size:11px;color:var(--txt3);font-style:italic;padding:4px 0;">Inventaire vide.</p></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer : slots occupés + bonus actifs -->
+      <div class="equip-footer" id="equip-footer">
+        <span>0/7 slots</span>
+      </div>
+
+      <!-- Panneau déséquiper -->
+      <div id="equip-desequiper-panel" class="equip-panel" style="display:none;">
+        <div class="equip-panel-hd">
+          <span class="equip-panel-title" id="equip-desequiper-txt">Déséquiper ?</span>
+          <button class="btn" style="font-size:11px;padding:2px 8px;" onclick="el('equip-desequiper-panel').style.display='none'">✕</button>
+        </div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn ko" style="font-size:11px;padding:4px 12px;" onclick="equip_desequiper()">Déséquiper</button>
+          <button class="btn" style="font-size:11px;padding:4px 10px;" onclick="el('equip-desequiper-panel').style.display='none'">Annuler</button>
+        </div>
+      </div>
+
+      <!-- Sélecteur slot vide -->
+      <div id="equip-slot-selector" class="equip-panel" style="display:none;">
+        <div class="equip-panel-hd">
+          <span class="equip-panel-title" id="equip-slot-selector-titre">Choisir un objet</span>
+          <button class="btn" style="font-size:11px;padding:2px 8px;" onclick="el('equip-slot-selector').style.display='none'">✕</button>
+        </div>
+        <div id="equip-slot-selector-list"></div>
+      </div>
+
+      <!-- Panneau Donner PJ→PJ -->
+      <div id="equip-donner-panel" class="equip-panel" style="display:none;">
+        <div class="equip-panel-hd">
+          <span class="equip-panel-title">Donner l'objet à…</span>
+          <button class="btn" style="font-size:11px;padding:2px 8px;" onclick="el('equip-donner-panel').style.display='none'">✕</button>
+        </div>
+        <div id="equip-donner-list"><p style="font-size:12px;color:var(--txt3);">Chargement…</p></div>
+      </div>
+
+    </div><!-- /equip-main-view -->
+
+    <!-- ── VUE BOUTIQUE ── -->
+    <div id="equip-boutique-view" style="display:none;">
+      <div id="equip-boutique-list">
+        <p style="font-size:12px;color:var(--txt3);font-style:italic;">La boutique est vide pour l'instant.</p>
+      </div>
+    </div>
+
+    <!-- IDs conservés pour compatibilité JS (anciens sous-onglets équip.) -->
+    <div style="display:none;" id="eq-armes"></div>
+    <div style="display:none;" id="eq-armures"></div>
+    <div style="display:none;" id="eq-outils"></div>
+
+    <!-- ANCIENNE ZONE silhouette et inventaire (remplacés ci-dessus, conservé pour ancienne référence IDs) -->
+    <div style="display:none;">
       <div style="position:relative;width:200px;height:340px;margin:0 auto;">
         <!-- Silhouette SVG -->
         <svg viewBox="0 0 200 340" width="200" height="340" style="position:absolute;top:0;left:0;pointer-events:none;opacity:0.12;" aria-hidden="true">
@@ -6108,14 +6292,8 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     </div><!-- /hidden old eq content -->
   </div><!-- /rt-equip -->
 
-  <!-- ONGLET BOUTIQUE -->
-  <div id="rt-boutique" class="tc">
-    <div class="card">
-      <p class="st">🛒 Boutique</p>
-      <p style="font-size:12px;color:var(--txt3);margin-bottom:1rem;">Objets mis en vente par le MJ.</p>
-      <div id="equip-boutique-list"><p style="font-size:12px;color:var(--txt3);font-style:italic;">La boutique est vide pour l'instant.</p></div>
-    </div>
-  </div><!-- /rt-boutique -->
+  <!-- rt-boutique conservé (vide) pour compatibilité rTab -->
+  <div id="rt-boutique" class="tc" style="display:none;"></div>
 
 </div>
 </div>
@@ -7283,7 +7461,6 @@ function rTab(name,btn){
   if(name==="notes"){rcRendreNotesTabs();rcRendreInfosTabs();}
   if(name==="perso"){var rne=el('r-notes-edit');if(rne){rne.style.height='auto';rne.style.height=rne.scrollHeight+'px';}}
   if(name==="equip"){equip_rendreAll();}
-  if(name==="boutique"){equip_initBoutique();}
   if(name==="regles"){
     // Recharger le sous-onglet actif (Classe par défaut)
     var stabs=document.querySelectorAll('#rt-regles .rq-stab');
@@ -9744,48 +9921,51 @@ setInterval(function(){if(campCode&&db&&joueurId)campEcrireJoueur({lastSeen:Date
 // ══════════════════════════════════════════
 // SYSTÈME D'ÉQUIPEMENT PJ
 // ══════════════════════════════════════════
-window._equip_items = {};          // itemId → item data
-window._equip_inventaire = [];     // array of itemIds
-window._equip_equipe = {};         // slot → itemId|null
+window._equip_items = {};
+window._equip_inventaire = [];
+window._equip_equipe = {};
 window._equip_itemsUnsub = null;
 window._equip_joueurUnsub = null;
 window._equip_boutiqueUnsub = null;
 window._equip_desequiperSlotTarget = null;
+window._equip_donnerItemId = null;
 
+var _EQUIP_SLOTS = ["chapeau","armure","amulette","cape","anneau","ceinture","bottes"];
 var _EQUIP_RARETE_COLORS = {
   "commun":"#9ca3af","peu commun":"#4ade80","rare":"#60a5fa",
   "très rare":"#c084fc","légendaire":"var(--or)"
 };
 var _EQUIP_SLOT_LABELS = {
-  "chapeau":"Chapeau","amulette":"Amulette","cape":"Cape",
-  "anneau":"Anneau","anneau1":"Anneau 1","anneau2":"Anneau 2",
+  "chapeau":"Chapeau","armure":"Armure","amulette":"Amulette","cape":"Cape",
+  "anneau":"Anneau","anneau1":"Anneau","anneau2":"Anneau",
   "ceinture":"Ceinture","bottes":"Bottes","inventaire":"Inventaire"
 };
 var _EQUIP_SLOT_DEFAULT_ICONS = {
-  "chapeau":"🎩","amulette":"📿","cape":"🧣",
-  "anneau1":"💍","anneau2":"💍","ceinture":"🔗","bottes":"👢"
+  "chapeau":"🎩","armure":"🛡","amulette":"📿","cape":"🧣",
+  "anneau":"💍","ceinture":"🔗","bottes":"👢"
 };
 
 function equip_init(){
-  // Arrêter les anciens listeners
   if(window._equip_itemsUnsub){window._equip_itemsUnsub();window._equip_itemsUnsub=null;}
   if(window._equip_joueurUnsub){window._equip_joueurUnsub();window._equip_joueurUnsub=null;}
   if(!db||!campCode||!joueurId)return;
-
-  // Listener 1 : tous les items (collection globale)
   window._equip_itemsUnsub=db.collection("items").onSnapshot(function(qs){
     window._equip_items={};
     qs.forEach(function(d){window._equip_items[d.id]=Object.assign({id:d.id},d.data());});
     equip_rendreAll();
   },function(e){console.error("equip items listener",e);});
-
-  // Listener 2 : doc joueur dans la campagne (inventaire + equipe)
   window._equip_joueurUnsub=db.collection("parties").doc(campCode).collection("joueurs").doc(joueurId)
     .onSnapshot(function(snap){
       if(!snap.exists)return;
       var d=snap.data();
       window._equip_inventaire=d.inventaire||[];
-      window._equip_equipe=d.equipe||{chapeau:null,amulette:null,cape:null,anneau1:null,anneau2:null,ceinture:null,bottes:null};
+      var equipe=d.equipe||{};
+      // Migration anneau1/anneau2 → anneau
+      if(equipe.anneau===undefined||equipe.anneau===null){
+        equipe.anneau=equipe.anneau1||equipe.anneau2||null;
+      }
+      _EQUIP_SLOTS.forEach(function(s){if(equipe[s]===undefined)equipe[s]=null;});
+      window._equip_equipe=equipe;
       equip_rendreAll();
     },function(e){console.error("equip joueur listener",e);});
 }
@@ -9793,28 +9973,26 @@ function equip_init(){
 function equip_rendreAll(){
   equip_rendreSlots();
   equip_rendreInventaire();
+  equip_rendreFooter();
+  equip_rendreActif();
+  equip_rendreCombat();
 }
 
 function equip_rendreSlots(){
   var equipe=window._equip_equipe||{};
-  var slots=["chapeau","amulette","cape","anneau1","anneau2","ceinture","bottes"];
-  slots.forEach(function(slot){
-    var btn=el("equip-slot-"+slot);
-    var icoEl=el("equip-slot-"+slot+"-ico");
-    var lblEl=el("equip-slot-"+slot+"-lbl");
+  _EQUIP_SLOTS.forEach(function(slot){
+    var btn=el("esl-"+slot);
+    var icoEl=el("esl-"+slot+"-ico");
+    var lblEl=el("esl-"+slot+"-lbl");
     if(!btn)return;
     var itemId=equipe[slot];
     var item=itemId?(window._equip_items||{})[itemId]:null;
     if(item){
-      btn.style.border="1px solid var(--or)";
-      btn.style.background="rgba(201,162,39,0.1)";
-      btn.style.color="var(--txt)";
+      btn.classList.add("occupied");
       if(icoEl)icoEl.textContent=item.icone&&!item.icone.startsWith("http")?item.icone:"✨";
-      if(lblEl)lblEl.textContent=(item.nom||"").substring(0,8)+(item.nom&&item.nom.length>8?"…":"");
+      if(lblEl)lblEl.textContent=(item.nom||"").substring(0,7)+(item.nom&&item.nom.length>7?"…":"");
     } else {
-      btn.style.border="1px dashed var(--bord2)";
-      btn.style.background="var(--bg3)";
-      btn.style.color="var(--txt3)";
+      btn.classList.remove("occupied");
       if(icoEl)icoEl.textContent=_EQUIP_SLOT_DEFAULT_ICONS[slot]||"?";
       if(lblEl)lblEl.textContent=_EQUIP_SLOT_LABELS[slot]||slot;
     }
@@ -9822,50 +10000,161 @@ function equip_rendreSlots(){
 }
 
 function equip_rendreInventaire(){
-  var cont=el("equip-inventaire-list");if(!cont)return;
+  var invEq=el("equip-inv-equipes");
+  var invNonEq=el("equip-inv-non-equipes");
+  if(!invEq||!invNonEq)return;
   var inv=window._equip_inventaire||[];
   var items=window._equip_items||{};
   var equipe=window._equip_equipe||{};
-  var countEl=el("equip-inv-count");if(countEl)countEl.textContent=inv.length;
-  if(!inv.length){
-    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);font-style:italic;">Ton inventaire est vide.</p>';
-    return;
-  }
-  // Construire set des items équipés
+  // Map itemId → slot pour les objets équipés
   var equipes={};
-  Object.keys(equipe).forEach(function(slot){if(equipe[slot])equipes[equipe[slot]]=slot;});
-
-  cont.innerHTML=inv.map(function(itemId){
+  _EQUIP_SLOTS.forEach(function(s){if(equipe[s])equipes[equipe[s]]=s;});
+  var equipeIds=[],nonEquipeIds=[];
+  inv.forEach(function(id){
+    if(equipes[id])equipeIds.push(id);
+    else nonEquipeIds.push(id);
+  });
+  function renderItem(itemId,isEquipe){
     var item=items[itemId];
-    if(!item)return '<div style="font-size:12px;color:var(--txt3);padding:6px 0;border-bottom:1px solid var(--bord);">Objet inconnu ('+itemId+')</div>';
+    if(!item)return '<div style="font-size:11px;color:var(--txt3);padding:4px 0;">Objet inconnu</div>';
     var rarColor=_EQUIP_RARETE_COLORS[item.rarete]||"#9ca3af";
-    var slotLbl=_EQUIP_SLOT_LABELS[item.slot]||item.slot||"Inventaire";
     var icone=item.icone||"📦";
-    var isEquipe=!!equipes[itemId];
     var equipSlot=equipes[itemId]||"";
-    var effetsHtml="";
+    var effetsStr="";
     if(item.effets&&Object.keys(item.effets).length>0){
-      effetsHtml='<div style="margin-top:4px;font-size:11px;color:var(--txt3);">'
-        +Object.keys(item.effets).map(function(k){return k+' : '+item.effets[k];}).join(" · ")
-        +'</div>';
+      effetsStr=" · "+Object.keys(item.effets).map(function(k){
+        var v=item.effets[k];return k.replace("bonus","")+(v>0?"+":"")+v;
+      }).join(" ");
     }
-    return '<div style="background:var(--bg3);border:1px solid var(--bord);border-radius:8px;padding:10px;margin-bottom:8px;">'
-      +'<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">'
-      +'<span style="font-size:22px;flex-shrink:0;">'+(icone.startsWith("http")?'<img src="'+icone+'" style="width:24px;height:24px;object-fit:contain;">':icone)+'</span>'
-      +'<div style="flex:1;min-width:0;">'
-      +'<span style="font-size:13px;font-weight:700;color:var(--txt);">'+item.nom+'</span>'
-      +' <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(0,0,0,.3);color:'+rarColor+';">'+item.rarete+'</span>'
-      +'<div style="font-size:11px;color:var(--txt3);">'+slotLbl+(isEquipe?' · <span style="color:var(--or);">Équipé ('+(_EQUIP_SLOT_LABELS[equipSlot]||equipSlot)+')</span>':'')+'</div>'
+    var html='<div class="equip-item-row">'
+      +'<div class="equip-item-ico">'+(icone.startsWith("http")?'<img src="'+icone+'" style="width:20px;height:20px;object-fit:contain;">':icone)+'</div>'
+      +'<div class="equip-item-info">'
+      +'<div class="equip-item-nom">'+item.nom+'</div>'
+      +'<div class="equip-item-sub" style="color:'+rarColor+';">'+item.rarete
+      +(equipSlot?' <span style="color:var(--or);"> · '+(_EQUIP_SLOT_LABELS[equipSlot]||equipSlot)+'</span>':'')
+      +effetsStr
       +'</div>'
-      +(item.slot!=="inventaire"?'<button class="btn" style="font-size:11px;padding:4px 10px;'+(isEquipe?"opacity:.5;cursor:not-allowed;":"")+'" '+(isEquipe?'disabled':'')+' onclick="equip_equiperItem(\''+itemId+'\')">Équiper</button>':'')
       +'</div>'
-      +'<div id="equip-item-desc-'+itemId+'" style="display:none;margin-top:8px;font-size:12px;color:var(--txt2);line-height:1.6;">'
-      +(item.description||"Aucune description.")
-      +effetsHtml
-      +'</div>'
-      +'<button style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:11px;margin-top:4px;padding:0;font-family:inherit;" onclick="equip_toggleDesc(\''+itemId+'\',this)">▸ Détails</button>'
-      +'</div>';
-  }).join("");
+      +'<div class="equip-item-btns">';
+    if(item.slot&&item.slot!=="inventaire"){
+      if(isEquipe){
+        html+='<button class="btn" style="font-size:10px;padding:2px 7px;" onclick="equip_desequiperItem(\''+itemId+'\')">Déséq.</button>';
+      } else {
+        html+='<button class="btn ok" style="font-size:10px;padding:2px 7px;" onclick="equip_equiperItem(\''+itemId+'\')">Équiper</button>';
+      }
+    }
+    html+='<button class="btn" style="font-size:10px;padding:2px 7px;" onclick="equip_ouvrirDonner(\''+itemId+'\')">Donner</button>';
+    html+='</div></div>';
+    return html;
+  }
+  invEq.innerHTML=equipeIds.length?equipeIds.map(function(id){return renderItem(id,true);}).join("")
+    :'<p style="font-size:11px;color:var(--txt3);font-style:italic;padding:4px 0;">Aucun objet équipé.</p>';
+  invNonEq.innerHTML=nonEquipeIds.length?nonEquipeIds.map(function(id){return renderItem(id,false);}).join("")
+    :'<p style="font-size:11px;color:var(--txt3);font-style:italic;padding:4px 0;">Inventaire vide.</p>';
+}
+
+function equip_rendreFooter(){
+  var fEl=el("equip-footer");if(!fEl)return;
+  var equipe=window._equip_equipe||{};
+  var count=0;
+  _EQUIP_SLOTS.forEach(function(s){if(equipe[s])count++;});
+  var total=_EQUIP_SLOTS.length;
+  var html='<b style="color:var(--txt);">'+count+'</b>/'+total+' slots';
+  var bonus={bonusCA:0,bonusInit:0,bonusAttaque:0,bonusPVMax:0};
+  var items=window._equip_items||{};
+  _EQUIP_SLOTS.forEach(function(s){
+    var id=equipe[s];if(!id)return;
+    var item=items[id];if(!item||!item.effets)return;
+    var e=item.effets;
+    if(e.bonusCA)bonus.bonusCA+=e.bonusCA||0;
+    if(e.bonusInit)bonus.bonusInit+=e.bonusInit||0;
+    if(e.bonusAttaque)bonus.bonusAttaque+=e.bonusAttaque||0;
+    if(e.bonusPVMax)bonus.bonusPVMax+=e.bonusPVMax||0;
+  });
+  if(bonus.bonusCA)html+=' <span class="equip-footer-bonus">🛡 CA '+(bonus.bonusCA>0?'+':'')+bonus.bonusCA+'</span>';
+  if(bonus.bonusInit)html+=' <span class="equip-footer-bonus">⚡ Init '+(bonus.bonusInit>0?'+':'')+bonus.bonusInit+'</span>';
+  if(bonus.bonusAttaque)html+=' <span class="equip-footer-bonus">⚔ Atk '+(bonus.bonusAttaque>0?'+':'')+bonus.bonusAttaque+'</span>';
+  if(bonus.bonusPVMax)html+=' <span class="equip-footer-bonus">❤ PV '+(bonus.bonusPVMax>0?'+':'')+bonus.bonusPVMax+'</span>';
+  fEl.innerHTML=html;
+}
+
+function equip_rendreActif(){
+  var card=el("r-equip-actif-card");
+  var list=el("equip-actif-list");
+  var countEl=el("equip-actif-count");
+  if(!list)return;
+  var equipe=window._equip_equipe||{};
+  var items=window._equip_items||{};
+  var rows=[];
+  _EQUIP_SLOTS.forEach(function(s){
+    var id=equipe[s];if(!id)return;
+    var item=items[id];if(!item)return;
+    var icone=item.icone&&!item.icone.startsWith("http")?item.icone:"✨";
+    var effetsStr="";
+    if(item.effets&&Object.keys(item.effets).length>0){
+      effetsStr=" · "+Object.keys(item.effets).map(function(k){
+        var v=item.effets[k];return k.replace("bonus","")+(v>0?"+":"")+v;
+      }).join(" ");
+    }
+    rows.push('<div class="equip-actif-row">'
+      +'<span style="font-size:18px;">'+icone+'</span>'
+      +'<span style="font-size:12px;font-weight:700;color:var(--txt);flex:1;">'+item.nom+'</span>'
+      +'<span style="font-size:10px;color:var(--txt3);">'+(_EQUIP_SLOT_LABELS[s]||s)+'</span>'
+      +(effetsStr?'<span style="font-size:10px;color:var(--or);">'+effetsStr+'</span>':'')
+      +'</div>');
+  });
+  if(card)card.style.display=rows.length?"":"none";
+  if(countEl)countEl.textContent=rows.length?"("+rows.length+")":"";
+  list.innerHTML=rows.length?rows.join(""):'<p style="font-size:11px;color:var(--txt3);font-style:italic;padding:4px 0;">Aucun objet équipé.</p>';
+}
+
+function equip_rendreCombat(){
+  var list=el("equip-combat-list");if(!list)return;
+  var equipe=window._equip_equipe||{};
+  var items=window._equip_items||{};
+  var rows=[];
+  _EQUIP_SLOTS.forEach(function(s){
+    var id=equipe[s];if(!id)return;
+    var item=items[id];if(!item)return;
+    var icone=item.icone&&!item.icone.startsWith("http")?item.icone:"✨";
+    rows.push('<div class="equip-combat-item">'
+      +'<span style="font-size:16px;">'+icone+'</span>'
+      +'<span style="flex:1;font-weight:600;color:var(--txt);">'+item.nom+'</span>'
+      +'<span style="font-size:10px;">'+(_EQUIP_SLOT_LABELS[s]||s)+'</span>'
+      +'</div>');
+  });
+  list.innerHTML=rows.length?rows.join(""):'<p style="font-size:11px;color:var(--txt3);font-style:italic;">Aucun objet équipé.</p>';
+}
+
+function equip_toggleActif(btn){
+  var body=el("equip-actif-body");if(!body)return;
+  var open=body.classList.toggle("on");
+  var arrow=el("equip-actif-arrow");
+  if(arrow)arrow.textContent=open?"▾":"▸";
+  btn.classList.toggle("open",open);
+}
+
+function equip_toggleCombat(btn){
+  var body=el("equip-combat-body");if(!body)return;
+  var open=body.classList.toggle("on");
+  var arrow=btn.querySelector("span");
+  if(arrow)arrow.textContent=open?"▾":"▸";
+  if(open)equip_rendreCombat();
+}
+
+function equip_switchView(view,btn){
+  document.querySelectorAll(".equip-view-btn").forEach(function(b){b.classList.remove("on");});
+  btn.classList.add("on");
+  var main=el("equip-main-view");
+  var boutique=el("equip-boutique-view");
+  if(view==="equip"){
+    if(main)main.style.display="";
+    if(boutique)boutique.style.display="none";
+  } else {
+    if(main)main.style.display="none";
+    if(boutique)boutique.style.display="";
+    equip_initBoutique();
+  }
 }
 
 function equip_toggleDesc(itemId,btn){
@@ -9878,35 +10167,30 @@ function equip_toggleDesc(itemId,btn){
 function equip_clickSlot(slot){
   var equipe=window._equip_equipe||{};
   var itemId=equipe[slot];
-  // Fermer les deux panneaux au départ
   if(el("equip-desequiper-panel"))el("equip-desequiper-panel").style.display="none";
   if(el("equip-slot-selector"))el("equip-slot-selector").style.display="none";
+  if(el("equip-donner-panel"))el("equip-donner-panel").style.display="none";
   if(itemId){
-    // Slot occupé → proposer de déséquiper
     var item=(window._equip_items||{})[itemId];
     window._equip_desequiperSlotTarget=slot;
     var txt=el("equip-desequiper-txt");
     if(txt)txt.textContent="Déséquiper "+(item?'"'+item.nom+'"':itemId)+" ("+(_EQUIP_SLOT_LABELS[slot]||slot)+") ?";
     if(el("equip-desequiper-panel"))el("equip-desequiper-panel").style.display="";
   } else {
-    // Slot vide → ouvrir sélecteur d'items compatibles
     equip_ouvrirSelectorSlot(slot);
   }
 }
+
 function equip_ouvrirSelectorSlot(slot){
   var inv=window._equip_inventaire||[];
   var items=window._equip_items||{};
   var equipe=window._equip_equipe||{};
-  // Clé de slot à comparer dans le champ item.slot
-  // anneau1/anneau2 → chercher items avec slot="anneau"
-  var slotCle=(slot==="anneau1"||slot==="anneau2")?"anneau":slot;
   var compatibles=inv.filter(function(id){
     var it=items[id];
     if(!it)return false;
-    if(it.slot!==slotCle)return false;
-    // Exclure si déjà équipé dans un autre slot
-    var autreSlotsEquipes=Object.keys(equipe).filter(function(s){return s!==slot&&equipe[s]===id;});
-    return autreSlotsEquipes.length===0;
+    if(it.slot!==slot)return false;
+    var ailleurs=_EQUIP_SLOTS.filter(function(s){return s!==slot&&equipe[s]===id;});
+    return ailleurs.length===0;
   });
   var titre=el("equip-slot-selector-titre");
   var list=el("equip-slot-selector-list");
@@ -9914,31 +10198,31 @@ function equip_ouvrirSelectorSlot(slot){
   if(!list||!panel)return;
   if(titre)titre.textContent="Équiper dans : "+(_EQUIP_SLOT_LABELS[slot]||slot);
   if(!compatibles.length){
-    list.innerHTML="<p style='font-size:12px;color:var(--txt3);font-style:italic;'>Aucun objet compatible dans ton inventaire.</p>";
+    list.innerHTML="<p style='font-size:12px;color:var(--txt3);font-style:italic;padding:4px 0;'>Aucun objet compatible.</p>";
   } else {
     list.innerHTML=compatibles.map(function(id){
       var it=items[id];
       var rarColor=(_EQUIP_RARETE_COLORS&&_EQUIP_RARETE_COLORS[it.rarete])||"#9ca3af";
       return "<div style='display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--bord);'>"
-        +"<span style='font-size:20px;'>"+(it.icone||"📦")+"</span>"
+        +"<span style='font-size:20px;'>"+(it.icone&&!it.icone.startsWith("http")?it.icone:"📦")+"</span>"
         +"<div style='flex:1;min-width:0;'>"
-        +"<p style='font-size:13px;font-weight:600;color:var(--txt);'>"+(it.nom||"?")+"</p>"
-        +"<span style='font-size:10px;font-weight:700;padding:1px 6px;border-radius:999px;background:rgba(0,0,0,.3);color:"+rarColor+";'>"+it.rarete+"</span>"
+        +"<p style='font-size:12px;font-weight:600;color:var(--txt);'>"+(it.nom||"?")+"</p>"
+        +"<span style='font-size:10px;font-weight:700;padding:1px 5px;border-radius:999px;background:rgba(0,0,0,.3);color:"+rarColor+";'>"+it.rarete+"</span>"
         +"</div>"
-        +"<button class='btn ok' style='font-size:11px;padding:4px 10px;flex-shrink:0;' onclick='equip_equiperDansSlot(\""+id+"\",\""+slot+"\")'>Équiper</button>"
+        +"<button class='btn ok' style='font-size:11px;padding:3px 9px;flex-shrink:0;' onclick='equip_equiperDansSlot(\""+id+"\",\""+slot+"\")'>Équiper</button>"
         +"</div>";
     }).join("");
   }
   panel.style.display="";
 }
+
 function equip_equiperDansSlot(itemId,slot){
   var equipe=Object.assign({},window._equip_equipe||{});
   equipe[slot]=itemId;
   window._equip_equipe=equipe;
   equip_ecrireFirestore();
   if(el("equip-slot-selector"))el("equip-slot-selector").style.display="none";
-  equip_rendreSlots();
-  equip_rendreInventaire();
+  equip_rendreAll();
   toast("Objet équipé !");
 }
 
@@ -9954,19 +10238,20 @@ function equip_equiperItem(itemId){
   var slot=item.slot;
   if(!slot||slot==="inventaire"){toast("Cet objet n'a pas de slot équipable.");return;}
   var equipe=Object.assign({},window._equip_equipe||{});
-  // Pour les anneaux, utiliser anneau1 puis anneau2
-  if(slot==="anneau"){
-    if(!equipe["anneau1"]){slot="anneau1";}
-    else if(!equipe["anneau2"]){slot="anneau2";}
-    else{
-      // Les deux slots d'anneau sont pris — remplacer anneau1
-      slot="anneau1";
-    }
-  }
   equipe[slot]=itemId;
   window._equip_equipe=equipe;
   equip_ecrireFirestore();
+  equip_rendreAll();
   toast("Objet équipé !");
+}
+
+function equip_desequiperItem(itemId){
+  var equipe=Object.assign({},window._equip_equipe||{});
+  _EQUIP_SLOTS.forEach(function(s){if(equipe[s]===itemId)equipe[s]=null;});
+  window._equip_equipe=equipe;
+  equip_ecrireFirestore();
+  equip_rendreAll();
+  toast("Objet déséquipé.");
 }
 
 function equip_desequiperSlot(slot){
@@ -9974,6 +10259,7 @@ function equip_desequiperSlot(slot){
   equipe[slot]=null;
   window._equip_equipe=equipe;
   equip_ecrireFirestore();
+  equip_rendreAll();
   toast("Objet déséquipé.");
 }
 
@@ -9984,8 +10270,71 @@ function equip_ecrireFirestore(){
     .catch(function(e){console.error("equip_ecrireFirestore",e);});
 }
 
+// ── PJ→PJ Donner ──────────────────────────────────────
+function equip_ouvrirDonner(itemId){
+  window._equip_donnerItemId=itemId;
+  var panel=el("equip-donner-panel");
+  var list=el("equip-donner-list");
+  if(!panel||!list)return;
+  if(el("equip-desequiper-panel"))el("equip-desequiper-panel").style.display="none";
+  if(el("equip-slot-selector"))el("equip-slot-selector").style.display="none";
+  panel.style.display="";
+  if(!db||!campCode){
+    list.innerHTML='<p style="font-size:12px;color:var(--txt3);">Hors campagne.</p>';
+    return;
+  }
+  list.innerHTML='<p style="font-size:12px;color:var(--txt3);">Chargement…</p>';
+  db.collection("parties").doc(campCode).collection("joueurs").get()
+    .then(function(qs){
+      var pjs=[];
+      qs.forEach(function(d){if(d.id!==joueurId)pjs.push({id:d.id,nom:d.data().nom||d.id});});
+      if(!pjs.length){
+        list.innerHTML='<p style="font-size:12px;color:var(--txt3);">Aucun autre joueur.</p>';
+        return;
+      }
+      list.innerHTML=pjs.map(function(pj){
+        return '<div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid var(--bord);">'
+          +'<span style="font-size:13px;font-weight:600;color:var(--txt);flex:1;">'+pj.nom+'</span>'
+          +'<button class="btn ok" style="font-size:11px;padding:3px 9px;" onclick="equip_donnerA(\''+pj.id+'\')">Donner</button>'
+          +'</div>';
+      }).join("");
+    })
+    .catch(function(e){
+      console.error("equip_ouvrirDonner",e);
+      list.innerHTML='<p style="font-size:12px;color:#fca5a5;">Erreur de chargement.</p>';
+    });
+}
+
+function equip_donnerA(targetId){
+  var itemId=window._equip_donnerItemId;if(!itemId)return;
+  if(!db||!campCode||!joueurId)return;
+  var item=(window._equip_items||{})[itemId];
+  var nomItem=item?'"'+item.nom+'"':itemId;
+  var equipe=Object.assign({},window._equip_equipe||{});
+  var wasEquipe=false;
+  _EQUIP_SLOTS.forEach(function(s){if(equipe[s]===itemId){equipe[s]=null;wasEquipe=true;}});
+  var batch=db.batch();
+  var donneurRef=db.collection("parties").doc(campCode).collection("joueurs").doc(joueurId);
+  var receveurRef=db.collection("parties").doc(campCode).collection("joueurs").doc(targetId);
+  var newInv=(window._equip_inventaire||[]).filter(function(id){return id!==itemId;});
+  var donneurUpdate={inventaire:newInv};
+  if(wasEquipe)donneurUpdate.equipe=equipe;
+  batch.set(donneurRef,donneurUpdate,{merge:true});
+  batch.set(receveurRef,{inventaire:firebase.firestore.FieldValue.arrayUnion(itemId)},{merge:true});
+  batch.commit()
+    .then(function(){
+      if(el("equip-donner-panel"))el("equip-donner-panel").style.display="none";
+      window._equip_donnerItemId=null;
+      toast(nomItem+" donné !");
+    })
+    .catch(function(e){
+      console.error("equip_donnerA",e);
+      toast("Erreur lors du transfert.");
+    });
+}
+
 function equip_initBoutique(){
-  if(window._equip_boutiqueUnsub)return; // déjà initialisé
+  if(window._equip_boutiqueUnsub)return;
   if(!db)return;
   window._equip_boutiqueUnsub=db.collection("items").where("enBoutique","==",true).onSnapshot(function(qs){
     var items=[];
@@ -9997,42 +10346,33 @@ function equip_initBoutique(){
 function equip_rendreBoutique(items){
   var cont=el("equip-boutique-list");if(!cont)return;
   if(!items||!items.length){
+    cont.className="";
     cont.innerHTML='<p style="font-size:12px;color:var(--txt3);font-style:italic;">La boutique est vide pour l\'instant.</p>';
     return;
   }
-  cont.style.display="grid";
-  cont.style.gridTemplateColumns="repeat(auto-fill,minmax(160px,1fr))";
-  cont.style.gap="10px";
+  cont.className="boutique-grid";
   cont.innerHTML=items.map(function(item){
     var rarColor=_EQUIP_RARETE_COLORS[item.rarete]||"#9ca3af";
     var slotLbl=_EQUIP_SLOT_LABELS[item.slot]||item.slot||"Inventaire";
-    var icone=item.icone||"📦";
+    var icone=item.icone&&!item.icone.startsWith("http")?item.icone:"📦";
     var effetsHtml="";
     if(item.effets&&Object.keys(item.effets).length>0){
-      effetsHtml='<div style="margin-top:6px;font-size:11px;color:var(--txt3);">'
-        +Object.keys(item.effets).map(function(k){return k+' : '+item.effets[k];}).join('<br>')
+      effetsHtml='<div style="font-size:10px;color:var(--txt3);margin-top:3px;">'
+        +Object.keys(item.effets).map(function(k){return k+' : '+item.effets[k];}).join(' · ')
         +'</div>';
     }
-    return '<div style="background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:12px;display:flex;flex-direction:column;gap:4px;">'
-      +'<div style="font-size:28px;text-align:center;">'+(icone.startsWith("http")?'<img src="'+icone+'" style="width:28px;height:28px;object-fit:contain;">':icone)+'</div>'
-      +'<div style="font-size:13px;font-weight:700;color:var(--txt);">'+item.nom+'</div>'
-      +'<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(0,0,0,.35);color:'+rarColor+';display:inline-block;width:fit-content;">'+item.rarete+'</span>'
-      +'<div style="font-size:11px;color:var(--txt3);">'+slotLbl+'</div>'
-      +(item.description?'<div style="font-size:12px;color:var(--txt2);line-height:1.5;margin-top:4px;">'+item.description+'</div>':"")
+    return '<div class="boutique-card">'
+      +'<div class="boutique-card-ico">'+icone+'</div>'
+      +'<div class="boutique-card-nom">'+item.nom+'</div>'
+      +'<span class="boutique-card-rar" style="color:'+rarColor+';">'+item.rarete+'</span>'
+      +'<div class="boutique-card-slot">'+slotLbl+'</div>'
+      +(item.description?'<div class="boutique-card-desc">'+item.description+'</div>':"")
       +effetsHtml
       +'</div>';
   }).join("");
 }
 
 // ══ EFFETS D'ÉQUIPEMENT ══════════════════════════
-// Clés d'effets prévues pour usage futur :
-//   bonusCA          : number  → bonus à la CA
-//   bonusInit        : number  → bonus à l'initiative
-//   bonusAttaque     : number  → bonus aux jets d'attaque
-//   resistances      : array   → types de dégâts résistés (ex: ["feu","froid"])
-//   immunites        : array   → types de dégâts immunisés
-//   bonusCarac       : object  → {for:0, dex:0, con:0, int:0, sag:0, cha:0}
-//   bonusPVMax       : number  → bonus aux PV maximum
 function appliquerEffetsEquipement(joueurData) {
   var cumul = {bonusCA:0, bonusInit:0, bonusAttaque:0, resistances:[], immunites:[], bonusCarac:{}, bonusPVMax:0};
   var equipe = joueurData.equipe || {};
