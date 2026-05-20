@@ -426,7 +426,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
             <label>Emplacement</label>
             <select id="equip-mj-slot">
               <option value="inventaire">Inventaire</option>
-              <option value="chapeau">Chapeau</option>
+              <option value="chapeau">Casque</option>
               <option value="armure">Armure</option>
               <option value="amulette">Amulette</option>
               <option value="cape">Cape</option>
@@ -1729,7 +1729,7 @@ var _RARETE_COLORS = {
   "légendaire": "var(--or)"
 };
 var _SLOT_LABELS = {
-  "chapeau":"Chapeau","amulette":"Amulette","cape":"Cape",
+  "chapeau":"Casque","amulette":"Amulette","cape":"Cape",
   "anneau":"Anneau","ceinture":"Ceinture","bottes":"Bottes","inventaire":"Inventaire"
 };
 
@@ -1856,14 +1856,14 @@ function equip_mj_fermerForm(){
 
 // ── Emoji Picker ──────────────────────────────────────
 var _EMOJI_CATS = [
-  {label:"⚔ Armes",  emojis:["⚔️","🗡️","🏹","🪃","🔱","🪖","🛡","🗡","⚡","🔥","❄️","💥","🩸","🎯"]},
-  {label:"🛡 Armures",emojis:["🛡","🧥","👘","🥋","🎽","🧣","🧤","🧦","👒","🎩","⛑️","🪖","👑","💍"]},
-  {label:"✨ Magie",  emojis:["✨","💫","⭐","🌟","🔮","🪄","💎","🌀","🔯","☄️","🌙","☀️","⚗️","📜"]},
-  {label:"🧪 Potions",emojis:["🧪","🍶","🫙","🧴","💊","🩹","🩺","🌿","🍄","🌺","🌸","🌼","🍯","🫗"]},
-  {label:"💰 Richesse",emojis:["💰","💎","🪙","💍","👑","🏺","🗝️","🔑","📦","🎁","🏆","🎖️","🪬","🧿"]},
-  {label:"🌿 Nature",  emojis:["🌿","🍃","🍂","🌲","🌳","🌾","🌻","🍀","🦷","🦴","🐉","🦅","🐺","🐻"]},
-  {label:"🔧 Outils",  emojis:["🔧","⚙️","🪛","🔩","⛏️","🪝","🧲","🔗","📿","🎻","🥁","🎺","🎸","🪕"]},
-  {label:"🎭 Divers",  emojis:["🎭","🃏","🎲","🎱","🎪","🗺️","🧭","🔭","📖","📿","🏺","🪆","🧸","🪅"]}
+  {label:"🪖 Pièces",   emojis:["🪖","⛑️","📿","🛡","🧥","💍","🪢","👢","🎩","🧤","🧦","👑","🦺","🩴"]},
+  {label:"⚔ Armes",    emojis:["⚔️","🗡️","🏹","🪃","🔱","🪓","🪝","🏴‍☠️","⚡","🔥","❄️","💥","🩸","🎯"]},
+  {label:"✨ Magie",    emojis:["✨","💫","⭐","🌟","🔮","🪄","💎","🌀","🔯","☄️","🌙","☀️","⚗️","📜"]},
+  {label:"🧪 Potions",  emojis:["🧪","🍶","🫙","🧴","💊","🩹","🌿","🍄","🌺","🌸","🍯","🫗","🧿","🫀"]},
+  {label:"💰 Trésors",  emojis:["💰","💎","🪙","👑","🏺","🗝️","🔑","📦","🎁","🏆","🎖️","🪬","📿","💠"]},
+  {label:"🌿 Nature",   emojis:["🌿","🍃","🍂","🌲","🌳","🌾","🌻","🍀","🐉","🦅","🐺","🦴","🦷","🐻"]},
+  {label:"🔧 Outils",   emojis:["🔧","⚙️","🪛","🔩","⛏️","🪝","🧲","🔗","🎻","🥁","🎺","🎸","🧭","🗺️"]},
+  {label:"🎭 Divers",   emojis:["🎭","🃏","🎲","📖","🏺","🪆","🧸","🔭","🎪","🎱","🗿","🪬","🪩","🧨"]}
 ];
 var _EMOJI_CAT_IDX = 0;
 

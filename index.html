@@ -6075,18 +6075,6 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
     <!-- ── VUE ÉQUIPEMENT ── -->
     <div id="equip-main-view">
-      <!-- 💰 Bourse -->
-      <div class="bourse-wrap">
-        <div class="bourse-title">💰 Bourse</div>
-        <div class="bourse-row">
-          <div class="bourse-cell"><label>PP</label><input type="number" id="bourse-pp" min="0" value="0" oninput="bourseMaj()"></div>
-          <div class="bourse-cell"><label>PO</label><input type="number" id="bourse-po" min="0" value="0" oninput="bourseMaj()"></div>
-          <div class="bourse-cell"><label>PE</label><input type="number" id="bourse-pe" min="0" value="0" oninput="bourseMaj()"></div>
-          <div class="bourse-cell"><label>PA</label><input type="number" id="bourse-pa" min="0" value="0" oninput="bourseMaj()"></div>
-          <div class="bourse-cell"><label>PC</label><input type="number" id="bourse-pc" min="0" value="0" oninput="bourseMaj()"></div>
-        </div>
-        <div class="bourse-total" id="bourse-total">≈ 0 po</div>
-      </div>
       <!-- Deux colonnes : silhouette + inventaire -->
       <div class="equip-two-col">
         <!-- Gauche : silhouette + slots -->
@@ -6101,8 +6089,8 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           </svg>
           <!-- chapeau -->
           <button class="equip-slot" id="esl-chapeau" onclick="equip_clickSlot('chapeau')" style="top:0;left:50%;transform:translate(-50%,0);">
-            <span class="equip-slot-ico" id="esl-chapeau-ico">🎩</span>
-            <span class="equip-slot-lbl" id="esl-chapeau-lbl">Chapeau</span>
+            <span class="equip-slot-ico" id="esl-chapeau-ico">🪖</span>
+            <span class="equip-slot-lbl" id="esl-chapeau-lbl">Casque</span>
           </button>
           <!-- amulette -->
           <button class="equip-slot" id="esl-amulette" onclick="equip_clickSlot('amulette')" style="top:19%;left:50%;transform:translate(-50%,0);">
@@ -6116,7 +6104,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           </button>
           <!-- cape -->
           <button class="equip-slot" id="esl-cape" onclick="equip_clickSlot('cape')" style="top:21%;left:0;">
-            <span class="equip-slot-ico" id="esl-cape-ico">🧣</span>
+            <span class="equip-slot-ico" id="esl-cape-ico">🧥</span>
             <span class="equip-slot-lbl" id="esl-cape-lbl">Cape</span>
           </button>
           <!-- anneau -->
@@ -6126,7 +6114,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           </button>
           <!-- ceinture -->
           <button class="equip-slot" id="esl-ceinture" onclick="equip_clickSlot('ceinture')" style="top:55%;left:50%;transform:translate(-50%,0);">
-            <span class="equip-slot-ico" id="esl-ceinture-ico">🔗</span>
+            <span class="equip-slot-ico" id="esl-ceinture-ico">🪢</span>
             <span class="equip-slot-lbl" id="esl-ceinture-lbl">Ceinture</span>
           </button>
           <!-- bottes -->
@@ -6187,6 +6175,18 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
     <!-- ── VUE BOUTIQUE ── -->
     <div id="equip-boutique-view" style="display:none;">
+      <!-- 💰 Bourse -->
+      <div class="bourse-wrap">
+        <div class="bourse-title">💰 Bourse</div>
+        <div class="bourse-row">
+          <div class="bourse-cell"><label>PP</label><input type="number" id="bourse-pp" min="0" value="0" oninput="bourseMaj()"></div>
+          <div class="bourse-cell"><label>PO</label><input type="number" id="bourse-po" min="0" value="0" oninput="bourseMaj()"></div>
+          <div class="bourse-cell"><label>PE</label><input type="number" id="bourse-pe" min="0" value="0" oninput="bourseMaj()"></div>
+          <div class="bourse-cell"><label>PA</label><input type="number" id="bourse-pa" min="0" value="0" oninput="bourseMaj()"></div>
+          <div class="bourse-cell"><label>PC</label><input type="number" id="bourse-pc" min="0" value="0" oninput="bourseMaj()"></div>
+        </div>
+        <div class="bourse-total" id="bourse-total">≈ 0 po</div>
+      </div>
       <div id="equip-boutique-list">
         <p style="font-size:12px;color:var(--txt3);font-style:italic;">La boutique est vide pour l'instant.</p>
       </div>
@@ -6219,7 +6219,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <!-- Chapeau -->
         <button id="equip-slot-chapeau" onclick="equip_clickSlot('chapeau')" style="position:absolute;top:0%;left:50%;transform:translate(-50%,0);min-width:52px;font-size:11px;padding:4px 6px;border-radius:8px;border:1px dashed var(--bord2);background:var(--bg3);color:var(--txt3);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit;">
           <span id="equip-slot-chapeau-ico" style="font-size:18px;">🎩</span>
-          <span id="equip-slot-chapeau-lbl" style="max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Chapeau</span>
+          <span id="equip-slot-chapeau-lbl" style="max-width:52px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">Casque</span>
         </button>
         <!-- Amulette -->
         <button id="equip-slot-amulette" onclick="equip_clickSlot('amulette')" style="position:absolute;top:30%;left:50%;transform:translate(-50%,0);min-width:52px;font-size:11px;padding:4px 6px;border-radius:8px;border:1px dashed var(--bord2);background:var(--bg3);color:var(--txt3);cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit;">
@@ -10351,7 +10351,7 @@ var _EQUIP_RARETE_COLORS = {
   "très rare":"#c084fc","légendaire":"var(--or)"
 };
 var _EQUIP_SLOT_LABELS = {
-  "chapeau":"Chapeau","armure":"Armure","amulette":"Amulette","cape":"Cape",
+  "chapeau":"Casque","armure":"Armure","amulette":"Amulette","cape":"Cape",
   "anneau":"Anneau","anneau1":"Anneau","anneau2":"Anneau",
   "ceinture":"Ceinture","bottes":"Bottes","inventaire":"Inventaire"
 };
