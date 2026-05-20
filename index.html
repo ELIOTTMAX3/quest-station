@@ -406,6 +406,65 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .emoji-picker-btn{font-size:20px;padding:4px;border-radius:6px;cursor:pointer;border:1px solid transparent;background:none;transition:background .1s;}
 .emoji-picker-btn:hover{background:var(--bg3);border-color:var(--bord2);}
 .emoji-picker-btn.selected{background:rgba(201,162,39,.2);border-color:var(--or);}
+/* ── SORTS ARTWORK ───────────────────────────────────── */
+.sa-header{background:#0b1220;border-bottom:2px solid #e8873a;border-radius:10px 10px 0 0;padding:10px 14px;margin-bottom:0;}
+.sa-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
+.sa-classe{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#c9a227;}
+.sa-carac{font-size:10px;color:#5a6a8a;}
+.sa-stats-row{display:flex;gap:4px;}
+.sa-stat{background:#111e33;border:1px solid #1a2a45;border-radius:6px;padding:6px 10px;text-align:center;flex:1;min-width:0;}
+.sa-stat-lbl{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#5a6a8a;margin-bottom:2px;line-height:1.3;}
+.sa-stat-val{font-size:17px;font-weight:500;color:#e8dcc8;}
+.sa-slots-row{display:flex;gap:6px;overflow-x:auto;padding:8px 0 4px;scrollbar-width:none;margin-bottom:4px;}
+.sa-slots-row::-webkit-scrollbar{display:none;}
+.sa-slot-pill{display:inline-flex;flex-direction:column;align-items:center;gap:4px;background:#0f1a2e;border:1px solid #2a3a55;border-radius:999px;padding:6px 12px;flex-shrink:0;transition:opacity .15s;}
+.sa-slot-pill.empty{opacity:.45;}
+.sa-slot-pill-lbl{font-size:9px;color:#4a5a7a;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;}
+.sa-slot-dots{display:flex;gap:4px;align-items:center;}
+.sa-dot{width:7px;height:7px;border-radius:50%;cursor:pointer;transition:background .12s,opacity .15s;border:1px solid #3a4a65;background:#2a3a55;flex-shrink:0;}
+.sa-dot.plein{background:#c9a227;border-color:#c9a227;}
+.sa-slot-frac{font-size:11px;font-weight:500;color:#e8dcc8;white-space:nowrap;}
+.sa-section-hd{display:flex;align-items:center;justify-content:space-between;margin:10px 0 6px;}
+.sa-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#4a5a7a;}
+.sa-filter-bar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
+.sa-fil-btn{font-family:inherit;font-size:11px;padding:4px 10px;border-radius:999px;cursor:pointer;border:1px solid #1e2d45;background:transparent;color:#5a6a8a;transition:background .12s,border-color .12s,color .12s;}
+.sa-fil-btn.on{background:rgba(201,162,39,.15);border-color:#8b6914;color:#c9a227;}
+.sa-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+@media(max-width:600px){.sa-grid{grid-template-columns:1fr;}}
+.sa-card{border-radius:8px;padding:10px 12px;cursor:pointer;border:1px solid #2a3a5a;border-top:2px solid #5a7aaa;background:#111e33;transition:border-color .12s;}
+.sa-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;}
+.sa-card-niv{font-size:9px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;}
+.sa-card-ecole{font-size:10px;color:#4a5a7a;}
+.sa-card-nom{font-size:13px;font-weight:500;color:#e8dcc8;display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.sa-card-badge{font-size:9px;padding:2px 6px;border-radius:3px;flex-shrink:0;font-weight:600;}
+.sa-card-badge.prepare{background:rgba(34,107,57,.2);color:#6dd88a;border:1px solid rgba(34,107,57,.4);}
+.sa-card-badge.connu{background:rgba(74,154,255,.2);color:#7aadff;border:1px solid rgba(74,154,255,.4);}
+.sa-card-body{max-height:0;overflow:hidden;transition:max-height .2s ease-out;}
+.sa-card-body.on{max-height:500px;}
+.sa-card-sep{border:none;border-top:1px solid rgba(255,255,255,.07);margin:7px 0;}
+.sa-card-meta{display:flex;flex-wrap:wrap;gap:4px 12px;margin-bottom:6px;}
+.sa-card-meta-item{font-size:10px;color:#5a6a8a;}
+.sa-card-meta-item b{color:#8a9ab0;font-weight:600;}
+.sa-card-desc{font-size:11px;color:#8a9ab0;line-height:1.6;}
+/* Couleurs par école */
+.sa-ec-evocation{background:#130a1f;border-color:#4a2a7a;border-top-color:#7a4aff;}
+.sa-ec-necromancie{background:#0f1a0a;border-color:#1a4a1a;border-top-color:#4a8a2a;}
+.sa-ec-enchantement{background:#1a0f0a;border-color:#5a2a0a;border-top-color:#e8883a;}
+.sa-ec-abjuration{background:#0a1420;border-color:#0a2a5a;border-top-color:#2a7aff;}
+.sa-ec-transmutation{background:#1a1a0a;border-color:#4a4a0a;border-top-color:#aaaa2a;}
+.sa-ec-divination{background:#0a1a1a;border-color:#0a3a4a;border-top-color:#2aaaaa;}
+.sa-ec-invocation{background:#1a0a1a;border-color:#4a0a5a;border-top-color:#aa2aaa;}
+.sa-ec-illusion{background:#0a1a14;border-color:#0a4a3a;border-top-color:#2aaa7a;}
+.sa-ec-def{background:#111e33;border-color:#2a3a5a;border-top-color:#5a7aaa;}
+.sa-card:hover.sa-ec-evocation{border-color:#7a4aff;}
+.sa-card:hover.sa-ec-necromancie{border-color:#4a8a2a;}
+.sa-card:hover.sa-ec-enchantement{border-color:#e8883a;}
+.sa-card:hover.sa-ec-abjuration{border-color:#2a7aff;}
+.sa-card:hover.sa-ec-transmutation{border-color:#aaaa2a;}
+.sa-card:hover.sa-ec-divination{border-color:#2aaaaa;}
+.sa-card:hover.sa-ec-invocation{border-color:#aa2aaa;}
+.sa-card:hover.sa-ec-illusion{border-color:#2aaa7a;}
+.sa-card:hover.sa-ec-def{border-color:#5a7aaa;}
 </style>
 <script src="sorts.js"></script>
 </head>
@@ -765,32 +824,51 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
   <!-- ONGLET SORTS (lecture seule) -->
   <div id="rt-sorts" class="tc">
-    <div class="card" style="padding:.75rem 1.25rem;margin-bottom:1rem;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
-        <span style="font-size:13px;font-weight:700;color:var(--txt);" id="r-scl">—</span>
-        <span style="font-size:11px;color:var(--txt3);" id="r-scl-carac"></span>
+    <!-- ── Header stats ── -->
+    <div class="sa-header">
+      <div class="sa-header-top">
+        <span class="sa-classe" id="r-scl">—</span>
+        <span class="sa-carac" id="r-scl-carac"></span>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px;">
-        <div class="sb"><div class="sl">DD sauvegarde</div><div class="sv" id="r-sdd">—</div></div>
-        <div class="sb"><div class="sl">Mod. attaque sort</div><div class="sv" id="r-sbonus">—</div></div>
-        <div class="sb"><div class="sl" id="r-sorts-label">Sorts connus</div><div class="sv" id="r-sorts-connus">—</div></div>
-        <div class="sb"><div class="sl">Cantrips</div><div class="sv" id="r-sorts-cantrips">—</div></div>
+      <div class="sa-stats-row">
+        <div class="sa-stat"><span class="sa-stat-lbl">DD Sauvegarde</span><span class="sa-stat-val" id="r-sdd">—</span></div>
+        <div class="sa-stat"><span class="sa-stat-lbl">Mod. Attaque Sort</span><span class="sa-stat-val" id="r-sbonus">—</span></div>
+        <div class="sa-stat"><span class="sa-stat-lbl" id="r-sorts-label">Sorts connus</span><span class="sa-stat-val" id="r-sorts-connus">—</span></div>
+        <div class="sa-stat"><span class="sa-stat-lbl">Cantrips</span><span class="sa-stat-val" id="r-sorts-cantrips">—</span></div>
       </div>
-      <div class="skg" id="r-slots" style="margin-top:10px;"></div>
     </div>
-    <div class="card" style="margin-bottom:1rem;">
-      <p class="st">Sorts préparés <span id="r-sprep-n" style="font-weight:400;color:var(--txt3);"></span></p>
-      <div class="sl-list" id="r-sprep"></div>
+    <!-- ── Emplacements pills ── -->
+    <div class="sa-slots-row" id="r-slots-artwork"></div>
+    <!-- r-slots caché : requis par rendreSlots() pour remplir slotsE -->
+    <div id="r-slots" style="display:none;"></div>
+    <!-- ── Sorts préparés / connus ── -->
+    <div class="sa-section-hd">
+      <span class="sa-section-title" id="r-sprep-titre">Sorts préparés <span id="r-sprep-n" style="font-weight:400;opacity:.7;"></span></span>
+      <span id="r-prep-count" style="display:none;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:rgba(45,138,78,.2);color:#6ee7a1;white-space:nowrap;">0/0 préparés</span>
     </div>
-    <div class="card" id="r-grimoire-card">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <p class="st" id="r-grimoire-titre" style="border:none;padding:0;margin:0;">Choisir les sorts à préparer</p>
-        <span id="r-prep-count" style="font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:rgba(45,138,78,.2);color:#6ee7a1;white-space:nowrap;">0/0 préparés</span>
+    <div id="r-sprep" style="margin-bottom:10px;"></div>
+    <!-- ── Grimoire / sélection ── -->
+    <div id="r-grimoire-card">
+      <div class="sa-section-hd">
+        <span class="sa-section-title" id="r-grimoire-titre">Choisir les sorts à préparer</span>
       </div>
-      <div class="chips" id="r-chips"></div>
-      <input type="text" id="r-search" placeholder="Rechercher un sort..." oninput="rSearchSorts()" style="margin-bottom:8px;">
-      <p id="r-scount" style="font-size:11px;color:var(--txt3);margin-bottom:8px;"></p>
-      <div class="sl-list" id="r-slist"></div>
+      <div class="sa-filter-bar" id="r-chips"></div>
+      <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+        <input type="text" id="r-search" placeholder="Rechercher un sort…" oninput="rSearchSorts()" style="flex:1;min-width:120px;font-size:12px;padding:6px 10px;border:1px solid #1e2d45;border-radius:6px;background:#0f1a2e;color:#a0a0b0;font-family:inherit;">
+        <select id="r-filtre-ecole" onchange="rSearchSorts()" style="font-family:inherit;font-size:12px;padding:5px 8px;border:1px solid #1e2d45;border-radius:6px;background:#0f1a2e;color:#a0a0b0;cursor:pointer;">
+          <option value="">Toutes les écoles</option>
+          <option value="évocation">Évocation</option>
+          <option value="nécromancie">Nécromancie</option>
+          <option value="enchantement">Enchantement</option>
+          <option value="abjuration">Abjuration</option>
+          <option value="transmutation">Transmutation</option>
+          <option value="divination">Divination</option>
+          <option value="invocation">Invocation</option>
+          <option value="illusion">Illusion</option>
+        </select>
+      </div>
+      <p id="r-scount" style="font-size:11px;color:#4a5a7a;margin-bottom:8px;"></p>
+      <div class="sa-grid" id="r-slist"></div>
     </div>
   </div>
 
@@ -8550,9 +8628,11 @@ function toggleDot(niv,idx){
   var nb=slotsE[niv].total;
   var cible=nb-idx;
   slotsE[niv].used=slotsE[niv].used===cible?cible-1:cible;
-  rendreSlots("e-slots",true);rendreSlots("r-slots",true);rendreSlots("r-slots-perso",true);sauvegarder();
+  rendreSlots("e-slots",true);rendreSlots("r-slots",true);rendreSlots("r-slots-perso",true);
+  rRendreSlotsArtwork();
+  sauvegarder();
 }
-function resetSlots(){Object.keys(slotsE).forEach(function(k){slotsE[k].used=0;});rendreSlots("e-slots",true);rendreSlots("r-slots",true);rendreSlots("r-slots-perso",true);sauvegarder();}
+function resetSlots(){Object.keys(slotsE).forEach(function(k){slotsE[k].used=0;});rendreSlots("e-slots",true);rendreSlots("r-slots",true);rendreSlots("r-slots-perso",true);rRendreSlotsArtwork();sauvegarder();}
 
 // ══════════════════════════════════════════
 // VUE RÉSUMÉ
@@ -9559,15 +9639,60 @@ function rMajInfosSorts(cl,bm,mod,info){
   var rc=el("r-sorts-cantrips");
   if(rc)rc.textContent=(info&&info.cantrips>0)?info.cantrips:"—";
 }
+// ══ SORTS ARTWORK — données école ══════════════════════
+var _SA_ECO_ACCENTS={evocation:"#7a4aff",necromancie:"#4a8a2a",enchantement:"#e8883a",abjuration:"#2a7aff",transmutation:"#aaaa2a",divination:"#2aaaaa",invocation:"#aa2aaa",illusion:"#2aaa7a",def:"#5a7aaa"};
+function _saEcoKey(eco){
+  var e=(eco||"").toLowerCase();
+  if(e.indexOf("vocation")>=0)return"evocation";
+  if(e.indexOf("crom")>=0)return"necromancie";
+  if(e.indexOf("chant")>=0)return"enchantement";
+  if(e.indexOf("bjur")>=0)return"abjuration";
+  if(e.indexOf("ransmut")>=0)return"transmutation";
+  if(e.indexOf("ivinat")>=0)return"divination";
+  if(e.indexOf("nvoc")>=0||e.indexOf("onjur")>=0)return"invocation";
+  if(e.indexOf("llus")>=0)return"illusion";
+  return"def";
+}
+function _saEcoAccent(k){return _SA_ECO_ACCENTS[k]||_SA_ECO_ACCENTS.def;}
+
+// ── Rendu pills emplacements ────────────────────────────
+function rRendreSlotsArtwork(){
+  var g=el("r-slots-artwork");if(!g)return;
+  g.innerHTML="";
+  var nivs=Object.keys(slotsE).map(Number).sort(function(a,b){return a-b;});
+  if(!nivs.length)return;
+  nivs.forEach(function(ns){
+    var sl=slotsE[ns];if(!sl||!sl.total)return;
+    var total=sl.total,used=sl.used||0,dispo=total-used;
+    var pill=document.createElement("div");
+    pill.className="sa-slot-pill"+(dispo===0?" empty":"");
+    var lbl=document.createElement("span");lbl.className="sa-slot-pill-lbl";lbl.textContent="Niv."+ns;
+    var dotsDiv=document.createElement("div");dotsDiv.className="sa-slot-dots";
+    for(var d=0;d<total;d++){
+      var dot=document.createElement("span");
+      dot.className="sa-dot"+(d<dispo?" plein":"");
+      dot.title=d<dispo?"Utiliser":"Récupérer";
+      (function(niveau,di){
+        dot.addEventListener("click",function(e){e.stopPropagation();toggleDot(niveau,di);});
+      })(ns,d);
+      dotsDiv.appendChild(dot);
+    }
+    var frac=document.createElement("span");frac.className="sa-slot-frac";frac.textContent=dispo+"/"+total;
+    pill.appendChild(lbl);pill.appendChild(dotsDiv);pill.appendChild(frac);
+    g.appendChild(pill);
+  });
+}
+
+// ── Rendu principal onglet sorts ────────────────────────
 function rRendreSorts(){
   var cl=gCl(),bm=gBM();
   var caracId=CS_CL[cl]||null;
   var mod=caracId?gMod(parseInt(v(caracId))||10):0;
   var info=LANCEURS.indexOf(cl)>=0?calcNbSorts():null;
   rMajInfosSorts(cl,bm,mod,info);
-  rendreSlots("r-slots",true);
+  rendreSlots("r-slots",true);   // remplit slotsE (div caché)
+  rRendreSlotsArtwork();          // pills visuels
   var prepType=getClassePreparationType();
-  // Classes qui préparent depuis la liste complète : sélection en édition uniquement
   var selectionEditionSeulement=(prepType==="prepare"||prepType==="prepare_direct");
   var gc=el("r-grimoire-card");
   if(gc)gc.style.display=selectionEditionSeulement?"none":"";
@@ -9578,103 +9703,190 @@ function rRendreSorts(){
   if(!selectionEditionSeulement){rBuildChips();rSearchSorts();}
 }
 
+// ── Rendu sorts préparés / connus ───────────────────────
 function rRendreSortsPrep(){
   var c=el("r-sprep");if(!c)return;
   var prepType=getClassePreparationType();
   var isConnus=prepType==="connus";
   var isEditionOnly=prepType==="prepare"||prepType==="prepare_direct";
+  var titre=el("r-sprep-titre");
+  if(titre)titre.firstChild.textContent=isConnus?"Sorts connus ":"Sorts préparés ";
   var triés=SORTS.filter(function(s){return prepares.has(s.n);});
   triés.sort(function(a,b){return a.nv-b.nv||a.n.localeCompare(b.n);});
+  var nEl=el("r-sprep-n");
   if(!triés.length){
     var msg=isConnus?"Aucun sort connu. Ajoute des sorts dans l'onglet Sorts > Édition."
       :isEditionOnly?"Aucun sort préparé. Va dans l'onglet Sorts > Édition pour choisir tes sorts."
       :"Aucun sort préparé. Coche des sorts dans la liste ci-dessous.";
-    c.innerHTML="<p style='font-size:13px;color:var(--txt3);'>"+msg+"</p>";
-    el("r-sprep-n").textContent="";
+    c.innerHTML="<p style='font-size:12px;color:#4a5a7a;padding:6px 0;'>"+msg+"</p>";
+    if(nEl)nEl.textContent="";
     return;
   }
-  el("r-sprep-n").textContent="("+prepares.size+")";
+  if(nEl)nEl.textContent="("+prepares.size+")";
   c.innerHTML="";
+  var grid=document.createElement("div");grid.className="sa-grid";
   triés.forEach(function(s){
-    var item=document.createElement("div");item.className="si";
-    var hd=document.createElement("div");hd.className="sh";
-    var bdg=document.createElement("span");bdg.className="bdg b"+s.nv;bdg.textContent=s.nv===0?"Cantrip":"Niv."+s.nv;hd.appendChild(bdg);
-    var nom=document.createElement("span");nom.className="sn";nom.textContent=s.n;hd.appendChild(nom);
-    var ptag=document.createElement("span");ptag.className="ptag";ptag.style.background="#fff4d6";ptag.style.color="#7a5800";
-    ptag.textContent=isConnus?" Connu":" Préparé";hd.appendChild(ptag);
-    var eco=document.createElement("span");eco.className="se";eco.style.flex="1";eco.style.textAlign="right";
-    eco.textContent=s.e.replace(/\s*\(rituel\)/i,"").trim();hd.appendChild(eco);
-    var arr=document.createElement("span");arr.className="sa";arr.textContent="▾";hd.appendChild(arr);
-    var bd=document.createElement("div");bd.className="sb2";
-    var meta=document.createElement("div");meta.className="smeta";
-    [["Incantation",s.i],["Portée",s.p],["Composantes",s.c],["Durée",s.d]].forEach(function(pair){
-      var sp=document.createElement("span");var b=document.createElement("b");
-      b.textContent=pair[0]+" : ";sp.appendChild(b);sp.appendChild(document.createTextNode(pair[1]));meta.appendChild(sp);
-    });
-    bd.appendChild(meta);
-    var desc=document.createElement("div");desc.className="sdesc";desc.textContent=s.t;bd.appendChild(desc);
-    // Bouton Dépreparer uniquement pour les classes qui préparent
-    if(!isConnus){
-      var btnR=document.createElement("button");
-      btnR.className="btn ko";btnR.style.cssText="margin-top:8px;font-size:11px;padding:3px 10px;";
-      btnR.textContent=" Dépreparer";
-      var nomSort=s.n;
-      btnR.addEventListener("click",function(){
-        prepares.delete(nomSort);
-        majCompteurPrepares();rRendreSortsPrep();rSearchSorts();sauvegarder();
-      });
-      bd.appendChild(btnR);
-    }
-    hd.addEventListener("click",function(){
-      if(event.target.tagName==="BUTTON")return;
-      bd.classList.toggle("on");arr.textContent=bd.classList.contains("on")?"▴":"▾";
-    });
-    item.appendChild(hd);item.appendChild(bd);c.appendChild(item);
+    grid.appendChild(_saCarte(s,isConnus?"connu":"prepare",!isConnus));
   });
+  c.appendChild(grid);
 }
 
+// ── Boutons filtres niveau ──────────────────────────────
 var rFilNiv=new Set();
 function rBuildChips(){
-  var cl=gCl(),typePrepare=getClassePreparationType(),edMode=getEditionMode();
-  var ss;
-  if(typePrepare==="connus"){
-    // Barde/Ensorceleur/Sorcier/Ranger : sorts connus dans le grimoire
-    ss=SORTS.filter(function(s){return grimoire.has(s.n);});
-  } else {
-    // Magicien, Clerc, Druide, Paladin : prépare uniquement depuis les sorts connus (grimoire)
-    ss=SORTS.filter(function(s){return grimoire.has(s.n);});
-  }
+  var ss=SORTS.filter(function(s){return grimoire.has(s.n);});
   var nivs=[];ss.forEach(function(s){if(nivs.indexOf(s.nv)<0)nivs.push(s.nv);});
   nivs.sort(function(a,b){return a-b;});
   rFilNiv=new Set(nivs);
   var div=el("r-chips");if(!div)return;
-  div.innerHTML="<span style='font-size:11px;color:var(--txt3);'>Niveau :</span>";
+  div.innerHTML="";
   nivs.forEach(function(n){
-    var c=document.createElement("span");c.className="chip on";c.textContent=n===0?"Cantrip":"Niv."+n;c.dataset.n=n;
-    c.onclick=function(){c.classList.toggle("on");rFilNiv.has(n)?rFilNiv.delete(n):rFilNiv.add(n);rSearchSorts();};
-    div.appendChild(c);
+    var b=document.createElement("button");b.className="sa-fil-btn on";
+    b.textContent=n===0?"Cantrips":"Niv."+n;b.dataset.n=n;
+    b.onclick=function(){
+      b.classList.toggle("on");
+      if(rFilNiv.has(n))rFilNiv.delete(n);else rFilNiv.add(n);
+      rSearchSorts();
+    };
+    div.appendChild(b);
   });
 }
+
+// ── Recherche + rendu grille grimoire ───────────────────
 function rSearchSorts(){
-  var cl=gCl(),rech=(v("r-search")||"").toLowerCase();
-  var typePrepare=getClassePreparationType(),edMode=getEditionMode();
-  var ss,titre="";
-  if(typePrepare==="connus"){
-    // Barde/Ensorceleur/Sorcier/Ranger : sorts connus = sorts préparés (lecture seule en résumé)
-    ss=SORTS.filter(function(s){return grimoire.has(s.n);});
-    titre="Sorts connus";
-  } else {
-    // Magicien, Clerc, Druide, Paladin : prépare depuis les sorts connus (grimoire)
-    ss=SORTS.filter(function(s){return grimoire.has(s.n);});
-    titre=grimoire.size>0?"Sorts connus — choisir lesquels préparer":"Aucun sort ajouté — utilise l'onglet Sorts pour apprendre des sorts";
-  }
+  var rech=(v("r-search")||"").toLowerCase();
+  var ecoFil=(v("r-filtre-ecole")||"").toLowerCase();
+  var typePrepare=getClassePreparationType();
+  var ss=SORTS.filter(function(s){return grimoire.has(s.n);});
+  var titre=typePrepare==="connus"?"Sorts connus"
+    :grimoire.size>0?"Sorts connus — choisir lesquels préparer"
+    :"Aucun sort ajouté — utilise l'onglet Sorts pour apprendre des sorts";
   if(rFilNiv.size)ss=ss.filter(function(s){return rFilNiv.has(s.nv);});
   if(rech)ss=ss.filter(function(s){return s.n.toLowerCase().indexOf(rech)>=0||s.e.toLowerCase().indexOf(rech)>=0;});
+  if(ecoFil)ss=ss.filter(function(s){return s.e.toLowerCase().indexOf(ecoFil)>=0;});
   ss=trierSorts(ss);
   var cnt=el("r-scount");if(cnt)cnt.textContent=ss.length+" sort"+(ss.length>1?"s":"");
   var tElem=el("r-grimoire-titre");if(tElem)tElem.textContent=titre;
-  // Pour Barde/Ensorceleur/Sorcier/Ranger en résumé : pas de case à cocher (lecture seule)
-  rendreListeSorts(ss,"r-slist",typePrepare==="connus"?"lecture":"prep");
+  _saRendreGrille(ss,"r-slist",typePrepare==="connus"?"lecture":"prep");
+}
+
+// ── Carte sort (artwork) ────────────────────────────────
+function _saCarte(s,badgeType,avecDepreparer){
+  var ecoRaw=s.e.replace(/\s*\(rituel\)/i,"").trim();
+  var ecoKey=_saEcoKey(ecoRaw);
+  var card=document.createElement("div");
+  card.className="sa-card sa-ec-"+ecoKey;
+  // Ligne haut : niveau + école
+  var top=document.createElement("div");top.className="sa-card-top";
+  var niv=document.createElement("span");niv.className="sa-card-niv";
+  niv.style.color=_saEcoAccent(ecoKey);
+  niv.textContent=s.nv===0?"CANTRIP":"NIV."+s.nv;
+  var eco=document.createElement("span");eco.className="sa-card-ecole";eco.textContent=ecoRaw;
+  top.appendChild(niv);top.appendChild(eco);
+  // Nom + badge
+  var nomRow=document.createElement("div");nomRow.className="sa-card-nom";
+  var nomSpan=document.createElement("span");nomSpan.textContent=s.n;
+  nomRow.appendChild(nomSpan);
+  if(badgeType){
+    var bdg=document.createElement("span");
+    bdg.className="sa-card-badge "+(badgeType==="connu"?"connu":"prepare");
+    bdg.textContent=badgeType==="connu"?"Connu":"Préparé";
+    nomRow.appendChild(bdg);
+  }
+  // Corps accordéon
+  var body=document.createElement("div");body.className="sa-card-body";
+  var sep=document.createElement("hr");sep.className="sa-card-sep";
+  var meta=document.createElement("div");meta.className="sa-card-meta";
+  [["Incant.",s.i],["Portée",s.p],["Comp.",s.c],["Durée",s.d]].forEach(function(pair){
+    var mi=document.createElement("span");mi.className="sa-card-meta-item";
+    mi.innerHTML="<b>"+pair[0]+"</b> "+pair[1];meta.appendChild(mi);
+  });
+  var desc=document.createElement("div");desc.className="sa-card-desc";desc.textContent=s.t;
+  body.appendChild(sep);body.appendChild(meta);body.appendChild(desc);
+  if(avecDepreparer){
+    var nomSort=s.n;
+    var btnD=document.createElement("button");
+    btnD.style.cssText="margin-top:8px;font-family:inherit;font-size:10px;padding:3px 10px;border-radius:4px;background:rgba(185,28,28,.2);color:#fca5a5;border:1px solid rgba(185,28,28,.35);cursor:pointer;";
+    btnD.textContent="Dépreparer";
+    btnD.addEventListener("click",function(e){
+      e.stopPropagation();
+      prepares.delete(nomSort);
+      majCompteurPrepares();rRendreSortsPrep();rSearchSorts();sauvegarder();
+    });
+    body.appendChild(btnD);
+  }
+  card.appendChild(top);card.appendChild(nomRow);card.appendChild(body);
+  card.addEventListener("click",function(e){
+    if(e.target.tagName==="BUTTON")return;
+    var wasOpen=body.classList.contains("on");
+    var parent=card.parentElement;
+    if(parent)parent.querySelectorAll(".sa-card-body.on").forEach(function(b){b.classList.remove("on");});
+    if(!wasOpen)body.classList.add("on");
+  });
+  return card;
+}
+
+// ── Grille grimoire (choix préparation) ─────────────────
+function _saRendreGrille(ss,cid,mode){
+  var c=el(cid);if(!c)return;
+  c.innerHTML="";
+  if(!ss.length){
+    c.innerHTML="<p style='font-size:12px;color:#4a5a7a;grid-column:1/-1;padding:6px 0;'>Aucun sort à afficher.</p>";
+    return;
+  }
+  var typePrepare=getClassePreparationType();
+  ss.forEach(function(s){
+    var ecoRaw=s.e.replace(/\s*\(rituel\)/i,"").trim();
+    var ecoKey=_saEcoKey(ecoRaw);
+    var card=document.createElement("div");card.className="sa-card sa-ec-"+ecoKey;
+    var top=document.createElement("div");top.className="sa-card-top";
+    var niv=document.createElement("span");niv.className="sa-card-niv";
+    niv.style.color=_saEcoAccent(ecoKey);niv.textContent=s.nv===0?"CANTRIP":"NIV."+s.nv;
+    var eco=document.createElement("span");eco.className="sa-card-ecole";eco.textContent=ecoRaw;
+    top.appendChild(niv);top.appendChild(eco);
+    var nomRow=document.createElement("div");nomRow.className="sa-card-nom";
+    var nomSpan=document.createElement("span");nomSpan.textContent=s.n;nomRow.appendChild(nomSpan);
+    if(mode==="prep"&&prepares.has(s.n)){
+      var bdg=document.createElement("span");bdg.className="sa-card-badge prepare";bdg.textContent="Préparé";
+      nomRow.appendChild(bdg);
+    }
+    var body=document.createElement("div");body.className="sa-card-body";
+    var sep=document.createElement("hr");sep.className="sa-card-sep";
+    var meta=document.createElement("div");meta.className="sa-card-meta";
+    [["Incant.",s.i],["Portée",s.p],["Comp.",s.c],["Durée",s.d]].forEach(function(pair){
+      var mi=document.createElement("span");mi.className="sa-card-meta-item";
+      mi.innerHTML="<b>"+pair[0]+"</b> "+pair[1];meta.appendChild(mi);
+    });
+    var desc=document.createElement("div");desc.className="sa-card-desc";desc.textContent=s.t;
+    body.appendChild(sep);body.appendChild(meta);body.appendChild(desc);
+    if(mode==="prep"){
+      var nomSort=s.n;
+      var isPrepared=prepares.has(nomSort);
+      var btnP=document.createElement("button");
+      btnP.style.cssText="margin-top:8px;font-family:inherit;font-size:10px;padding:3px 10px;border-radius:4px;cursor:pointer;";
+      if(isPrepared){
+        btnP.style.cssText+="background:rgba(185,28,28,.2);color:#fca5a5;border:1px solid rgba(185,28,28,.35);";
+        btnP.textContent="Dépreparer";
+      } else {
+        btnP.style.cssText+="background:rgba(34,107,57,.15);color:#6dd88a;border:1px solid rgba(34,107,57,.35);";
+        btnP.textContent="Préparer";
+      }
+      btnP.addEventListener("click",function(e){
+        e.stopPropagation();
+        if(prepares.has(nomSort))prepares.delete(nomSort);else prepares.add(nomSort);
+        majCompteurPrepares();rRendreSortsPrep();sauvegarder();rSearchSorts();
+      });
+      body.appendChild(btnP);
+    }
+    card.appendChild(top);card.appendChild(nomRow);card.appendChild(body);
+    card.addEventListener("click",function(e){
+      if(e.target.tagName==="BUTTON")return;
+      var wasOpen=body.classList.contains("on");
+      c.querySelectorAll(".sa-card-body.on").forEach(function(b){b.classList.remove("on");});
+      if(!wasOpen)body.classList.add("on");
+    });
+    c.appendChild(card);
+  });
 }
 
 // ══════════════════════════════════════════
