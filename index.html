@@ -392,6 +392,36 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .equip-actif-toggle:hover{background:rgba(255,255,255,.06);}
 .equip-actif-toggle.open{border-radius:8px 8px 0 0;}
 .equip-actif-body{display:none;border:1px solid var(--bord);border-top:none;border-radius:0 0 8px 8px;padding:8px;background:var(--bg);}
+/* ── BOURSE ─────────────────────────────────────────── */
+.bourse-wrap{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:10px 12px;margin-bottom:10px;}
+.bourse-title{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);margin-bottom:8px;}
+.bourse-row{display:flex;gap:4px;}
+.bourse-cell{display:flex;flex-direction:column;align-items:center;flex:1;min-width:0;}
+.bourse-cell label{font-size:9px;color:var(--txt3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;display:block;}
+.bourse-cell input{width:100%;text-align:center;font-size:14px;font-weight:700;padding:5px 2px;border-radius:6px;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt);font-family:inherit;}
+.bourse-total{font-size:11px;color:var(--txt3);margin-top:6px;text-align:right;}
+/* ── MESSAGERIE ──────────────────────────────────────── */
+.msg-wrap{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;overflow:hidden;}
+.msg-hd{padding:9px 12px;border-bottom:1px solid var(--bord);display:flex;align-items:center;gap:8px;}
+.msg-title{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);flex:1;}
+.msg-unread{font-size:9px;font-weight:800;padding:1px 6px;border-radius:999px;background:var(--rouge);color:#fff;}
+.msg-history{max-height:240px;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:6px;scrollbar-width:thin;scrollbar-color:var(--bord) transparent;}
+.msg-bubble{max-width:85%;padding:7px 11px;border-radius:10px;font-size:12px;line-height:1.5;word-break:break-word;}
+.msg-bubble.from-mj{background:var(--bg3);color:var(--txt2);align-self:flex-start;border-bottom-left-radius:3px;}
+.msg-bubble.from-pj{background:rgba(217,119,6,.15);color:var(--txt);align-self:flex-end;border-bottom-right-radius:3px;border:1px solid rgba(217,119,6,.25);}
+.msg-ts{font-size:9px;color:var(--txt3);margin-top:2px;}
+.msg-empty{font-size:12px;color:var(--txt3);font-style:italic;text-align:center;padding:16px 0;}
+.msg-input-row{display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--bord);}
+.msg-input-txt{flex:1;font-family:inherit;font-size:12px;padding:7px 10px;border-radius:8px;border:1px solid var(--bord2);background:var(--bg);color:var(--txt);resize:none;min-height:36px;max-height:80px;}
+.msg-send-btn{font-family:inherit;font-size:12px;font-weight:600;padding:7px 14px;border-radius:8px;border:none;background:var(--rouge);color:#fff;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.msg-send-btn:hover{opacity:.85;}
+/* ── TAB BADGE ───────────────────────────────────────── */
+.tbtn-bdg{display:inline-block;font-size:9px;font-weight:800;padding:0 5px;height:14px;line-height:14px;border-radius:999px;background:var(--rouge);color:#fff;margin-left:4px;vertical-align:middle;}
+/* ── BOUTIQUE — acheter btn ─────────────────────────── */
+.boutique-prix{font-size:12px;font-weight:700;color:var(--or);margin-top:5px;}
+.boutique-acheter{font-family:inherit;font-size:11px;font-weight:600;padding:5px 10px;border-radius:6px;border:none;background:var(--rouge);color:#fff;cursor:pointer;width:100%;margin-top:5px;}
+.boutique-acheter:hover{opacity:.85;}
+.boutique-acheter:disabled{opacity:.4;cursor:not-allowed;background:var(--bg3);color:var(--txt3);border:1px solid var(--bord2);}
 .equip-actif-body.on{display:block;}
 .equip-actif-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bord);font-size:12px;}
 .equip-actif-row:last-child{border-bottom:none;}
@@ -548,7 +578,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <button class="tbtn" onclick="rTab('equip',this)">⚔️ Équip.</button>
     <button class="tbtn" onclick="rTab('regles',this)">Règles</button>
     <button class="tbtn" onclick="rTab('notes',this)">📝 Notes</button>
-    <button class="tbtn" onclick="rTab('campagne',this)">Campagne</button>
+    <button class="tbtn" id="r-tbtn-campagne" onclick="rTab('campagne',this)">Campagne</button>
   </div>
 
   <!-- ══ ONGLET PERSONNAGE ══════════════════════════════ -->
@@ -759,6 +789,22 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <div class="r-section">
         <p class="st">Autres joueurs</p>
         <div id="rc-joueurs"><p style="font-size:12px;color:var(--txt3);">Chargement…</p></div>
+      </div>
+      <!-- 💬 Messages MJ -->
+      <div class="r-section" id="rc-msg-section" style="display:none;">
+        <div class="msg-wrap">
+          <div class="msg-hd">
+            <span class="msg-title">💬 Messages MJ</span>
+            <span class="msg-unread" id="rc-msg-badge" style="display:none;">0</span>
+          </div>
+          <div class="msg-history" id="rc-msg-history">
+            <p class="msg-empty">Aucun message pour l'instant.</p>
+          </div>
+          <div class="msg-input-row">
+            <textarea class="msg-input-txt" id="rc-msg-input" rows="1" placeholder="Écrire au MJ…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();msgPjEnvoyer();}"></textarea>
+            <button class="msg-send-btn" onclick="msgPjEnvoyer()">Envoyer</button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -6029,6 +6075,18 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
     <!-- ── VUE ÉQUIPEMENT ── -->
     <div id="equip-main-view">
+      <!-- 💰 Bourse -->
+      <div class="bourse-wrap">
+        <div class="bourse-title">💰 Bourse</div>
+        <div class="bourse-row">
+          <div class="bourse-cell"><label>PP</label><input type="number" id="bourse-pp" min="0" value="0" oninput="bourseMaj()"></div>
+          <div class="bourse-cell"><label>PO</label><input type="number" id="bourse-po" min="0" value="0" oninput="bourseMaj()"></div>
+          <div class="bourse-cell"><label>PE</label><input type="number" id="bourse-pe" min="0" value="0" oninput="bourseMaj()"></div>
+          <div class="bourse-cell"><label>PA</label><input type="number" id="bourse-pa" min="0" value="0" oninput="bourseMaj()"></div>
+          <div class="bourse-cell"><label>PC</label><input type="number" id="bourse-pc" min="0" value="0" oninput="bourseMaj()"></div>
+        </div>
+        <div class="bourse-total" id="bourse-total">≈ 0 po</div>
+      </div>
       <!-- Deux colonnes : silhouette + inventaire -->
       <div class="equip-two-col">
         <!-- Gauche : silhouette + slots -->
@@ -7491,6 +7549,7 @@ function rTab(name,btn){
   if(name==="notes"){rcRendreNotesTabs();rcRendreInfosTabs();}
   if(name==="perso"){var rne=el('r-notes-edit');if(rne){rne.style.height='auto';rne.style.height=rne.scrollHeight+'px';}}
   if(name==="equip"){equip_rendreAll();}
+  if(name==="campagne"){msgPjMarquerTousLus();}
   if(name==="regles"){
     // Recharger le sous-onglet actif (Classe par défaut)
     var stabs=document.querySelectorAll('#rt-regles .rq-stab');
@@ -7769,6 +7828,7 @@ function collecterDonnees(){
   data._nom=v("nom");
   if(avatarUrl) data.avatar=avatarUrl;
   data._savedAt=Date.now();
+  data.monnaie=bourseCollect();
   return data;
 }
 
@@ -7797,6 +7857,7 @@ function chargerFiche(data){
   if(data.coches&&!data.grimoire)grimoire=new Set(data.coches);
   if(data.slots)slotsE=data.slots;
   if(data.ressources)ressourcesClasse=data.ressources;
+  bourseCharger(data);
   el("prep-n").textContent=prepares.size?"("+prepares.size+")":"";
   // updateAll() → buildComps() crée les .erow dans le DOM
   updateAll();
@@ -9862,6 +9923,7 @@ function campJoindre(){
     campEcouter();
     majAffichageCampagne();
     equip_init();
+    msgPjInit();
     var nomCamp=snap.data()&&snap.data().nom?snap.data().nom:"Campagne "+code;
     var nomEl=el("rc-nom");if(nomEl)nomEl.textContent=nomCamp;
     var codeEl=el("rc-code-aff");if(codeEl)codeEl.textContent=code;
@@ -10078,6 +10140,7 @@ function initCampagne(){
     campEcouter();
     majAffichageCampagne();
     equip_init();
+    msgPjInit();
     // Charger le nom de la campagne
     db.collection("parties").doc(campCode).get().then(function(snap){
       if(snap.exists){
@@ -10097,6 +10160,178 @@ window.addEventListener("beforeunload",function(){if(campCode&&db&&joueurId)camp
 window.addEventListener("pagehide",function(){if(campCode&&db&&joueurId)campEcrireJoueur({enLigne:false,lastSeen:0});});
 // C8 Heartbeat lastSeen toutes les 20s
 setInterval(function(){if(campCode&&db&&joueurId)campEcrireJoueur({lastSeen:Date.now()});},20000);
+
+// ══════════════════════════════════════════
+// BOURSE
+// ══════════════════════════════════════════
+function bourseCollect(){
+  return{
+    pp:parseInt((el("bourse-pp")||{}).value)||0,
+    po:parseInt((el("bourse-po")||{}).value)||0,
+    pe:parseInt((el("bourse-pe")||{}).value)||0,
+    pa:parseInt((el("bourse-pa")||{}).value)||0,
+    pc:parseInt((el("bourse-pc")||{}).value)||0
+  };
+}
+function bourseEnPC(m){return(m.pp||0)*1000+(m.po||0)*100+(m.pe||0)*50+(m.pa||0)*10+(m.pc||0);}
+function bourseMaj(){
+  var m=bourseCollect();
+  var total_pc=bourseEnPC(m);
+  var po_tot=Math.floor(total_pc/100);
+  var pa_rest=Math.floor((total_pc%100)/10);
+  var t=el("bourse-total");
+  if(t)t.textContent="≈ "+po_tot+" po"+(pa_rest?" "+pa_rest+" pa":"");
+  sauvegarder();
+}
+function bourseCharger(data){
+  var m=data.monnaie||{};
+  ["pp","po","pe","pa","pc"].forEach(function(k){var e=el("bourse-"+k);if(e)e.value=m[k]||0;});
+  bourseMaj();
+}
+function bourseCanAffordPO(prix){return bourseEnPC(bourseCollect())>=prix*100;}
+function bourseDeduire(prix){
+  var m=bourseCollect();
+  var total=bourseEnPC(m),cout=prix*100;
+  if(total<cout)return false;
+  total-=cout;
+  m.pp=Math.floor(total/1000);total%=1000;
+  m.po=Math.floor(total/100);total%=100;
+  m.pe=0;
+  m.pa=Math.floor(total/10);total%=10;
+  m.pc=total;
+  ["pp","po","pe","pa","pc"].forEach(function(k){var e=el("bourse-"+k);if(e)e.value=m[k];});
+  bourseMaj();
+  return true;
+}
+
+// ══════════════════════════════════════════
+// BOUTIQUE — ACHAT
+// ══════════════════════════════════════════
+var _achatEnCours=null;
+function equip_ouvrirAchat(itemId,prix,nomItem){
+  if(!campCode||!joueurId){toast("Rejoins une campagne pour acheter.");return;}
+  _achatEnCours={itemId:itemId,prix:prix,nomItem:nomItem};
+  var totalPC=bourseEnPC(bourseCollect());
+  var totalPO=(totalPC/100).toFixed(1);
+  var peutAcheter=bourseCanAffordPO(prix);
+  var modal=el("modal-achat");if(!modal)return;
+  modal.style.display="flex";
+  el("modal-achat-titre").textContent="Acheter "+nomItem+" ?";
+  var corps="Prix : <b>"+prix+" po</b><br>Votre bourse : ≈ <b>"+totalPO+" po</b>";
+  if(!peutAcheter){
+    var manque=((prix*100-totalPC)/100).toFixed(1);
+    corps+="<br><span style='color:#fca5a5;font-size:12px;'>Fonds insuffisants — il manque "+manque+" po</span>";
+  }
+  el("modal-achat-corps").innerHTML=corps;
+  var okBtn=el("modal-achat-ok");
+  if(okBtn)okBtn.style.display=peutAcheter?"":"none";
+}
+function equip_confirmerAchat(){
+  if(!_achatEnCours)return;
+  var itemId=_achatEnCours.itemId,prix=_achatEnCours.prix,nom=_achatEnCours.nomItem;
+  el("modal-achat").style.display="none";
+  if(!bourseDeduire(prix)){toast("Fonds insuffisants.");_achatEnCours=null;return;}
+  if(!db){toast("Firebase non disponible.");_achatEnCours=null;return;}
+  db.collection("parties").doc(campCode).collection("joueurs").doc(joueurId)
+    .set({inventaire:firebase.firestore.FieldValue.arrayUnion(itemId)},{merge:true})
+    .then(function(){return db.collection("items").doc(itemId).update({enBoutique:false});})
+    .then(function(){sauvegarder();toast("✅ "+nom+" acheté !");_achatEnCours=null;})
+    .catch(function(e){toast("Erreur : "+e.message);_achatEnCours=null;});
+}
+
+// ══════════════════════════════════════════
+// MESSAGERIE PJ ↔ MJ
+// ══════════════════════════════════════════
+var msgPjUnsub=null;
+function msgPjInit(){
+  if(msgPjUnsub){msgPjUnsub();msgPjUnsub=null;}
+  if(!db||!campCode||!joueurId)return;
+  var section=el("rc-msg-section");if(section)section.style.display="";
+  msgPjUnsub=db.collection("parties").doc(campCode).collection("messages")
+    .where("conversation","==",joueurId)
+    .onSnapshot(function(qs){
+      var msgs=[];
+      qs.forEach(function(d){msgs.push(Object.assign({id:d.id},d.data()));});
+      msgs.sort(function(a,b){return((a.ts&&a.ts.seconds)||0)-((b.ts&&b.ts.seconds)||0);});
+      msgPjRendre(msgs);
+      var unread=msgs.filter(function(m){return m.from==="mj"&&!m.lu;});
+      msgPjMajBadge(unread.length);
+      // Marquer lus si onglet campagne actif
+      if(unread.length){
+        var tabOn=el("rt-campagne")&&el("rt-campagne").classList.contains("on");
+        if(tabOn)msgPjMarquerLus(unread);
+      }
+    },function(e){console.error("msgPj listener",e);});
+}
+function msgPjRendre(msgs){
+  var h=el("rc-msg-history");if(!h)return;
+  if(!msgs.length){h.innerHTML='<p class="msg-empty">Aucun message pour l\'instant.</p>';return;}
+  h.innerHTML=msgs.map(function(m){
+    var fromMj=m.from==="mj";
+    var cls=fromMj?"from-mj":"from-pj";
+    var who=fromMj?"MJ":"Vous";
+    var ts=m.ts&&m.ts.seconds?_msgFmtTs(m.ts.seconds*1000):"";
+    return '<div style="display:flex;flex-direction:column;align-items:'+(fromMj?"flex-start":"flex-end")+';gap:1px;">'
+      +'<div class="msg-bubble '+cls+'">'+_msgEsc(m.texte)+'</div>'
+      +'<span class="msg-ts">'+who+(ts?" · "+ts:"")+'</span>'
+      +'</div>';
+  }).join("");
+  h.scrollTop=h.scrollHeight;
+}
+function msgPjMarquerLus(msgs){
+  if(!db||!campCode)return;
+  var batch=db.batch();
+  msgs.forEach(function(m){
+    batch.update(db.collection("parties").doc(campCode).collection("messages").doc(m.id),{lu:true});
+  });
+  batch.commit().catch(function(){});
+}
+function msgPjMarquerTousLus(){
+  if(!db||!campCode||!joueurId)return;
+  db.collection("parties").doc(campCode).collection("messages")
+    .where("conversation","==",joueurId).where("from","==","mj").where("lu","==",false)
+    .get().then(function(qs){
+      if(!qs.size)return;
+      var batch=db.batch();
+      qs.forEach(function(d){batch.update(d.ref,{lu:true});});
+      batch.commit().catch(function(){});
+      msgPjMajBadge(0);
+    }).catch(function(){});
+}
+function msgPjMajBadge(count){
+  var badge=el("rc-msg-badge");
+  if(badge){badge.textContent=count;badge.style.display=count?"":"none";}
+  var tabBtn=el("r-tbtn-campagne");
+  if(tabBtn){
+    var bdg=tabBtn.querySelector(".tbtn-bdg");
+    if(count>0){
+      if(!bdg){bdg=document.createElement("span");bdg.className="tbtn-bdg";tabBtn.appendChild(bdg);}
+      bdg.textContent=count;
+    } else {if(bdg)bdg.remove();}
+  }
+}
+function msgPjEnvoyer(){
+  var inp=el("rc-msg-input");
+  var texte=(inp?inp.value:"").trim();
+  if(!texte)return;
+  if(!db||!campCode||!joueurId){toast("Non connecté à une campagne.");return;}
+  inp.value="";
+  db.collection("parties").doc(campCode).collection("messages").add({
+    conversation:joueurId,
+    from:joueurId,
+    texte:texte,
+    lu:false,
+    ts:firebase.firestore.FieldValue.serverTimestamp()
+  }).catch(function(e){toast("Erreur : "+e.message);inp.value=texte;});
+}
+function _msgFmtTs(ms){
+  var d=new Date(ms),now=new Date(),diff=now-d;
+  if(diff<60000)return"à l'instant";
+  if(diff<3600000)return Math.floor(diff/60000)+" min";
+  if(d.toDateString()===now.toDateString())return d.getHours()+"h"+String(d.getMinutes()).padStart(2,"0");
+  return d.getDate()+"/"+(d.getMonth()+1);
+}
+function _msgEsc(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");}
 
 // ══════════════════════════════════════════
 // SYSTÈME D'ÉQUIPEMENT PJ
@@ -10580,6 +10815,14 @@ function equip_rendreBoutique(items){
         +Object.keys(item.effets).map(function(k){return k+' : '+item.effets[k];}).join(' · ')
         +'</div>';
     }
+    var prix=item.prix||0;
+    var canAfford=campCode&&bourseCanAffordPO(prix);
+    var achatBtn=campCode
+      ?'<button class="boutique-acheter"'+(canAfford?'':' disabled title="Fonds insuffisants"')
+        +' onclick="equip_ouvrirAchat(\''+item.id+'\','+prix+',\''+item.nom.replace(/'/g,"\\'")+'\')">'
+        +(prix>0?"Acheter · "+prix+" po":"Obtenir (gratuit)")
+        +'</button>'
+      :"";
     return '<div class="boutique-card">'
       +'<div class="boutique-card-ico">'+icone+'</div>'
       +'<div class="boutique-card-nom">'+item.nom+'</div>'
@@ -10587,6 +10830,8 @@ function equip_rendreBoutique(items){
       +'<div class="boutique-card-slot">'+slotLbl+'</div>'
       +(item.description?'<div class="boutique-card-desc">'+item.description+'</div>':"")
       +effetsHtml
+      +(prix>0?'<div class="boutique-prix">💰 '+prix+' po</div>':"")
+      +achatBtn
       +'</div>';
   }).join("");
 }
@@ -11575,5 +11820,17 @@ function cbtAppliquerPV(){
 </div>
 <!-- C1 Retour fiche → combat -->
 <button id="cbt-retour-fiche-btn" onclick="fermerFicheCombat()">⚔ Retour au combat</button>
+
+<!-- ── Modal confirmation achat boutique ── -->
+<div id="modal-achat" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:600;align-items:center;justify-content:center;padding:1rem;">
+  <div style="background:var(--bg2);border:1px solid var(--bord2);border-radius:14px;padding:1.5rem;width:100%;max-width:320px;">
+    <p id="modal-achat-titre" style="font-size:14px;font-weight:700;color:var(--txt);margin-bottom:.75rem;"></p>
+    <div id="modal-achat-corps" style="font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:1.25rem;"></div>
+    <div style="display:flex;gap:8px;">
+      <button id="modal-achat-ok" class="btn ok" style="flex:1;" onclick="equip_confirmerAchat()">Confirmer</button>
+      <button class="btn" style="flex:1;" onclick="el('modal-achat').style.display='none';_achatEnCours=null;">Annuler</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

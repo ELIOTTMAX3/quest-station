@@ -175,6 +175,25 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .emoji-picker-btn:hover{background:var(--bg2);border-color:var(--bord2);}
 .emoji-cat-btn{font-family:inherit;font-size:11px;padding:3px 8px;border-radius:6px;cursor:pointer;border:1px solid var(--bord2);background:var(--bg2);color:var(--txt2);}
 .emoji-cat-btn.on{background:var(--rouge);color:white;border-color:var(--rouge);}
+/* ── MESSAGERIE MJ ── */
+.msg-wrap{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;overflow:hidden;}
+.msg-hd{padding:9px 12px;border-bottom:1px solid var(--bord);display:flex;align-items:center;gap:8px;}
+.msg-title{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);flex:1;}
+.msg-unread{font-size:9px;font-weight:800;padding:1px 6px;border-radius:999px;background:var(--rouge);color:#fff;}
+.msg-history{max-height:240px;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:6px;}
+.msg-bubble{max-width:85%;padding:7px 11px;border-radius:10px;font-size:12px;line-height:1.5;word-break:break-word;}
+.msg-bubble.from-mj{background:rgba(217,119,6,.15);color:var(--txt);align-self:flex-end;border-bottom-right-radius:3px;border:1px solid rgba(217,119,6,.25);}
+.msg-bubble.from-pj{background:var(--bg3);color:var(--txt2);align-self:flex-start;border-bottom-left-radius:3px;}
+.msg-ts{font-size:9px;color:var(--txt3);margin-top:2px;}
+.msg-empty{font-size:12px;color:var(--txt3);font-style:italic;text-align:center;padding:16px 0;}
+.msg-input-row{display:flex;gap:6px;padding:8px 10px;border-top:1px solid var(--bord);}
+.msg-input-txt{flex:1;font-family:inherit;font-size:12px;padding:7px 10px;border-radius:8px;border:1px solid var(--bord2);background:var(--bg);color:var(--txt);resize:none;min-height:36px;max-height:80px;}
+.msg-send-btn{font-family:inherit;font-size:12px;font-weight:600;padding:7px 14px;border-radius:8px;border:none;background:var(--rouge);color:#fff;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.msg-pj-sel{display:flex;gap:6px;padding:8px 12px;border-bottom:1px solid var(--bord);overflow-x:auto;scrollbar-width:thin;flex-wrap:wrap;}
+.msg-pj-btn{font-family:inherit;font-size:11px;padding:4px 10px;border-radius:999px;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt2);cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.msg-pj-btn.on{background:var(--rouge);color:#fff;border-color:var(--rouge);}
+.msg-pj-btn-bdg{display:inline-block;font-size:9px;font-weight:800;padding:0 4px;height:13px;line-height:13px;border-radius:999px;background:#fca5a5;color:#7f1d1d;margin-left:4px;vertical-align:middle;}
+.tbtn-bdg{display:inline-block;font-size:9px;font-weight:800;padding:0 5px;height:14px;line-height:14px;border-radius:999px;background:#fff;color:var(--rouge);margin-left:4px;vertical-align:middle;}
 </style>
 </head>
 <body>
@@ -254,7 +273,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <button class="tbtn" onclick="panelTab('regles',this)">📖 Règles</button>
       <button class="tbtn" onclick="panelTab('notes',this)">📝 Notes</button>
       <button class="tbtn" onclick="panelTab('objets',this)">⚔️ Objets</button>
-      <button class="tbtn" onclick="panelTab('campagne',this)">Campagne</button>
+      <button id="mj-tbtn-campagne" class="tbtn" onclick="panelTab('campagne',this)">Campagne</button>
     </div>
 
     <!-- Onglet Joueurs -->
@@ -429,9 +448,13 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
             <div class="emoji-picker-grid" id="equip-mj-emoji-grid"></div>
           </div>
         </div>
-        <div style="margin-bottom:1rem;display:flex;align-items:center;gap:8px;">
-          <input type="checkbox" id="equip-mj-boutique" style="width:auto;">
+        <div style="margin-bottom:.75rem;display:flex;align-items:center;gap:8px;">
+          <input type="checkbox" id="equip-mj-boutique" style="width:auto;" onchange="equip_mj_togglePrix(this.checked)">
           <label for="equip-mj-boutique" style="display:inline;font-size:13px;color:var(--txt2);margin:0;">Disponible en boutique</label>
+        </div>
+        <div id="equip-mj-prix-wrap" style="display:none;margin-bottom:1rem;">
+          <label>Prix (en PO)</label>
+          <input type="number" id="equip-mj-prix" min="0" placeholder="0" style="max-width:140px;">
         </div>
         <div style="display:flex;gap:8px;">
           <button class="btn ok" style="flex:1;" onclick="equip_mj_sauvegarder()">Sauvegarder</button>
@@ -465,6 +488,21 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <div class="card">
         <p class="st">Joueurs inscrits</p>
         <div id="camp-joueurs-list"><p style="font-size:12px;color:var(--txt3);">Chargement…</p></div>
+      </div>
+      <div class="card" id="mj-msg-card" style="display:none;">
+        <p class="st">💬 Messagerie PJ</p>
+        <div class="msg-wrap" style="margin-top:4px;">
+          <div class="msg-pj-sel" id="mj-msg-selecteur">
+            <span style="font-size:12px;color:var(--txt3);font-style:italic;align-self:center;">Aucun joueur dans la campagne</span>
+          </div>
+          <div class="msg-history" id="mj-msg-history">
+            <p class="msg-empty">Sélectionne un joueur pour voir ses messages.</p>
+          </div>
+          <div class="msg-input-row">
+            <textarea class="msg-input-txt" id="mj-msg-input" rows="1" placeholder="Envoyer un message…" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();mjMsgEnvoyer();}"></textarea>
+            <button class="msg-send-btn" onclick="mjMsgEnvoyer()">Envoyer</button>
+          </div>
+        </div>
       </div>
       <div class="card">
         <p class="st">Danger</p>
@@ -598,6 +636,7 @@ function panelTab(name,btn){
   var t=el("pt-"+name);if(t)t.style.display="";
   btn.classList.add("on");
   if(name==="combat")ouvrirOngletCombat();
+  if(name==="campagne")mjMsgMajSelecteur();
   if(name==="regles"){
     var iframe=el("mj-regles-iframe");
     if(iframe && !iframe.getAttribute('data-loaded')){
@@ -688,6 +727,8 @@ function ouvrirPanel(code){
 
   // Initialiser le système d'objets
   equip_mj_init();
+  // Initialiser la messagerie MJ
+  mjMsgInitGlobal(code);
 
   // Écouter le doc campagne
   campagneUnsub=db.collection("parties").doc(code).onSnapshot(function(snap){
@@ -1752,6 +1793,7 @@ function equip_mj_rendreItems(){
       +'<div style="flex:1;min-width:0;">'
       +'<span style="font-size:13px;font-weight:700;color:var(--txt);">'+item.nom+'</span>'
       +' <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(0,0,0,.35);color:'+rarColor+';">'+item.rarete+'</span>'
+      +(item.prix>0?' <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(201,162,39,.15);color:var(--or);border:1px solid rgba(201,162,39,.35);">💰 '+item.prix+' po</span>':"")
       +'<div style="font-size:11px;color:var(--txt3);margin-top:2px;">'+slotLbl+'</div>'
       +'</div>'
       +'<label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--txt2);cursor:pointer;white-space:nowrap;">'
@@ -1799,6 +1841,8 @@ function equip_mj_ouvrirForm(id){
   el("equip-mj-slot").value=item?item.slot:"inventaire";
   el("equip-mj-icone").value=item?item.icone:"";
   el("equip-mj-boutique").checked=item?!!item.enBoutique:false;
+  el("equip-mj-prix").value=item?item.prix||0:0;
+  equip_mj_togglePrix(item?!!item.enBoutique:false);
   var ep=el("equip-mj-emoji-picker");if(ep)ep.style.display="none";
   el("equip-mj-form-section").style.display="";
   el("equip-mj-nom").focus();
@@ -1874,6 +1918,7 @@ function equip_mj_sauvegarder(){
     slot:el("equip-mj-slot").value,
     icone:(el("equip-mj-icone").value||"").trim(),
     enBoutique:el("equip-mj-boutique").checked,
+    prix:parseInt(el("equip-mj-prix").value)||0,
     effets:{}
   };
   if(!id){
@@ -1938,6 +1983,159 @@ function equip_mj_attribuer(itemId){
     var panel=el("equip-mj-donner-"+itemId);
     if(panel)panel.style.display="none";
   }).catch(function(e){toast("Erreur : "+e.message);});
+}
+
+// ══════════════════════════════════════════
+// BOUTIQUE — PRIX
+// ══════════════════════════════════════════
+function equip_mj_togglePrix(visible){
+  var wrap=el("equip-mj-prix-wrap");
+  if(wrap)wrap.style.display=visible?"":"none";
+}
+
+// ══════════════════════════════════════════
+// MESSAGERIE MJ ↔ PJ
+// ══════════════════════════════════════════
+var mjMsgGlobalUnsub=null;
+var mjMsgPjSel=null;
+var mjMsgUnread={};
+var _mjMsgAllMsgs={};
+
+function mjMsgInitGlobal(code){
+  if(mjMsgGlobalUnsub){mjMsgGlobalUnsub();mjMsgGlobalUnsub=null;}
+  mjMsgPjSel=null;mjMsgUnread={};_mjMsgAllMsgs={};
+  if(!db||!code)return;
+  el("mj-msg-card").style.display="";
+  mjMsgGlobalUnsub=db.collection("parties").doc(code).collection("messages")
+    .onSnapshot(function(qs){
+      _mjMsgAllMsgs={};
+      qs.forEach(function(d){
+        var msg=Object.assign({id:d.id},d.data());
+        var conv=msg.conversation;if(!conv)return;
+        if(!_mjMsgAllMsgs[conv])_mjMsgAllMsgs[conv]=[];
+        _mjMsgAllMsgs[conv].push(msg);
+      });
+      // Unread par PJ (messages envoyés par le PJ, non lus par le MJ)
+      mjMsgUnread={};
+      Object.keys(_mjMsgAllMsgs).forEach(function(jid){
+        var unread=_mjMsgAllMsgs[jid].filter(function(m){return m.from!=="mj"&&!m.lu;}).length;
+        if(unread>0)mjMsgUnread[jid]=unread;
+      });
+      // Badge onglet
+      var total=Object.keys(mjMsgUnread).reduce(function(s,k){return s+(mjMsgUnread[k]||0);},0);
+      mjMsgMajBadge(total);
+      // Mettre à jour le sélecteur
+      mjMsgMajSelecteur();
+      // Raffraîchir l'historique si un PJ est sélectionné
+      if(mjMsgPjSel&&_mjMsgAllMsgs[mjMsgPjSel]){
+        var msgs=_mjMsgAllMsgs[mjMsgPjSel].slice().sort(function(a,b){
+          return((a.ts&&a.ts.seconds)||0)-((b.ts&&b.ts.seconds)||0);
+        });
+        mjMsgRendre(msgs);
+        var unreadMsgs=msgs.filter(function(m){return m.from!=="mj"&&!m.lu;});
+        if(unreadMsgs.length)mjMsgMarquerLus(unreadMsgs,code);
+      }
+    },function(e){console.error("mjMsg listener",e);});
+}
+
+function mjMsgMajBadge(count){
+  var tbtn=el("mj-tbtn-campagne");if(!tbtn)return;
+  var bdg=tbtn.querySelector(".tbtn-bdg");
+  if(count>0){
+    if(!bdg){bdg=document.createElement("span");bdg.className="tbtn-bdg";tbtn.appendChild(bdg);}
+    bdg.textContent=count;
+  } else {
+    if(bdg)bdg.remove();
+  }
+}
+
+function mjMsgMajSelecteur(){
+  var cont=el("mj-msg-selecteur");if(!cont)return;
+  var jids=Object.keys(joueursData).filter(function(jid){return joueursData[jid]._nom;});
+  if(!jids.length){
+    cont.innerHTML='<span style="font-size:12px;color:var(--txt3);font-style:italic;align-self:center;">Aucun joueur dans la campagne</span>';
+    return;
+  }
+  // Si aucun PJ sélectionné, choisir le premier
+  if(!mjMsgPjSel)mjMsgPjSel=jids[0];
+  cont.innerHTML=jids.map(function(jid){
+    var d=joueursData[jid];
+    var unread=mjMsgUnread[jid]||0;
+    var isOn=mjMsgPjSel===jid;
+    return '<button class="msg-pj-btn'+(isOn?" on":"")
+      +'" onclick="mjMsgSelPJ(\''+jid+'\')">'
+      +(d._nom||jid)
+      +(unread?'<span class="msg-pj-btn-bdg">'+unread+'</span>':"")
+      +'</button>';
+  }).join("");
+}
+
+function mjMsgSelPJ(jid){
+  mjMsgPjSel=jid;
+  mjMsgMajSelecteur();
+  // Afficher les messages de ce PJ
+  var msgs=(_mjMsgAllMsgs[jid]||[]).slice().sort(function(a,b){
+    return((a.ts&&a.ts.seconds)||0)-((b.ts&&b.ts.seconds)||0);
+  });
+  mjMsgRendre(msgs);
+  // Marquer comme lus
+  var unreadMsgs=msgs.filter(function(m){return m.from!=="mj"&&!m.lu;});
+  if(unreadMsgs.length&&campagneActive)mjMsgMarquerLus(unreadMsgs,campagneActive.id);
+}
+
+function mjMsgMarquerLus(msgs,code){
+  if(!db||!msgs||!msgs.length||!code)return;
+  var batch=db.batch();
+  msgs.forEach(function(m){
+    batch.update(db.collection("parties").doc(code).collection("messages").doc(m.id),{lu:true});
+  });
+  batch.commit().catch(function(){});
+}
+
+function mjMsgRendre(msgs){
+  var cont=el("mj-msg-history");if(!cont)return;
+  if(!msgs||!msgs.length){
+    cont.innerHTML='<p class="msg-empty">Aucun message. Commence la conversation !</p>';
+    return;
+  }
+  var d=joueursData[mjMsgPjSel]||{};
+  var pjNom=d._nom||"PJ";
+  cont.innerHTML=msgs.map(function(m){
+    var fromMj=m.from==="mj";
+    var align=fromMj?"flex-end":"flex-start";
+    var cls=fromMj?"from-mj":"from-pj";
+    var nom=fromMj?"Vous":pjNom;
+    var ts=m.ts&&m.ts.seconds?_mjMsgFormatTs(m.ts.seconds*1000):"";
+    return '<div style="display:flex;flex-direction:column;align-items:'+align+';">'
+      +'<div class="msg-bubble '+cls+'">'+_mjMsgEscape(m.texte||"")+'</div>'
+      +'<span class="msg-ts">'+nom+(ts?" · "+ts:"")+'</span>'
+      +'</div>';
+  }).join("");
+  cont.scrollTop=cont.scrollHeight;
+}
+
+function mjMsgEnvoyer(){
+  if(!mjMsgPjSel){toast("Sélectionne un joueur.");return;}
+  if(!campagneActive){toast("Aucune campagne active.");return;}
+  var inp=el("mj-msg-input");if(!inp)return;
+  var texte=inp.value.trim();if(!texte)return;
+  inp.value="";
+  db.collection("parties").doc(campagneActive.id).collection("messages").doc().set({
+    conversation:mjMsgPjSel,
+    from:"mj",
+    texte:texte,
+    ts:firebase.firestore.FieldValue.serverTimestamp(),
+    lu:false
+  }).catch(function(e){toast("Erreur : "+e.message);});
+}
+
+function _mjMsgFormatTs(ms){
+  var d=new Date(ms);
+  return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+}
+
+function _mjMsgEscape(s){
+  return s.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/\n/g,"<br>");
 }
 
 // ══════════════════════════════════════════
