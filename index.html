@@ -370,12 +370,12 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .equip-slot.occupied .equip-slot-lbl{color:#e8dcc8;}
 .equip-inv-col{display:flex;flex-direction:column;gap:0;}
 .equip-inv-section-hd{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);padding:6px 0 4px;border-bottom:1px solid var(--bord);margin-bottom:6px;}
-.equip-item-row{background:var(--bg3);border:1px solid var(--bord);border-radius:8px;padding:7px 8px;margin-bottom:5px;display:flex;align-items:flex-start;gap:7px;}
+.equip-item-row{background:var(--bg3);border:1px solid var(--bord);border-radius:8px;padding:7px 8px;margin-bottom:5px;display:flex;align-items:flex-start;gap:4px 7px;}
 .equip-item-ico{font-size:20px;flex-shrink:0;width:26px;text-align:center;padding-top:1px;}
 .equip-item-info{flex:1;min-width:0;}
 .equip-item-nom{font-size:12px;font-weight:700;color:var(--txt);}
 .equip-item-sub{font-size:10px;color:var(--txt3);margin-top:1px;}
-.equip-item-btns{display:flex;flex-direction:column;gap:3px;flex-shrink:0;}
+.equip-item-btns{display:flex;flex-direction:row;gap:3px;flex-shrink:0;flex-wrap:wrap;}
 .equip-footer{display:flex;align-items:center;gap:6px;flex-wrap:wrap;padding:8px 10px;background:var(--bg2);border:1px solid var(--bord);border-radius:8px;margin-top:10px;font-size:11px;color:var(--txt3);}
 .equip-footer-bonus{display:inline-flex;align-items:center;gap:3px;background:var(--bg3);border-radius:4px;padding:2px 5px;font-size:10px;}
 .equip-panel{background:var(--bg3);border:1px solid var(--bord2);border-radius:10px;padding:12px;margin-top:10px;}
@@ -6212,8 +6212,8 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       </div>
     </div>
 
-    <!-- SECTION INVENTAIRE -->
-    <div class="card">
+    <!-- SECTION INVENTAIRE (ancienne, désactivée) -->
+    <div class="card" style="display:none;">
       <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
         <p class="st" style="margin:0;border:none;padding:0;">Inventaire</p>
         <span id="equip-inv-count" style="font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:var(--bg3);color:var(--txt3);">0</span>
@@ -7439,54 +7439,6 @@ function chargerRegles(contId) {
     });
   }
 
-  // ── Capacités de classe depuis CAPS_DATA (sauf tableaux) ──
-  if(window.CAPS_DATA && CAPS_DATA.classes && CAPS_DATA.classes[cl]) {
-    var allCaps = CAPS_DATA.classes[cl];
-    var capsCL = [];
-    allCaps.slice()
-      .sort(function(a,b){return (a.niveau||1)-(b.niveau||1)||a.nom.localeCompare(b.nom,'fr');})
-      .forEach(function(cap){
-        if((cap.niveau||1)>niv) return;
-        if(!capEstActive(cap,allCaps,'cl')) return;
-        var parentCap=cap.parent?allCaps.find(function(c){return c.nom===cap.parent;}):null;
-        // Sauter les voies-enfants (sous-classes) : gérées via leur parent
-        if(cap.type==='choix'&&parentCap&&parentCap.type==='choix') return;
-        if(cap.type==='choix'){
-          // Afficher le choix fait (sous-classe / voie)
-          var chosen=choixCaps['cl_'+cap.nom];
-          var nomAff=chosen?cap.nom+' → '+chosen:cap.nom+' (choix à faire dans Capacités)';
-          capsCL.push({nom:nomAff,desc:chosen?'':cap.desc||'',niveau:cap.niveau||1});
-          // Ajouter les caps de la voie choisie
-          if(chosen){
-            allCaps.filter(function(c){return c.parent===chosen&&(c.niveau||1)<=niv;})
-              .sort(function(a,b){return (a.niveau||1)-(b.niveau||1);})
-              .forEach(function(vc){capsCL.push({nom:vc.nom,desc:vc.desc||'',niveau:vc.niveau||1});});
-          }
-        } else {
-          var nom=cap.nom,desc=cap.desc||'';
-          if(cap.options&&cap.options.length){var ch=choixCaps['cl_'+cap.nom];if(ch)nom=cap.nom+' : '+ch;}
-          capsCL.push({nom:nom,desc:desc,niveau:cap.niveau||1});
-        }
-      });
-    if(capsCL.length){
-      var capLbl=document.createElement('p');capLbl.className='cap-section';capLbl.textContent='Capacités de classe';container.appendChild(capLbl);
-      capsCL.forEach(function(cap){
-        var card=document.createElement('div');card.className='card';card.style.marginBottom='8px';
-        var hd=document.createElement('div');hd.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:'+(cap.desc?'6px':'0')+';cursor:'+(cap.desc?'pointer':'default')+';';
-        var badge=document.createElement('span');
-        badge.style.cssText='font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;background:rgba(45,138,78,.3);color:#6ee7a1;flex-shrink:0;white-space:nowrap;';
-        badge.textContent='Niv.'+cap.niveau;hd.appendChild(badge);
-        var t=document.createElement('p');t.style.cssText='font-size:13px;font-weight:700;color:var(--txt);margin:0;flex:1;';t.textContent=cap.nom;hd.appendChild(t);
-        card.appendChild(hd);
-        if(cap.desc){
-          var arr=document.createElement('span');arr.style.cssText='font-size:10px;color:var(--txt3);flex-shrink:0;';arr.textContent='▾';hd.appendChild(arr);
-          var d=document.createElement('div');d.style.cssText='font-size:12px;color:var(--txt2);line-height:1.7;display:none;';d.textContent=cap.desc;card.appendChild(d);
-          hd.addEventListener('click',function(){var open=d.style.display==='block';d.style.display=open?'none':'block';arr.textContent=open?'▾':'▴';});
-        }
-        container.appendChild(card);
-      });
-    }
-  }
 
   if (sec) {
     // Parse template content into uniform card layout
@@ -10306,7 +10258,7 @@ function equip_rendreFooter(){
   var fEl=el("equip-footer");if(!fEl)return;
   var equipe=window._equip_equipe||{};
   var count=0;
-  _EQUIP_SLOTS.forEach(function(s){if(equipe[s])count++;});
+  _EQUIP_SLOTS.forEach(function(s){if(equipe[s]&&items[equipe[s]])count++;});
   var total=_EQUIP_SLOTS.length;
   var html='<b style="color:var(--txt);">'+count+'</b>/'+total+' slots';
   var bonus={bonusCA:0,bonusInit:0,bonusAttaque:0,bonusPVMax:0};
