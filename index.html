@@ -429,7 +429,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .sa-filter-bar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
 .sa-fil-btn{font-family:inherit;font-size:11px;padding:4px 10px;border-radius:999px;cursor:pointer;border:1px solid #1e2d45;background:transparent;color:#5a6a8a;transition:background .12s,border-color .12s,color .12s;}
 .sa-fil-btn.on{background:rgba(201,162,39,.15);border-color:#8b6914;color:#c9a227;}
-.sa-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.sa-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start;}
 @media(max-width:600px){.sa-grid{grid-template-columns:1fr;}}
 .sa-card{border-radius:8px;padding:10px 12px;cursor:pointer;border:1px solid #2a3a5a;border-top:2px solid #5a7aaa;background:#111e33;transition:border-color .12s;}
 .sa-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;}
@@ -9693,7 +9693,9 @@ function rRendreSorts(){
   rendreSlots("r-slots",true);   // remplit slotsE (div caché)
   rRendreSlotsArtwork();          // pills visuels
   var prepType=getClassePreparationType();
-  var selectionEditionSeulement=(prepType==="prepare"||prepType==="prepare_direct");
+  var edMode=getEditionMode();
+  // Clerc/Druide/Paladin (prepare_direct) : sélection en édition uniquement, pas en résumé
+  var selectionEditionSeulement=(prepType==="prepare"||prepType==="prepare_direct"||edMode==="prepare_direct");
   var gc=el("r-grimoire-card");
   if(gc)gc.style.display=selectionEditionSeulement?"none":"";
   var pc=el("r-prep-count");
