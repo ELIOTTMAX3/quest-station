@@ -400,6 +400,12 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .bourse-cell label{font-size:9px;color:var(--txt3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;display:block;}
 .bourse-cell input{width:100%;text-align:center;font-size:14px;font-weight:700;padding:5px 2px;border-radius:6px;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt);font-family:inherit;}
 .bourse-total{font-size:11px;color:var(--txt3);margin-top:6px;text-align:right;}
+.bourse-mini{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.bourse-mini-title{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);flex-shrink:0;}
+.bourse-mini-coins{display:flex;gap:5px;flex:1;flex-wrap:wrap;align-items:center;}
+.bourse-mini-coin{font-size:12px;font-weight:700;color:var(--txt);background:var(--bg3);border:1px solid var(--bord);border-radius:6px;padding:3px 8px;white-space:nowrap;}
+.bourse-mini-coin em{color:var(--txt3);font-style:normal;font-size:10px;font-weight:400;margin-left:2px;}
+.bourse-mini-total{font-size:13px;font-weight:700;color:var(--or);white-space:nowrap;margin-left:auto;}
 /* ── MESSAGERIE ──────────────────────────────────────── */
 .msg-wrap{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;overflow:hidden;}
 .msg-hd{padding:9px 12px;border-bottom:1px solid var(--bord);display:flex;align-items:center;gap:8px;}
@@ -6075,6 +6081,18 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
     <!-- ── VUE ÉQUIPEMENT ── -->
     <div id="equip-main-view">
+      <!-- 💰 Bourse (master — inputs toujours dans le DOM) -->
+      <div class="bourse-wrap">
+        <div class="bourse-title">💰 Bourse</div>
+        <div class="bourse-row">
+          <div class="bourse-cell"><label>PP</label><input type="number" id="bourse-pp" min="0" value="0" oninput="bourseMaj()"></div>
+          <div class="bourse-cell"><label>PO</label><input type="number" id="bourse-po" min="0" value="0" oninput="bourseMaj()"></div>
+          <div class="bourse-cell"><label>PE</label><input type="number" id="bourse-pe" min="0" value="0" oninput="bourseMaj()"></div>
+          <div class="bourse-cell"><label>PA</label><input type="number" id="bourse-pa" min="0" value="0" oninput="bourseMaj()"></div>
+          <div class="bourse-cell"><label>PC</label><input type="number" id="bourse-pc" min="0" value="0" oninput="bourseMaj()"></div>
+        </div>
+        <div class="bourse-total" id="bourse-total">≈ 0 po</div>
+      </div>
       <!-- Deux colonnes : silhouette + inventaire -->
       <div class="equip-two-col">
         <!-- Gauche : silhouette + slots -->
@@ -6175,17 +6193,13 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
     <!-- ── VUE BOUTIQUE ── -->
     <div id="equip-boutique-view" style="display:none;">
-      <!-- 💰 Bourse -->
-      <div class="bourse-wrap">
-        <div class="bourse-title">💰 Bourse</div>
-        <div class="bourse-row">
-          <div class="bourse-cell"><label>PP</label><input type="number" id="bourse-pp" min="0" value="0" oninput="bourseMaj()"></div>
-          <div class="bourse-cell"><label>PO</label><input type="number" id="bourse-po" min="0" value="0" oninput="bourseMaj()"></div>
-          <div class="bourse-cell"><label>PE</label><input type="number" id="bourse-pe" min="0" value="0" oninput="bourseMaj()"></div>
-          <div class="bourse-cell"><label>PA</label><input type="number" id="bourse-pa" min="0" value="0" oninput="bourseMaj()"></div>
-          <div class="bourse-cell"><label>PC</label><input type="number" id="bourse-pc" min="0" value="0" oninput="bourseMaj()"></div>
+      <!-- 💰 Bourse (lecture seule — synced via bourseMaj) -->
+      <div class="bourse-mini" id="bourse-mini">
+        <div class="bourse-mini-title">💰 Bourse</div>
+        <div class="bourse-mini-coins" id="bourse-mini-coins">
+          <span style="font-size:12px;color:var(--txt3);font-style:italic;">Chargement…</span>
         </div>
-        <div class="bourse-total" id="bourse-total">≈ 0 po</div>
+        <div class="bourse-mini-total" id="bourse-mini-total">≈ 0 po</div>
       </div>
       <div id="equip-boutique-list">
         <p style="font-size:12px;color:var(--txt3);font-style:italic;">La boutique est vide pour l'instant.</p>
@@ -10179,8 +10193,18 @@ function bourseMaj(){
   var total_pc=bourseEnPC(m);
   var po_tot=Math.floor(total_pc/100);
   var pa_rest=Math.floor((total_pc%100)/10);
+  var totalStr="≈ "+po_tot+" po"+(pa_rest?" "+pa_rest+" pa":"");
+  // Affichage principal (équipement)
   var t=el("bourse-total");
-  if(t)t.textContent="≈ "+po_tot+" po"+(pa_rest?" "+pa_rest+" pa":"");
+  if(t)t.textContent=totalStr;
+  // Affichage mini (boutique — lecture seule)
+  var coins=[];
+  var LABELS=["pp","po","pe","pa","pc"];
+  LABELS.forEach(function(k){if(m[k]>0)coins.push('<span class="bourse-mini-coin">'+m[k]+'<em>'+k+'</em></span>');});
+  var mc=el("bourse-mini-coins");
+  if(mc)mc.innerHTML=coins.length?coins.join(""):'<span style="font-size:12px;color:var(--txt3);font-style:italic;">Bourse vide</span>';
+  var mt=el("bourse-mini-total");
+  if(mt)mt.textContent=totalStr;
   sauvegarder();
 }
 function bourseCharger(data){
