@@ -452,7 +452,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .boutique-acheter:hover{opacity:.85;}
 .boutique-acheter:disabled{opacity:.4;cursor:not-allowed;background:var(--bg3);color:var(--txt3);border:1px solid var(--bord2);}
 .equip-actif-body.on{display:block;}
-.equip-actif-row{display:flex;align-items:center;gap:8px;padding:5px 0;border-bottom:1px solid var(--bord);font-size:12px;}
+.equip-actif-row{display:flex;align-items:center;gap:8px;padding:6px 2px;border-bottom:1px solid var(--bord);font-size:12px;border-radius:6px;transition:background .1s;}
 .equip-actif-row:last-child{border-bottom:none;}
 .equip-combat-toggle{width:100%;text-align:left;background:var(--bg3);border:1px solid var(--bord);border-radius:8px;padding:7px 12px;cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;color:var(--txt2);display:flex;align-items:center;justify-content:space-between;margin-top:8px;transition:background .15s;}
 .equip-combat-toggle:hover{background:rgba(255,255,255,.06);}
@@ -759,10 +759,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <span id="equip-actif-arrow" style="font-size:10px;color:var(--txt3);">▸</span>
       </button>
       <div class="equip-actif-body" id="equip-actif-body">
-        <div style="display:flex;gap:8px;align-items:flex-start;">
-          <div id="equip-actif-list" style="flex:1;min-width:0;"></div>
-          <div id="equip-actif-detail" style="flex:1.4;min-width:0;display:none;border-left:1px solid var(--bord);padding-left:10px;"></div>
-        </div>
+        <div id="equip-actif-list"></div>
       </div>
     </div>
 
@@ -10660,68 +10657,63 @@ function equip_rendreActif(){
   if(!list)return;
   var equipe=window._equip_equipe||{};
   var items=window._equip_items||{};
-  var rows=[];
+  var html='';
   window._equip_actif_data=[];
   var idx=0;
   _EQUIP_SLOTS.forEach(function(s){
     var id=equipe[s];if(!id)return;
     var item=items[id];if(!item)return;
     var icone=item.icone&&!item.icone.startsWith("http")?item.icone:"✨";
-    var effetsStr="";
+    // Badges d'effets
+    var effetsBadges='';
     if(item.effets&&Object.keys(item.effets).length>0){
-      effetsStr=" · "+Object.keys(item.effets).map(function(k){
-        var v=item.effets[k];return k.replace("bonus","")+(v>0?"+":"")+v;
-      }).join(" ");
+      effetsBadges=Object.keys(item.effets).map(function(k){
+        var v=item.effets[k];
+        return '<span style="font-size:10px;background:var(--bg3);border-radius:4px;padding:1px 5px;color:var(--or);">'+k.replace("bonus","")+(v>0?"+":"")+v+'</span>';
+      }).join("");
     }
+    var hasDesc=!!(item.description&&item.description.trim());
     window._equip_actif_data.push({item:item,slot:s,icone:icone});
     var i=idx++;
-    rows.push('<div class="equip-actif-row" id="equip-actif-row-'+i+'" style="cursor:pointer;user-select:none;" onclick="equip_showActifDetail('+i+')">'
+    // Ligne cliquable
+    html+='<div class="equip-actif-row" id="equip-actif-row-'+i+'" onclick="equip_showActifDetail('+i+')" style="cursor:pointer;user-select:none;flex-wrap:wrap;">'
       +'<span style="font-size:18px;">'+icone+'</span>'
-      +'<span style="font-size:12px;font-weight:700;color:var(--txt);flex:1;">'+item.nom+'</span>'
+      +'<span style="font-size:12px;font-weight:700;color:var(--txt);flex:1;min-width:0;">'+item.nom+'</span>'
       +'<span style="font-size:10px;color:var(--txt3);">'+(_EQUIP_SLOT_LABELS[s]||s)+'</span>'
-      +(effetsStr?'<span style="font-size:10px;color:var(--or);">'+effetsStr+'</span>':'')
-      +'<span style="font-size:10px;color:var(--txt3);margin-left:4px;">›</span>'
-      +'</div>');
+      +'<span id="ead-arrow-'+i+'" style="font-size:10px;color:var(--txt3);margin-left:4px;transition:transform .15s;">▸</span>'
+      +'</div>'
+    // Panneau accordéon inline
+    +'<div id="ead-'+i+'" style="display:none;padding:8px 10px 10px;background:var(--bg3);border-radius:0 0 8px 8px;margin-bottom:4px;">'
+      +(effetsBadges?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">'+effetsBadges+'</div>':'')
+      +(hasDesc
+        ?'<p style="font-size:11px;color:var(--txt2);line-height:1.6;white-space:pre-wrap;">'+item.description+'</p>'
+        :'<p style="font-size:11px;color:var(--txt3);font-style:italic;">Aucune description disponible.</p>')
+    +'</div>';
   });
-  if(card)card.style.display=rows.length?"":"none";
-  if(countEl)countEl.textContent=rows.length?"("+rows.length+")":"";
-  // Réinitialiser le panneau de détail
-  var detail=el("equip-actif-detail");if(detail){detail.style.display='none';detail.innerHTML='';}
-  list.innerHTML=rows.length?rows.join(""):'<p style="font-size:11px;color:var(--txt3);font-style:italic;padding:4px 0;">Aucun objet équipé.</p>';
+  if(card)card.style.display=idx?"":"none";
+  if(countEl)countEl.textContent=idx?"("+idx+")":"";
+  list.innerHTML=idx?html:'<p style="font-size:11px;color:var(--txt3);font-style:italic;padding:4px 0;">Aucun objet équipé.</p>';
 }
 
 function equip_showActifDetail(idx){
-  var data=(window._equip_actif_data||[])[idx];
-  var detail=el("equip-actif-detail");
-  if(!data||!detail)return;
-  // Mettre en évidence la ligne sélectionnée
-  var allRows=document.querySelectorAll('.equip-actif-row');
-  allRows.forEach(function(r){r.style.background='';});
-  var selRow=el('equip-actif-row-'+idx);
-  if(selRow)selRow.style.background='rgba(255,255,255,0.05)';
-  // Construire le contenu du panneau
-  var item=data.item;var slot=data.slot;
-  var effetsBadges='';
-  if(item.effets&&Object.keys(item.effets).length>0){
-    effetsBadges=Object.keys(item.effets).map(function(k){
-      var v=item.effets[k];
-      return '<span style="font-size:10px;background:var(--bg3);border-radius:4px;padding:2px 6px;margin-right:4px;color:var(--or);">'+k.replace("bonus","")+(v>0?"+":"")+v+'</span>';
-    }).join("");
+  var total=(window._equip_actif_data||[]).length;
+  for(var i=0;i<total;i++){
+    var panel=el('ead-'+i);
+    var arrow=el('ead-arrow-'+i);
+    var row=el('equip-actif-row-'+i);
+    if(i===idx){
+      // Toggle : si déjà ouvert → fermer, sinon ouvrir
+      var isOpen=panel&&panel.style.display!=='none';
+      if(panel)panel.style.display=isOpen?'none':'';
+      if(arrow)arrow.textContent=isOpen?'▸':'▾';
+      if(row)row.style.background=isOpen?'':'rgba(255,255,255,0.04)';
+    } else {
+      // Fermer les autres
+      if(panel)panel.style.display='none';
+      if(arrow)arrow.textContent='▸';
+      if(row)row.style.background='';
+    }
   }
-  var hasDesc=!!(item.description&&item.description.trim());
-  detail.style.display='';
-  detail.innerHTML=
-    '<div style="padding:2px 0 6px;">'
-    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'
-    +'<span style="font-size:26px;line-height:1;">'+data.icone+'</span>'
-    +'<div><p style="font-size:12px;font-weight:700;color:var(--txt);line-height:1.2;">'+item.nom+'</p>'
-    +'<p style="font-size:10px;color:var(--txt3);margin-top:2px;">'+(_EQUIP_SLOT_LABELS[slot]||slot)+'</p></div>'
-    +'</div>'
-    +(effetsBadges?'<div style="margin-bottom:8px;flex-wrap:wrap;display:flex;gap:4px;">'+effetsBadges+'</div>':'')
-    +(hasDesc
-      ?'<p style="font-size:11px;color:var(--txt2);line-height:1.6;white-space:pre-wrap;">'+item.description+'</p>'
-      :'<p style="font-size:11px;color:var(--txt3);font-style:italic;">Aucune description disponible.</p>')
-    +'</div>';
 }
 
 function equip_rendreCombat(){
