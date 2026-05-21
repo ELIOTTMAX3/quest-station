@@ -10628,12 +10628,12 @@ function equip_rendreInventaire(){
 function equip_rendreFooter(){
   var fEl=el("equip-footer");if(!fEl)return;
   var equipe=window._equip_equipe||{};
+  var items=window._equip_items||{}; // déclaré AVANT le premier forEach (évite le bug de hoisting)
   var count=0;
   _EQUIP_SLOTS.forEach(function(s){if(equipe[s]&&items[equipe[s]])count++;});
   var total=_EQUIP_SLOTS.length;
   var html='<b style="color:var(--txt);">'+count+'</b>/'+total+' slots';
   var bonus={bonusCA:0,bonusInit:0,bonusAttaque:0,bonusPVMax:0};
-  var items=window._equip_items||{};
   _EQUIP_SLOTS.forEach(function(s){
     var id=equipe[s];if(!id)return;
     var item=items[id];if(!item||!item.effets)return;
@@ -11453,11 +11453,14 @@ function cbtConfirmerInit(){
 }
 
 function majCombatPJ(data){
+  var prevActif=combatPJData&&combatPJData.actif;
   combatPJData=data;
   var actif=data&&data.actif;
   var jcList=data&&data.joueursCombat||[];
   var dansCombat=actif&&joueurId&&jcList.indexOf(joueurId)>=0;
   cbtForceCombat=dansCombat;
+  // Nouveau combat détecté (transition inactif → actif) : réinitialiser l'initiative
+  if(actif&&!prevActif){_cbtInitSoumise=false;_cbtInitVal=null;}
   var bBtn=el('r-btn-combat');
   if(dansCombat){
     if(!_cbtFicheOpen)el('s-combat').style.display='block';
@@ -11517,8 +11520,11 @@ function cbtMajUI(){
     return;
   }
   el('cbt-init-saisie').style.display='none';
-  _cbtInitSoumise=false;
-  _cbtInitVal=null;
+  // _cbtInitSoumise n'est PAS réinitialisé ici : le listener principal peut
+  // s'exécuter avec des données de cache périmées (phase='combat' alors qu'on
+  // vient de soumettre en phase 'initiative'), ce qui provoquerait le reset
+  // prématuré et forcerait le joueur à confirmer deux fois.
+  // Le reset se fait uniquement dans majCombatPJ (nouveau combat ou fin de combat).
   cbtStopWaitPoll();
   // À terre
   var pvAct=parseInt(v('pv-act'))||0,pvMax=parseInt(v('pv-max'))||0;
