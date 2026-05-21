@@ -420,6 +420,18 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .r-equip-badge{font-size:10px;color:var(--or);background:rgba(201,162,39,.12);border:1px solid rgba(201,162,39,.3);border-radius:4px;padding:1px 6px;}
 .r-equip-desc{font-size:11px;color:var(--txt2);line-height:1.6;white-space:pre-wrap;margin-top:7px;padding-top:7px;border-top:1px solid var(--bord);}
 .eqb{display:inline-block;font-size:9px;font-weight:700;background:rgba(201,162,39,.25);color:var(--or);border-radius:3px;padding:1px 5px;margin-left:4px;vertical-align:middle;white-space:nowrap;}
+.eqchg-wrap{margin-top:8px;padding-top:8px;border-top:1px solid var(--bord);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
+.eqchg-label{font-size:10px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
+.eqchg-badge{font-size:10px;color:var(--txt3);padding:1px 6px;background:var(--bg3);border-radius:4px;border:1px solid var(--bord);}
+.eqchg-dots{display:flex;gap:5px;flex-wrap:wrap;}
+.eqchg-dot{width:14px;height:14px;border-radius:50%;cursor:pointer;border:1.5px solid var(--bord2);background:var(--bg3);display:inline-block;transition:background .1s,border-color .1s;}
+.eqchg-dot.avail{background:var(--rouge);border-color:var(--rouge);}
+.eqchg-dot.used{background:var(--bg3);border-color:var(--bord2);}
+.eqchg-counter{display:flex;align-items:center;gap:6px;}
+.eqchg-cnt-btn{font-family:inherit;font-size:16px;font-weight:700;width:26px;height:26px;border-radius:6px;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt);cursor:pointer;line-height:1;display:flex;align-items:center;justify-content:center;}
+.eqchg-cnt-btn:hover{background:var(--bg2);}
+.eqchg-cnt-val{font-size:15px;font-weight:800;color:var(--txt);min-width:20px;text-align:center;}
+.eqchg-cnt-max{font-size:11px;color:var(--txt3);}
 /* ── BOURSE ─────────────────────────────────────────── */
 .bourse-wrap{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:10px 12px;margin-bottom:10px;}
 .bourse-title{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);margin-bottom:8px;}
@@ -6925,6 +6937,8 @@ var RESSOURCES_CL = {
 
 // État global : ressourcesClasse[id] = nombre d'utilisations dépensées
 var ressourcesClasse = {};
+// État global : equipCharges[itemId] = nombre de charges dépensées
+var equipCharges = {};
 
 // Rend la section ressources dans le résumé
 function majRessourcesClasse() {
@@ -7036,6 +7050,17 @@ function resetRessourcesCourt() {
     }
   });
   majRessourcesClasse();
+  // Réinitialiser les charges d'objets équipés (repos court ou long)
+  var equipe=window._equip_equipe||{};
+  var items=window._equip_items||{};
+  _EQUIP_SLOTS.forEach(function(s){
+    var id=equipe[s];if(!id)return;
+    var item=items[id];if(!item||!item.charges)return;
+    if(item.charges.recharge==='short'||item.charges.recharge==='long'){
+      equipCharges[id]=0;
+    }
+  });
+  equip_rendreActif();
 }
 
 // Réinitialiser toutes les ressources (repos long)
@@ -7046,6 +7071,17 @@ function resetRessourcesLong() {
     ressourcesClasse[d.id] = 0;
   });
   majRessourcesClasse();
+  // Réinitialiser toutes les charges d'objets équipés (sauf consommables)
+  var equipe=window._equip_equipe||{};
+  var items=window._equip_items||{};
+  _EQUIP_SLOTS.forEach(function(s){
+    var id=equipe[s];if(!id)return;
+    var item=items[id];if(!item||!item.charges)return;
+    if(item.charges.recharge!=='never'){
+      equipCharges[id]=0;
+    }
+  });
+  equip_rendreActif();
 }
 
 // Masque/affiche proprement tous les éléments sorts selon la classe active.
@@ -7866,6 +7902,7 @@ function collecterDonnees(){
   data.equipEquipes=equipEquipes.slice();
   data.slots=slotsE;
   data.ressources=ressourcesClasse;
+  data.equipCharges=equipCharges;
   data._pvmax=parseInt(v("pv-max"))||0;
   data._pvact=parseInt(v("pv-act"))||0;
   data._ca=parseInt(v("ca"))||10;
@@ -7903,6 +7940,7 @@ function chargerFiche(data){
   if(data.coches&&!data.grimoire)grimoire=new Set(data.coches);
   if(data.slots)slotsE=data.slots;
   if(data.ressources)ressourcesClasse=data.ressources;
+  if(data.equipCharges)equipCharges=data.equipCharges;
   bourseCharger(data);
   el("prep-n").textContent=prepares.size?"("+prepares.size+")":"";
   // updateAll() → buildComps() crée les .erow dans le DOM
@@ -10692,10 +10730,54 @@ function equip_rendreActif(){
       +'<div id="req-desc-'+n+'" style="display:none;">'
       +'<p class="r-equip-desc"'+(hasDesc?'':' style="color:var(--txt3);font-style:italic;"')+'>'+desc+'</p>'
       +'</div>'
+      +(function(){
+        if(!item.charges||!item.charges.max)return '';
+        var mx=item.charges.max;
+        var used=Math.min(equipCharges[id]||0,mx);
+        var rechLbl={long:'Repos long',short:'Repos court',dawn:'À l\'aube',never:'Consommable'}[item.charges.recharge]||'';
+        var tracker='';
+        if(mx<=6){
+          tracker='<div class="eqchg-dots">';
+          for(var j=0;j<mx;j++){
+            var depleted=j>=mx-used;
+            tracker+='<span class="eqchg-dot '+(depleted?'used':'avail')+'" onclick="equipChargeToggle(\''+id+'\','+j+','+mx+')"></span>';
+          }
+          tracker+='</div>';
+        } else {
+          var rem=mx-used;
+          tracker='<div class="eqchg-counter">'
+            +'<button class="eqchg-cnt-btn" onclick="equipChargeDelta(\''+id+'\',-1,'+mx+')">−</button>'
+            +'<span class="eqchg-cnt-val" id="eqchg-v-'+id+'">'+rem+'</span>'
+            +'<button class="eqchg-cnt-btn" onclick="equipChargeDelta(\''+id+'\',1,'+mx+')">+</button>'
+            +'<span class="eqchg-cnt-max">/ '+mx+'</span>'
+            +'</div>';
+        }
+        return '<div class="eqchg-wrap"><span class="eqchg-label">⚡ Charges</span>'+tracker+(rechLbl?'<span class="eqchg-badge">'+rechLbl+'</span>':'')+'</div>';
+      })()
       +'</div>';
   });
   if(card)card.style.display=count?'':'none';
   list.innerHTML=html;
+}
+
+function equipChargeToggle(itemId, dotIdx, maxVal){
+  var used=equipCharges[itemId]||0;
+  var avail=maxVal-used;
+  // dotIdx < avail → dot is filled (available); click = dépenser 1 charge
+  // dotIdx >= avail → dot is depleted; click = récupérer 1 charge
+  if(dotIdx<avail){ equipCharges[itemId]=(used+1); }
+  else { equipCharges[itemId]=Math.max(0,used-1); }
+  equip_rendreActif();
+  sauvegarder();
+}
+
+function equipChargeDelta(itemId, delta, maxVal){
+  var used=equipCharges[itemId]||0;
+  // delta=-1 → dépenser 1 charge (used++); delta=+1 → récupérer (used--)
+  used=Math.max(0,Math.min(maxVal,used-delta));
+  equipCharges[itemId]=used;
+  equip_rendreActif();
+  sauvegarder();
 }
 
 function reqToggleDesc(n){
