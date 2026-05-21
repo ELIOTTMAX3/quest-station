@@ -707,13 +707,37 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
     <!-- INVENTAIRE ─────────────────────────────────── -->
     <div class="r-section" id="r-inv-card">
-      <p class="st">Inventaire</p>
-      <div class="g3" style="margin-bottom:10px;">
-        <div><label>PO</label><input type="number" id="po" value="0" min="0" oninput="syncInvResume();sauvegarder()"></div>
-        <div><label>PA</label><input type="number" id="pa" value="0" min="0" oninput="syncInvResume();sauvegarder()"></div>
-        <div><label>PC</label><input type="number" id="pc" value="0" min="0" oninput="syncInvResume();sauvegarder()"></div>
+      <p class="st">💰 Bourse</p>
+      <div class="bourse-wrap" style="margin-bottom:10px;">
+        <div class="bourse-row">
+          <div class="bourse-cell">
+            <label>PP</label>
+            <input type="number" id="bourse-pp" min="0" value="0" oninput="bourseMaj()">
+          </div>
+          <div class="bourse-cell">
+            <label>PO</label>
+            <input type="number" id="bourse-po" min="0" value="0" oninput="bourseMaj()">
+          </div>
+          <div class="bourse-cell">
+            <label>PE</label>
+            <input type="number" id="bourse-pe" min="0" value="0" oninput="bourseMaj()">
+          </div>
+          <div class="bourse-cell">
+            <label>PA</label>
+            <input type="number" id="bourse-pa" min="0" value="0" oninput="bourseMaj()">
+          </div>
+          <div class="bourse-cell">
+            <label>PC</label>
+            <input type="number" id="bourse-pc" min="0" value="0" oninput="bourseMaj()">
+          </div>
+        </div>
+        <div class="bourse-total" id="bourse-total">≈ 0 po</div>
+        <div style="font-size:10px;color:var(--txt3);margin-top:4px;text-align:right;letter-spacing:.02em;">
+          1 pp = 10 po &nbsp;·&nbsp; 1 po = 10 pa &nbsp;·&nbsp; 1 pa = 10 pc
+        </div>
       </div>
-      <textarea id="inventaire" placeholder="Liste ton équipement..." style="min-height:60px;max-height:120px;font-size:12px;resize:none;overflow-y:auto;" oninput="syncInvResume();sauvegarder()"></textarea>
+      <p class="st" style="margin-top:4px;">Inventaire</p>
+      <textarea id="inventaire" placeholder="Liste ton équipement..." style="min-height:60px;max-height:120px;font-size:12px;resize:none;overflow-y:auto;" oninput="sauvegarder()"></textarea>
     </div>
 
     <!-- ÉQUIPEMENT ACTIF accordion -->
@@ -6088,18 +6112,6 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
     <!-- ── VUE ÉQUIPEMENT ── -->
     <div id="equip-main-view">
-      <!-- 💰 Bourse (master — inputs toujours dans le DOM) -->
-      <div class="bourse-wrap">
-        <div class="bourse-title">💰 Bourse</div>
-        <div class="bourse-row">
-          <div class="bourse-cell"><label>PP</label><input type="number" id="bourse-pp" min="0" value="0" oninput="bourseMaj()"></div>
-          <div class="bourse-cell"><label>PO</label><input type="number" id="bourse-po" min="0" value="0" oninput="bourseMaj()"></div>
-          <div class="bourse-cell"><label>PE</label><input type="number" id="bourse-pe" min="0" value="0" oninput="bourseMaj()"></div>
-          <div class="bourse-cell"><label>PA</label><input type="number" id="bourse-pa" min="0" value="0" oninput="bourseMaj()"></div>
-          <div class="bourse-cell"><label>PC</label><input type="number" id="bourse-pc" min="0" value="0" oninput="bourseMaj()"></div>
-        </div>
-        <div class="bourse-total" id="bourse-total">≈ 0 po</div>
-      </div>
       <!-- Deux colonnes : silhouette + inventaire -->
       <div class="equip-two-col">
         <!-- Gauche : silhouette + slots -->
@@ -7837,7 +7849,7 @@ function chargerLocal(){
 
 function collecterDonnees(){
   var data={};
-  ["nom","joueur","race","historique","alignement","niveau","ca","vitesse","dv-r","po","pa","pc",
+  ["nom","joueur","race","historique","alignement","niveau","ca","vitesse","dv-r",
    "inventaire","traits","ideaux","liens","defauts","capacites","notes","pv-max","pv-act","pv-tmp",
    "sorts-mod","classe"].forEach(function(id){var e=el(id);if(e)data[id]=e.value;});
   CARACS.forEach(function(c){data[c]=v(c);});
@@ -7868,7 +7880,7 @@ function collecterDonnees(){
 }
 
 function chargerFiche(data){
-  ["nom","joueur","race","historique","alignement","niveau","ca","vitesse","dv-r","po","pa","pc",
+  ["nom","joueur","race","historique","alignement","niveau","ca","vitesse","dv-r",
    "inventaire","traits","ideaux","liens","defauts","capacites","notes","pv-max","pv-act","pv-tmp",
    "sorts-mod","classe"].forEach(function(id){
     var e=el(id);if(e&&data[id]!==undefined)e.value=data[id];
@@ -8212,17 +8224,8 @@ function ajH(t){desH.unshift(t);if(desH.length>10)desH.pop();el("de-h").innerHTM
 // CALCUL MAX SORTS GRIMOIRE & PRÉPARÉS
 // ══════════════════════════════════════════
 function syncInvResume() {
-  // Les champs po/pa/pc/inventaire sont partagés entre résumé et édition
-  // Pas besoin de sync — ce sont les mêmes éléments DOM
-  // On met juste à jour l'affichage du résumé si nécessaire
   var iw = el("r-inv-card");
-  if (!iw) return;
-  var po = v("po") || "0";
-  var pa = v("pa") || "0";
-  var pc = v("pc") || "0";
-  var inv = v("inventaire");
-  var hasInv = inv || parseInt(po) > 0 || parseInt(pa) > 0 || parseInt(pc) > 0;
-  iw.style.display = "block";
+  if (iw) iw.style.display = "block";
 }
 
 function onRaceChange() {
@@ -10230,6 +10233,10 @@ function bourseMaj(){
 }
 function bourseCharger(data){
   var m=data.monnaie||{};
+  // Rétro-compatibilité : anciens saves avec data.po / data.pa / data.pc
+  if(!m.po && !m.pa && !m.pc && (data.po||data.pa||data.pc)){
+    m={pp:0,po:parseInt(data.po)||0,pe:0,pa:parseInt(data.pa)||0,pc:parseInt(data.pc)||0};
+  }
   ["pp","po","pe","pa","pc"].forEach(function(k){var e=el("bourse-"+k);if(e)e.value=m[k]||0;});
   bourseMaj();
 }
