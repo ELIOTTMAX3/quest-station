@@ -10657,38 +10657,36 @@ function equip_rendreActif(){
   if(!list)return;
   var equipe=window._equip_equipe||{};
   var items=window._equip_items||{};
-  var html='';
   window._equip_actif_data=[];
   var idx=0;
+  var html='';
   _EQUIP_SLOTS.forEach(function(s){
     var id=equipe[s];if(!id)return;
     var item=items[id];if(!item)return;
     var icone=item.icone&&!item.icone.startsWith("http")?item.icone:"✨";
-    // Badges d'effets
+    var i=idx++;
+    window._equip_actif_data.push({item:item,slot:s,icone:icone});
     var effetsBadges='';
     if(item.effets&&Object.keys(item.effets).length>0){
-      effetsBadges=Object.keys(item.effets).map(function(k){
+      Object.keys(item.effets).forEach(function(k){
         var v=item.effets[k];
-        return '<span style="font-size:10px;background:var(--bg3);border-radius:4px;padding:1px 5px;color:var(--or);">'+k.replace("bonus","")+(v>0?"+":"")+v+'</span>';
-      }).join("");
+        effetsBadges+='<span style="display:inline-block;font-size:10px;background:var(--bg);border-radius:4px;padding:2px 6px;margin:2px;color:var(--or);">'+k.replace("bonus","")+(v>0?"+":"")+v+'</span>';
+      });
     }
-    var hasDesc=!!(item.description&&item.description.trim());
-    window._equip_actif_data.push({item:item,slot:s,icone:icone});
-    var i=idx++;
-    // Ligne cliquable
-    html+='<div class="equip-actif-row" id="equip-actif-row-'+i+'" onclick="equip_showActifDetail('+i+')" style="cursor:pointer;user-select:none;flex-wrap:wrap;">'
-      +'<span style="font-size:18px;">'+icone+'</span>'
-      +'<span style="font-size:12px;font-weight:700;color:var(--txt);flex:1;min-width:0;">'+item.nom+'</span>'
+    var desc=(item.description&&item.description.trim())
+      ?'<p style="font-size:11px;color:var(--txt2);line-height:1.6;white-space:pre-wrap;margin-top:6px;">'+item.description+'</p>'
+      :'<p style="font-size:11px;color:var(--txt3);font-style:italic;margin-top:6px;">Aucune description disponible.</p>';
+    var rowHtml='<div class="equip-actif-row" id="ead-row-'+i+'" onclick="equip_showActifDetail('+i+')" style="cursor:pointer;user-select:none;">'
+      +'<span style="font-size:18px;line-height:1;">'+icone+'</span>'
+      +'<span style="font-size:12px;font-weight:700;color:var(--txt);flex:1;">'+item.nom+'</span>'
       +'<span style="font-size:10px;color:var(--txt3);">'+(_EQUIP_SLOT_LABELS[s]||s)+'</span>'
-      +'<span id="ead-arrow-'+i+'" style="font-size:10px;color:var(--txt3);margin-left:4px;transition:transform .15s;">▸</span>'
-      +'</div>'
-    // Panneau accordéon inline
-    +'<div id="ead-'+i+'" style="display:none;padding:8px 10px 10px;background:var(--bg3);border-radius:0 0 8px 8px;margin-bottom:4px;">'
-      +(effetsBadges?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">'+effetsBadges+'</div>':'')
-      +(hasDesc
-        ?'<p style="font-size:11px;color:var(--txt2);line-height:1.6;white-space:pre-wrap;">'+item.description+'</p>'
-        :'<p style="font-size:11px;color:var(--txt3);font-style:italic;">Aucune description disponible.</p>')
-    +'</div>';
+      +'<span id="ead-chev-'+i+'" style="font-size:11px;color:var(--txt3);margin-left:6px;">▸</span>'
+      +'</div>';
+    var panelHtml='<div id="ead-panel-'+i+'" style="display:none;padding:8px 4px 10px 4px;border-bottom:1px solid var(--bord);">'
+      +(effetsBadges?'<div style="margin-bottom:4px;">'+effetsBadges+'</div>':'')
+      +desc
+      +'</div>';
+    html+=rowHtml+panelHtml;
   });
   if(card)card.style.display=idx?"":"none";
   if(countEl)countEl.textContent=idx?"("+idx+")":"";
@@ -10698,19 +10696,18 @@ function equip_rendreActif(){
 function equip_showActifDetail(idx){
   var total=(window._equip_actif_data||[]).length;
   for(var i=0;i<total;i++){
-    var panel=el('ead-'+i);
-    var arrow=el('ead-arrow-'+i);
-    var row=el('equip-actif-row-'+i);
+    var panel=document.getElementById('ead-panel-'+i);
+    var chev=document.getElementById('ead-chev-'+i);
+    var row=document.getElementById('ead-row-'+i);
+    if(!panel)continue;
     if(i===idx){
-      // Toggle : si déjà ouvert → fermer, sinon ouvrir
-      var isOpen=panel&&panel.style.display!=='none';
-      if(panel)panel.style.display=isOpen?'none':'';
-      if(arrow)arrow.textContent=isOpen?'▸':'▾';
-      if(row)row.style.background=isOpen?'':'rgba(255,255,255,0.04)';
+      var opening=(panel.style.display==='none'||panel.style.display==='');
+      panel.style.display=opening?'block':'none';
+      if(chev)chev.textContent=opening?'▾':'▸';
+      if(row)row.style.background=opening?'rgba(255,255,255,0.05)':'';
     } else {
-      // Fermer les autres
-      if(panel)panel.style.display='none';
-      if(arrow)arrow.textContent='▸';
+      panel.style.display='none';
+      if(chev)chev.textContent='▸';
       if(row)row.style.background='';
     }
   }
