@@ -251,6 +251,13 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .r-pv-ctrl .btn{flex:1;padding:5px 6px;font-size:12px;}
 .r-rest-row{display:flex;gap:5px;margin-top:6px;}
 .r-rest-row .btn{flex:1;padding:6px 4px;font-size:12px;}
+/* PV max / CA inline edit */
+.r-stat-edit-row{display:flex;gap:8px;margin-top:8px;}
+.r-stat-edit-cell{flex:1;background:var(--bg3);border:1px solid var(--bord2);border-radius:8px;padding:6px 8px;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.r-stat-edit-cell label{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);}
+.r-stat-edit-cell input{width:100%;text-align:center;font-size:18px;font-weight:800;color:var(--txt);background:transparent;border:none;outline:none;padding:0;-moz-appearance:textfield;}
+.r-stat-edit-cell input::-webkit-inner-spin-button,.r-stat-edit-cell input::-webkit-outer-spin-button{-webkit-appearance:none;}
+.r-stat-edit-cell input:focus{color:var(--or);}
 /* Stat pills row */
 .r-pills-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:8px;}
 /* Repos court panel */
@@ -502,7 +509,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .sa-card:hover.sa-ec-illusion{border-color:#2aaa7a;}
 .sa-card:hover.sa-ec-def{border-color:#5a7aaa;}
 </style>
-<script src="sorts.js"></script>
+<script src="sorts.js?v=2"></script>
 </head>
 <body>
 <div id="s-login" class="on">
@@ -622,6 +629,18 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           <p class="st">Combat &amp; PV</p>
           <div class="pvw"><div class="pvb" id="r-pvbar" style="width:100%;"></div></div>
           <span id="r-pvtmp" style="display:none;font-size:10px;padding:2px 8px;border-radius:999px;background:rgba(201,162,39,.2);color:#fcd34d;margin-top:4px;"></span>
+          <div class="r-stat-edit-row">
+            <div class="r-stat-edit-cell">
+              <label>PV max</label>
+              <input type="number" id="r-pvmax-input" min="1" value="10"
+                     oninput="rSetPVMax(this.value)">
+            </div>
+            <div class="r-stat-edit-cell">
+              <label>CA</label>
+              <input type="number" id="r-ca-input" min="1" value="10"
+                     oninput="rSetCA(this.value)">
+            </div>
+          </div>
           <div class="r-pv-ctrl">
             <input type="number" id="r-pv-delta" min="0" value="" placeholder="?" style="width:56px;text-align:center;font-size:13px;padding:5px 4px;flex-shrink:0;">
             <button class="btn ko" style="flex:1;padding:5px 6px;font-size:12px;" onclick="rModPV(-1)">− Dégâts</button>
@@ -8073,6 +8092,19 @@ function appDeg(){var d=parseInt(v("pv-d"))||0,e=el("pv-act");e.value=Math.max(0
 function appSoin(){var d=parseInt(v("pv-d"))||0,e=el("pv-act"),max=parseInt(v("pv-max"))||1;e.value=Math.min(max,parseInt(e.value)+d);updatePV();sauvegarder();}
 function reposLong(){el("pv-act").value=v("pv-max");updatePV();resetSlots();sauvegarder();}
 
+function rSetPVMax(val){
+  var n=Math.max(1,parseInt(val)||1);
+  var inp=el("r-pvmax-input");if(inp)inp.value=n;
+  var h=el("pv-max");if(h)h.value=n;
+  updatePV();rafraichirResume();sauvegarder();
+}
+function rSetCA(val){
+  var n=Math.max(1,parseInt(val)||10);
+  var inp=el("r-ca-input");if(inp)inp.value=n;
+  var h=el("ca");if(h)h.value=n;
+  rafraichirResume();sauvegarder();
+}
+
 var _rDvN=1;
 function rModPV(sign){
   var d=parseInt(document.getElementById("r-pv-delta").value)||0;
@@ -9328,6 +9360,9 @@ function rafraichirResume(){
   var rra=el("r-ra");if(rra){if(race){rra.textContent=race;rra.style.display="inline";}else rra.style.display="none";}
   var ral=el("r-al");if(ral){if(align){ral.textContent=align;ral.style.display="inline";}else ral.style.display="none";}
   el("r-ca").textContent=ca;
+  // Sync inline edit inputs
+  var rpi=el("r-pvmax-input");if(rpi&&document.activeElement!==rpi)rpi.value=pvMax;
+  var rci=el("r-ca-input");if(rci&&document.activeElement!==rci)rci.value=parseInt(ca)||10;
   // PV
   el("r-pvact").textContent=pvAct;
   el("r-pvmax").textContent=pvMax;
