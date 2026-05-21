@@ -10260,45 +10260,78 @@ function bourseCharger(data){
 }
 function bourseCanAffordPO(prix){return bourseEnPC(bourseCollect())>=prix*100;}
 function bourseDeduire(prix){
-  // Dépense en commençant par les plus petites pièces (PC→PA→PO→PP)
-  // Le rendu de monnaie préserve les grosses pièces au maximum
+  // Stratégie : prélève en PO en priorité, ne rend JAMAIS de PP.
+  // A) Les centimes (0-99 PC) sont payés avec PC puis PA.
+  //    Si PA insuffisants, on casse 1 PO (ou 1 PP→PO) et on rend en PA/PC.
+  // B) La partie entière (N PO) est payée avec PO.
+  //    Si PO insuffisants, on casse des PP → rendu en PO. Jamais de PP en monnaie rendue.
+  //    En dernier recours (0 PP, 0 PO), on utilise PA/PC.
   var m=bourseCollect();
-  var cout=Math.round(prix*100);
-  if(bourseEnPC(m)<cout)return false;
-  var dette=cout;
-  // 1. PC
-  if(dette>0&&m.pc>0){var usePC=Math.min(m.pc,dette);m.pc-=usePC;dette-=usePC;}
-  // 2. PA (1 PA = 10 PC)
-  if(dette>0&&m.pa>0){
-    var paBesoin=Math.ceil(dette/10);
-    var paUse=Math.min(m.pa,paBesoin);
-    var paPC=paUse*10;
-    m.pa-=paUse;
-    if(paPC>dette){m.pc+=paPC-dette;dette=0;}else{dette-=paPC;}
+  var cout_PC=Math.round(prix*100);
+  if(bourseEnPC(m)<cout_PC)return false;
+
+  var po_cout=Math.floor(cout_PC/100); // PO entiers à payer
+  var sub=cout_PC%100;                 // centimes (0-99 PC)
+
+  // ── A : payer la partie centimes avec PC / PA ──
+  if(sub>0){
+    // 1. PC
+    var uPC=Math.min(m.pc,sub);
+    m.pc-=uPC; sub-=uPC;
+    // 2. PA
+    if(sub>0&&m.pa>0){
+      var paN=Math.ceil(sub/10);
+      if(m.pa>=paN){
+        m.pa-=paN; m.pc+=paN*10-sub; sub=0;
+      }else{
+        sub-=m.pa*10; m.pa=0; // PA épuisés, sub encore > 0
+      }
+    }
+    // 3. Casser 1 PO (ou 1 PP→PO) si des centimes restent
+    if(sub>0){
+      if(m.po>0){
+        m.po-=1;
+      }else if(m.pp>0){
+        m.pp-=1; m.po+=9; // 10 PO générés, 1 utilisé ci-dessous → net +9
+      }
+      // 1 PO cassé : rendre le change en PA/PC
+      var chgA=100-sub;
+      m.pa+=Math.floor(chgA/10);
+      m.pc+=chgA%10;
+      sub=0;
+    }
   }
-  // 3. PO (1 PO = 100 PC)
-  if(dette>0&&m.po>0){
-    var poBesoin=Math.ceil(dette/100);
-    var poUse=Math.min(m.po,poBesoin);
-    var poPC=poUse*100;
-    m.po-=poUse;
-    var chgPO=poPC-dette;
-    m.pa+=Math.floor(chgPO/10);
-    m.pc+=chgPO%10;
-    dette=0;
+
+  // ── B : payer la partie entière (po_cout PO) ──
+  if(po_cout>0){
+    if(m.po>=po_cout){
+      m.po-=po_cout;
+    }else{
+      var short=po_cout-m.po; m.po=0;
+      if(m.pp>0){
+        // Casser le minimum de PP pour couvrir le manque
+        var ppU=Math.min(m.pp,Math.ceil(short/10));
+        m.pp-=ppU;
+        var po_gain=ppU*10;
+        if(po_gain>=short){
+          m.po+=po_gain-short; // rendu en PO (jamais en PP)
+        }else{
+          short-=po_gain; // PP insuffisants, chute sur PA/PC
+          var pc_need=short*100;
+          var paU=Math.min(m.pa,Math.ceil(pc_need/10));
+          m.pa-=paU; pc_need-=paU*10;
+          if(pc_need>0)m.pc=Math.max(0,m.pc-pc_need);
+        }
+      }else{
+        // Aucun PP ni PO : utiliser PA/PC (cas extrême)
+        var pc_need2=short*100;
+        var paU2=Math.min(m.pa,Math.ceil(pc_need2/10));
+        m.pa-=paU2; pc_need2-=paU2*10;
+        if(pc_need2>0)m.pc=Math.max(0,m.pc-pc_need2);
+      }
+    }
   }
-  // 4. PP (1 PP = 1000 PC)
-  if(dette>0&&m.pp>0){
-    var ppBesoin=Math.ceil(dette/1000);
-    var ppUse=Math.min(m.pp,ppBesoin);
-    var ppPC=ppUse*1000;
-    m.pp-=ppUse;
-    var chgPP=ppPC-dette;
-    m.po+=Math.floor(chgPP/100); chgPP%=100;
-    m.pa+=Math.floor(chgPP/10);
-    m.pc+=chgPP%10;
-    dette=0;
-  }
+
   ["pp","po","pa","pc"].forEach(function(k){var e=el("bourse-"+k);if(e)e.value=m[k];});
   bourseMaj();
   return true;
@@ -10639,22 +10672,22 @@ function equip_rendreActif(){
       }).join("");
     }
     var hasDesc=!!(item.description&&item.description.trim());
-    var hasDetail=hasDesc||!!effetsBadges;
     var descId='equip-actif-desc-'+(_actifIdx++);
-    var row='<div class="equip-actif-row" style="cursor:'+(hasDetail?'pointer':'default')+';user-select:none;"'
-      +(hasDetail?' onclick="equip_toggleActifDesc(\''+descId+'\',this)"':'')+'>'
+    // Le panneau de description est toujours généré (et toujours cliquable)
+    var descContent='';
+    if(hasDesc)descContent+='<p style="font-size:11px;color:var(--txt2);line-height:1.55;white-space:pre-wrap;margin-bottom:'+(effetsBadges?'6px':'0')+';">'+item.description+'</p>';
+    if(effetsBadges)descContent+='<div>'+effetsBadges+'</div>';
+    if(!descContent)descContent='<p style="font-size:11px;color:var(--txt3);font-style:italic;">Aucune description disponible.</p>';
+    var row='<div class="equip-actif-row" style="cursor:pointer;user-select:none;" onclick="equip_toggleActifDesc(\''+descId+'\',this)">'
       +'<span style="font-size:18px;">'+icone+'</span>'
       +'<span style="font-size:12px;font-weight:700;color:var(--txt);flex:1;">'+item.nom+'</span>'
       +'<span style="font-size:10px;color:var(--txt3);">'+(_EQUIP_SLOT_LABELS[s]||s)+'</span>'
       +(effetsStr?'<span style="font-size:10px;color:var(--or);">'+effetsStr+'</span>':'')
-      +(hasDetail?'<span class="equip-actif-chevron" style="font-size:10px;color:var(--txt3);margin-left:4px;transition:transform .2s;">▸</span>':'')
+      +'<span class="equip-actif-chevron" style="font-size:10px;color:var(--txt3);margin-left:4px;transition:transform .2s;">▸</span>'
       +'</div>'
-      +(hasDetail
-        ?'<div id="'+descId+'" style="display:none;padding:8px 10px;background:var(--bg3);border-radius:6px;margin:2px 0 4px;">'
-          +(hasDesc?'<p style="font-size:11px;color:var(--txt2);line-height:1.55;white-space:pre-wrap;margin-bottom:'+(effetsBadges?'6px':'0')+';">'+item.description+'</p>':'')
-          +(effetsBadges?'<div>'+effetsBadges+'</div>':'')
-          +'</div>'
-        :'');
+      +'<div id="'+descId+'" style="display:none;padding:8px 10px;background:var(--bg3);border-radius:6px;margin:2px 0 6px;">'
+      +descContent
+      +'</div>';
     rows.push(row);
   });
   if(card)card.style.display=rows.length?"":"none";
@@ -11373,6 +11406,7 @@ function fermerCombatPJ(){
 }
 
 function cbtConfirmerInit(){
+  if(_cbtInitSoumise)return; // idempotent — empêche tout double-envoi
   var val=parseInt((el('cbt-init-val').value)||'');
   if(isNaN(val)||val<1||val>30){
     el('cbt-init-val').style.borderColor='#dc2626';
@@ -11380,8 +11414,8 @@ function cbtConfirmerInit(){
     return;
   }
   el('cbt-init-val').style.borderColor='';
-  el('cbt-init-saisie').style.display='none'; // masquer immédiatement, évite double-clic
-  _cbtInitSoumise=true;
+  _cbtInitSoumise=true; // verrouiller immédiatement avant tout le reste
+  el('cbt-init-saisie').style.display='none';
   _cbtInitVal=val;
   cbtMajUI();
   if(!db||!campCode||!joueurId)return;
