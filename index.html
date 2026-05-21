@@ -8238,11 +8238,13 @@ function ajH(t){desH.unshift(t);if(desH.length>10)desH.pop();el("de-h").innerHTM
 function syncInvResume() {
   var iw = el("r-inv-card");
   if (iw) iw.style.display = "block";
-  var ta = el("inventaire"); if(ta) autoResize(ta);
+  var ta = el("inventaire");
+  if(ta) setTimeout(function(){ autoResize(ta); }, 0);
 }
 function autoResize(ta){
-  ta.style.height="auto";
-  ta.style.height=ta.scrollHeight+"px";
+  if(!ta) return;
+  ta.style.height = "auto";
+  ta.style.height = (ta.scrollHeight || 52) + "px";
 }
 
 function onRaceChange() {
@@ -11275,6 +11277,8 @@ function _capEstCombat(cap){
   for(var i=0;i<_capExclPfx.length;i++){
     if(cap.nom.indexOf(_capExclPfx[i])===0||cap.nom===_capExclPfx[i].trim())return false;
   }
+  // Toujours inclure les options de Métamagie (parent = "Métamagie — option X")
+  if(cap.parent&&cap.parent.indexOf('Métamagie')===0)return true;
   // Seulement les capacités nécessitant une action ou action bonus
   var d=(cap.desc||'').toLowerCase().replace(/réaction/g,'rxx');
   return d.indexOf('action')>=0||d.indexOf('attaque')>=0;
@@ -11321,6 +11325,7 @@ function cbtConfirmerInit(){
     return;
   }
   el('cbt-init-val').style.borderColor='';
+  el('cbt-init-saisie').style.display='none'; // masquer immédiatement, évite double-clic
   _cbtInitSoumise=true;
   _cbtInitVal=val;
   cbtMajUI();
@@ -11378,6 +11383,7 @@ function cbtMajUI(){
     el('cbt-init-saisie').style.display=dejaSoumis?'none':'';
     el('cbt-mon-tour').style.display='none';
     el('cbt-actions-panel').style.display='none';
+    var pvInl=el('cbt-pv-inline');if(pvInl)pvInl.style.display='none';
     var atEl=el('cbt-aterre');if(atEl)atEl.style.display='none';
     if(dejaSoumis){
       el('cbt-liste').innerHTML='<div style="text-align:center;padding:1.5rem;background:var(--bg2);border-radius:10px;margin-bottom:1rem;">'
