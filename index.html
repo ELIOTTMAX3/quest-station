@@ -419,7 +419,6 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .r-equip-effets{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;}
 .r-equip-badge{font-size:10px;color:var(--or);background:rgba(201,162,39,.12);border:1px solid rgba(201,162,39,.3);border-radius:4px;padding:1px 6px;}
 .r-equip-desc{font-size:11px;color:var(--txt2);line-height:1.6;white-space:pre-wrap;margin-top:7px;padding-top:7px;border-top:1px solid var(--bord);}
-.eqb{display:inline-block;font-size:9px;font-weight:700;background:rgba(201,162,39,.25);color:var(--or);border-radius:3px;padding:1px 5px;margin-left:4px;vertical-align:middle;white-space:nowrap;}
 .eqchg-wrap{margin-top:8px;padding-top:8px;border-top:1px solid var(--bord);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .eqchg-label{font-size:10px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
 .eqchg-badge{font-size:10px;color:var(--txt3);padding:1px 6px;background:var(--bg3);border-radius:4px;border:1px solid var(--bord);}
@@ -9391,16 +9390,20 @@ function rafraichirResume(){
   el("r-nv").textContent="Niveau "+niv;
   var rra=el("r-ra");if(rra){if(race){rra.textContent=race;rra.style.display="inline";}else rra.style.display="none";}
   var ral=el("r-al");if(ral){if(align){ral.textContent=align;ral.style.display="inline";}else ral.style.display="none";}
-  el("r-ca").innerHTML=ca+(_eqb.CA?'<span class="eqb">+'+_eqb.CA+' équip.</span>':'');
+  var caTotal=parseInt(ca)+(_eqb.CA||0);
+  el("r-ca").innerHTML=_eqb.CA?'<span style="color:var(--or)">'+caTotal+'</span>':ca;
   // PV
   el("r-pvact").textContent=pvAct;
-  el("r-pvmax").innerHTML=(pvMax+(_eqb.pvmax||0))+(_eqb.pvmax?'<span class="eqb">+'+_eqb.pvmax+' équip.</span>':'');
+  var pvTotal=pvMax+(_eqb.pvmax||0);
+  el("r-pvmax").innerHTML=_eqb.pvmax?'<span style="color:var(--or)">'+pvTotal+'</span>':pvMax;
   var pct=Math.max(0,Math.min(100,(pvAct/pvMax)*100));
   var bar=el("r-pvbar");if(bar){bar.style.width=pct+"%";bar.style.background=pct>50?"#2d6e2d":pct>25?"#7a5800":"#a32d2d";}
   var tmp=el("r-pvtmp");if(tmp){if(pvTmp>0){tmp.textContent=pvTmp+" tmp";tmp.style.display="inline";}else tmp.style.display="none";}
   // Stats
-  el("r-init").innerHTML=fMod(dexMod+(_eqb.initiative||0))+(_eqb.initiative?'<span class="eqb">+'+_eqb.initiative+' équip.</span>':'');
-  el("r-vit").innerHTML=(parseInt(vit)+(_eqb.vitesse||0))+'m'+(_eqb.vitesse?'<span class="eqb">+'+_eqb.vitesse+' équip.</span>':'');
+  var initTotal=dexMod+(_eqb.initiative||0);
+  el("r-init").innerHTML=_eqb.initiative?'<span style="color:var(--or)">'+fMod(initTotal)+'</span>':fMod(dexMod);
+  var vitTotal=parseInt(vit)+(_eqb.vitesse||0);
+  el("r-vit").innerHTML=_eqb.vitesse?'<span style="color:var(--or)">'+vitTotal+'m</span>':parseInt(vit)+'m';
   el("r-bm").textContent="+"+bm;
   el("r-dv").textContent=DV_CL[cl]||"d8";
   // Notes
@@ -9486,7 +9489,7 @@ function rendreHexagone(){
       var lbl=document.createElement("div");lbl.className="r-stat-label";lbl.textContent=abbrevs[i];
       var vEl=document.createElement("div");vEl.className="r-stat-val";vEl.textContent=val;
       var mEl=document.createElement("div");mEl.className="r-stat-mod";
-      mEl.innerHTML=fMod(mod)+(bStat?'<span class="eqb">+'+bStat+' équip.</span>':'');
+      mEl.innerHTML=bStat?'<span style="color:var(--or)">'+fMod(mod+bStat)+'</span>':fMod(mod);
       cell.appendChild(lbl);cell.appendChild(vEl);cell.appendChild(mEl);
       list.appendChild(cell);
     });
@@ -9515,8 +9518,8 @@ function rendreHexagone(){
     lbl.textContent=noms[i];
     row.appendChild(lbl);
     var tot2=document.createElement("span");
-    tot2.style.cssText="font-size:12px;font-weight:700;color:"+(isMai?"#93c5fd":"var(--txt3)")+";";
-    tot2.innerHTML=fMod(tot)+(bJDS?'<span class="eqb">+'+bJDS+' équip.</span>':'');
+    tot2.style.cssText="font-size:12px;font-weight:700;color:"+(bJDS?"var(--or)":isMai?"#93c5fd":"var(--txt3)")+";";
+    tot2.textContent=fMod(tot);
     row.appendChild(tot2);
     jdsGrid.appendChild(row);
   });
@@ -9632,7 +9635,8 @@ function rRendreComps(){
     d.style.cursor="default";
     var dotColor=ok?"#6ee7a1":"rgba(255,255,255,.2)";
     var bComp=(window._equip_bonus_totaux||{})[cp.n]||0;
-    d.innerHTML="<span style='width:10px;height:10px;border-radius:50%;background:"+dotColor+";flex-shrink:0;margin-right:6px;' ></span><span style='flex:1;font-size:13px;'>"+cp.n+"</span><span style='font-weight:700;color:var(--txt);font-size:13px;'>"+fMod(m+(ok?bm:0)+bComp)+(bComp?'<span class="eqb">+'+bComp+' équip.</span>':'')+"</span>";
+    var compTot=m+(ok?bm:0)+bComp;
+    d.innerHTML="<span style='width:10px;height:10px;border-radius:50%;background:"+dotColor+";flex-shrink:0;margin-right:6px;'></span><span style='flex:1;font-size:13px;'>"+cp.n+"</span><span style='font-weight:700;font-size:13px;color:"+(bComp?"var(--or)":"var(--txt)")+"'>"+fMod(compTot)+"</span>";
     cc.appendChild(d);
   });
   // Compteur
@@ -10615,11 +10619,11 @@ function equip_rendreInventaire(){
     var rarColor=_EQUIP_RARETE_COLORS[item.rarete]||"#9ca3af";
     var icone=item.icone||"📦";
     var equipSlot=equipes[itemId]||"";
-    var effetsStr="";
-    if(item.effets&&Object.keys(item.effets).length>0){
-      effetsStr=" · "+Object.keys(item.effets).map(function(k){
-        var v=item.effets[k];return k.replace("bonus","")+(v>0?"+":"")+v;
-      }).join(" ");
+    // Résumé rapide en sous-titre : charges si l'objet en a
+    var chargesInfo='';
+    if(item.charges&&item.charges.max){
+      var rLbl={long:'Repos long',short:'Repos court',dawn:'À l\'aube',never:'Consommable'}[item.charges.recharge]||'';
+      chargesInfo=' · ⚡ '+item.charges.max+' ch.'+(rLbl?' ('+rLbl+')':'');
     }
     var descId="eqd-"+itemId;
     var html='<div class="equip-item-row" style="flex-wrap:wrap;">'
@@ -10628,7 +10632,7 @@ function equip_rendreInventaire(){
       +'<div class="equip-item-nom">'+item.nom+'</div>'
       +'<div class="equip-item-sub" style="color:'+rarColor+';">'+item.rarete
       +(equipSlot?' <span style="color:var(--or);"> · '+(_EQUIP_SLOT_LABELS[equipSlot]||equipSlot)+'</span>':'')
-      +effetsStr
+      +(chargesInfo?'<span style="color:var(--txt3);">'+chargesInfo+'</span>':'')
       +'</div>'
       +'</div>'
       +'<div class="equip-item-btns">';
@@ -10642,21 +10646,30 @@ function equip_rendreInventaire(){
     html+='<button class="btn" style="font-size:10px;padding:2px 7px;" onclick="equip_ouvrirDonner(\''+itemId+'\')">Donner</button>';
     html+='<button class="btn ko" style="font-size:10px;padding:2px 7px;" onclick="equip_supprimerDeInventaire(\''+itemId+'\')">Retirer</button>';
     html+='</div>';
-    // Description + effets dépliables
+    // Détail dépliable : description + bonus mécaniques + charges
     var hasDesc=!!(item.description&&item.description.trim());
-    var hasEffets=!!(item.effets&&Object.keys(item.effets).length>0);
-    if(hasDesc||hasEffets){
+    var hasBonus=Array.isArray(item.bonus)&&item.bonus.length>0;
+    var hasCharges=!!(item.charges&&item.charges.max);
+    if(hasDesc||hasBonus||hasCharges){
+      var bonusBadges='';
+      if(hasBonus){
+        item.bonus.forEach(function(b){
+          if(!b||!b.cible)return;
+          bonusBadges+='<span style="font-size:10px;background:rgba(201,162,39,.15);border:1px solid rgba(201,162,39,.35);border-radius:4px;padding:2px 7px;color:var(--or);margin-right:4px;margin-bottom:3px;display:inline-block;">'
+            +b.cible+' '+(b.valeur>0?'+':'')+b.valeur+'</span>';
+        });
+      }
+      var chargesDetail='';
+      if(hasCharges){
+        var rLbl2={long:'Repos long',short:'Repos court',dawn:'À l\'aube',never:'Consommable'}[item.charges.recharge]||'';
+        chargesDetail='<div style="margin-top:5px;font-size:11px;color:var(--txt2);">⚡ <b style="color:var(--txt);">'+item.charges.max+'</b> charges'+(rLbl2?' · <span style="color:var(--txt3);">'+rLbl2+'</span>':'')+'</div>';
+      }
       html+='<div style="width:100%;margin-top:4px;">'
         +'<button style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:10px;padding:0;font-family:inherit;" onclick="equip_toggleDesc(\''+descId+'\',this)">▸ Détails</button>'
         +'<div id="'+descId+'" style="display:none;margin-top:5px;padding:8px;background:var(--bg2);border-radius:6px;">'
-        +(hasDesc?'<p style="font-size:11px;color:var(--txt2);line-height:1.55;white-space:pre-wrap;">'+item.description+'</p>':'')
-        +(hasEffets?'<div style="margin-top:'+(hasDesc?'6px':'0')+';">'
-          +Object.keys(item.effets).map(function(k){
-            var v=item.effets[k];
-            return '<span style="font-size:10px;background:var(--bg3);border-radius:4px;padding:2px 6px;margin-right:4px;color:var(--or);">'+k.replace("bonus","")+(v>0?"+":"")+v+'</span>';
-          }).join("")
-          +'</div>'
-        :'')
+        +(hasDesc?'<p style="font-size:11px;color:var(--txt2);line-height:1.55;white-space:pre-wrap;margin-bottom:'+(hasBonus||hasCharges?'6px':'0')+';">'+item.description+'</p>':'')
+        +(bonusBadges?'<div style="display:flex;flex-wrap:wrap;gap:2px;margin-bottom:'+(hasCharges?'4px':'0')+';">'+bonusBadges+'</div>':'')
+        +chargesDetail
         +'</div>'
         +'</div>';
     }
@@ -11036,10 +11049,18 @@ function equip_rendreBoutique(items){
     var slotLbl=_EQUIP_SLOT_LABELS[item.slot]||item.slot||"Inventaire";
     var icone=item.icone&&!item.icone.startsWith("http")?item.icone:"📦";
     var effetsHtml="";
-    if(item.effets&&Object.keys(item.effets).length>0){
-      effetsHtml='<div style="font-size:10px;color:var(--txt3);margin-top:3px;">'
-        +Object.keys(item.effets).map(function(k){return k+' : '+item.effets[k];}).join(' · ')
+    if(Array.isArray(item.bonus)&&item.bonus.length>0){
+      effetsHtml='<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;">'
+        +item.bonus.map(function(b){
+          if(!b||!b.cible)return '';
+          return '<span style="font-size:9px;background:rgba(201,162,39,.15);border:1px solid rgba(201,162,39,.35);border-radius:3px;padding:1px 5px;color:var(--or);">'
+            +b.cible+' '+(b.valeur>0?'+':'')+b.valeur+'</span>';
+        }).join('')
         +'</div>';
+    }
+    if(item.charges&&item.charges.max){
+      var bRLbl={long:'Repos long',short:'Repos court',dawn:'À l\'aube',never:'Consommable'}[item.charges.recharge]||'';
+      effetsHtml+='<div style="font-size:10px;color:var(--txt3);margin-top:3px;">⚡ '+item.charges.max+' charges'+(bRLbl?' · '+bRLbl:'')+'</div>';
     }
     var prix=item.prix||0;
     var canAfford=campCode&&bourseCanAffordPO(prix);
