@@ -407,6 +407,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .bourse-cell label{font-size:9px;color:var(--txt3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-bottom:3px;display:block;}
 .bourse-cell input{width:100%;text-align:center;font-size:14px;font-weight:700;padding:5px 2px;border-radius:6px;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt);font-family:inherit;}
 .bourse-total{font-size:11px;color:var(--txt3);margin-top:6px;text-align:right;}
+.textarea-auto{font-size:12px;resize:none;overflow:hidden;min-height:52px;line-height:1.55;}
 .bourse-mini{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:10px 14px;margin-bottom:10px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
 .bourse-mini-title{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);flex-shrink:0;}
 .bourse-mini-coins{display:flex;gap:5px;flex:1;flex-wrap:wrap;align-items:center;}
@@ -719,10 +720,6 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
             <input type="number" id="bourse-po" min="0" value="0" oninput="bourseMaj()">
           </div>
           <div class="bourse-cell">
-            <label>PE</label>
-            <input type="number" id="bourse-pe" min="0" value="0" oninput="bourseMaj()">
-          </div>
-          <div class="bourse-cell">
             <label>PA</label>
             <input type="number" id="bourse-pa" min="0" value="0" oninput="bourseMaj()">
           </div>
@@ -737,7 +734,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         </div>
       </div>
       <p class="st" style="margin-top:4px;">Inventaire</p>
-      <textarea id="inventaire" placeholder="Liste ton équipement..." style="min-height:60px;max-height:120px;font-size:12px;resize:none;overflow-y:auto;" oninput="sauvegarder()"></textarea>
+      <textarea id="inventaire" placeholder="Liste ton équipement..." class="textarea-auto" oninput="autoResize(this);sauvegarder()"></textarea>
     </div>
 
     <!-- ÉQUIPEMENT ACTIF accordion -->
@@ -8226,6 +8223,11 @@ function ajH(t){desH.unshift(t);if(desH.length>10)desH.pop();el("de-h").innerHTM
 function syncInvResume() {
   var iw = el("r-inv-card");
   if (iw) iw.style.display = "block";
+  var ta = el("inventaire"); if(ta) autoResize(ta);
+}
+function autoResize(ta){
+  ta.style.height="auto";
+  ta.style.height=ta.scrollHeight+"px";
 }
 
 function onRaceChange() {
@@ -10206,12 +10208,11 @@ function bourseCollect(){
   return{
     pp:parseInt((el("bourse-pp")||{}).value)||0,
     po:parseInt((el("bourse-po")||{}).value)||0,
-    pe:parseInt((el("bourse-pe")||{}).value)||0,
     pa:parseInt((el("bourse-pa")||{}).value)||0,
     pc:parseInt((el("bourse-pc")||{}).value)||0
   };
 }
-function bourseEnPC(m){return(m.pp||0)*1000+(m.po||0)*100+(m.pe||0)*50+(m.pa||0)*10+(m.pc||0);}
+function bourseEnPC(m){return(m.pp||0)*1000+(m.po||0)*100+(m.pa||0)*10+(m.pc||0);}
 function bourseMaj(){
   var m=bourseCollect();
   var total_pc=bourseEnPC(m);
@@ -10223,7 +10224,7 @@ function bourseMaj(){
   if(t)t.textContent=totalStr;
   // Affichage mini (boutique — lecture seule)
   var coins=[];
-  var LABELS=["pp","po","pe","pa","pc"];
+  var LABELS=["pp","po","pa","pc"];
   LABELS.forEach(function(k){if(m[k]>0)coins.push('<span class="bourse-mini-coin">'+m[k]+'<em>'+k+'</em></span>');});
   var mc=el("bourse-mini-coins");
   if(mc)mc.innerHTML=coins.length?coins.join(""):'<span style="font-size:12px;color:var(--txt3);font-style:italic;">Bourse vide</span>';
@@ -10237,7 +10238,7 @@ function bourseCharger(data){
   if(!m.po && !m.pa && !m.pc && (data.po||data.pa||data.pc)){
     m={pp:0,po:parseInt(data.po)||0,pe:0,pa:parseInt(data.pa)||0,pc:parseInt(data.pc)||0};
   }
-  ["pp","po","pe","pa","pc"].forEach(function(k){var e=el("bourse-"+k);if(e)e.value=m[k]||0;});
+  ["pp","po","pa","pc"].forEach(function(k){var e=el("bourse-"+k);if(e)e.value=m[k]||0;});
   bourseMaj();
 }
 function bourseCanAffordPO(prix){return bourseEnPC(bourseCollect())>=prix*100;}
