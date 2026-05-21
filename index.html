@@ -419,6 +419,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .r-equip-effets{display:flex;flex-wrap:wrap;gap:4px;margin-top:7px;}
 .r-equip-badge{font-size:10px;color:var(--or);background:rgba(201,162,39,.12);border:1px solid rgba(201,162,39,.3);border-radius:4px;padding:1px 6px;}
 .r-equip-desc{font-size:11px;color:var(--txt2);line-height:1.6;white-space:pre-wrap;margin-top:7px;padding-top:7px;border-top:1px solid var(--bord);}
+.eqb{display:inline-block;font-size:9px;font-weight:700;background:rgba(201,162,39,.25);color:var(--or);border-radius:3px;padding:1px 5px;margin-left:4px;vertical-align:middle;white-space:nowrap;}
 /* ── BOURSE ─────────────────────────────────────────── */
 .bourse-wrap{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:10px 12px;margin-bottom:10px;}
 .bourse-title{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);margin-bottom:8px;}
@@ -9346,6 +9347,7 @@ function rafraichirResume(){
   var ca=v("ca")||"10",vit=v("vitesse")||"9";
   var pvMax=parseInt(v("pv-max"))||1,pvAct=parseInt(v("pv-act"))||0,pvTmp=parseInt(v("pv-tmp"))||0;
   var bm=gBM(),dexMod=gMod(parseInt(v("dex"))||10);
+  var _eqb=window._equip_bonus_totaux||{};
   // Header
   var init=nom.split(" ").map(function(w){return w[0]||"";}).slice(0,2).join("").toUpperCase();
   majInitialesAvatar(init);
@@ -9356,16 +9358,16 @@ function rafraichirResume(){
   el("r-nv").textContent="Niveau "+niv;
   var rra=el("r-ra");if(rra){if(race){rra.textContent=race;rra.style.display="inline";}else rra.style.display="none";}
   var ral=el("r-al");if(ral){if(align){ral.textContent=align;ral.style.display="inline";}else ral.style.display="none";}
-  el("r-ca").textContent=ca;
+  el("r-ca").innerHTML=ca+(_eqb.CA?'<span class="eqb">+'+_eqb.CA+' équip.</span>':'');
   // PV
   el("r-pvact").textContent=pvAct;
-  el("r-pvmax").textContent=pvMax;
+  el("r-pvmax").innerHTML=(pvMax+(_eqb.pvmax||0))+(_eqb.pvmax?'<span class="eqb">+'+_eqb.pvmax+' équip.</span>':'');
   var pct=Math.max(0,Math.min(100,(pvAct/pvMax)*100));
   var bar=el("r-pvbar");if(bar){bar.style.width=pct+"%";bar.style.background=pct>50?"#2d6e2d":pct>25?"#7a5800":"#a32d2d";}
   var tmp=el("r-pvtmp");if(tmp){if(pvTmp>0){tmp.textContent=pvTmp+" tmp";tmp.style.display="inline";}else tmp.style.display="none";}
   // Stats
-  el("r-init").textContent=fMod(dexMod);
-  el("r-vit").textContent=vit+"m";
+  el("r-init").innerHTML=fMod(dexMod+(_eqb.initiative||0))+(_eqb.initiative?'<span class="eqb">+'+_eqb.initiative+' équip.</span>':'');
+  el("r-vit").innerHTML=(parseInt(vit)+(_eqb.vitesse||0))+'m'+(_eqb.vitesse?'<span class="eqb">+'+_eqb.vitesse+' équip.</span>':'');
   el("r-bm").textContent="+"+bm;
   el("r-dv").textContent=DV_CL[cl]||"d8";
   // Notes
@@ -9447,9 +9449,11 @@ function rendreHexagone(){
       var mod=gMod(val);
       var cell=document.createElement("div");
       cell.className="r-stat-cell";
+      var bStat=(window._equip_bonus_totaux||{})[CARACS[i]]||0;
       var lbl=document.createElement("div");lbl.className="r-stat-label";lbl.textContent=abbrevs[i];
       var vEl=document.createElement("div");vEl.className="r-stat-val";vEl.textContent=val;
-      var mEl=document.createElement("div");mEl.className="r-stat-mod";mEl.textContent=fMod(mod);
+      var mEl=document.createElement("div");mEl.className="r-stat-mod";
+      mEl.innerHTML=fMod(mod)+(bStat?'<span class="eqb">+'+bStat+' équip.</span>':'');
       cell.appendChild(lbl);cell.appendChild(vEl);cell.appendChild(mEl);
       list.appendChild(cell);
     });
@@ -9465,7 +9469,8 @@ function rendreHexagone(){
     var val=parseInt(v(k))||10;
     var mod=gMod(val);
     var isMai=mai.indexOf(k)>=0;
-    var tot=mod+(isMai?bm:0);
+    var bJDS=(window._equip_bonus_totaux||{})['jds_'+k]||0;
+    var tot=mod+(isMai?bm:0)+bJDS;
     var row=document.createElement("div");
     row.style.cssText="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;"
       +(isMai?"background:rgba(147,197,253,.12);":"opacity:0.45;");
@@ -9478,7 +9483,7 @@ function rendreHexagone(){
     row.appendChild(lbl);
     var tot2=document.createElement("span");
     tot2.style.cssText="font-size:12px;font-weight:700;color:"+(isMai?"#93c5fd":"var(--txt3)")+";";
-    tot2.textContent=fMod(tot);
+    tot2.innerHTML=fMod(tot)+(bJDS?'<span class="eqb">+'+bJDS+' équip.</span>':'');
     row.appendChild(tot2);
     jdsGrid.appendChild(row);
   });
@@ -9593,7 +9598,8 @@ function rRendreComps(){
     var d=document.createElement("div");d.className="rcrow";
     d.style.cursor="default";
     var dotColor=ok?"#6ee7a1":"rgba(255,255,255,.2)";
-    d.innerHTML="<span style='width:10px;height:10px;border-radius:50%;background:"+dotColor+";flex-shrink:0;margin-right:6px;' ></span><span style='flex:1;font-size:13px;'>"+cp.n+"</span><span style='font-weight:700;color:var(--txt);font-size:13px;'>"+fMod(m+(ok?bm:0))+"</span>";
+    var bComp=(window._equip_bonus_totaux||{})[cp.n]||0;
+    d.innerHTML="<span style='width:10px;height:10px;border-radius:50%;background:"+dotColor+";flex-shrink:0;margin-right:6px;' ></span><span style='flex:1;font-size:13px;'>"+cp.n+"</span><span style='font-weight:700;color:var(--txt);font-size:13px;'>"+fMod(m+(ok?bm:0)+bComp)+(bComp?'<span class="eqb">+'+bComp+' équip.</span>':'')+"</span>";
     cc.appendChild(d);
   });
   // Compteur
@@ -10504,7 +10510,25 @@ function equip_init(){
     },function(e){console.error("equip joueur listener",e);});
 }
 
+window._equip_bonus_totaux={};
+
+function equip_calcBonus(){
+  var tot={};
+  var equipe=window._equip_equipe||{};
+  var items=window._equip_items||{};
+  _EQUIP_SLOTS.forEach(function(s){
+    var id=equipe[s];if(!id)return;
+    var item=items[id];if(!item||!Array.isArray(item.bonus))return;
+    item.bonus.forEach(function(b){
+      if(!b||!b.cible||!b.valeur)return;
+      tot[b.cible]=(tot[b.cible]||0)+b.valeur;
+    });
+  });
+  window._equip_bonus_totaux=tot;
+}
+
 function equip_rendreAll(){
+  equip_calcBonus();
   equip_rendreSlots();
   equip_rendreInventaire();
   equip_rendreFooter();
