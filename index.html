@@ -759,7 +759,10 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <span id="equip-actif-arrow" style="font-size:10px;color:var(--txt3);">▸</span>
       </button>
       <div class="equip-actif-body" id="equip-actif-body">
-        <div id="equip-actif-list"></div>
+        <div style="display:flex;gap:8px;align-items:flex-start;">
+          <div id="equip-actif-list" style="flex:1;min-width:0;"></div>
+          <div id="equip-actif-detail" style="flex:1.4;min-width:0;display:none;border-left:1px solid var(--bord);padding-left:10px;"></div>
+        </div>
       </div>
     </div>
 
@@ -10647,6 +10650,9 @@ function equip_rendreFooter(){
   fEl.innerHTML=html;
 }
 
+// Stockage temporaire pour le panneau de détail équipement actif
+window._equip_actif_data=[];
+
 function equip_rendreActif(){
   var card=el("r-equip-actif-card");
   var list=el("equip-actif-list");
@@ -10655,44 +10661,67 @@ function equip_rendreActif(){
   var equipe=window._equip_equipe||{};
   var items=window._equip_items||{};
   var rows=[];
-  var _actifIdx=0;
+  window._equip_actif_data=[];
+  var idx=0;
   _EQUIP_SLOTS.forEach(function(s){
     var id=equipe[s];if(!id)return;
     var item=items[id];if(!item)return;
     var icone=item.icone&&!item.icone.startsWith("http")?item.icone:"✨";
     var effetsStr="";
-    var effetsBadges="";
     if(item.effets&&Object.keys(item.effets).length>0){
-      var pairs=Object.keys(item.effets).map(function(k){
+      effetsStr=" · "+Object.keys(item.effets).map(function(k){
         var v=item.effets[k];return k.replace("bonus","")+(v>0?"+":"")+v;
-      });
-      effetsStr=" · "+pairs.join(" ");
-      effetsBadges=pairs.map(function(p){
-        return '<span style="font-size:10px;background:var(--bg3);border-radius:4px;padding:2px 6px;margin-right:4px;color:var(--or);">'+p+'</span>';
-      }).join("");
+      }).join(" ");
     }
-    var hasDesc=!!(item.description&&item.description.trim());
-    var descId='equip-actif-desc-'+(_actifIdx++);
-    // Le panneau de description est toujours généré (et toujours cliquable)
-    var descContent='';
-    if(hasDesc)descContent+='<p style="font-size:11px;color:var(--txt2);line-height:1.55;white-space:pre-wrap;margin-bottom:'+(effetsBadges?'6px':'0')+';">'+item.description+'</p>';
-    if(effetsBadges)descContent+='<div>'+effetsBadges+'</div>';
-    if(!descContent)descContent='<p style="font-size:11px;color:var(--txt3);font-style:italic;">Aucune description disponible.</p>';
-    var row='<div class="equip-actif-row" style="cursor:pointer;user-select:none;" onclick="equip_toggleActifDesc(\''+descId+'\',this)">'
+    window._equip_actif_data.push({item:item,slot:s,icone:icone});
+    var i=idx++;
+    rows.push('<div class="equip-actif-row" id="equip-actif-row-'+i+'" style="cursor:pointer;user-select:none;" onclick="equip_showActifDetail('+i+')">'
       +'<span style="font-size:18px;">'+icone+'</span>'
       +'<span style="font-size:12px;font-weight:700;color:var(--txt);flex:1;">'+item.nom+'</span>'
       +'<span style="font-size:10px;color:var(--txt3);">'+(_EQUIP_SLOT_LABELS[s]||s)+'</span>'
       +(effetsStr?'<span style="font-size:10px;color:var(--or);">'+effetsStr+'</span>':'')
-      +'<span class="equip-actif-chevron" style="font-size:10px;color:var(--txt3);margin-left:4px;transition:transform .2s;">▸</span>'
-      +'</div>'
-      +'<div id="'+descId+'" style="display:none;padding:8px 10px;background:var(--bg3);border-radius:6px;margin:2px 0 6px;">'
-      +descContent
-      +'</div>';
-    rows.push(row);
+      +'<span style="font-size:10px;color:var(--txt3);margin-left:4px;">›</span>'
+      +'</div>');
   });
   if(card)card.style.display=rows.length?"":"none";
   if(countEl)countEl.textContent=rows.length?"("+rows.length+")":"";
+  // Réinitialiser le panneau de détail
+  var detail=el("equip-actif-detail");if(detail){detail.style.display='none';detail.innerHTML='';}
   list.innerHTML=rows.length?rows.join(""):'<p style="font-size:11px;color:var(--txt3);font-style:italic;padding:4px 0;">Aucun objet équipé.</p>';
+}
+
+function equip_showActifDetail(idx){
+  var data=(window._equip_actif_data||[])[idx];
+  var detail=el("equip-actif-detail");
+  if(!data||!detail)return;
+  // Mettre en évidence la ligne sélectionnée
+  var allRows=document.querySelectorAll('.equip-actif-row');
+  allRows.forEach(function(r){r.style.background='';});
+  var selRow=el('equip-actif-row-'+idx);
+  if(selRow)selRow.style.background='rgba(255,255,255,0.05)';
+  // Construire le contenu du panneau
+  var item=data.item;var slot=data.slot;
+  var effetsBadges='';
+  if(item.effets&&Object.keys(item.effets).length>0){
+    effetsBadges=Object.keys(item.effets).map(function(k){
+      var v=item.effets[k];
+      return '<span style="font-size:10px;background:var(--bg3);border-radius:4px;padding:2px 6px;margin-right:4px;color:var(--or);">'+k.replace("bonus","")+(v>0?"+":"")+v+'</span>';
+    }).join("");
+  }
+  var hasDesc=!!(item.description&&item.description.trim());
+  detail.style.display='';
+  detail.innerHTML=
+    '<div style="padding:2px 0 6px;">'
+    +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">'
+    +'<span style="font-size:26px;line-height:1;">'+data.icone+'</span>'
+    +'<div><p style="font-size:12px;font-weight:700;color:var(--txt);line-height:1.2;">'+item.nom+'</p>'
+    +'<p style="font-size:10px;color:var(--txt3);margin-top:2px;">'+(_EQUIP_SLOT_LABELS[slot]||slot)+'</p></div>'
+    +'</div>'
+    +(effetsBadges?'<div style="margin-bottom:8px;flex-wrap:wrap;display:flex;gap:4px;">'+effetsBadges+'</div>':'')
+    +(hasDesc
+      ?'<p style="font-size:11px;color:var(--txt2);line-height:1.6;white-space:pre-wrap;">'+item.description+'</p>'
+      :'<p style="font-size:11px;color:var(--txt3);font-style:italic;">Aucune description disponible.</p>')
+    +'</div>';
 }
 
 function equip_rendreCombat(){
@@ -11896,9 +11925,12 @@ function cbtPollOnce(){
 }
 function cbtStartWaitPoll(){
   cbtStopWait();
-  // Listener dédié — se déclenche immédiatement + à chaque changement Firestore
   if(db&&campCode){
+    // Ignorer la 1ère snapshot (immédiate/cache) — elle peut être périmée et
+    // réinitialiser _cbtInitSoumise si le cache indique une phase 'combat' antérieure.
+    var _skipFirst=true;
     _cbtWatchUnsub=db.collection('parties').doc(campCode).onSnapshot(function(snap){
+      if(_skipFirst){_skipFirst=false;return;}
       if(!snap.exists)return;
       _cbtOnCombatData(snap.data().combat);
     },function(){_cbtWatchUnsub=null;});
@@ -12019,9 +12051,8 @@ function cbtAppliquerPV(){
       </div>
     </div>
     <!-- C5 Boutons permanents -->
-    <div class="cbt-perm-bar">
-      <button class="btn" id="cbt-btn-passer" onclick="cbtPasserTour()" disabled>⏭ Passer mon tour</button>
-      <button class="btn" onclick="cbtTogglePVPanel()">♥ Modifier mes PV</button>
+    <div class="cbt-perm-bar" style="justify-content:center;">
+      <button class="btn" id="cbt-btn-passer" onclick="cbtPasserTour()" disabled style="flex:0 1 auto;min-width:160px;">⏭ Passer mon tour</button>
     </div>
   </div>
 </div>
