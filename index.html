@@ -361,6 +361,21 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 #cbt-retour-fiche-btn{position:fixed;bottom:24px;right:16px;z-index:600;background:var(--rouge);color:white;border:none;border-radius:12px;padding:11px 16px;font-size:13px;font-weight:700;cursor:pointer;box-shadow:0 4px 24px rgba(0,0,0,.5);display:none;}
 .cbt-perm-bar{display:flex;gap:8px;margin-top:.75rem;padding-bottom:.5rem;}
 .cbt-perm-bar .btn{flex:1;font-size:12px;padding:8px;}
+/* PV inline bloc */
+.cbt-pv-inline{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:10px 12px;margin-bottom:.75rem;}
+.cbt-pv-inline-bar{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.cbt-pv-inline-lbl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);flex-shrink:0;}
+.cbt-pv-inline-track{flex:1;background:rgba(255,255,255,.08);border-radius:999px;height:8px;overflow:hidden;}
+.cbt-pv-inline-fill{height:100%;border-radius:999px;transition:width .3s,background .3s;}
+.cbt-pv-inline-val{font-size:14px;font-weight:800;color:var(--txt);flex-shrink:0;min-width:52px;text-align:right;}
+.cbt-pv-inline-ctrl{display:flex;gap:5px;align-items:center;}
+.cbt-pv-inline-ctrl input{width:60px;text-align:center;font-size:13px;padding:5px 2px;flex-shrink:0;}
+.cbt-pv-inline-ctrl .btn{flex:1;padding:6px 4px;font-size:12px;}
+/* Équipement cliquable combat */
+.cbt-equip-item{padding:5px 0;border-bottom:1px solid var(--bord);cursor:pointer;}
+.cbt-equip-item:last-child{border-bottom:none;}
+.cbt-equip-row{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--txt2);}
+.cbt-equip-item:hover .cbt-equip-row{opacity:.8;}
 /* ── ÉQUIPEMENT REDESIGN ─────────────────────────────── */
 .equip-hd{display:flex;gap:2px;margin-bottom:10px;background:var(--bg3);border:1px solid var(--bord);border-radius:10px;padding:3px;}
 .equip-view-btn{flex:1;font-family:inherit;font-size:12px;font-weight:600;padding:8px 6px;cursor:pointer;border:none;border-radius:7px;background:none;color:var(--txt3);}
@@ -10236,23 +10251,25 @@ function bourseCharger(data){
   var m=data.monnaie||{};
   // Rétro-compatibilité : anciens saves avec data.po / data.pa / data.pc
   if(!m.po && !m.pa && !m.pc && (data.po||data.pa||data.pc)){
-    m={pp:0,po:parseInt(data.po)||0,pe:0,pa:parseInt(data.pa)||0,pc:parseInt(data.pc)||0};
+    m={pp:0,po:parseInt(data.po)||0,pa:parseInt(data.pa)||0,pc:parseInt(data.pc)||0};
   }
   ["pp","po","pa","pc"].forEach(function(k){var e=el("bourse-"+k);if(e)e.value=m[k]||0;});
   bourseMaj();
 }
 function bourseCanAffordPO(prix){return bourseEnPC(bourseCollect())>=prix*100;}
 function bourseDeduire(prix){
+  // Convertit tout en PC, déduit le coût, puis redistribue PP→PO→PA→PC
+  // Taux : 1 pp = 10 po = 100 pa = 1000 pc
   var m=bourseCollect();
-  var total=bourseEnPC(m),cout=prix*100;
-  if(total<cout)return false;
-  total-=cout;
-  m.pp=Math.floor(total/1000);total%=1000;
-  m.po=Math.floor(total/100);total%=100;
-  m.pe=0;
-  m.pa=Math.floor(total/10);total%=10;
-  m.pc=total;
-  ["pp","po","pe","pa","pc"].forEach(function(k){var e=el("bourse-"+k);if(e)e.value=m[k];});
+  var reste=bourseEnPC(m), cout=Math.round(prix*100);
+  if(reste<cout)return false;
+  reste-=cout;
+  // Redistribue en priorisant les grosses pièces (rendu de monnaie optimal)
+  m.pp=Math.floor(reste/1000); reste%=1000;
+  m.po=Math.floor(reste/100);  reste%=100;
+  m.pa=Math.floor(reste/10);   reste%=10;
+  m.pc=reste;
+  ["pp","po","pa","pc"].forEach(function(k){var e=el("bourse-"+k);if(e)e.value=m[k];});
   bourseMaj();
   return true;
 }
@@ -11422,11 +11439,15 @@ function cbtMajUI(){
       '</div>';
   }).join('')+'</div>'||'<p style="font-size:12px;color:var(--txt3);">En attente des combattants…</p>';
   var passBtn=el('cbt-btn-passer');if(passBtn){passBtn.disabled=!monTour;}
+  cbtRefreshPVInline();
   var ap=el('cbt-actions-panel');
   if(ap){
     ap.style.display='';
     ap.style.opacity=monTour?'1':'.6';
-    cbtRendreActions(monTour);
+    // Ne rebuilder le panneau que si quelque chose d'utile a changé
+    // → évite de fermer les menus/descriptions à chaque update Firebase
+    var _key=[monTour?1:0,gCl()||'',v('niveau')||'1',JSON.stringify(ressourcesClasse)].join('|');
+    if(_key!==ap._actionsKey){ap._actionsKey=_key;cbtRendreActions(monTour);}
   }
 }
 
@@ -11492,7 +11513,12 @@ function cbtRendreActions(monTour){
   }
   // === CAPACITÉS DE CLASSE ===
   var capsData=window.CAPS_DATA&&window.CAPS_DATA.classes&&window.CAPS_DATA.classes[cl]||[];
-  var capsUnlocked=capsData.filter(function(c){return (c.niveau||1)<=niv&&_capEstCombat(c);});
+  var _capsSeen={};
+  var capsUnlocked=capsData.filter(function(c){
+    if((c.niveau||1)>niv||!_capEstCombat(c))return false;
+    if(_capsSeen[c.nom])return false;
+    _capsSeen[c.nom]=true;return true;
+  });
   if(capsUnlocked.length){
     html+='<div class="cbt-dropdown-wrap">';
     html+='<button class="cbt-action-btn" onclick="cbtToggleCaps(event)">📖 Capacités ▾</button>';
@@ -11509,13 +11535,19 @@ function cbtRendreActions(monTour){
     var ico=item.icone&&!item.icone.startsWith("http")?item.icone:"✨";
     var effStr="";
     if(item.effets&&Object.keys(item.effets).length>0){
-      effStr=" · "+Object.keys(item.effets).map(function(k){var vv=item.effets[k];return k.replace("bonus","")+(vv>0?"+":"")+vv;}).join(" ");
+      effStr=Object.keys(item.effets).map(function(k){var vv=item.effets[k];return k.replace("bonus","")+(vv>0?"+":"")+vv;}).join(" ");
     }
-    eqRows.push('<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--bord);font-size:11px;color:var(--txt2);">'
+    var hasDesc=!!(item.description&&item.description.trim());
+    var did='ceq-'+s;
+    eqRows.push(
+      '<div class="cbt-equip-item"'+(hasDesc?' onclick="cbtToggleSortDesc(\''+did+'\')"':'')+'>'
+      +'<div class="cbt-equip-row">'
       +'<span style="font-size:15px;">'+ico+'</span>'
       +'<span style="flex:1;font-weight:600;color:var(--txt);">'+item.nom+'</span>'
-      +'<span style="font-size:10px;color:var(--txt3);">'+(_EQUIP_SLOT_LABELS[s]||s)+'</span>'
-      +(effStr?'<span style="font-size:10px;color:var(--or);">'+effStr+'</span>':'')
+      +(effStr?'<span style="font-size:10px;color:var(--or);margin-right:4px;">'+effStr+'</span>':'')
+      +'<span style="font-size:10px;color:var(--txt3);">'+(_EQUIP_SLOT_LABELS[s]||s)+(hasDesc?' ▾':'')+'</span>'
+      +'</div>'
+      +(hasDesc?'<div class="cbt-weapon-desc" id="'+did+'">'+item.description.replace(/</g,'&lt;')+'</div>':'')
       +'</div>');
   });
   if(eqRows.length){
@@ -11679,7 +11711,12 @@ function cbtToggleCaps(e){
   if(menu.style.display!=='none'){menu.style.display='none';return;}
   var cl=gCl(),niv=parseInt(v('niveau'))||1;
   var capsData=window.CAPS_DATA&&window.CAPS_DATA.classes&&window.CAPS_DATA.classes[cl]||[];
-  var caps=capsData.filter(function(c){return (c.niveau||1)<=niv&&_capEstCombat(c);});
+  var _seen2={};
+  var caps=capsData.filter(function(c){
+    if((c.niveau||1)>niv||!_capEstCombat(c))return false;
+    if(_seen2[c.nom])return false;
+    _seen2[c.nom]=true;return true;
+  });
   if(!caps.length){menu.innerHTML='<p style="font-size:12px;color:var(--txt3);padding:6px;">Aucune capacité.</p>';menu.style.display='';return;}
   menu.innerHTML=caps.map(function(cap,i){
     var did='ccap'+i;
@@ -11777,6 +11814,24 @@ function cbtStartWaitPoll(){
 function cbtForceRefresh(){
   cbtPollOnce();
 }
+// ── PV inline (entre liste combattants et ressources) ────
+function cbtRefreshPVInline(){
+  var pvAct=parseInt(v('pv-act'))||0, pvMax=parseInt(v('pv-max'))||1;
+  var pct=Math.max(0,Math.min(100,pvAct/pvMax*100));
+  var col=pct>50?'#2d6e2d':pct>25?'#d97706':'#dc2626';
+  var fill=el('cbt-pv-inline-fill'); if(fill){fill.style.width=pct+'%';fill.style.background=col;}
+  var val=el('cbt-pv-inline-val'); if(val)val.textContent=pvAct+' / '+pvMax;
+  var blk=el('cbt-pv-inline'); if(blk)blk.style.display='';
+}
+function cbtQuickPV(sign){
+  var d=parseInt((el('cbt-pv-quick')||{}).value)||0;
+  if(d<=0)return;
+  var pvAct=parseInt(v('pv-act'))||0, pvMax=parseInt(v('pv-max'))||1;
+  var nv=sign>0?Math.min(pvMax,pvAct+d):Math.max(0,pvAct-d);
+  el('pv-act').value=nv; updatePV(); sauvegarder(); campEcrireJoueur({});
+  el('cbt-pv-quick').value='';
+  cbtRefreshPVInline();
+}
 function cbtTogglePVPanel(){
   var p=el('cbt-pv-panel');
   if(p)p.style.display=p.style.display==='none'?'':'none';
@@ -11835,6 +11890,21 @@ function cbtAppliquerPV(){
     </div>
     <!-- Liste combattants -->
     <div id="cbt-liste" style="margin-bottom:1rem;"></div>
+    <!-- PV inline -->
+    <div id="cbt-pv-inline" class="cbt-pv-inline" style="display:none;">
+      <div class="cbt-pv-inline-bar">
+        <span class="cbt-pv-inline-lbl">❤ PV</span>
+        <div class="cbt-pv-inline-track">
+          <div class="cbt-pv-inline-fill" id="cbt-pv-inline-fill" style="width:100%;background:#2d6e2d;"></div>
+        </div>
+        <span class="cbt-pv-inline-val" id="cbt-pv-inline-val">—</span>
+      </div>
+      <div class="cbt-pv-inline-ctrl">
+        <button class="btn ko" onclick="cbtQuickPV(-1)">− Dégâts</button>
+        <input type="number" id="cbt-pv-quick" min="0" placeholder="?">
+        <button class="btn ok" onclick="cbtQuickPV(1)">+ Soins</button>
+      </div>
+    </div>
     <!-- Actions / ressources -->
     <div id="cbt-actions-panel" class="card" style="display:none;">
       <p class="st" id="cbt-actions-titre">Tes ressources</p>
