@@ -7895,6 +7895,7 @@ function collecterDonnees(){
   data.slots=slotsE;
   data.ressources=ressourcesClasse;
   data.equipCharges=equipCharges;
+  if(campCode)data._campCode=campCode;
   data._pvmax=parseInt(v("pv-max"))||0;
   data._pvact=parseInt(v("pv-act"))||0;
   data._ca=parseInt(v("ca"))||10;
@@ -7947,6 +7948,12 @@ function chargerFiche(data){
   }
   // Photo de profil — charger avant allerResume()
   if(data.avatar){appliquerAvatar(data.avatar);}else{retirerAvatar();}
+  // Rejoindre automatiquement la campagne si le code est mémorisé dans Firestore
+  // (permet de retrouver l'équipement sur une nouvelle machine sans ressaisir le code)
+  if(data._campCode && !campCode && db){
+    localStorage.setItem("qs_campCode", data._campCode);
+    initCampagne();
+  }
   // Rafraîchir immédiatement ce qui ne dépend pas de SORTS/CAPS
   var ficheVide = !data.classe && !data.race && !data.nom;
   if(ficheVide){ show("s-edit"); return; }
@@ -10005,6 +10012,11 @@ function campJoindre(){
     if(!snap.exists){errEl.textContent="Campagne introuvable. Vérifie le code.";errEl.style.display="block";return;}
     campCode=code;
     localStorage.setItem("qs_campCode",campCode);
+    // Mémoriser le code côté Firestore pour les autres machines du joueur
+    if(db&&joueurId){
+      db.collection("parties").doc(PARTIE).collection("joueurs").doc(joueurId)
+        .set({_campCode:campCode},{merge:true}).catch(function(){});
+    }
     campEcrireJoueur({enLigne:true});
     campEcouter();
     majAffichageCampagne();
@@ -10022,6 +10034,11 @@ function campQuitter(){
   if(campUnsub){campUnsub();campUnsub=null;}
   campCode=null;
   localStorage.removeItem("qs_campCode");
+  // Effacer le code mémorisé dans Firestore
+  if(db&&joueurId){
+    db.collection("parties").doc(PARTIE).collection("joueurs").doc(joueurId)
+      .set({_campCode:null},{merge:true}).catch(function(){});
+  }
   majAffichageCampagne();
   majConditions([]);
 }
