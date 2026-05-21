@@ -8238,13 +8238,13 @@ function ajH(t){desH.unshift(t);if(desH.length>10)desH.pop();el("de-h").innerHTM
 function syncInvResume() {
   var iw = el("r-inv-card");
   if (iw) iw.style.display = "block";
-  var ta = el("inventaire");
-  if(ta) setTimeout(function(){ autoResize(ta); }, 0);
+  autoResizeId("inventaire");
 }
+function autoResizeId(id){ setTimeout(function(){ autoResize(el(id)); },0); }
 function autoResize(ta){
   if(!ta) return;
-  ta.style.height = "auto";
-  ta.style.height = (ta.scrollHeight || 52) + "px";
+  ta.style.height = "1px"; // force le navigateur à recalculer scrollHeight
+  ta.style.height = Math.max(52, ta.scrollHeight) + "px";
 }
 
 function onRaceChange() {
@@ -10260,17 +10260,45 @@ function bourseCharger(data){
 }
 function bourseCanAffordPO(prix){return bourseEnPC(bourseCollect())>=prix*100;}
 function bourseDeduire(prix){
-  // Convertit tout en PC, déduit le coût, puis redistribue PP→PO→PA→PC
-  // Taux : 1 pp = 10 po = 100 pa = 1000 pc
+  // Dépense en commençant par les plus petites pièces (PC→PA→PO→PP)
+  // Le rendu de monnaie préserve les grosses pièces au maximum
   var m=bourseCollect();
-  var reste=bourseEnPC(m), cout=Math.round(prix*100);
-  if(reste<cout)return false;
-  reste-=cout;
-  // Redistribue en priorisant les grosses pièces (rendu de monnaie optimal)
-  m.pp=Math.floor(reste/1000); reste%=1000;
-  m.po=Math.floor(reste/100);  reste%=100;
-  m.pa=Math.floor(reste/10);   reste%=10;
-  m.pc=reste;
+  var cout=Math.round(prix*100);
+  if(bourseEnPC(m)<cout)return false;
+  var dette=cout;
+  // 1. PC
+  if(dette>0&&m.pc>0){var usePC=Math.min(m.pc,dette);m.pc-=usePC;dette-=usePC;}
+  // 2. PA (1 PA = 10 PC)
+  if(dette>0&&m.pa>0){
+    var paBesoin=Math.ceil(dette/10);
+    var paUse=Math.min(m.pa,paBesoin);
+    var paPC=paUse*10;
+    m.pa-=paUse;
+    if(paPC>dette){m.pc+=paPC-dette;dette=0;}else{dette-=paPC;}
+  }
+  // 3. PO (1 PO = 100 PC)
+  if(dette>0&&m.po>0){
+    var poBesoin=Math.ceil(dette/100);
+    var poUse=Math.min(m.po,poBesoin);
+    var poPC=poUse*100;
+    m.po-=poUse;
+    var chgPO=poPC-dette;
+    m.pa+=Math.floor(chgPO/10);
+    m.pc+=chgPO%10;
+    dette=0;
+  }
+  // 4. PP (1 PP = 1000 PC)
+  if(dette>0&&m.pp>0){
+    var ppBesoin=Math.ceil(dette/1000);
+    var ppUse=Math.min(m.pp,ppBesoin);
+    var ppPC=ppUse*1000;
+    m.pp-=ppUse;
+    var chgPP=ppPC-dette;
+    m.po+=Math.floor(chgPP/100); chgPP%=100;
+    m.pa+=Math.floor(chgPP/10);
+    m.pc+=chgPP%10;
+    dette=0;
+  }
   ["pp","po","pa","pc"].forEach(function(k){var e=el("bourse-"+k);if(e)e.value=m[k];});
   bourseMaj();
   return true;
@@ -10594,22 +10622,40 @@ function equip_rendreActif(){
   var equipe=window._equip_equipe||{};
   var items=window._equip_items||{};
   var rows=[];
+  var _actifIdx=0;
   _EQUIP_SLOTS.forEach(function(s){
     var id=equipe[s];if(!id)return;
     var item=items[id];if(!item)return;
     var icone=item.icone&&!item.icone.startsWith("http")?item.icone:"✨";
     var effetsStr="";
+    var effetsBadges="";
     if(item.effets&&Object.keys(item.effets).length>0){
-      effetsStr=" · "+Object.keys(item.effets).map(function(k){
+      var pairs=Object.keys(item.effets).map(function(k){
         var v=item.effets[k];return k.replace("bonus","")+(v>0?"+":"")+v;
-      }).join(" ");
+      });
+      effetsStr=" · "+pairs.join(" ");
+      effetsBadges=pairs.map(function(p){
+        return '<span style="font-size:10px;background:var(--bg3);border-radius:4px;padding:2px 6px;margin-right:4px;color:var(--or);">'+p+'</span>';
+      }).join("");
     }
-    rows.push('<div class="equip-actif-row">'
+    var hasDesc=!!(item.description&&item.description.trim());
+    var hasDetail=hasDesc||!!effetsBadges;
+    var descId='equip-actif-desc-'+(_actifIdx++);
+    var row='<div class="equip-actif-row" style="cursor:'+(hasDetail?'pointer':'default')+';user-select:none;"'
+      +(hasDetail?' onclick="equip_toggleActifDesc(\''+descId+'\',this)"':'')+'>'
       +'<span style="font-size:18px;">'+icone+'</span>'
       +'<span style="font-size:12px;font-weight:700;color:var(--txt);flex:1;">'+item.nom+'</span>'
       +'<span style="font-size:10px;color:var(--txt3);">'+(_EQUIP_SLOT_LABELS[s]||s)+'</span>'
       +(effetsStr?'<span style="font-size:10px;color:var(--or);">'+effetsStr+'</span>':'')
-      +'</div>');
+      +(hasDetail?'<span class="equip-actif-chevron" style="font-size:10px;color:var(--txt3);margin-left:4px;transition:transform .2s;">▸</span>':'')
+      +'</div>'
+      +(hasDetail
+        ?'<div id="'+descId+'" style="display:none;padding:8px 10px;background:var(--bg3);border-radius:6px;margin:2px 0 4px;">'
+          +(hasDesc?'<p style="font-size:11px;color:var(--txt2);line-height:1.55;white-space:pre-wrap;margin-bottom:'+(effetsBadges?'6px':'0')+';">'+item.description+'</p>':'')
+          +(effetsBadges?'<div>'+effetsBadges+'</div>':'')
+          +'</div>'
+        :'');
+    rows.push(row);
   });
   if(card)card.style.display=rows.length?"":"none";
   if(countEl)countEl.textContent=rows.length?"("+rows.length+")":"";
@@ -10670,6 +10716,13 @@ function equip_toggleDesc(descId,btn){
   var open=d.style.display!=="none";
   d.style.display=open?"none":"";
   btn.textContent=open?"▸ Détails":"▴ Masquer";
+}
+function equip_toggleActifDesc(descId,row){
+  var d=el(descId);if(!d)return;
+  var open=d.style.display!=="none";
+  d.style.display=open?"none":"";
+  var chev=row.querySelector('.equip-actif-chevron');
+  if(chev)chev.style.transform=open?"":"rotate(90deg)";
 }
 
 function equip_clickSlot(slot){
@@ -11277,8 +11330,10 @@ function _capEstCombat(cap){
   for(var i=0;i<_capExclPfx.length;i++){
     if(cap.nom.indexOf(_capExclPfx[i])===0||cap.nom===_capExclPfx[i].trim())return false;
   }
-  // Toujours inclure les options de Métamagie (parent = "Métamagie — option X")
-  if(cap.parent&&cap.parent.indexOf('Métamagie')===0)return true;
+  // Inclure uniquement l'option de Métamagie choisie par le PJ
+  if(cap.parent&&cap.parent.indexOf('Métamagie')===0){
+    return choixCaps['cl_'+cap.parent]===cap.nom;
+  }
   // Seulement les capacités nécessitant une action ou action bonus
   var d=(cap.desc||'').toLowerCase().replace(/réaction/g,'rxx');
   return d.indexOf('action')>=0||d.indexOf('attaque')>=0;
