@@ -694,6 +694,12 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       </table>
     </div>
 
+    <!-- OBJETS ÉQUIPÉS ──────────────────────────────── -->
+    <div class="r-section" id="r-equipes-card" style="display:none;">
+      <p class="st">🛡 Objets équipés</p>
+      <div id="r-equipes-list"></div>
+    </div>
+
     <!-- CAPACITÉS FAVORITES ────────────────────────── -->
     <div class="r-section" id="r-favoris-card" style="display:none;">
       <p class="st">Capacités favorites</p>
@@ -741,12 +747,6 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       </div>
       <p class="st" style="margin-top:4px;">Inventaire</p>
       <textarea id="inventaire" placeholder="Liste ton équipement..." class="textarea-auto" oninput="autoResize(this);sauvegarder()"></textarea>
-    </div>
-
-    <!-- OBJETS ÉQUIPÉS ──────────────────────────────── -->
-    <div class="r-section" id="r-equipes-card" style="display:none;">
-      <p class="st">🛡 Objets équipés</p>
-      <div id="r-equipes-list"></div>
     </div>
 
     <!-- PERSONNALITÉ ───────────────────────────────── -->
@@ -10644,7 +10644,7 @@ function equip_rendreActif(){
   _EQUIP_SLOTS.forEach(function(s){
     var id=equipe[s];if(!id)return;
     var item=items[id];if(!item)return;
-    count++;
+    var n=count++;
     var icone=item.icone&&!item.icone.startsWith("http")?item.icone:"✨";
     var effets='';
     if(item.effets&&Object.keys(item.effets).length>0){
@@ -10653,21 +10653,34 @@ function equip_rendreActif(){
         effets+='<span class="r-equip-badge">'+k.replace("bonus","")+(v>0?"+":"")+v+'</span>';
       });
     }
-    var desc=(item.description&&item.description.trim())?item.description.trim():'';
+    var hasDesc=!!(item.description&&item.description.trim());
+    var desc=hasDesc?item.description.trim():'Aucune description disponible.';
     html+='<div class="r-equip-item">'
-      +'<div class="r-equip-header">'
+      +'<div class="r-equip-header" onclick="reqToggleDesc('+n+')" style="cursor:pointer;user-select:none;">'
       +'<span class="r-equip-icone">'+icone+'</span>'
       +'<div style="flex:1;min-width:0;">'
       +'<span class="r-equip-nom">'+item.nom+'</span>'
       +'<span class="r-equip-slot">'+(_EQUIP_SLOT_LABELS[s]||s)+'</span>'
       +'</div>'
+      +(effets?'<div class="r-equip-effets" style="margin-left:4px;">'+effets+'</div>':'')
+      +'<span id="req-chev-'+n+'" style="font-size:11px;color:var(--txt3);margin-left:8px;flex-shrink:0;">▸</span>'
       +'</div>'
-      +(effets?'<div class="r-equip-effets">'+effets+'</div>':'')
-      +(desc?'<p class="r-equip-desc">'+desc+'</p>':'')
+      +'<div id="req-desc-'+n+'" style="display:none;">'
+      +'<p class="r-equip-desc"'+(hasDesc?'':' style="color:var(--txt3);font-style:italic;"')+'>'+desc+'</p>'
+      +'</div>'
       +'</div>';
   });
   if(card)card.style.display=count?'':'none';
   list.innerHTML=html;
+}
+
+function reqToggleDesc(n){
+  var panel=document.getElementById('req-desc-'+n);
+  var chev=document.getElementById('req-chev-'+n);
+  if(!panel)return;
+  var opening=panel.style.display==='none';
+  panel.style.display=opening?'block':'none';
+  if(chev)chev.textContent=opening?'▾':'▸';
 }
 
 function equip_rendreCombat(){}
