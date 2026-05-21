@@ -422,8 +422,6 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .eqchg-wrap{margin-top:8px;padding-top:8px;border-top:1px solid var(--bord);display:flex;align-items:center;gap:8px;flex-wrap:wrap;}
 .eqchg-label{font-size:10px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
 .eqchg-badge{font-size:10px;color:var(--txt3);padding:1px 6px;background:var(--bg3);border-radius:4px;border:1px solid var(--bord);}
-.eqchg-checks{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
-.eqchg-cb{width:16px;height:16px;accent-color:var(--rouge);cursor:pointer;vertical-align:middle;margin:0;flex-shrink:0;}
 .eqchg-cnt{font-size:12px;color:var(--txt2);}
 .r-equip-bonus-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
 /* ── BOURSE ─────────────────────────────────────────── */
@@ -9726,7 +9724,9 @@ function rMajInfosSorts(cl,bm,mod,info){
   var rclc=el("r-scl-carac");if(rclc)rclc.textContent=caracLabel?"Incantation : "+caracLabel:"";
   var sb=el("r-sbonus"),sd=el("r-sdd");
   if(LANCEURS.indexOf(cl)>=0){
-    if(sb)sb.textContent=fMod(mod+bm);
+    var _atkSortBonus=(window._equip_bonus_totaux||{})['attaque de sort']||0;
+    var _atkSortTot=mod+bm+_atkSortBonus;
+    if(sb)sb.innerHTML=_atkSortBonus?'<span style="color:var(--or)">'+fMod(_atkSortTot)+'</span>':fMod(_atkSortTot);
     if(sd)sd.textContent=8+bm+mod;
   } else {if(sb)sb.textContent="—";if(sd)sd.textContent="—";}
   var lbl=el("r-sorts-label"),cnt=el("r-sorts-connus");
@@ -10744,16 +10744,16 @@ function equip_rendreActif(){
       var mx=item.charges.max;
       var used=Math.min(equipCharges[id]||0,mx);
       var rechLbl={long:'Repos long',short:'Repos court',dawn:'À l\'aube',never:'Consommable'}[item.charges.recharge]||'';
-      var checks='<div class="eqchg-checks">';
+      var dots='<div class="r-res-dots">';
       for(var j=0;j<mx;j++){
-        var isUsed=(j<used);
-        checks+='<input type="checkbox" class="eqchg-cb"'+(isUsed?' checked':'')+' onchange="equipChargeCheck(\''+id+'\','+j+','+mx+',this.checked)">';
+        var dc=j>=mx-used?'used':'avail';
+        dots+='<span class="r-dot '+dc+'" title="'+(dc==='avail'?'Dépenser':'Restaurer')+'" onclick="equipChargeDot(\''+id+'\','+j+','+mx+')"></span>';
       }
-      checks+='</div>';
+      dots+='</div>';
       chargesHtml='<div class="eqchg-wrap">'
         +'<span class="eqchg-label">⚡ Charges</span>'
-        +checks
-        +'<span class="eqchg-cnt">'+( mx-used)+'/'+mx+'</span>'
+        +dots
+        +'<span class="eqchg-cnt">'+(mx-used)+'/'+mx+'</span>'
         +(rechLbl?'<span class="eqchg-badge">'+rechLbl+'</span>':'')
         +'</div>';
     }
@@ -10780,15 +10780,19 @@ function equip_rendreActif(){
   list.innerHTML=html;
 }
 
-function equipChargeCheck(itemId, idx, maxVal, checked){
-  // cochée = charge dépensée, décochée = charge récupérée
-  // On fixe le nombre de charges utilisées en fonction de la case cliquée
-  if(checked){
-    equipCharges[itemId]=Math.min(maxVal, idx+1);
-  } else {
-    equipCharges[itemId]=Math.max(0, idx);
-  }
+function equipChargeDot(itemId, dotIndex, maxVal){
+  // Même convention que toggleRessource : disponibles à gauche, dépensés à droite
+  var cible=maxVal-dotIndex;
+  var cur=equipCharges[itemId]||0;
+  equipCharges[itemId]=(cur===cible)?cible-1:cible;
   equip_rendreActif();
+  // Refresh panneau combat si visible
+  var ap=el('cbt-actions-panel');
+  if(ap&&ap.style.display!=='none'){
+    if(ap._actionsKey)ap._actionsKey='';
+    var isMT=!!(typeof combatPJData!=='undefined'&&combatPJData&&combatPJData.joueurActifId===joueurId);
+    cbtRendreActions(isMT);
+  }
   sauvegarder();
 }
 
@@ -11723,21 +11727,54 @@ function cbtRendreActions(monTour){
     var id=eqEquipe[s];if(!id)return;
     var item=eqItems[id];if(!item)return;
     var ico=item.icone&&!item.icone.startsWith("http")?item.icone:"✨";
-    var effStr="";
-    if(item.effets&&Object.keys(item.effets).length>0){
-      effStr=Object.keys(item.effets).map(function(k){var vv=item.effets[k];return k.replace("bonus","")+(vv>0?"+":"")+vv;}).join(" ");
-    }
     var hasDesc=!!(item.description&&item.description.trim());
+    var hasBonus=Array.isArray(item.bonus)&&item.bonus.length>0;
+    var hasCharges=!!(item.charges&&item.charges.max);
+    var hasDetail=hasDesc||hasBonus||hasCharges;
     var did='ceq-'+s;
+    // Contenu du panneau dépliable
+    var detailHtml='';
+    if(hasDesc){
+      detailHtml+='<p style="font-size:11px;color:var(--txt2);line-height:1.5;margin-bottom:'+(hasBonus||hasCharges?'6px':'0')+';">'+item.description.replace(/</g,'&lt;')+'</p>';
+    }
+    if(hasBonus){
+      var bBadges=item.bonus.map(function(b){
+        if(!b||!b.cible)return '';
+        return '<span style="font-size:9px;background:rgba(201,162,39,.15);border:1px solid rgba(201,162,39,.35);border-radius:3px;padding:1px 5px;color:var(--or);">'+b.cible+' '+(b.valeur>0?'+':'')+b.valeur+'</span>';
+      }).join('');
+      if(bBadges)detailHtml+='<div style="display:flex;flex-wrap:wrap;gap:3px;margin-bottom:'+(hasCharges?'6px':'0')+';">'+bBadges+'</div>';
+    }
+    if(hasCharges){
+      var chgMx=item.charges.max;
+      var chgUsed=Math.min(equipCharges[id]||0,chgMx);
+      var chgLbl={long:'Repos long',short:'Repos court',dawn:'À l\'aube',never:'Consommable'}[item.charges.recharge]||'';
+      var chgDots='';
+      for(var ci=0;ci<chgMx;ci++){
+        var cdc=ci>=chgMx-chgUsed?'used':'avail';
+        chgDots+='<span class="r-dot '+cdc+'" onclick="event.stopPropagation();equipChargeDot(\''+id+'\','+ci+','+chgMx+')"></span>';
+      }
+      detailHtml+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">'
+        +'<span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--txt3);">⚡ Charges</span>'
+        +'<div class="r-res-dots">'+chgDots+'</div>'
+        +'<span style="font-size:11px;color:var(--txt2);">'+(chgMx-chgUsed)+'/'+chgMx+'</span>'
+        +(chgLbl?'<span style="font-size:10px;color:var(--txt3);padding:1px 5px;background:var(--bg3);border-radius:4px;border:1px solid var(--bord);">'+chgLbl+'</span>':'')
+        +'</div>';
+    }
+    // Indicateur rapide dans le header
+    var chgQuick='';
+    if(hasCharges){
+      var qUsed=Math.min(equipCharges[id]||0,item.charges.max);
+      chgQuick='<span style="font-size:10px;color:var(--rouge);font-weight:700;flex-shrink:0;">⚡ '+(item.charges.max-qUsed)+'/'+item.charges.max+'</span>';
+    }
     eqRows.push(
-      '<div class="cbt-equip-item"'+(hasDesc?' onclick="cbtToggleSortDesc(\''+did+'\')"':'')+'>'
+      '<div class="cbt-equip-item"'+(hasDetail?' onclick="cbtToggleSortDesc(\''+did+'\')"':'')+'>'
       +'<div class="cbt-equip-row">'
       +'<span style="font-size:15px;">'+ico+'</span>'
       +'<span style="flex:1;font-weight:600;color:var(--txt);">'+item.nom+'</span>'
-      +(effStr?'<span style="font-size:10px;color:var(--or);margin-right:4px;">'+effStr+'</span>':'')
-      +'<span style="font-size:10px;color:var(--txt3);">'+(_EQUIP_SLOT_LABELS[s]||s)+(hasDesc?' ▾':'')+'</span>'
+      +chgQuick
+      +'<span style="font-size:10px;color:var(--txt3);margin-left:4px;">'+(_EQUIP_SLOT_LABELS[s]||s)+(hasDetail?' ▾':'')+'</span>'
       +'</div>'
-      +(hasDesc?'<div class="cbt-weapon-desc" id="'+did+'">'+item.description.replace(/</g,'&lt;')+'</div>':'')
+      +(hasDetail?'<div class="cbt-weapon-desc" id="'+did+'" onclick="event.stopPropagation();">'+detailHtml+'</div>':'')
       +'</div>');
   });
   if(eqRows.length){
