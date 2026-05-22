@@ -467,64 +467,64 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .emoji-picker-btn:hover{background:var(--bg3);border-color:var(--bord2);}
 .emoji-picker-btn.selected{background:rgba(201,162,39,.2);border-color:var(--or);}
 /* ── SORTS ARTWORK ───────────────────────────────────── */
-.sa-header{background:#0b1220;border-bottom:2px solid #e8873a;border-radius:10px 10px 0 0;padding:10px 14px;margin-bottom:0;}
+.sa-header{background:var(--bg2);border-bottom:2px solid var(--rouge);border-radius:10px 10px 0 0;padding:10px 14px;margin-bottom:0;}
 .sa-header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
-.sa-classe{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:#c9a227;}
-.sa-carac{font-size:10px;color:#5a6a8a;}
+.sa-classe{font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--or);}
+.sa-carac{font-size:10px;color:var(--txt3);}
 .sa-stats-row{display:flex;gap:4px;}
-.sa-stat{background:#111e33;border:1px solid #1a2a45;border-radius:6px;padding:6px 10px;text-align:center;flex:1;min-width:0;}
-.sa-stat-lbl{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:#5a6a8a;margin-bottom:2px;line-height:1.3;}
-.sa-stat-val{font-size:17px;font-weight:500;color:#e8dcc8;}
+.sa-stat{background:var(--bg3);border:1px solid var(--bord2);border-radius:6px;padding:6px 10px;text-align:center;flex:1;min-width:0;}
+.sa-stat-lbl{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);margin-bottom:2px;line-height:1.3;}
+.sa-stat-val{font-size:17px;font-weight:500;color:var(--txt);}
 .sa-slots-row{display:flex;gap:6px;overflow-x:auto;padding:8px 0 4px;scrollbar-width:none;margin-bottom:4px;}
 .sa-slots-row::-webkit-scrollbar{display:none;}
-.sa-slot-pill{display:inline-flex;flex-direction:column;align-items:center;gap:4px;background:#0f1a2e;border:1px solid #2a3a55;border-radius:999px;padding:6px 12px;flex-shrink:0;transition:opacity .15s;}
+.sa-slot-pill{display:inline-flex;flex-direction:column;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--bord2);border-radius:999px;padding:6px 12px;flex-shrink:0;transition:opacity .15s;}
 .sa-slot-pill.empty{opacity:.45;}
-.sa-slot-pill-lbl{font-size:9px;color:#4a5a7a;text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;}
+.sa-slot-pill-lbl{font-size:9px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;white-space:nowrap;}
 .sa-slot-dots{display:flex;gap:4px;align-items:center;}
-.sa-dot{width:7px;height:7px;border-radius:50%;cursor:pointer;transition:background .12s,opacity .15s;border:1px solid #3a4a65;background:#2a3a55;flex-shrink:0;}
-.sa-dot.plein{background:#c9a227;border-color:#c9a227;}
-.sa-slot-frac{font-size:11px;font-weight:500;color:#e8dcc8;white-space:nowrap;}
+.sa-dot{width:7px;height:7px;border-radius:50%;cursor:pointer;transition:background .12s,opacity .15s;border:1px solid var(--bord2);background:var(--bg);flex-shrink:0;}
+.sa-dot.plein{background:var(--or);border-color:var(--or);}
+.sa-slot-frac{font-size:11px;font-weight:500;color:var(--txt);white-space:nowrap;}
 .sa-section-hd{display:flex;align-items:center;justify-content:space-between;margin:10px 0 6px;}
-.sa-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#4a5a7a;}
+.sa-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);}
 .sa-filter-bar{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;}
-.sa-fil-btn{font-family:inherit;font-size:11px;padding:4px 10px;border-radius:999px;cursor:pointer;border:1px solid #1e2d45;background:transparent;color:#5a6a8a;transition:background .12s,border-color .12s,color .12s;}
-.sa-fil-btn.on{background:rgba(201,162,39,.15);border-color:#8b6914;color:#c9a227;}
+.sa-fil-btn{font-family:inherit;font-size:11px;padding:4px 10px;border-radius:999px;cursor:pointer;border:1px solid var(--bord2);background:transparent;color:var(--txt3);transition:background .12s,border-color .12s,color .12s;}
+.sa-fil-btn.on{background:rgba(201,162,39,.15);border-color:rgba(201,162,39,.5);color:var(--or);}
 .sa-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;align-items:start;}
 @media(max-width:600px){.sa-grid{grid-template-columns:1fr;}}
-.sa-card{border-radius:8px;padding:10px 12px;cursor:pointer;border:1px solid #2a3a5a;border-top:2px solid #5a7aaa;background:#111e33;transition:border-color .12s;}
+.sa-card{border-radius:8px;padding:10px 12px;cursor:pointer;border:1px solid var(--bord2);border-top:2px solid var(--txt3);background:var(--bg2);transition:border-color .12s;}
 .sa-card-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:3px;}
 .sa-card-niv{font-size:9px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;}
-.sa-card-ecole{font-size:10px;color:#4a5a7a;}
-.sa-card-nom{font-size:13px;font-weight:500;color:#e8dcc8;display:flex;align-items:center;justify-content:space-between;gap:6px;}
+.sa-card-ecole{font-size:10px;color:var(--txt3);}
+.sa-card-nom{font-size:13px;font-weight:500;color:var(--txt);display:flex;align-items:center;justify-content:space-between;gap:6px;}
 .sa-card-badge{font-size:9px;padding:2px 6px;border-radius:3px;flex-shrink:0;font-weight:600;}
 .sa-card-badge.prepare{background:rgba(34,107,57,.2);color:#6dd88a;border:1px solid rgba(34,107,57,.4);}
 .sa-card-badge.connu{background:rgba(74,154,255,.2);color:#7aadff;border:1px solid rgba(74,154,255,.4);}
 .sa-card-body{max-height:0;overflow:hidden;transition:max-height .2s ease-out;}
 .sa-card-body.on{max-height:500px;}
-.sa-card-sep{border:none;border-top:1px solid rgba(255,255,255,.07);margin:7px 0;}
+.sa-card-sep{border:none;border-top:1px solid var(--bord);margin:7px 0;}
 .sa-card-meta{display:flex;flex-wrap:wrap;gap:4px 12px;margin-bottom:6px;}
-.sa-card-meta-item{font-size:10px;color:#5a6a8a;}
-.sa-card-meta-item b{color:#8a9ab0;font-weight:600;}
-.sa-card-desc{font-size:11px;color:#8a9ab0;line-height:1.6;}
+.sa-card-meta-item{font-size:10px;color:var(--txt3);}
+.sa-card-meta-item b{color:var(--txt2);font-weight:600;}
+.sa-card-desc{font-size:11px;color:var(--txt2);line-height:1.6;}
 /* Couleurs par école */
-.sa-ec-evocation{background:#130a1f;border-color:#4a2a7a;border-top-color:#7a4aff;}
-.sa-ec-necromancie{background:#0f1a0a;border-color:#1a4a1a;border-top-color:#4a8a2a;}
-.sa-ec-enchantement{background:#1a0f0a;border-color:#5a2a0a;border-top-color:#e8883a;}
-.sa-ec-abjuration{background:#0a1420;border-color:#0a2a5a;border-top-color:#2a7aff;}
-.sa-ec-transmutation{background:#1a1a0a;border-color:#4a4a0a;border-top-color:#aaaa2a;}
-.sa-ec-divination{background:#0a1a1a;border-color:#0a3a4a;border-top-color:#2aaaaa;}
-.sa-ec-invocation{background:#1a0a1a;border-color:#4a0a5a;border-top-color:#aa2aaa;}
-.sa-ec-illusion{background:#0a1a14;border-color:#0a4a3a;border-top-color:#2aaa7a;}
-.sa-ec-def{background:#111e33;border-color:#2a3a5a;border-top-color:#5a7aaa;}
-.sa-card:hover.sa-ec-evocation{border-color:#7a4aff;}
-.sa-card:hover.sa-ec-necromancie{border-color:#4a8a2a;}
-.sa-card:hover.sa-ec-enchantement{border-color:#e8883a;}
-.sa-card:hover.sa-ec-abjuration{border-color:#2a7aff;}
-.sa-card:hover.sa-ec-transmutation{border-color:#aaaa2a;}
-.sa-card:hover.sa-ec-divination{border-color:#2aaaaa;}
-.sa-card:hover.sa-ec-invocation{border-color:#aa2aaa;}
-.sa-card:hover.sa-ec-illusion{border-color:#2aaa7a;}
-.sa-card:hover.sa-ec-def{border-color:#5a7aaa;}
+.sa-ec-evocation{background:rgba(122,74,255,.08);border-color:rgba(122,74,255,.3);border-top-color:#7a4aff;}
+.sa-ec-necromancie{background:rgba(74,138,42,.08);border-color:rgba(74,138,42,.3);border-top-color:#4a8a2a;}
+.sa-ec-enchantement{background:rgba(232,136,58,.08);border-color:rgba(232,136,58,.3);border-top-color:#e8883a;}
+.sa-ec-abjuration{background:rgba(42,122,255,.08);border-color:rgba(42,122,255,.3);border-top-color:#2a7aff;}
+.sa-ec-transmutation{background:rgba(170,170,42,.08);border-color:rgba(170,170,42,.3);border-top-color:#aaaa2a;}
+.sa-ec-divination{background:rgba(42,170,170,.08);border-color:rgba(42,170,170,.3);border-top-color:#2aaaaa;}
+.sa-ec-invocation{background:rgba(170,42,170,.08);border-color:rgba(170,42,170,.3);border-top-color:#aa2aaa;}
+.sa-ec-illusion{background:rgba(42,170,122,.08);border-color:rgba(42,170,122,.3);border-top-color:#2aaa7a;}
+.sa-ec-def{background:var(--bg2);border-color:var(--bord2);border-top-color:var(--txt3);}
+.sa-card:hover.sa-ec-evocation{border-color:rgba(122,74,255,.6);}
+.sa-card:hover.sa-ec-necromancie{border-color:rgba(74,138,42,.6);}
+.sa-card:hover.sa-ec-enchantement{border-color:rgba(232,136,58,.6);}
+.sa-card:hover.sa-ec-abjuration{border-color:rgba(42,122,255,.6);}
+.sa-card:hover.sa-ec-transmutation{border-color:rgba(170,170,42,.6);}
+.sa-card:hover.sa-ec-divination{border-color:rgba(42,170,170,.6);}
+.sa-card:hover.sa-ec-invocation{border-color:rgba(170,42,170,.6);}
+.sa-card:hover.sa-ec-illusion{border-color:rgba(42,170,122,.6);}
+.sa-card:hover.sa-ec-def{border-color:var(--txt3);}
 </style>
 <script src="sorts.js?v=2"></script>
 </head>
@@ -940,8 +940,8 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       </div>
       <div class="sa-filter-bar" id="r-chips"></div>
       <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
-        <input type="text" id="r-search" placeholder="Rechercher un sort…" oninput="rSearchSorts()" style="flex:1;min-width:120px;font-size:12px;padding:6px 10px;border:1px solid #1e2d45;border-radius:6px;background:#0f1a2e;color:#a0a0b0;font-family:inherit;">
-        <select id="r-filtre-ecole" onchange="rSearchSorts()" style="font-family:inherit;font-size:12px;padding:5px 8px;border:1px solid #1e2d45;border-radius:6px;background:#0f1a2e;color:#a0a0b0;cursor:pointer;">
+        <input type="text" id="r-search" placeholder="Rechercher un sort…" oninput="rSearchSorts()" style="flex:1;min-width:120px;font-size:12px;padding:6px 10px;border:1px solid var(--bord2);border-radius:6px;background:var(--bg3);color:var(--txt2);font-family:inherit;">
+        <select id="r-filtre-ecole" onchange="rSearchSorts()" style="font-family:inherit;font-size:12px;padding:5px 8px;border:1px solid var(--bord2);border-radius:6px;background:var(--bg3);color:var(--txt2);cursor:pointer;">
           <option value="">Toutes les écoles</option>
           <option value="évocation">Évocation</option>
           <option value="nécromancie">Nécromancie</option>
@@ -953,7 +953,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           <option value="illusion">Illusion</option>
         </select>
       </div>
-      <p id="r-scount" style="font-size:11px;color:#4a5a7a;margin-bottom:8px;"></p>
+      <p id="r-scount" style="font-size:11px;color:var(--txt3);margin-bottom:8px;"></p>
       <div class="sa-grid" id="r-slist"></div>
     </div>
   </div>
