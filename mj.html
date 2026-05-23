@@ -3722,7 +3722,6 @@ var ETAT_COLORS=['#4ade80','#60a5fa','#f97316','#ef4444','#a78bfa','#facc15','#9
 function etatRendreForm(e){
   var wrap=el('etat-form-wrap');if(!wrap)return;
   wrap.style.display='';
-  var effets=(e.effets&&e.effets.length)?e.effets:[''];
   var curCol=e.couleur||'#94a3b8';
   wrap.innerHTML='<div class="etat-form">'
     +'<p style="font-size:13px;font-weight:700;color:var(--txt);margin-bottom:10px;">'+(_etat_edit_id?'Modifier l\'état':'Créer un état')+'</p>'
@@ -3742,10 +3741,7 @@ function etatRendreForm(e){
     +'<input type="color" id="ef-col-custom" value="'+curCol+'" style="width:24px;height:24px;padding:0;border:none;cursor:pointer;background:none;" title="Couleur personnalisée" oninput="etatSyncCustomCol(this)">'
     +'</div>'
     +'<label class="etat-form-lbl">Description</label>'
-    +'<textarea id="ef-desc" placeholder="Décris l\'état, son contexte narratif…" style="margin-bottom:8px;">'+besti_esc(e.description||'')+'</textarea>'
-    +'<label class="etat-form-lbl">Effets</label>'
-    +'<div id="ef-effets-list">'+effets.map(function(ef,i){return etatEffetRow(ef,i);}).join('')+'</div>'
-    +'<button class="btn" style="font-size:11px;padding:4px 10px;margin-bottom:12px;" onclick="etatAjouterEffet()">+ Ajouter un effet</button>'
+    +'<textarea id="ef-desc" placeholder="Décris l\'état, son contexte narratif…" style="margin-bottom:12px;">'+besti_esc(e.description||'')+'</textarea>'
     +'<div style="display:flex;gap:8px;">'
     +'<button class="btn ok" style="flex:1;padding:8px;" onclick="etatSauvegarder()">💾 Sauvegarder</button>'
     +'<button class="btn" style="padding:8px 14px;" onclick="etatAnnulerForm()">Annuler</button>'
@@ -3793,9 +3789,7 @@ function etatSauvegarder(){
   var type=(el('ef-type')||{}).value||'neutre';
   var desc=(el('ef-desc')||{}).value||'';
   var col=(el('ef-col-custom')||{}).value||'#94a3b8';
-  var effets=[];
-  el('ef-effets-list').querySelectorAll('input').forEach(function(inp){var v=inp.value.trim();if(v)effets.push(v);});
-  var data={nom:nom.trim(),type:type,couleur:col,description:desc.trim(),effets:effets};
+  var data={nom:nom.trim(),type:type,couleur:col,description:desc.trim()};
   var ref;
   if(_etat_edit_id){
     ref=db.collection('parties').doc(campagneActive.id).collection('etats').doc(_etat_edit_id);

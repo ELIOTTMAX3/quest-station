@@ -632,6 +632,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           <span id="r-al" style="display:none;"></span>
         </div>
         <div id="r-cond-badges" class="r-cond-badges" style="display:none;"></div>
+        <div id="r-etats-badges" class="r-cond-badges" style="display:none;flex-wrap:wrap;gap:4px;margin-top:4px;"></div>
       </div>
       <div class="r-hbadge pv">
         <div class="r-hbadge-l">PV</div>
@@ -881,11 +882,6 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <div class="r-section">
         <p class="st">Autres joueurs</p>
         <div id="rc-joueurs"><p style="font-size:12px;color:var(--txt3);">Chargement…</p></div>
-      </div>
-      <!-- ✨ États MJ -->
-      <div class="r-section" id="rc-etats-section" style="display:none;">
-        <p class="st">✨ États actifs</p>
-        <div id="rc-etats-cont" class="rc-etats-wrap"></div>
       </div>
       <!-- 💬 Messages MJ -->
       <div class="r-section" id="rc-msg-section" style="display:none;">
@@ -10263,29 +10259,26 @@ function majConditions(conds){
   cont.style.display="flex";
 }
 
-// ── États MJ (buffs / debuffs / neutres) ───────────────
+// ── États MJ actifs — badges près de la photo de profil ───
 function majEtatsPJ(etats){
-  var sec=el('rc-etats-section');
-  var cont=el('rc-etats-cont');
-  if(!sec||!cont)return;
-  if(!etats||!etats.length){sec.style.display='none';cont.innerHTML='';return;}
-  var typeInfo={buff:{label:'Buff',bg:'rgba(74,222,128,.12)',bord:'rgba(74,222,128,.35)',col:'#4ade80'},
-    debuff:{label:'Debuff',bg:'rgba(239,68,68,.12)',bord:'rgba(239,68,68,.35)',col:'#ef4444'},
-    neutre:{label:'Neutre',bg:'rgba(148,163,184,.1)',bord:'rgba(148,163,184,.3)',col:'#94a3b8'}};
+  var cont=el('r-etats-badges');
+  if(!cont)return;
+  if(!etats||!etats.length){cont.style.display='none';cont.innerHTML='';return;}
+  var typeInfo={buff:{bg:'rgba(74,222,128,.12)',bord:'rgba(74,222,128,.35)',col:'#4ade80'},
+    debuff:{bg:'rgba(239,68,68,.12)',bord:'rgba(239,68,68,.35)',col:'#ef4444'},
+    neutre:{bg:'rgba(148,163,184,.1)',bord:'rgba(148,163,184,.3)',col:'#94a3b8'}};
   cont.innerHTML=etats.map(function(e){
     var info=typeInfo[e.type]||typeInfo.neutre;
     var col=e.couleur||info.col;
     var encoded=encodeURIComponent(JSON.stringify(e));
-    var titleAttr=e.description?(' title="'+e.description.replace(/"/g,'&quot;').replace(/\n/g,' ')+'"'):'';
     return'<button class="rc-etat-bdg" '
-      +'style="background:'+info.bg+';border-color:'+info.bord+';color:'+col+';" '
-      +titleAttr
+      +'style="background:'+info.bg+';border-color:'+info.bord+';color:'+col+';cursor:pointer;" '
       +' onclick="pjVoirEtat(\''+encoded.replace(/'/g,'%27')+'\')">'
       +'<span class="rc-etat-dot" style="background:'+col+'"></span>'
       +escHtml(e.nom||'État')
       +'</button>';
   }).join('');
-  sec.style.display='';
+  cont.style.display='flex';
 }
 
 function rqRendreEtatsCamp(container){
@@ -10305,19 +10298,13 @@ function rqRendreEtatsCamp(container){
   c.innerHTML=etats.map(function(e){
     var info=typeInfo[e.type]||typeInfo.neutre;
     var col=e.couleur||info.col;
-    var effH=(e.effets&&e.effets.length)
-      ?'<div style="margin-top:8px;">'
-        +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);margin-bottom:5px;">Effets</div>'
-        +e.effets.map(function(ef){return'<div style="font-size:12px;color:var(--txt2);padding:3px 0 3px 10px;border-left:2px solid '+col+';margin-bottom:3px;">'+escHtml(ef)+'</div>';}).join('')
-        +'</div>':'';
     return'<div style="background:var(--bg2);border:1px solid var(--bord);border-left:3px solid '+col+';border-radius:10px;padding:12px 14px;margin-bottom:8px;">'
-      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:'+(e.description||(e.effets&&e.effets.length)?'8':'0')+'px;">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:'+(e.description?'8':'0')+'px;">'
       +'<div style="width:10px;height:10px;border-radius:50%;background:'+col+';flex-shrink:0;"></div>'
       +'<span style="font-size:14px;font-weight:700;color:var(--txt);flex:1;">'+escHtml(e.nom||'État')+'</span>'
       +'<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:'+info.bg+';border:1px solid '+info.bord+';color:'+col+';">'+info.label+'</span>'
       +'</div>'
       +(e.description?'<p style="font-size:12px;color:var(--txt2);line-height:1.7;margin:0;">'+escHtml(e.description)+'</p>':'')
-      +effH
       +'</div>';
   }).join('');
 }
@@ -10336,16 +10323,7 @@ function pjVoirEtat(encodedJson){
   if(typ){typ.textContent=info.label;typ.style.background=info.bg;typ.style.border='1px solid '+info.bord;typ.style.color=col;}
   var desc=el('pj-etat-modal-desc');
   if(desc){if(e.description){desc.textContent=e.description;desc.style.display='';}else desc.style.display='none';}
-  var ew=el('pj-etat-modal-effets-wrap');
-  var ec=el('pj-etat-modal-effets');
-  if(ew&&ec){
-    if(e.effets&&e.effets.length){
-      ec.innerHTML=e.effets.map(function(ef){
-        return'<div class="pj-etat-modal-effet" style="border-color:'+col+'">'+escHtml(ef)+'</div>';
-      }).join('');
-      ew.style.display='';
-    } else ew.style.display='none';
-  }
+  var ew=el('pj-etat-modal-effets-wrap');if(ew)ew.style.display='none';
   var modal=el('pj-etat-modal');if(modal)modal.classList.add('open');
 }
 
