@@ -12217,7 +12217,7 @@ function conn_initImages(){
     _conn_images={};
     qs.forEach(function(d){
       var data=d.data();
-      if(data.base64)_conn_images[d.id]=data.base64;
+      if(data.base64||data.token)_conn_images[d.id]={base64:data.base64||null,token:data.token||null};
     });
     conn_render();
   },function(e){console.warn('conn monstresImages error:',e);});
@@ -12239,7 +12239,8 @@ function conn_getMonstre(monstruId,src){
   if(src==='homebrew')base=_conn_homebrew[monstruId]||null;
   else if(typeof MONSTRES_SRD!=='undefined')base=MONSTRES_SRD.find(function(m){return m.id===monstruId;})||null;
   if(!base)return null;
-  if(_conn_images[monstruId])return Object.assign({},base,{image:_conn_images[monstruId]});
+  var img=_conn_images[monstruId];
+  if(img)return Object.assign({},base,{image:img.base64||null});
   return base;
 }
 function conn_mod(val){var m=Math.floor((val-10)/2);return m>=0?'+'+m:String(m);}

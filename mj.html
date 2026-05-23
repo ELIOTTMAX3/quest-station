@@ -261,6 +261,21 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .besti-groupe-nom{font-size:13px;font-weight:700;color:#e8dcc8;margin-bottom:3px;}
 .besti-groupe-membres{font-size:11px;color:#5a6a8a;margin-bottom:6px;}
 .besti-img-preview{width:100%;max-height:100px;object-fit:cover;border-radius:5px;margin-bottom:5px;display:none;}
+
+/* ══ CROP MODAL ══ */
+#besti-crop-modal{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:1300;display:none;align-items:center;justify-content:center;padding:20px;}
+#besti-crop-modal.open{display:flex;}
+.crop-box{background:#111e33;border:1px solid #1e2d45;border-radius:14px;padding:18px;width:min(320px,95vw);display:flex;flex-direction:column;align-items:center;gap:14px;}
+.crop-title{font-size:13px;font-weight:700;color:#e8dcc8;align-self:flex-start;}
+.crop-hint{font-size:11px;color:#5a6a8a;align-self:flex-start;margin-top:-10px;}
+.crop-cont{position:relative;border-radius:50%;overflow:hidden;cursor:grab;background:#0a1220;touch-action:none;flex-shrink:0;box-shadow:0 0 0 3px #c9a227,0 0 0 6px rgba(201,162,39,.18);}
+.crop-cont.dragging{cursor:grabbing;}
+.crop-img-inner{position:absolute;user-select:none;pointer-events:none;-webkit-user-drag:none;}
+.crop-zoom-row{display:flex;align-items:center;gap:8px;width:100%;}
+.crop-zoom-row span{font-size:13px;}
+.crop-zoom-row input{flex:1;accent-color:#c9a227;}
+.crop-btns{display:flex;gap:8px;width:100%;}
+.crop-btns button{flex:1;}
 </style>
 </head>
 <body>
@@ -700,6 +715,23 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
 <!-- Input fichier image caché pour upload monstre -->
 <input type="file" id="besti-img-input" accept="image/*" style="display:none;" onchange="besti_handleImageUpload(this)">
+
+<!-- ══ MODAL CROP TOKEN ══ -->
+<div id="besti-crop-modal">
+  <div class="crop-box">
+    <p class="crop-title">🖼 Cadrer le token de combat</p>
+    <p class="crop-hint">Glissez pour centrer · Zoom avec le curseur</p>
+    <div class="crop-cont" id="besti-crop-cont"></div>
+    <div class="crop-zoom-row">
+      <span>🔍</span>
+      <input type="range" id="besti-crop-zoom" min="100" max="350" value="100" oninput="besti_cropZoom(this.value)">
+    </div>
+    <div class="crop-btns">
+      <button class="besti-save-btn" onclick="besti_confirmCrop()">✅ Confirmer</button>
+      <button class="besti-action-btn" onclick="besti_cancelCrop()">Annuler</button>
+    </div>
+  </div>
+</div>
 
 <!-- ══ MODAL CONDITIONS ═══════════════════════════════════ -->
 <div id="modal-cond" class="modal-bg" style="display:none;" onclick="if(event.target===this)fermerModalCond()">
@@ -2566,8 +2598,9 @@ function besti_getMonstre(id,src){
   if(src==='homebrew')base=_besti_homebrew.find(function(m){return m.id===id;})||null;
   else if(typeof MONSTRES_SRD!=='undefined')base=MONSTRES_SRD.find(function(m){return m.id===id;})||null;
   if(!base)return null;
-  // Augmenter avec l'image uploadée si disponible (écrase l'éventuelle URL homebrew)
-  if(_besti_images[id])return Object.assign({},base,{image:_besti_images[id]});
+  // Augmenter avec l'image uploadée si disponible
+  var img=_besti_images[id];
+  if(img)return Object.assign({},base,{image:img.base64||null,token:img.token||null});
   return base;
 }
 function besti_slugify(s){
@@ -2590,7 +2623,7 @@ function besti_importerMonstre(id,src){
   var nomAff=num>1?nom+' #'+num:nom;
   combatants.push({id:'m-'+Date.now()+'-'+Math.random().toString(36).slice(2),
     nom:nomAff,type:'monstre',pvact:m.pv,pvmax:m.pv,ca:m.ca,
-    init:null,avatar:m.image||null,revele:false,conditions:[],effets:[]});
+    init:null,avatar:m.token||m.image||null,revele:false,conditions:[],effets:[]});
   if(combatPhase!=='initiative')trierCombatants();
   rendreCombat();syncCombatFirestore();sauvegarderCombat();
   toast('⚔ '+nomAff+' ajouté au combat');
@@ -3081,7 +3114,7 @@ function besti_deployerGroupe(gid){
       var num=already.length+1;
       combatants.push({id:'m-'+Date.now()+'-'+Math.random().toString(36).slice(2),
         nom:num>1?nom+' #'+num:nom,type:'monstre',pvact:m.pv,pvmax:m.pv,ca:m.ca,
-        init:initBase,avatar:m.image||null,revele:false,conditions:[],effets:[]});
+        init:initBase,avatar:m.token||m.image||null,revele:false,conditions:[],effets:[]});
     }
   });
   if(combatPhase!=='initiative')trierCombatants();
@@ -3224,9 +3257,8 @@ function besti_initImages(){
     _besti_images={};
     qs.forEach(function(d){
       var data=d.data();
-      if(data.base64)_besti_images[d.id]=data.base64;
+      if(data.base64||data.token)_besti_images[d.id]={base64:data.base64||null,token:data.token||null};
     });
-    // Rafraîchir la fiche ouverte si elle concerne un monstre
     if(_besti_fiche)besti_renderBody();
   },function(e){console.warn('monstresImages listener error:',e);});
 }
@@ -3238,41 +3270,156 @@ function besti_triggerUpload(id,src){
   if(inp){inp.value='';inp.click();}
 }
 
-function besti_compressImage(file,cb){
-  var reader=new FileReader();
-  reader.onload=function(e){
-    var img=new Image();
-    img.onload=function(){
-      var maxW=480,maxH=480;
-      var w=img.width,h=img.height;
-      if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
-      if(h>maxH){w=Math.round(w*maxH/h);h=maxH;}
-      var canvas=document.createElement('canvas');
-      canvas.width=w;canvas.height=h;
-      canvas.getContext('2d').drawImage(img,0,0,w,h);
-      cb(canvas.toDataURL('image/jpeg',0.78));
-    };
-    img.src=e.target.result;
-  };
-  reader.readAsDataURL(file);
-}
+var _besti_crop_data=null;
+var BESTI_CROP_SIZE=260;
+var BESTI_TOKEN_SIZE=160;
 
 function besti_handleImageUpload(input){
   var id=_besti_upload_id;
   if(!id||!input.files||!input.files[0])return;
   var file=input.files[0];
   if(!file.type.startsWith('image/')){toast('Format image invalide.');return;}
-  toast('⏳ Compression…');
-  besti_compressImage(file,function(base64){
-    if(!db){toast('Pas de connexion.');return;}
-    db.collection('monstresImages').doc(id).set({
-      base64:base64,
-      monstruId:id,
-      uploadedAt:firebase.firestore.FieldValue.serverTimestamp()
-    }).then(function(){
-      toast('🖼 Image enregistrée !');
-    }).catch(function(e){toast('Erreur upload : '+e.message);});
-  });
+  toast('⏳ Chargement…');
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var srcUrl=e.target.result;
+    var img=new Image();
+    img.onload=function(){
+      // Compresser l'image complète (pour la fiche statblock)
+      var maxD=900;
+      var w=img.width,h=img.height;
+      if(w>maxD||h>maxD){
+        if(w>=h){h=Math.round(h*maxD/w);w=maxD;}
+        else{w=Math.round(w*maxD/h);h=maxD;}
+      }
+      var c=document.createElement('canvas');c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      var fullBase64=c.toDataURL('image/jpeg',0.92);
+      // Afficher le modal de recadrage
+      besti_showCropModal(img,fullBase64,id);
+    };
+    img.src=srcUrl;
+  };
+  reader.readAsDataURL(file);
+}
+
+function besti_showCropModal(imgEl,fullBase64,id){
+  var CS=BESTI_CROP_SIZE;
+  var baseScale=Math.max(CS/imgEl.width,CS/imgEl.height);
+  var dW=Math.round(imgEl.width*baseScale);
+  var dH=Math.round(imgEl.height*baseScale);
+  _besti_crop_data={
+    id:id,img:imgEl,fullBase64:fullBase64,
+    imgW:imgEl.width,imgH:imgEl.height,
+    baseScale:baseScale,zoom:1.0,
+    displayW:dW,displayH:dH,
+    offsetX:Math.round((CS-dW)/2),offsetY:Math.round((CS-dH)/2),
+    isDragging:false,lastX:0,lastY:0
+  };
+  var cont=document.getElementById('besti-crop-cont');
+  if(cont){
+    cont.style.width=CS+'px';cont.style.height=CS+'px';
+    cont.innerHTML='<img id="besti-crop-img" class="crop-img-inner" src="'+fullBase64+'" style="width:'+dW+'px;height:'+dH+'px;left:'+Math.round((CS-dW)/2)+'px;top:'+Math.round((CS-dH)/2)+'px;">';
+    cont.addEventListener('mousedown',besti_cropDragStart);
+    cont.addEventListener('touchstart',besti_cropDragStart,{passive:false});
+  }
+  var zr=document.getElementById('besti-crop-zoom');if(zr)zr.value='100';
+  var modal=document.getElementById('besti-crop-modal');
+  if(modal)modal.classList.add('open');
+}
+
+function besti_cropDragStart(e){
+  if(!_besti_crop_data)return;
+  e.preventDefault();
+  _besti_crop_data.isDragging=true;
+  var p=e.touches?e.touches[0]:e;
+  _besti_crop_data.lastX=p.clientX;_besti_crop_data.lastY=p.clientY;
+  var cont=document.getElementById('besti-crop-cont');
+  if(cont)cont.classList.add('dragging');
+  document.addEventListener('mousemove',besti_cropDragMove);
+  document.addEventListener('mouseup',besti_cropDragEnd);
+  document.addEventListener('touchmove',besti_cropDragMove,{passive:false});
+  document.addEventListener('touchend',besti_cropDragEnd);
+}
+function besti_cropDragMove(e){
+  if(!_besti_crop_data||!_besti_crop_data.isDragging)return;
+  e.preventDefault();
+  var p=e.touches?e.touches[0]:e;
+  var dx=p.clientX-_besti_crop_data.lastX;
+  var dy=p.clientY-_besti_crop_data.lastY;
+  _besti_crop_data.lastX=p.clientX;_besti_crop_data.lastY=p.clientY;
+  var CS=BESTI_CROP_SIZE;
+  var d=_besti_crop_data;
+  d.offsetX=Math.min(0,Math.max(CS-d.displayW,d.offsetX+dx));
+  d.offsetY=Math.min(0,Math.max(CS-d.displayH,d.offsetY+dy));
+  var img=document.getElementById('besti-crop-img');
+  if(img){img.style.left=d.offsetX+'px';img.style.top=d.offsetY+'px';}
+}
+function besti_cropDragEnd(){
+  if(!_besti_crop_data)return;
+  _besti_crop_data.isDragging=false;
+  var cont=document.getElementById('besti-crop-cont');
+  if(cont)cont.classList.remove('dragging');
+  document.removeEventListener('mousemove',besti_cropDragMove);
+  document.removeEventListener('mouseup',besti_cropDragEnd);
+  document.removeEventListener('touchmove',besti_cropDragMove);
+  document.removeEventListener('touchend',besti_cropDragEnd);
+}
+function besti_cropZoom(pct){
+  if(!_besti_crop_data)return;
+  var d=_besti_crop_data;
+  var CS=BESTI_CROP_SIZE;
+  var newZoom=parseFloat(pct)/100;
+  // Garder le centre fixe lors du zoom
+  var cx=CS/2-d.offsetX; var cy=CS/2-d.offsetY;
+  var ratio=newZoom/d.zoom;
+  d.zoom=newZoom;
+  d.displayW=Math.round(d.imgW*d.baseScale*newZoom);
+  d.displayH=Math.round(d.imgH*d.baseScale*newZoom);
+  d.offsetX=Math.min(0,Math.max(CS-d.displayW,Math.round(CS/2-cx*ratio)));
+  d.offsetY=Math.min(0,Math.max(CS-d.displayH,Math.round(CS/2-cy*ratio)));
+  var img=document.getElementById('besti-crop-img');
+  if(img){
+    img.style.width=d.displayW+'px';img.style.height=d.displayH+'px';
+    img.style.left=d.offsetX+'px';img.style.top=d.offsetY+'px';
+  }
+}
+function besti_confirmCrop(){
+  if(!_besti_crop_data||!db)return;
+  var d=_besti_crop_data;
+  var CS=BESTI_CROP_SIZE,TS=BESTI_TOKEN_SIZE;
+  toast('⏳ Sauvegarde…');
+  // Générer le token recadré
+  var canvas=document.createElement('canvas');
+  canvas.width=TS;canvas.height=TS;
+  var ctx=canvas.getContext('2d');
+  var scaleToSrc=d.imgW/d.displayW;
+  var srcX=-d.offsetX*scaleToSrc;
+  var srcY=-d.offsetY*scaleToSrc;
+  var srcW=CS*scaleToSrc;
+  var srcH=CS*scaleToSrc;
+  ctx.drawImage(d.img,srcX,srcY,srcW,srcH,0,0,TS,TS);
+  var tokenBase64=canvas.toDataURL('image/jpeg',0.88);
+  db.collection('monstresImages').doc(d.id).set({
+    base64:d.fullBase64,
+    token:tokenBase64,
+    monstruId:d.id,
+    uploadedAt:firebase.firestore.FieldValue.serverTimestamp()
+  }).then(function(){
+    toast('🖼 Image enregistrée !');
+    besti_cancelCrop();
+  }).catch(function(e){toast('Erreur : '+e.message);});
+}
+function besti_cancelCrop(){
+  var modal=document.getElementById('besti-crop-modal');
+  if(modal)modal.classList.remove('open');
+  var cont=document.getElementById('besti-crop-cont');
+  if(cont){
+    cont.innerHTML='';
+    cont.removeEventListener('mousedown',besti_cropDragStart);
+    cont.removeEventListener('touchstart',besti_cropDragStart);
+  }
+  _besti_crop_data=null;
 }
 
 function besti_supprimerImage(id){
