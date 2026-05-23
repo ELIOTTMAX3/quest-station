@@ -280,6 +280,59 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .besti-groupe-membres{font-size:11px;color:#5a6a8a;margin-bottom:6px;}
 .besti-img-preview{width:100%;max-height:100px;object-fit:cover;border-radius:5px;margin-bottom:5px;display:none;}
 
+/* ══ JOUEURS — Refonte ══ */
+.pj-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+@media(max-width:620px){.pj-grid{grid-template-columns:1fr;}}
+.pj-card{background:var(--bg2);border:1px solid var(--bord);border-left:4px solid transparent;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:border-left-color .35s;}
+.pj-card-hd{display:flex;align-items:center;gap:10px;padding:12px 14px 10px;}
+.pj-av{width:42px;height:42px;border-radius:50%;background:var(--bg3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:var(--txt3);overflow:hidden;}
+.pj-av img{width:42px;height:42px;object-fit:cover;border-radius:50%;display:block;}
+.pj-hd-info{flex:1;min-width:0;}
+.pj-nom{font-size:14px;font-weight:700;color:var(--txt);line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pj-cl{font-size:10px;color:var(--txt3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.pj-presence{width:9px;height:9px;border-radius:50%;flex-shrink:0;margin-left:2px;}
+.pj-presence.on{background:#4ade80;box-shadow:0 0 6px rgba(74,222,128,.6);}
+.pj-presence.off{background:var(--txt3);}
+/* PV */
+.pj-pv{padding:0 14px 10px;}
+.pj-pv-bar-bg{background:rgba(255,255,255,.08);border-radius:999px;height:7px;overflow:hidden;margin-bottom:7px;}
+.pj-pv-bar-fill{height:100%;border-radius:999px;transition:width .4s,background .4s;}
+.pj-pv-row{display:flex;align-items:center;gap:6px;}
+.pj-pv-nums{flex:1;font-size:13px;font-weight:700;color:var(--txt);line-height:1;}
+.pj-pv-max{font-size:11px;font-weight:400;color:var(--txt3);}
+.pj-hp-field{width:50px;padding:4px 5px;text-align:center;font-size:13px;font-weight:700;background:var(--bg3);border:1px solid var(--bord2);border-radius:6px;color:var(--txt);font-family:inherit;}
+.pj-hp-field:focus{outline:none;border-color:var(--rouge);}
+.pj-hp-btn{width:30px;height:30px;border-radius:6px;cursor:pointer;border:1px solid;font-size:15px;font-weight:800;line-height:1;flex-shrink:0;transition:background .12s;font-family:inherit;}
+.pj-hp-btn.dmg{background:rgba(185,28,28,.18);border-color:rgba(185,28,28,.4);color:#fca5a5;}
+.pj-hp-btn.dmg:hover{background:rgba(185,28,28,.45);}
+.pj-hp-btn.heal{background:rgba(45,138,78,.18);border-color:rgba(45,138,78,.4);color:#86efac;}
+.pj-hp-btn.heal:hover{background:rgba(45,138,78,.45);}
+/* Stats */
+.pj-sep{margin:0 14px 9px;height:1px;background:var(--bord);}
+.pj-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;padding:0 14px 10px;}
+.pj-stat{background:var(--bg3);border-radius:8px;padding:8px 4px;text-align:center;}
+.pj-stat-val{font-size:16px;font-weight:800;color:var(--txt);line-height:1;}
+.pj-stat-lbl{font-size:8px;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;margin-top:3px;}
+/* Conditions */
+.pj-cond{padding:0 14px 10px;}
+.pj-cond-row{display:flex;flex-wrap:wrap;gap:4px;align-items:center;min-height:26px;}
+.pj-ctag{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:3px 5px 3px 8px;border-radius:999px;border:1px solid;}
+.pj-ctag.cond{background:rgba(251,146,60,.12);border-color:rgba(251,146,60,.35);color:#fb923c;}
+.pj-ctag.buff{background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.35);color:#60a5fa;}
+.pj-ctag.debuff{background:rgba(220,38,38,.12);border-color:rgba(220,38,38,.35);color:#fca5a5;}
+.pj-ctag button{background:none;border:none;cursor:pointer;padding:0 1px;font-size:10px;color:inherit;opacity:.6;line-height:1;}
+.pj-ctag button:hover{opacity:1;}
+.pj-add-btn{font-family:inherit;font-size:10px;font-weight:700;padding:3px 9px;border-radius:999px;cursor:pointer;background:rgba(255,255,255,.05);border:1px solid var(--bord2);color:var(--txt3);transition:all .12s;}
+.pj-add-btn:hover{background:var(--bg3);color:var(--txt);}
+.pj-picker{background:var(--bg3);border:1px solid var(--bord2);border-radius:8px;padding:8px;margin-top:7px;display:flex;flex-wrap:wrap;gap:5px;}
+.pj-ptag{font-family:inherit;font-size:10px;font-weight:700;padding:3px 9px;border-radius:999px;cursor:pointer;background:var(--bg2);border:1px solid var(--bord2);color:var(--txt3);transition:all .12s;}
+.pj-ptag:hover{background:rgba(251,146,60,.1);border-color:rgba(251,146,60,.4);color:#fb923c;}
+.pj-ptag.on{background:rgba(251,146,60,.2);border-color:rgba(251,146,60,.5);color:#fb923c;}
+/* Footer */
+.pj-footer{padding:0 14px 13px;display:flex;justify-content:flex-end;margin-top:auto;}
+.pj-voir-btn{font-family:inherit;font-size:11px;font-weight:600;padding:5px 13px;border-radius:7px;cursor:pointer;background:var(--bg3);border:1px solid var(--bord2);color:var(--txt3);transition:all .12s;}
+.pj-voir-btn:hover{background:var(--rouge);border-color:var(--rouge);color:#fff;}
+
 /* ══ MOB STATBLOCK PANEL (gauche) ══ */
 #mj-mob-panel{position:fixed;top:0;left:0;bottom:0;width:min(380px,88vw);background:#0a1220;border-right:2px solid #1e2d45;z-index:1050;display:flex;flex-direction:column;transform:translateX(-100%);transition:transform .22s ease;overflow:hidden;}
 #mj-mob-panel.open{transform:translateX(0);}
@@ -1012,64 +1065,164 @@ function ouvrirPanel(code){
   },function(){});
 }
 
+var _pj_picker={};  // jid → bool
+
 function rendreJoueurs(){
   var cont=el("panel-joueurs");if(!cont)return;
   var ids=Object.keys(joueursData).filter(function(id){return joueursData[id]._nom;});
   if(!ids.length){
-    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);">En attente de joueurs… Partage le code <b style="color:var(--or);">'+
-      (campagneActive?campagneActive.id:"")+'</b> avec tes joueurs.</p>';
+    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);">En attente de joueurs… Partage le code <b style="color:var(--or);">'+(campagneActive?campagneActive.id:"")+'</b> avec tes joueurs.</p>';
     return;
   }
-  // Trier : en ligne d'abord
-  ids.sort(function(a,b){return (estEnLigne(joueursData[b])?1:0)-(estEnLigne(joueursData[a])?1:0);});
-  cont.innerHTML=ids.map(function(jid){
-    return rendreCartJoueur(jid,joueursData[jid]);
-  }).join("");
+  ids.sort(function(a,b){return(estEnLigne(joueursData[b])?1:0)-(estEnLigne(joueursData[a])?1:0);});
+  cont.innerHTML='<div class="pj-grid">'+ids.map(function(jid){return rendreCartJoueur(jid,joueursData[jid]);}).join('')+'</div>';
 }
 
 function rendreCartJoueur(jid,d){
-  var pvact=d._pvact||0,pvmax=d._pvmax||0;
-  var pct=pvmax?Math.round(Math.max(0,Math.min(100,pvact/pvmax*100))):0;
-  var pvColor=pct>50?"var(--vert)":pct>25?"#d97706":"#dc2626";
+  var pvact=d._pvact||0,pvmax=d._pvmax||1;
+  var pct=Math.round(Math.max(0,Math.min(100,pvact/pvmax*100)));
+  var pvCol=pct>50?'#4ade80':pct>25?'#f97316':'#ef4444';
   var online=estEnLigne(d);
   var conds=Array.from(condActives[jid]||new Set());
-  var condBadges=conds.length?conds.map(function(c){
-    return '<span style="font-size:9px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(220,38,38,.5);color:#fecaca;border:1px solid rgba(220,38,38,.4);">'+c+'</span>';
-  }).join(" "):"";
+  var pickerOpen=!!_pj_picker[jid];
 
-  var av=d.avatar?'<img class="pcard-av" src="'+d.avatar+'" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'flex\';">'
-    +'<div class="pcard-av-ph" style="display:none;">?</div>'
-    :'<div class="pcard-av-ph">?</div>';
+  // Avatar
+  var avH=d.avatar
+    ?'<img src="'+d.avatar+'" onerror="this.style.display=\'none\'">'
+    :(d._nom?d._nom.charAt(0).toUpperCase():'?');
 
-  return '<div class="pcard" id="pcard-'+jid+'">'
-    +'<div class="pcard-hd">'
-    +av
-    +'<div style="flex:1;min-width:0;">'
-    +'<div style="display:flex;align-items:center;gap:6px;">'
-    +'<span class="online-dot '+(online?"on":"off")+'"></span>'
-    +'<span class="pcard-name">'+(d._nom||jid)+'</span>'
+  // Niveau (extrait de _cl ex: "Paladin 5" ou "Paladin 3 / Roublard 2")
+  var cl=d._cl||'—';
+  var lvlNums=(cl.match(/\d+/g)||[]).map(Number);
+  var lvl=lvlNums.length?lvlNums.reduce(function(s,n){return s+n;},0):null;
+
+  // Or
+  var or=d.or!==undefined?d.or:null;
+
+  // Tags conditions
+  var tagsH=conds.map(function(c,i){
+    return'<span class="pj-ctag cond">'+besti_esc(c)
+      +'<button onclick="pjRetirerCond(\''+jid+'\','+i+')" title="Retirer">✕</button></span>';
+  }).join('');
+
+  // Picker inline
+  var pickerH='';
+  if(pickerOpen){
+    pickerH='<div class="pj-picker">'
+      +CONDITIONS_DD.map(function(c,i){
+        var on=condActives[jid]&&condActives[jid].has(c);
+        return'<button class="pj-ptag'+(on?' on':'')+'" onclick="pjToggleCond(\''+jid+'\','+i+')">'+besti_esc(c)+'</button>';
+      }).join('')
+      +'</div>';
+  }
+
+  return'<div class="pj-card" id="pcard-'+jid+'" style="border-left-color:'+pvCol+';">'
+    // ── Header
+    +'<div class="pj-card-hd">'
+    +'<div class="pj-av">'+avH+'</div>'
+    +'<div class="pj-hd-info">'
+    +'<div class="pj-nom">'+besti_esc(d._nom||jid)+'</div>'
+    +'<div class="pj-cl">'+besti_esc(cl)+'</div>'
     +'</div>'
-    +'<div class="pcard-cl">'+(d._cl||"—")+'</div>'
+    +'<div class="pj-presence '+(online?'on':'off')+'" title="'+(online?'En ligne':'Hors ligne')+'"></div>'
+    +'</div>'
+    // ── PV
+    +'<div class="pj-pv">'
+    +'<div class="pj-pv-bar-bg"><div class="pj-pv-bar-fill" style="width:'+pct+'%;background:'+pvCol+';"></div></div>'
+    +'<div class="pj-pv-row">'
+    +'<div class="pj-pv-nums"><span style="color:'+pvCol+';font-size:18px;">'+pvact+'</span><span class="pj-pv-max"> / '+pvmax+'</span></div>'
+    +'<input class="pj-hp-field" id="pj-d-'+jid+'" type="number" min="1" placeholder="Δ" onkeydown="if(event.key===\'Enter\')pjHeal(\''+jid+'\')">'
+    +'<button class="pj-hp-btn dmg" onclick="pjDmg(\''+jid+'\')">−</button>'
+    +'<button class="pj-hp-btn heal" onclick="pjHeal(\''+jid+'\')">+</button>'
     +'</div>'
     +'</div>'
-    // PV bar
-    +(pvmax?'<div class="pvw"><div class="pvb" style="width:'+pct+'%;background:'+pvColor+'"></div></div>'
-      +'<div style="font-size:11px;color:var(--txt2);margin-bottom:.5rem;">PV '+pvact+' / '+pvmax+'</div>':"")
-    // Badges conditions
-    +(condBadges?'<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.5rem;">'+condBadges+'</div>':"")
-    // Stats
-    +'<div class="pcard-stats">'
-    +'<div class="pcard-stat"><div class="pcard-stat-v">'+(pvact||"—")+'</div><div class="pcard-stat-l">PV</div></div>'
-    +'<div class="pcard-stat"><div class="pcard-stat-v">'+(d._ca||"—")+'</div><div class="pcard-stat-l">CA</div></div>'
-    +'<div class="pcard-stat"><div class="pcard-stat-v">'+(d._init!==undefined?(d._init>=0?"+"+d._init:d._init):"—")+'</div><div class="pcard-stat-l">Init</div></div>'
+    // ── Stats
+    +'<div class="pj-sep"></div>'
+    +'<div class="pj-stats">'
+    +'<div class="pj-stat"><div class="pj-stat-val">'+(d._ca||'—')+'</div><div class="pj-stat-lbl">CA</div></div>'
+    +'<div class="pj-stat"><div class="pj-stat-val">'+(d._init!==undefined?(d._init>=0?'+'+d._init:d._init):'—')+'</div><div class="pj-stat-lbl">Init.</div></div>'
+    +'<div class="pj-stat"><div class="pj-stat-val">'+(lvl!==null?lvl:'—')+'</div><div class="pj-stat-lbl">Niveau</div></div>'
+    +'<div class="pj-stat"><div class="pj-stat-val" style="font-size:13px;">'+(or!==null?or:'—')+'</div><div class="pj-stat-lbl">🪙 Or</div></div>'
     +'</div>'
-    // Actions
-    +'<div class="pcard-actions">'
-    +'<button class="btn" style="font-size:11px;padding:5px 10px;" onclick="ouvrirHp(\''+jid+'\')">PV</button>'
-    +'<button class="btn" style="font-size:11px;padding:5px 10px;" onclick="ouvrirConditions(\''+jid+'\')">Conditions</button>'
-    +'<button class="btn" style="font-size:11px;padding:5px 10px;margin-left:auto;" onclick="ouvrirFiche(\''+jid+'\')">Voir fiche</button>'
+    // ── États
+    +'<div class="pj-cond">'
+    +'<div class="pj-cond-row">'
+    +tagsH
+    +'<button class="pj-add-btn" onclick="pjTogglePicker(\''+jid+'\')">'+(pickerOpen?'✕ Fermer':'+ État')+'</button>'
+    +'</div>'
+    +pickerH
+    +'</div>'
+    // ── Footer
+    +'<div class="pj-footer">'
+    +'<button class="pj-voir-btn" onclick="ouvrirFiche(\''+jid+'\')">📋 Voir fiche</button>'
     +'</div>'
     +'</div>';
+}
+
+// ── Contrôles PV inline ──────────────────────────────
+function pjDmg(jid){
+  var inp=el('pj-d-'+jid);
+  var val=parseInt((inp?inp.value:'')||0);
+  if(val<=0){if(inp)inp.focus();return;}
+  var d=joueursData[jid]||{};
+  var nv=Math.max(0,(parseInt(d._pvact)||0)-val);
+  pjSetPv(jid,nv);
+  if(inp){inp.value='';inp.focus();}
+  toast('−'+val+' PV → '+nv);
+}
+function pjHeal(jid){
+  var inp=el('pj-d-'+jid);
+  var val=parseInt((inp?inp.value:'')||0);
+  if(val<=0){if(inp)inp.focus();return;}
+  var d=joueursData[jid]||{};
+  var nv=Math.min(parseInt(d._pvmax)||999,(parseInt(d._pvact)||0)+val);
+  pjSetPv(jid,nv);
+  if(inp){inp.value='';inp.focus();}
+  toast('+'+val+' PV → '+nv);
+}
+function pjSetPv(jid,nv){
+  if(!campagneActive)return;
+  if(joueursData[jid])joueursData[jid]._pvact=nv;
+  syncPvCombat(jid,nv);
+  db.collection("parties").doc(campagneActive.id).collection("joueurs").doc(jid)
+    .set({_pvact:nv},{merge:true}).catch(function(){});
+  pjRendreCard(jid);
+}
+
+// ── Conditions inline ────────────────────────────────
+function pjTogglePicker(jid){
+  _pj_picker[jid]=!_pj_picker[jid];
+  pjRendreCard(jid);
+}
+function pjToggleCond(jid,condIdx){
+  var c=CONDITIONS_DD[condIdx];if(!c)return;
+  if(!condActives[jid])condActives[jid]=new Set();
+  if(condActives[jid].has(c))condActives[jid].delete(c);
+  else condActives[jid].add(c);
+  pjSauvegarderConds(jid);
+  pjRendreCard(jid);
+}
+function pjRetirerCond(jid,idx){
+  var conds=Array.from(condActives[jid]||new Set());
+  var c=conds[idx];if(!c)return;
+  condActives[jid].delete(c);
+  pjSauvegarderConds(jid);
+  pjRendreCard(jid);
+}
+function pjSauvegarderConds(jid){
+  if(!campagneActive)return;
+  var arr=Array.from(condActives[jid]||new Set());
+  var upd={};upd["conditions."+jid]=arr;
+  db.collection("parties").doc(campagneActive.id).update(upd).catch(function(){});
+}
+function pjRendreCard(jid){
+  var d=joueursData[jid];if(!d)return;
+  var card=document.getElementById('pcard-'+jid);
+  if(card){
+    var tmp=document.createElement('div');
+    tmp.innerHTML=rendreCartJoueur(jid,d);
+    card.parentNode.replaceChild(tmp.firstChild,card);
+  } else rendreJoueurs();
 }
 
 // ══════════════════════════════════════════

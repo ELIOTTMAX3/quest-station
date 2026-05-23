@@ -10095,6 +10095,7 @@ function campEcrireJoueur(extra){
   var data=collecterDonnees();
   var payload={_pvact:data._pvact,_pvmax:data._pvmax,_ca:data._ca,_cl:data._cl,_nom:data._nom,_init:data._init,enLigne:true,lastSeen:Date.now()};
   if(data.avatar)payload.avatar=data.avatar;
+  if(data.monnaie&&data.monnaie.or!==undefined)payload.or=data.monnaie.or;
   if(extra)Object.assign(payload,extra);
   db.collection("parties").doc(campCode).collection("joueurs").doc(joueurId)
     .set(payload,{merge:true}).catch(function(){});
