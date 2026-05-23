@@ -461,25 +461,16 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <div class="tbar">
       <button class="tbtn on" onclick="panelTab('joueurs',this)">Joueurs</button>
       <button class="tbtn" onclick="panelTab('combat',this)">Combat</button>
-      <button class="tbtn" onclick="panelTab('regles',this)">📖 Règles</button>
-      <button class="tbtn" onclick="panelTab('notes',this)">📝 Notes</button>
-      <button class="tbtn" onclick="panelTab('objets',this)">⚔️ Objets</button>
+      <button class="tbtn" onclick="panelTab('regles',this)">Règles</button>
+      <button class="tbtn" onclick="panelTab('notes',this)">Notes</button>
+      <button class="tbtn" onclick="panelTab('objets',this)">Objets</button>
       <button id="mj-tbtn-campagne" class="tbtn" onclick="panelTab('campagne',this)">Campagne</button>
     </div>
 
     <!-- Onglet Joueurs -->
     <div id="pt-joueurs">
-      <div class="pj-stbar">
-        <button class="pj-stbtn on" onclick="joueursSousOnglet('joueurs',this)">👥 Joueurs</button>
-        <button class="pj-stbtn" onclick="joueursSousOnglet('etats',this)">✨ États</button>
-      </div>
       <div id="pst-joueurs">
         <div id="panel-joueurs"><p style="font-size:12px;color:var(--txt3);">En attente de joueurs…</p></div>
-      </div>
-      <div id="pst-etats" style="display:none;">
-        <button class="btn ok" style="width:100%;margin-bottom:10px;" onclick="etatCreer()">+ Créer un état</button>
-        <div id="etat-form-wrap" style="display:none;"></div>
-        <div id="etats-list"><p style="font-size:12px;color:var(--txt3);">Aucun état créé.</p></div>
       </div>
     </div>
 
@@ -558,8 +549,19 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     </div>
 
     <!-- Onglet Règles -->
-    <div id="pt-regles" style="display:none;height:calc(100vh - 130px);margin:0 -1rem;">
-      <iframe id="mj-regles-iframe" style="width:100%;height:100%;border:none;border-radius:0 0 10px 10px;"></iframe>
+    <div id="pt-regles" style="display:none;">
+      <div class="pj-stbar" style="margin:0 0 10px;">
+        <button class="pj-stbtn on" onclick="mjReglesSousOnglet('regles',this)">Règles</button>
+        <button class="pj-stbtn" onclick="mjReglesSousOnglet('etats',this)">États</button>
+      </div>
+      <div id="mj-rst-regles" style="height:calc(100vh - 168px);margin:0 -1rem;">
+        <iframe id="mj-regles-iframe" style="width:100%;height:100%;border:none;border-radius:0 0 10px 10px;"></iframe>
+      </div>
+      <div id="mj-rst-etats" style="display:none;overflow-y:auto;max-height:calc(100vh - 168px);">
+        <button class="btn ok" style="width:100%;margin-bottom:10px;" onclick="etatCreer()">+ Créer un état</button>
+        <div id="etat-form-wrap" style="display:none;"></div>
+        <div id="etats-list"><p style="font-size:12px;color:var(--txt3);">Aucun état créé.</p></div>
+      </div>
     </div>
 
     <!-- Onglet Notes -->
@@ -1158,7 +1160,7 @@ function rendreCartJoueur(jid,d){
         var style=on?'background:'+col+'33;border-color:'+col+';color:'+col+';':'';
         return'<button class="pj-ptag'+(on?' on':'')+'" style="'+style+'" onclick="etatTogglePJ(\''+eid+'\',\''+jid+'\')">'
           +besti_esc(e.nom||'État')+'</button>';
-      }).join(''):'<span style="font-size:11px;color:var(--txt3);">Aucun état créé dans l\'onglet États.</span>')
+      }).join(''):'<span style="font-size:11px;color:var(--txt3);">Aucun état créé — utilisez Règles › États.</span>')
       +'</div>';
   }
 
@@ -3664,11 +3666,17 @@ var _etats_unsub=null;
 var _etat_edit_id=null;
 
 function joueursSousOnglet(name,btn){
-  ['joueurs','etats'].forEach(function(n){var e=el('pst-'+n);if(e)e.style.display='none';});
-  document.querySelectorAll('.pj-stbtn').forEach(function(b){b.classList.remove('on');});
+  ['joueurs'].forEach(function(n){var e=el('pst-'+n);if(e)e.style.display='none';});
   var t=el('pst-'+name);if(t)t.style.display='';
   if(btn)btn.classList.add('on');
-  if(campagneActive)etatInitListener();
+}
+
+function mjReglesSousOnglet(name,btn){
+  ['regles','etats'].forEach(function(n){var e=el('mj-rst-'+n);if(e)e.style.display='none';});
+  document.querySelectorAll('#pt-regles .pj-stbtn').forEach(function(b){b.classList.remove('on');});
+  var t=el('mj-rst-'+name);if(t)t.style.display='';
+  if(btn)btn.classList.add('on');
+  if(name==='etats'&&campagneActive)etatInitListener();
 }
 
 function etatInitListener(){

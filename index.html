@@ -658,9 +658,9 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <button class="tbtn on" onclick="rTab('perso',this)">Personnage</button>
     <button class="tbtn" onclick="rTab('comps',this)">Compétences & Capacités</button>
     <button class="tbtn" id="r-tbtn-sorts" onclick="rTab('sorts',this)">Sorts</button>
-    <button class="tbtn" onclick="rTab('equip',this)">⚔️ Équip.</button>
+    <button class="tbtn" onclick="rTab('equip',this)">Équip.</button>
     <button class="tbtn" onclick="rTab('regles',this)">Règles</button>
-    <button class="tbtn" onclick="rTab('notes',this)">📝 Notes</button>
+    <button class="tbtn" onclick="rTab('notes',this)">Notes</button>
     <button class="tbtn" id="r-tbtn-campagne" onclick="rTab('campagne',this)">Campagne</button>
   </div>
 
@@ -994,7 +994,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       </div>
     </div>
     <!-- ── Emplacements slots ── -->
-    <div id="r-slots-artwork" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:8px;"></div>
+    <div id="r-slots-artwork" style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px;margin-bottom:8px;"></div>
     <!-- r-slots caché : requis par rendreSlots() pour remplir slotsE -->
     <div id="r-slots" style="display:none;"></div>
     <!-- ── Sorts préparés / connus ── -->
@@ -1037,7 +1037,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <button class="rq-stab"    onclick="rqTab('classe',this)">Classe</button>
       <button class="rq-stab"    onclick="rqTab('historique',this)">Historique</button>
       <button class="rq-stab"    onclick="rqTab('equip',this)">Équipement</button>
-      <button class="rq-stab"    onclick="rqTab('etats',this)">✨ États</button>
+      <button class="rq-stab"    onclick="rqTab('etats',this)">États</button>
     </div>
 
     <!-- ── CLASSE ── -->
@@ -11444,6 +11444,67 @@ function _mjviewBandeau(jid){
   var app=document.querySelector('.app')||document.body;
   app.style.paddingTop='calc((var(--app-pt,0px)) + 30px)';
 }
+// ── Référence sorts (MJ règles) ─────────────────────────────────
+var _ECOLE_COLORS={
+  'abjuration':'#4ade80','enchantement':'#f472b6','évocation':'#fb923c',
+  'illusion':'#a78bfa','invocation':'#60a5fa','nécromancie':'#94a3b8',
+  'transmutation':'#facc15','divination':'#2dd4bf'
+};
+function _mjrRendreSorts(c){
+  if(!c)return;
+  c.innerHTML=
+    '<div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">'
+    +'<input type="text" id="mjr-sort-q" placeholder="Rechercher un sort…" oninput="_mjrFiltrerSorts()" style="flex:1;min-width:120px;font-size:12px;padding:6px 10px;border:1px solid var(--bord2);border-radius:6px;background:var(--bg3);color:var(--txt2);font-family:inherit;">'
+    +'<select id="mjr-sort-nv" onchange="_mjrFiltrerSorts()" style="font-family:inherit;font-size:12px;padding:5px 8px;border:1px solid var(--bord2);border-radius:6px;background:var(--bg3);color:var(--txt2);cursor:pointer;">'
+    +'<option value="">Tous niveaux</option><option value="0">Cantrips</option>'
+    +[1,2,3,4,5,6,7,8,9].map(function(n){return'<option value="'+n+'">Niveau '+n+'</option>';}).join('')
+    +'</select>'
+    +'<select id="mjr-sort-cl" onchange="_mjrFiltrerSorts()" style="font-family:inherit;font-size:12px;padding:5px 8px;border:1px solid var(--bord2);border-radius:6px;background:var(--bg3);color:var(--txt2);cursor:pointer;">'
+    +'<option value="">Toutes classes</option>'
+    +['Barde','Clerc','Druide','Ensorceleur','Magicien','Occultiste','Paladin','Rôdeur'].map(function(cl){return'<option value="'+cl+'">'+cl+'</option>';}).join('')
+    +'</select>'
+    +'</div>'
+    +'<div id="mjr-sorts-list"></div>';
+  _mjrFiltrerSorts();
+}
+function _mjrFiltrerSorts(){
+  var sq=document.getElementById('mjr-sort-q');
+  var sn=document.getElementById('mjr-sort-nv');
+  var sc=document.getElementById('mjr-sort-cl');
+  var list=document.getElementById('mjr-sorts-list');
+  if(!list)return;
+  var q=(sq?sq.value:'').toLowerCase();
+  var nv=sn?sn.value:'';
+  var cl=sc?sc.value:'';
+  var sorts=(window.SORTS||[]).filter(function(s){
+    if(q&&s.n.toLowerCase().indexOf(q)<0&&(s.t||'').toLowerCase().indexOf(q)<0)return false;
+    if(nv!==''&&String(s.nv)!==nv)return false;
+    if(cl&&(s.cl||[]).indexOf(cl)<0)return false;
+    return true;
+  });
+  list.innerHTML=sorts.length?sorts.map(function(s){
+    var col=_ECOLE_COLORS[s.e]||'#94a3b8';
+    var nLabel=s.nv===0?'Cantrip':'Niv. '+s.nv;
+    return'<div style="background:var(--bg2);border:1px solid var(--bord);border-left:3px solid '+col+';border-radius:8px;margin-bottom:5px;overflow:hidden;">'
+      +'<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;" onclick="var d=this.nextElementSibling;d.style.display=d.style.display===\'\'?\'none\':\'\'">'
+      +'<span style="font-size:12px;font-weight:700;color:var(--txt);flex:1;">'+escHtml(s.n)+'</span>'
+      +'<span style="font-size:10px;padding:1px 6px;border-radius:999px;background:'+col+'22;color:'+col+';border:1px solid '+col+'55;white-space:nowrap;">'+nLabel+'</span>'
+      +'<span style="font-size:10px;color:var(--txt3);">'+escHtml(s.e||'')+'</span>'
+      +'</div>'
+      +'<div style="display:none;padding:0 10px 8px;">'
+      +'<div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:6px;font-size:10px;color:var(--txt3);">'
+      +'<span><b style="color:var(--txt);">Incantation</b> '+escHtml(s.i||'—')+'</span>'
+      +'<span><b style="color:var(--txt);">Portée</b> '+escHtml(s.p||'—')+'</span>'
+      +'<span><b style="color:var(--txt);">Durée</b> '+escHtml(s.d||'—')+'</span>'
+      +'<span><b style="color:var(--txt);">Composantes</b> '+escHtml(s.c||'—')+'</span>'
+      +(s.cl&&s.cl.length?'<span><b style="color:var(--txt);">Classes</b> '+escHtml(s.cl.join(', '))+'</span>':'')
+      +'</div>'
+      +'<p style="font-size:11px;color:var(--txt2);line-height:1.7;margin:0;">'+escHtml(s.t||'').replace(/\n/g,'<br>')+'</p>'
+      +'</div>'
+      +'</div>';
+  }).join(''):'<p style="font-size:12px;color:var(--txt3);padding:8px 0;">Aucun sort trouvé.</p>';
+}
+
 function _mjrulesInit(){
   // ── Masquer tout le contenu PJ sans détruire les templates ───
   document.querySelectorAll('.screen').forEach(function(s){s.style.display='none';});
@@ -11468,7 +11529,8 @@ function _mjrulesInit(){
     {id:'carac',     label:'Caractéristiques', type:'iframe', file:'ref-carac.html'},
     {id:'objmag',    label:'Objets magiques',  type:'iframe', file:'ref-objmag.html'},
     {id:'objets',    label:'Objets',           type:'iframe', file:'ref-objets.html'},
-    {id:'etats',     label:'✨ États',          type:'content'}
+    {id:'sorts',     label:'Sorts',            type:'content'},
+    {id:'etats',     label:'États',            type:'content'}
   ];
 
   // ── Conteneur principal (flex column, plein écran) ───────────
@@ -11594,6 +11656,7 @@ function _mjrulesInit(){
     if(id==='classe'    && !clInner.firstChild) chargerRegles('mjr-cl');
     if(id==='race'      && !raInner.firstChild) chargerRace('mjr-ra');
     if(id==='historique'&& !hiInner.firstChild) chargerHistorique('mjr-hi');
+    if(id==='sorts') _mjrRendreSorts(pages['sorts']);
     if(id==='etats') rqRendreEtatsCamp(pages['etats']);
   }
 
