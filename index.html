@@ -730,19 +730,19 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <div class="bourse-row">
           <div class="bourse-cell">
             <label>PP</label>
-            <input type="number" id="bourse-pp" min="0" value="0" oninput="bourseMaj()">
+            <input type="number" id="bourse-pp" min="0" value="0" oninput="bourseMaj();sauvegarder()">
           </div>
           <div class="bourse-cell">
             <label>PO</label>
-            <input type="number" id="bourse-po" min="0" value="0" oninput="bourseMaj()">
+            <input type="number" id="bourse-po" min="0" value="0" oninput="bourseMaj();sauvegarder()">
           </div>
           <div class="bourse-cell">
             <label>PA</label>
-            <input type="number" id="bourse-pa" min="0" value="0" oninput="bourseMaj()">
+            <input type="number" id="bourse-pa" min="0" value="0" oninput="bourseMaj();sauvegarder()">
           </div>
           <div class="bourse-cell">
             <label>PC</label>
-            <input type="number" id="bourse-pc" min="0" value="0" oninput="bourseMaj()">
+            <input type="number" id="bourse-pc" min="0" value="0" oninput="bourseMaj();sauvegarder()">
           </div>
         </div>
         <div class="bourse-total" id="bourse-total">≈ 0 po</div>
@@ -9734,7 +9734,9 @@ function rMajInfosSorts(cl,bm,mod,info){
     var _atkSortBonus=(window._equip_bonus_totaux||{})['attaque de sort']||0;
     var _atkSortTot=mod+bm+_atkSortBonus;
     if(sb)sb.innerHTML=_atkSortBonus?'<span style="color:var(--or)">'+fMod(_atkSortTot)+'</span>':fMod(_atkSortTot);
-    if(sd)sd.textContent=8+bm+mod;
+    var _ddSortBonus=(window._equip_bonus_totaux||{})['dd_sorts']||0;
+    var _ddSortTot=8+bm+mod+_ddSortBonus;
+    if(sd)sd.innerHTML=_ddSortBonus?'<span style="color:var(--or)">'+_ddSortTot+'</span>':String(_ddSortTot);
   } else {if(sb)sb.textContent="—";if(sd)sd.textContent="—";}
   var lbl=el("r-sorts-label"),cnt=el("r-sorts-connus");
   if(info&&LANCEURS.indexOf(cl)>=0){
@@ -10287,7 +10289,8 @@ function bourseMaj(){
   if(mc)mc.innerHTML=coins.length?coins.join(""):'<span style="font-size:12px;color:var(--txt3);font-style:italic;">Bourse vide</span>';
   var mt=el("bourse-mini-total");
   if(mt)mt.textContent=totalStr;
-  sauvegarder();
+  // Note : sauvegarder() est appelé explicitement par oninput dans le HTML,
+  // pas depuis ici pour éviter des sauvegardes parasites lors du chargement.
 }
 function bourseCharger(data){
   var m=data.monnaie||{};
