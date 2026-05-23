@@ -150,6 +150,19 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .rcrow:last-child,.erow:last-child,.ejrow:last-child{border-bottom:none;}
 .rcdot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.2);flex-shrink:0;}
 .rcdot.on{background:#93c5fd;}
+/* ── COMPÉTENCES version G ───────────────────────────── */
+.rg-jds-pill{flex:1;background:var(--bg2);border:1px solid var(--bord);border-radius:8px;padding:6px 4px;text-align:center;}
+.rg-jds-pill.on{border-color:rgba(251,146,60,.45);background:rgba(251,146,60,.07);}
+.rg-jds-mod{font-size:17px;font-weight:800;line-height:1;color:var(--txt2);}
+.rg-jds-pill.on .rg-jds-mod{color:#fb923c;}
+.rg-jds-name{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--txt3);margin-top:2px;}
+.rg-comp-row{display:flex;align-items:center;gap:7px;margin-bottom:5px;}
+.rg-comp-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.rg-comp-name{font-size:11px;color:var(--txt2);width:90px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.rg-comp-row.on .rg-comp-name{color:var(--txt);}
+.rg-comp-bar-bg{flex:1;height:5px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;}
+.rg-comp-bar-fill{height:100%;border-radius:999px;}
+.rg-comp-mod{font-size:11px;font-weight:800;min-width:26px;text-align:right;}
 /* ── DÉS ─────────────────────────────────────────────── */
 .des-grid{display:flex;gap:8px;flex-wrap:wrap;}
 .de-btn{font-family:inherit;font-size:14px;font-weight:700;padding:10px 16px;border-radius:8px;cursor:pointer;border:1.5px solid var(--bord2);background:var(--bg2);color:var(--txt);}
@@ -961,16 +974,15 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
   <!-- ONGLET COMPÉTENCES (lecture seule) -->
   <div id="rt-comps" class="tc">
     <div class="card">
+      <!-- Jets de sauvegarde — pills -->
+      <p class="st" style="margin-bottom:8px;">Jets de sauvegarde</p>
+      <div id="r-jlist" style="display:flex;gap:5px;margin-bottom:14px;"></div>
+      <!-- Compétences — liste barres -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
         <p class="st" style="margin:0;border:none;padding:0;">Compétences</p>
-        <span id="r-comp-count" style="font-size:12px;color:var(--txt3);"></span>
+        <span id="r-comp-count" style="font-size:11px;color:var(--txt3);"></span>
       </div>
-      <p style="font-size:11px;color:var(--txt3);margin-bottom:8px;">Coche librement tes compétences maîtrisées.</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px;" id="r-clist"></div>
-    </div>
-    <div class="card">
-      <p class="st">Jets de sauvegarde</p>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 16px;" id="r-jlist"></div>
+      <div id="r-clist"></div>
     </div>
     <div class="card">
       <p class="st">Capacités disponibles — Niveau <span id="r-cap-niv">1</span></p>
@@ -9754,37 +9766,71 @@ function rMajFavoris(){
 }
 function rRendreComps(){
   var bm=gBM();
+
+  // ── Jets de sauvegarde — pills ────────────────────────
+  var jc=el("r-jlist");
+  if(jc){
+    jc.innerHTML="";
+    CARACS.forEach(function(k){
+      var val=parseInt(v(k))||10,m=gMod(val);
+      var chkEl=el("jds-"+k);
+      var ok=chkEl?chkEl.checked:false;
+      var tot=m+(ok?bm:0);
+      var pill=document.createElement("div");
+      pill.className="rg-jds-pill"+(ok?" on":"");
+      var abbr=(CNOM[k]||k).substring(0,3).toUpperCase();
+      pill.innerHTML="<div class='rg-jds-mod'>"+fMod(tot)+"</div>"
+        +"<div class='rg-jds-name'>"+abbr+(ok?" ★":"")+"</div>";
+      jc.appendChild(pill);
+    });
+  }
+
+  // ── Compétences — liste avec barres de progression ────
   var cc=el("r-clist");if(!cc)return;
   cc.innerHTML="";
-  var defaut=getCompsDefaut(); // compétences par règles
   var total=0;
+
+  // Collecter toutes les valeurs
+  var allComps=[];
   COMPS.forEach(function(cp,i){
     var val=parseInt(v(cp.c))||10,m=gMod(val);
-    // Lire l'état coché depuis le mode édition (même DOM, juste masqué)
     var editRow=document.querySelector(".erow[data-ci='"+i+"'] .comp-check");
     var ok=editRow?editRow.checked:false;
     if(ok)total++;
-    var d=document.createElement("div");d.className="rcrow";
-    d.style.cursor="default";
-    var dotColor=ok?"#6ee7a1":"rgba(255,255,255,.2)";
     var bComp=(window._equip_bonus_totaux||{})[cp.n]||0;
     var compTot=m+(ok?bm:0)+bComp;
-    d.innerHTML="<span style='width:10px;height:10px;border-radius:50%;background:"+dotColor+";flex-shrink:0;margin-right:6px;'></span><span style='flex:1;font-size:13px;'>"+cp.n+"</span><span style='font-weight:700;font-size:13px;color:"+(bComp?"var(--or)":"var(--txt)")+"'>"+fMod(compTot)+"</span>";
+    allComps.push({cp:cp,ok:ok,tot:compTot,bComp:bComp});
+  });
+
+  // Maîtrisées en tête triées par valeur, puis les autres
+  var mait=allComps.filter(function(x){return x.ok;}).sort(function(a,b){return b.tot-a.tot;});
+  var autre=allComps.filter(function(x){return !x.ok;}).sort(function(a,b){return b.tot-a.tot;});
+
+  function makeCompRow(item){
+    // Barre : plage −5..+11 → 0..100 %
+    var pct=Math.max(0,Math.min(100,Math.round((item.tot+5)/16*100)));
+    var barFill=item.ok?"#6ee7a1":"rgba(96,165,250,.5)";
+    var modCol=item.ok?"color:#6ee7a1;":(item.tot>0?"color:var(--txt2);":"color:var(--txt3);");
+    var orCol=item.bComp?"color:var(--or);":"";
+    var d=document.createElement("div");
+    d.className="rg-comp-row"+(item.ok?" on":"");
+    d.innerHTML="<div class='rg-comp-dot' style='background:"+(item.ok?"#6ee7a1":"rgba(255,255,255,.15)")+";'></div>"
+      +"<span class='rg-comp-name'>"+item.cp.n+"</span>"
+      +"<div class='rg-comp-bar-bg'><div class='rg-comp-bar-fill' style='width:"+pct+"%;background:"+barFill+";'></div></div>"
+      +"<span class='rg-comp-mod' style='"+(item.bComp?orCol:modCol)+"'>"+fMod(item.tot)+"</span>";
     cc.appendChild(d);
-  });
-  // Compteur
+  }
+
+  mait.forEach(makeCompRow);
+  if(mait.length&&autre.length){
+    var sep=document.createElement("div");
+    sep.style.cssText="height:1px;background:var(--bord);margin:4px 0 5px 15px;";
+    cc.appendChild(sep);
+  }
+  autre.forEach(makeCompRow);
+
   var cnt=el("r-comp-count");
-  if(cnt)cnt.textContent=total+' compétences maîtrisées';
-  var jc=el("r-jlist");if(!jc)return;
-  jc.innerHTML="";
-  CARACS.forEach(function(k){
-    var val=parseInt(v(k))||10,m=gMod(val);
-    var chkEl=el("jds-"+k);
-    var ok=chkEl?chkEl.checked:false;
-    var d=document.createElement("div");d.className="rcrow";
-    d.innerHTML="<span class='rcdot"+(ok?" on":"")+"'></span><span style='flex:1;'>"+CNOM[k]+"</span><span style='font-weight:700;color:var(--txt);'>"+fMod(m+(ok?bm:0))+"</span>";
-    jc.appendChild(d);
-  });
+  if(cnt)cnt.textContent=total+" maîtrisées";
 }
 
 function eRendrePrep(){

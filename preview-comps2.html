@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Propositions 2 — Compétences & Capacités</title>
+<style>
+:root{
+  --rouge:#d97706;--rh:#b45309;
+  --bg:#1a1a2e;--bg2:#16213e;--bg3:#0f3460;
+  --txt:#e0e0e0;--txt2:#a0a0b0;--txt3:#6a6a8a;
+  --bord:rgba(255,255,255,0.08);--bord2:rgba(255,255,255,0.14);
+  --or:#c9a227;--vert:#4ade80;--bleu:#60a5fa;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:system-ui,sans-serif;background:#111;color:var(--txt);padding:20px;}
+
+.page-title{font-size:22px;font-weight:800;color:var(--or);margin-bottom:6px;}
+.page-sub{font-size:13px;color:var(--txt3);margin-bottom:30px;}
+.versions{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:24px;}
+.version-wrap{background:#0d1020;border:2px solid var(--bord2);border-radius:14px;overflow:hidden;}
+.version-label{background:var(--bg3);padding:10px 16px;}
+.version-header{display:flex;align-items:center;gap:8px;}
+.version-badge{font-size:11px;font-weight:800;padding:3px 10px;border-radius:999px;background:var(--rouge);color:#fff;letter-spacing:.05em;}
+.version-name{font-size:13px;font-weight:700;color:var(--txt);}
+.version-desc{font-size:11px;color:var(--txt3);margin-top:3px;}
+.version-body{padding:14px;background:var(--bg);}
+
+/* ─── CAP shared (inchangées) ─── */
+.cap-section-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);margin:12px 0 6px;padding-bottom:4px;border-bottom:1px solid var(--bord);}
+.cap-section-lbl:first-child{margin-top:0;}
+.cap-item{border:1px solid var(--bord);border-radius:7px;margin-bottom:4px;overflow:hidden;}
+.cap-hd{display:flex;align-items:center;gap:7px;padding:8px 10px;cursor:pointer;background:var(--bg2);user-select:none;min-height:38px;}
+.cap-hd:hover{background:var(--bg3);}
+.cap-nom{font-size:12px;font-weight:600;flex:1;color:var(--txt);}
+.cap-niv{font-size:10px;padding:1px 6px;border-radius:999px;background:rgba(74,222,128,.2);color:#6ee7a1;flex-shrink:0;}
+.cap-niv.locked{background:rgba(255,255,255,.07);color:var(--txt3);}
+.cap-arr{font-size:9px;color:var(--txt3);}
+.cap-card-area{margin-top:4px;}
+
+/* ════════════════ VERSION G — Barres de progression ════════════════ */
+.vg-jds{display:flex;gap:5px;margin-bottom:12px;}
+.vg-jds-cell{flex:1;background:var(--bg2);border:1px solid var(--bord);border-radius:8px;padding:6px 4px;text-align:center;}
+.vg-jds-cell.on{border-color:rgba(251,146,60,.45);background:rgba(251,146,60,.07);}
+.vg-jds-mod{font-size:17px;font-weight:800;line-height:1;color:var(--txt2);}
+.vg-jds-cell.on .vg-jds-mod{color:#fb923c;}
+.vg-jds-name{font-size:8px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--txt3);margin-top:2px;}
+.vg-sec-lbl{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);margin-bottom:7px;}
+.vg-row{display:flex;align-items:center;gap:7px;margin-bottom:5px;}
+.vg-prof{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.vg-name{font-size:11px;color:var(--txt2);width:82px;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.vg-row.on .vg-name{color:var(--txt);}
+.vg-bar-bg{flex:1;height:5px;background:rgba(255,255,255,.08);border-radius:999px;overflow:hidden;}
+.vg-bar-fill{height:100%;border-radius:999px;transition:width .3s;}
+.vg-mod{font-size:11px;font-weight:800;min-width:26px;text-align:right;}
+
+/* ════════════════ VERSION H — Style fiche physique D&D ════════════════ */
+.vh-jds-row{display:flex;gap:4px;margin-bottom:12px;}
+.vh-jds-pill{flex:1;display:flex;align-items:center;gap:5px;background:var(--bg2);border:1px solid var(--bord);border-radius:6px;padding:5px 7px;}
+.vh-jds-pill.on{border-color:rgba(147,197,253,.4);background:rgba(147,197,253,.06);}
+.vh-jds-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;border:1.5px solid var(--bord2);}
+.vh-jds-pill.on .vh-jds-dot{background:var(--bleu);border-color:var(--bleu);}
+.vh-jds-mod{font-size:12px;font-weight:800;color:var(--txt2);flex:1;text-align:center;}
+.vh-jds-pill.on .vh-jds-mod{color:var(--bleu);}
+.vh-jds-name{font-size:8px;text-transform:uppercase;letter-spacing:.04em;color:var(--txt3);white-space:nowrap;}
+.vh-comp-row{display:flex;align-items:center;gap:6px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+.vh-comp-row:last-child{border-bottom:none;}
+.vh-circle{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--bord2);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:800;flex-shrink:0;color:var(--txt3);}
+.vh-comp-row.on .vh-circle{border-color:#6ee7a1;color:#6ee7a1;background:rgba(74,222,128,.08);}
+.vh-comp-name{flex:1;font-size:11px;color:var(--txt2);}
+.vh-comp-row.on .vh-comp-name{color:var(--txt);font-weight:600;}
+.vh-comp-src{font-size:9px;color:var(--txt3);font-weight:600;width:22px;text-align:right;flex-shrink:0;}
+
+/* ════════════════ VERSION I — Seulement maîtrisées + toutes collapsées ════════════════ */
+.vi-highlight{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:12px;}
+.vi-card{background:var(--bg2);border:1px solid rgba(74,222,128,.3);border-radius:9px;padding:8px 10px;display:flex;flex-direction:column;align-items:center;min-width:58px;gap:1px;}
+.vi-mod{font-size:20px;font-weight:800;color:var(--vert);line-height:1;}
+.vi-name{font-size:9px;color:var(--txt2);font-weight:600;text-align:center;margin-top:2px;}
+.vi-src{font-size:8px;color:var(--txt3);}
+.vi-all-toggle{font-size:11px;color:var(--txt3);cursor:pointer;padding:5px 0;display:flex;align-items:center;gap:5px;border-top:1px solid var(--bord);margin-top:2px;user-select:none;}
+.vi-all-toggle:hover{color:var(--txt2);}
+.vi-all-list{display:none;margin-top:6px;}
+.vi-all-list.open{display:grid;grid-template-columns:1fr 1fr;gap:0 12px;}
+.vi-row{display:flex;align-items:center;gap:5px;padding:3px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:11px;color:var(--txt3);}
+.vi-row:last-child{border-bottom:none;}
+.vi-row-dot{width:6px;height:6px;border-radius:50%;background:var(--bord2);flex-shrink:0;}
+.vi-row-mod{font-weight:700;color:var(--txt2);}
+.vi-jds{display:flex;gap:4px;margin-bottom:10px;flex-wrap:wrap;}
+.vi-jds-tag{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;border:1px solid var(--bord2);background:var(--bg2);color:var(--txt3);}
+.vi-jds-tag.on{border-color:rgba(96,165,250,.4);background:rgba(96,165,250,.08);color:var(--bleu);}
+
+/* ════════════════ VERSION J — Deux colonnes verticales ════════════════ */
+.vj-wrap{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;}
+.vj-col-title{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);margin-bottom:7px;padding-bottom:3px;border-bottom:1px solid var(--bord);}
+.vj-skill{display:flex;align-items:center;gap:5px;padding:4px 6px;border-radius:5px;margin-bottom:2px;}
+.vj-skill.on{background:rgba(74,222,128,.07);}
+.vj-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.vj-name{flex:1;font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.vj-skill.on .vj-name{color:var(--txt);font-weight:600;}
+.vj-skill .vj-name{color:var(--txt3);}
+.vj-mod{font-size:11px;font-weight:800;}
+.vj-jds{display:flex;flex-direction:column;gap:3px;}
+.vj-jds-row{display:flex;align-items:center;gap:6px;padding:3px 6px;border-radius:5px;}
+.vj-jds-row.on{background:rgba(251,146,60,.07);}
+.vj-jds-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.vj-jds-name{flex:1;font-size:11px;}
+.vj-jds-row.on .vj-jds-name{color:var(--txt);font-weight:600;}
+.vj-jds-row .vj-jds-name{color:var(--txt3);}
+.vj-jds-mod{font-size:12px;font-weight:800;}
+
+/* ════════════════ VERSION K — Accordéon par carac ════════════════ */
+.vk-sec{border:1px solid var(--bord);border-radius:8px;margin-bottom:5px;overflow:hidden;}
+.vk-sec-hd{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--bg2);cursor:pointer;user-select:none;}
+.vk-sec-hd:hover{background:var(--bg3);}
+.vk-carac-ico{font-size:11px;font-weight:800;padding:2px 6px;border-radius:4px;flex-shrink:0;min-width:28px;text-align:center;}
+.vk-carac-name{flex:1;font-size:12px;color:var(--txt2);}
+.vk-carac-val{font-size:11px;color:var(--txt3);}
+.vk-carac-jds{font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;flex-shrink:0;}
+.vk-carac-arr{font-size:9px;color:var(--txt3);}
+.vk-sec-bd{background:var(--bg3);padding:6px 10px;display:flex;flex-direction:column;gap:2px;}
+.vk-comp-row{display:flex;align-items:center;gap:6px;padding:3px 6px;border-radius:5px;}
+.vk-comp-row.on{background:rgba(74,222,128,.06);}
+.vk-comp-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+.vk-comp-name{flex:1;font-size:11px;color:var(--txt2);}
+.vk-comp-row.on .vk-comp-name{color:var(--txt);font-weight:600;}
+.vk-comp-mod{font-size:11px;font-weight:800;}
+
+/* ════════════════ VERSION L — Minimaliste horizontal ════════════════ */
+.vl-jds{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:12px;}
+.vl-jds-cell{background:var(--bg2);border:1px solid var(--bord);border-radius:6px;padding:5px 2px;text-align:center;}
+.vl-jds-cell.on{border-color:rgba(167,139,250,.4);background:rgba(167,139,250,.07);}
+.vl-jds-mod{font-size:14px;font-weight:800;line-height:1;}
+.vl-jds-cell.on .vl-jds-mod{color:#a78bfa;}
+.vl-jds-cell .vl-jds-mod{color:var(--txt2);}
+.vl-jds-name{font-size:7px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;color:var(--txt3);margin-top:2px;}
+.vl-divider{display:flex;gap:3px;align-items:center;margin-bottom:8px;}
+.vl-divider-line{flex:1;height:1px;background:var(--bord);}
+.vl-divider-txt{font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);}
+.vl-all{display:flex;flex-direction:column;gap:1px;}
+.vl-row{display:flex;align-items:center;gap:6px;padding:3px 5px;border-radius:4px;}
+.vl-row.on{background:rgba(74,222,128,.05);}
+.vl-rank{font-size:9px;font-weight:800;width:18px;text-align:center;border-radius:3px;padding:1px 0;flex-shrink:0;}
+.vl-row.on .vl-rank{background:rgba(74,222,128,.18);color:#6ee7a1;}
+.vl-row .vl-rank{background:rgba(255,255,255,.05);color:var(--txt3);}
+.vl-name{flex:1;font-size:11px;}
+.vl-row.on .vl-name{color:var(--txt);}
+.vl-row .vl-name{color:var(--txt3);}
+.vl-mod{font-size:11px;font-weight:800;min-width:24px;text-align:right;}
+.vl-src{font-size:9px;color:var(--txt3);width:22px;text-align:right;flex-shrink:0;}
+</style>
+</head>
+<body>
+
+<p class="page-title">Compétences & Capacités — nouvelles propositions</p>
+<p class="page-sub">Capacités inchangées (accordéon existant) · focus sur Compétences + Jets de sauvegarde<br>Guerrier niv. 5 · FOR 16 (+3) · DEX 14 (+2) · CON 15 (+2) · INT 10 · SAG 12 (+1) · CHA 8 (−1)</p>
+
+<div class="versions">
+
+  <!-- ══════════ VERSION G — Barres de progression ══════════ -->
+  <div class="version-wrap">
+    <div class="version-label">
+      <div class="version-header"><span class="version-badge">G</span><span class="version-name">Barres de progression</span></div>
+      <div class="version-desc">JdS en pills · chaque compétence a une barre proportionnelle au modif</div>
+    </div>
+    <div class="version-body">
+      <p class="vg-sec-lbl" style="margin-bottom:7px;">Jets de sauvegarde</p>
+      <div class="vg-jds">
+        <div class="vg-jds-cell on"><div class="vg-jds-mod">+6</div><div class="vg-jds-name">FOR</div></div>
+        <div class="vg-jds-cell"><div class="vg-jds-mod">+2</div><div class="vg-jds-name">DEX</div></div>
+        <div class="vg-jds-cell on"><div class="vg-jds-mod">+5</div><div class="vg-jds-name">CON</div></div>
+        <div class="vg-jds-cell"><div class="vg-jds-mod">+0</div><div class="vg-jds-name">INT</div></div>
+        <div class="vg-jds-cell"><div class="vg-jds-mod">+1</div><div class="vg-jds-name">SAG</div></div>
+        <div class="vg-jds-cell"><div class="vg-jds-mod" style="color:var(--txt3);">−1</div><div class="vg-jds-name">CHA</div></div>
+      </div>
+      <p class="vg-sec-lbl">Compétences <span style="float:right;font-weight:400;color:var(--txt3);">4 maîtrisées</span></p>
+      <!-- maîtrisées en haut -->
+      <div class="vg-row on"><div class="vg-prof" style="background:#6ee7a1;"></div><span class="vg-name">Athlétisme</span><div class="vg-bar-bg"><div class="vg-bar-fill" style="width:85%;background:#6ee7a1;"></div></div><span class="vg-mod" style="color:#6ee7a1;">+6</span></div>
+      <div class="vg-row on"><div class="vg-prof" style="background:#6ee7a1;"></div><span class="vg-name">Acrobaties</span><div class="vg-bar-bg"><div class="vg-bar-fill" style="width:72%;background:#6ee7a1;"></div></div><span class="vg-mod" style="color:#6ee7a1;">+5</span></div>
+      <div class="vg-row on"><div class="vg-prof" style="background:#6ee7a1;"></div><span class="vg-name">Survie</span><div class="vg-bar-bg"><div class="vg-bar-fill" style="width:58%;background:#6ee7a1;"></div></div><span class="vg-mod" style="color:#6ee7a1;">+4</span></div>
+      <div class="vg-row on"><div class="vg-prof" style="background:#6ee7a1;"></div><span class="vg-name">Intimidation</span><div class="vg-bar-bg"><div class="vg-bar-fill" style="width:28%;background:#6ee7a1;"></div></div><span class="vg-mod" style="color:#6ee7a1;">+2</span></div>
+      <!-- séparateur -->
+      <div style="height:1px;background:var(--bord);margin:5px 0 5px 15px;"></div>
+      <div class="vg-row"><div class="vg-prof" style="background:var(--bord2);"></div><span class="vg-name">Discrétion</span><div class="vg-bar-bg"><div class="vg-bar-fill" style="width:28%;background:var(--bleu);opacity:.5;"></div></div><span class="vg-mod" style="color:var(--txt2);">+2</span></div>
+      <div class="vg-row"><div class="vg-prof" style="background:var(--bord2);"></div><span class="vg-name">Perception</span><div class="vg-bar-bg"><div class="vg-bar-fill" style="width:14%;background:var(--bleu);opacity:.5;"></div></div><span class="vg-mod" style="color:var(--txt2);">+1</span></div>
+      <div class="vg-row"><div class="vg-prof" style="background:var(--bord2);"></div><span class="vg-name">Médecine</span><div class="vg-bar-bg"><div class="vg-bar-fill" style="width:14%;background:var(--bleu);opacity:.5;"></div></div><span class="vg-mod" style="color:var(--txt2);">+1</span></div>
+      <div class="vg-row"><div class="vg-prof" style="background:var(--bord2);"></div><span class="vg-name">Arcanes</span><div class="vg-bar-bg"><div class="vg-bar-fill" style="width:5%;background:var(--bleu);opacity:.4;"></div></div><span class="vg-mod" style="color:var(--txt3);">+0</span></div>
+      <!-- Capacités -->
+      <p class="cap-section-lbl" style="margin-top:10px;">Capacités — Niveau 5</p>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Second Souffle</span><span class="cap-niv">Niv. 1</span><span class="cap-arr">▾</span></div></div>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Attaque supplémentaire</span><span class="cap-niv">Niv. 5</span><span class="cap-arr">▾</span></div></div>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Style de combat</span><span class="cap-niv">Niv. 1</span><span class="cap-arr">▾</span></div></div>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Indomptable</span><span class="cap-niv locked">Niv. 7</span><span class="cap-arr" style="opacity:.4;">—</span></div></div>
+    </div>
+  </div>
+
+  <!-- ══════════ VERSION H — Style fiche physique D&D ══════════ -->
+  <div class="version-wrap">
+    <div class="version-label">
+      <div class="version-header"><span class="version-badge">H</span><span class="version-name">Style fiche physique</span></div>
+      <div class="version-desc">Cercle modif · case à cocher · colonne stat source</div>
+    </div>
+    <div class="version-body">
+      <p style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);margin-bottom:6px;">Jets de sauvegarde</p>
+      <div class="vh-jds-row">
+        <div class="vh-jds-pill on"><div class="vh-jds-dot"></div><div style="flex:1;text-align:center;"><div class="vh-jds-mod">+6</div><div class="vh-jds-name">FOR</div></div></div>
+        <div class="vh-jds-pill"><div class="vh-jds-dot"></div><div style="flex:1;text-align:center;"><div class="vh-jds-mod">+2</div><div class="vh-jds-name">DEX</div></div></div>
+        <div class="vh-jds-pill on"><div class="vh-jds-dot"></div><div style="flex:1;text-align:center;"><div class="vh-jds-mod">+5</div><div class="vh-jds-name">CON</div></div></div>
+        <div class="vh-jds-pill"><div class="vh-jds-dot"></div><div style="flex:1;text-align:center;"><div class="vh-jds-mod">+0</div><div class="vh-jds-name">INT</div></div></div>
+        <div class="vh-jds-pill"><div class="vh-jds-dot"></div><div style="flex:1;text-align:center;"><div class="vh-jds-mod">+1</div><div class="vh-jds-name">SAG</div></div></div>
+        <div class="vh-jds-pill"><div class="vh-jds-dot"></div><div style="flex:1;text-align:center;"><div class="vh-jds-mod" style="color:var(--txt3);">−1</div><div class="vh-jds-name">CHA</div></div></div>
+      </div>
+      <p style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);margin:10px 0 6px;">Compétences <span style="float:right;font-weight:400;letter-spacing:0;color:var(--txt3);">4 / 18</span></p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0 14px;">
+        <div>
+          <div class="vh-comp-row on"><div class="vh-circle">+6</div><span class="vh-comp-name">Athlétisme</span><span class="vh-comp-src">FOR</span></div>
+          <div class="vh-comp-row on"><div class="vh-circle">+5</div><span class="vh-comp-name">Acrobaties</span><span class="vh-comp-src">DEX</span></div>
+          <div class="vh-comp-row on"><div class="vh-circle">+4</div><span class="vh-comp-name">Survie</span><span class="vh-comp-src">SAG</span></div>
+          <div class="vh-comp-row on"><div class="vh-circle">+2</div><span class="vh-comp-name">Intimidation</span><span class="vh-comp-src">CHA</span></div>
+          <div class="vh-comp-row"><div class="vh-circle" style="font-size:9px;">+2</div><span class="vh-comp-name">Discrétion</span><span class="vh-comp-src">DEX</span></div>
+          <div class="vh-comp-row"><div class="vh-circle" style="font-size:9px;">+1</div><span class="vh-comp-name">Perception</span><span class="vh-comp-src">SAG</span></div>
+        </div>
+        <div>
+          <div class="vh-comp-row"><div class="vh-circle" style="font-size:9px;">+1</div><span class="vh-comp-name">Médecine</span><span class="vh-comp-src">SAG</span></div>
+          <div class="vh-comp-row"><div class="vh-circle" style="font-size:9px;">+1</div><span class="vh-comp-name">Dressage</span><span class="vh-comp-src">SAG</span></div>
+          <div class="vh-comp-row"><div class="vh-circle" style="font-size:9px;">+0</div><span class="vh-comp-name">Arcanes</span><span class="vh-comp-src">INT</span></div>
+          <div class="vh-comp-row"><div class="vh-circle" style="font-size:9px;">+0</div><span class="vh-comp-name">Histoire</span><span class="vh-comp-src">INT</span></div>
+          <div class="vh-comp-row"><div class="vh-circle" style="font-size:9px;">+0</div><span class="vh-comp-name">Nature</span><span class="vh-comp-src">INT</span></div>
+          <div class="vh-comp-row"><div class="vh-circle" style="font-size:9px;color:var(--txt3);">−1</div><span class="vh-comp-name">Tromperie</span><span class="vh-comp-src">CHA</span></div>
+        </div>
+      </div>
+      <!-- Capacités -->
+      <p class="cap-section-lbl" style="margin-top:10px;">Capacités — Niveau 5</p>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Second Souffle</span><span class="cap-niv">Niv. 1</span><span class="cap-arr">▾</span></div></div>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Attaque supplémentaire</span><span class="cap-niv">Niv. 5</span><span class="cap-arr">▾</span></div></div>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Style de combat</span><span class="cap-niv">Niv. 1</span><span class="cap-arr">▾</span></div></div>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Indomptable</span><span class="cap-niv locked">Niv. 7</span><span class="cap-arr" style="opacity:.4;">—</span></div></div>
+    </div>
+  </div>
+
+  <!-- ══════════ VERSION I — Maîtrisées en vedette + reste masqué ══════════ -->
+  <div class="version-wrap">
+    <div class="version-label">
+      <div class="version-header"><span class="version-badge">I</span><span class="version-name">Maîtrisées en vedette</span></div>
+      <div class="version-desc">Cards pour les maîtrisées · reste sous "Voir tout" collapsable</div>
+    </div>
+    <div class="version-body">
+      <p style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);margin-bottom:6px;">Jets de sauvegarde</p>
+      <div class="vi-jds">
+        <span class="vi-jds-tag on">FOR +6 ★</span>
+        <span class="vi-jds-tag on">CON +5 ★</span>
+        <span class="vi-jds-tag">DEX +2</span>
+        <span class="vi-jds-tag">SAG +1</span>
+        <span class="vi-jds-tag">INT +0</span>
+        <span class="vi-jds-tag" style="color:var(--txt3);">CHA −1</span>
+      </div>
+      <p style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);margin:8px 0 6px;">Compétences maîtrisées</p>
+      <div class="vi-highlight">
+        <div class="vi-card"><div class="vi-mod">+6</div><div class="vi-name">Athlétisme</div><div class="vi-src">FOR</div></div>
+        <div class="vi-card"><div class="vi-mod">+5</div><div class="vi-name">Acrobaties</div><div class="vi-src">DEX</div></div>
+        <div class="vi-card"><div class="vi-mod">+4</div><div class="vi-name">Survie</div><div class="vi-src">SAG</div></div>
+        <div class="vi-card"><div class="vi-mod">+2</div><div class="vi-name">Intimidation</div><div class="vi-src">CHA</div></div>
+      </div>
+      <div class="vi-all-toggle" onclick="var l=document.getElementById('vi-all');l.classList.toggle('open');this.querySelector('.vi-arr').textContent=l.classList.contains('open')?'▴':'▾';">
+        <span style="flex:1;">Toutes les compétences (14 non maîtrisées)</span>
+        <span class="vi-arr">▾</span>
+      </div>
+      <div class="vi-all-list" id="vi-all">
+        <div><div class="vi-row"><div class="vi-row-dot"></div><span style="flex:1;">Discrétion</span><span class="vi-row-mod">+2</span></div>
+        <div class="vi-row"><div class="vi-row-dot"></div><span style="flex:1;">Perception</span><span class="vi-row-mod">+1</span></div>
+        <div class="vi-row"><div class="vi-row-dot"></div><span style="flex:1;">Médecine</span><span class="vi-row-mod">+1</span></div>
+        <div class="vi-row"><div class="vi-row-dot"></div><span style="flex:1;">Arcanes</span><span class="vi-row-mod">+0</span></div>
+        <div class="vi-row"><div class="vi-row-dot"></div><span style="flex:1;">Histoire</span><span class="vi-row-mod">+0</span></div>
+        <div class="vi-row"><div class="vi-row-dot"></div><span style="flex:1;">Nature</span><span class="vi-row-mod">+0</span></div></div>
+        <div><div class="vi-row"><div class="vi-row-dot"></div><span style="flex:1;">Dressage</span><span class="vi-row-mod">+1</span></div>
+        <div class="vi-row"><div class="vi-row-dot"></div><span style="flex:1;">Escamotage</span><span class="vi-row-mod">+2</span></div>
+        <div class="vi-row"><div class="vi-row-dot"></div><span style="flex:1;">Investigation</span><span class="vi-row-mod">+0</span></div>
+        <div class="vi-row"><div class="vi-row-dot"></div><span style="flex:1;">Persuasion</span><span class="vi-row-mod">−1</span></div>
+        <div class="vi-row"><div class="vi-row-dot"></div><span style="flex:1;">Tromperie</span><span class="vi-row-mod">−1</span></div>
+        <div class="vi-row"><div class="vi-row-dot"></div><span style="flex:1;">Représent.</span><span class="vi-row-mod">−1</span></div></div>
+      </div>
+      <!-- Capacités -->
+      <p class="cap-section-lbl" style="margin-top:10px;">Capacités — Niveau 5</p>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Second Souffle</span><span class="cap-niv">Niv. 1</span><span class="cap-arr">▾</span></div></div>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Attaque supplémentaire</span><span class="cap-niv">Niv. 5</span><span class="cap-arr">▾</span></div></div>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Style de combat</span><span class="cap-niv">Niv. 1</span><span class="cap-arr">▾</span></div></div>
+    </div>
+  </div>
+
+  <!-- ══════════ VERSION J — Deux colonnes compétences / JdS ══════════ -->
+  <div class="version-wrap">
+    <div class="version-label">
+      <div class="version-header"><span class="version-badge">J</span><span class="version-name">Deux colonnes parallèles</span></div>
+      <div class="version-desc">Compétences à gauche · JdS à droite · pas de carte intermédiaire</div>
+    </div>
+    <div class="version-body">
+      <div class="vj-wrap">
+        <div>
+          <p class="vj-col-title">Compétences <span style="float:right;font-weight:400;letter-spacing:0;">4 ★</span></p>
+          <div class="vj-skill on"><div class="vj-dot" style="background:#6ee7a1;"></div><span class="vj-name">Athlétisme</span><span class="vj-mod" style="color:#6ee7a1;">+6</span></div>
+          <div class="vj-skill on"><div class="vj-dot" style="background:#6ee7a1;"></div><span class="vj-name">Acrobaties</span><span class="vj-mod" style="color:#6ee7a1;">+5</span></div>
+          <div class="vj-skill on"><div class="vj-dot" style="background:#6ee7a1;"></div><span class="vj-name">Survie</span><span class="vj-mod" style="color:#6ee7a1;">+4</span></div>
+          <div class="vj-skill on"><div class="vj-dot" style="background:#6ee7a1;"></div><span class="vj-name">Intimidation</span><span class="vj-mod" style="color:#6ee7a1;">+2</span></div>
+          <div style="height:3px;"></div>
+          <div class="vj-skill"><div class="vj-dot" style="background:rgba(255,255,255,.12);"></div><span class="vj-name">Discrétion</span><span class="vj-mod" style="color:var(--txt2);">+2</span></div>
+          <div class="vj-skill"><div class="vj-dot" style="background:rgba(255,255,255,.12);"></div><span class="vj-name">Perception</span><span class="vj-mod" style="color:var(--txt2);">+1</span></div>
+          <div class="vj-skill"><div class="vj-dot" style="background:rgba(255,255,255,.12);"></div><span class="vj-name">Médecine</span><span class="vj-mod" style="color:var(--txt2);">+1</span></div>
+          <div class="vj-skill"><div class="vj-dot" style="background:rgba(255,255,255,.12);"></div><span class="vj-name">Arcanes</span><span class="vj-mod" style="color:var(--txt3);">+0</span></div>
+          <div class="vj-skill"><div class="vj-dot" style="background:rgba(255,255,255,.12);"></div><span class="vj-name">Nature</span><span class="vj-mod" style="color:var(--txt3);">+0</span></div>
+          <div class="vj-skill"><div class="vj-dot" style="background:rgba(255,255,255,.12);"></div><span class="vj-name">Tromperie</span><span class="vj-mod" style="color:var(--txt3);">−1</span></div>
+        </div>
+        <div>
+          <p class="vj-col-title">Jets de sauvegarde</p>
+          <div class="vj-jds">
+            <div class="vj-jds-row on"><div class="vj-jds-dot" style="background:#fb923c;"></div><span class="vj-jds-name">Force</span><span class="vj-jds-mod" style="color:#fb923c;">+6</span></div>
+            <div class="vj-jds-row"><div class="vj-jds-dot" style="background:rgba(255,255,255,.12);"></div><span class="vj-jds-name">Dextérité</span><span class="vj-jds-mod" style="color:var(--txt2);">+2</span></div>
+            <div class="vj-jds-row on"><div class="vj-jds-dot" style="background:#fb923c;"></div><span class="vj-jds-name">Constitution</span><span class="vj-jds-mod" style="color:#fb923c;">+5</span></div>
+            <div class="vj-jds-row"><div class="vj-jds-dot" style="background:rgba(255,255,255,.12);"></div><span class="vj-jds-name">Intelligence</span><span class="vj-jds-mod" style="color:var(--txt3);">+0</span></div>
+            <div class="vj-jds-row"><div class="vj-jds-dot" style="background:rgba(255,255,255,.12);"></div><span class="vj-jds-name">Sagesse</span><span class="vj-jds-mod" style="color:var(--txt2);">+1</span></div>
+            <div class="vj-jds-row"><div class="vj-jds-dot" style="background:rgba(255,255,255,.12);"></div><span class="vj-jds-name">Charisme</span><span class="vj-jds-mod" style="color:var(--txt3);">−1</span></div>
+          </div>
+        </div>
+      </div>
+      <!-- Capacités -->
+      <p class="cap-section-lbl">Capacités — Niveau 5</p>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Second Souffle</span><span class="cap-niv">Niv. 1</span><span class="cap-arr">▾</span></div></div>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Attaque supplémentaire</span><span class="cap-niv">Niv. 5</span><span class="cap-arr">▾</span></div></div>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Style de combat</span><span class="cap-niv">Niv. 1</span><span class="cap-arr">▾</span></div></div>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Indomptable</span><span class="cap-niv locked">Niv. 7</span><span class="cap-arr" style="opacity:.4;">—</span></div></div>
+    </div>
+  </div>
+
+  <!-- ══════════ VERSION K — Accordéon par caractéristique ══════════ -->
+  <div class="version-wrap">
+    <div class="version-label">
+      <div class="version-header"><span class="version-badge">K</span><span class="version-name">Accordéons par caractéristique</span></div>
+      <div class="version-desc">Même style que les capacités · compétences regroupées par stat</div>
+    </div>
+    <div class="version-body">
+      <p style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);margin-bottom:7px;">Jets de sauvegarde</p>
+      <div style="display:flex;gap:4px;margin-bottom:12px;">
+        <div style="flex:1;background:var(--bg2);border:1px solid rgba(251,146,60,.4);border-radius:7px;padding:5px 4px;text-align:center;"><div style="font-size:15px;font-weight:800;color:#fb923c;">+6</div><div style="font-size:8px;color:var(--txt3);text-transform:uppercase;letter-spacing:.04em;">FOR ★</div></div>
+        <div style="flex:1;background:var(--bg2);border:1px solid var(--bord);border-radius:7px;padding:5px 4px;text-align:center;"><div style="font-size:15px;font-weight:800;color:var(--txt2);">+2</div><div style="font-size:8px;color:var(--txt3);text-transform:uppercase;letter-spacing:.04em;">DEX</div></div>
+        <div style="flex:1;background:var(--bg2);border:1px solid rgba(251,146,60,.4);border-radius:7px;padding:5px 4px;text-align:center;"><div style="font-size:15px;font-weight:800;color:#fb923c;">+5</div><div style="font-size:8px;color:var(--txt3);text-transform:uppercase;letter-spacing:.04em;">CON ★</div></div>
+        <div style="flex:1;background:var(--bg2);border:1px solid var(--bord);border-radius:7px;padding:5px 4px;text-align:center;"><div style="font-size:15px;font-weight:800;color:var(--txt3);">+0</div><div style="font-size:8px;color:var(--txt3);text-transform:uppercase;letter-spacing:.04em;">INT</div></div>
+        <div style="flex:1;background:var(--bg2);border:1px solid var(--bord);border-radius:7px;padding:5px 4px;text-align:center;"><div style="font-size:15px;font-weight:800;color:var(--txt2);">+1</div><div style="font-size:8px;color:var(--txt3);text-transform:uppercase;letter-spacing:.04em;">SAG</div></div>
+        <div style="flex:1;background:var(--bg2);border:1px solid var(--bord);border-radius:7px;padding:5px 4px;text-align:center;"><div style="font-size:15px;font-weight:800;color:var(--txt3);">−1</div><div style="font-size:8px;color:var(--txt3);text-transform:uppercase;letter-spacing:.04em;">CHA</div></div>
+      </div>
+      <p style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);margin-bottom:7px;">Compétences</p>
+      <!-- FOR — déplié -->
+      <div class="vk-sec">
+        <div class="vk-sec-hd"><div class="vk-carac-ico" style="background:rgba(251,146,60,.15);color:#fb923c;">FOR</div><span class="vk-carac-name">Force — 16 (+3)</span><span class="vk-carac-val" style="margin-right:4px;">JdS</span><span class="vk-carac-jds" style="background:rgba(251,146,60,.18);color:#fb923c;">+6 ★</span><span class="vk-carac-arr">▾</span></div>
+        <div class="vk-sec-bd"><div class="vk-comp-row on"><div class="vk-comp-dot" style="background:#6ee7a1;"></div><span class="vk-comp-name">Athlétisme</span><span class="vk-comp-mod" style="color:#6ee7a1;">+6</span></div></div>
+      </div>
+      <!-- DEX — déplié -->
+      <div class="vk-sec">
+        <div class="vk-sec-hd"><div class="vk-carac-ico" style="background:rgba(74,222,128,.1);color:#4ade80;">DEX</div><span class="vk-carac-name">Dextérité — 14 (+2)</span><span class="vk-carac-val" style="margin-right:4px;">JdS</span><span class="vk-carac-jds" style="background:var(--bg3);color:var(--txt3);">+2</span><span class="vk-carac-arr">▾</span></div>
+        <div class="vk-sec-bd">
+          <div class="vk-comp-row on"><div class="vk-comp-dot" style="background:#6ee7a1;"></div><span class="vk-comp-name">Acrobaties</span><span class="vk-comp-mod" style="color:#6ee7a1;">+5</span></div>
+          <div class="vk-comp-row"><div class="vk-comp-dot" style="background:var(--bord2);"></div><span class="vk-comp-name">Discrétion</span><span class="vk-comp-mod" style="color:var(--txt2);">+2</span></div>
+          <div class="vk-comp-row"><div class="vk-comp-dot" style="background:var(--bord2);"></div><span class="vk-comp-name">Escamotage</span><span class="vk-comp-mod" style="color:var(--txt2);">+2</span></div>
+        </div>
+      </div>
+      <!-- SAG — déplié -->
+      <div class="vk-sec">
+        <div class="vk-sec-hd"><div class="vk-carac-ico" style="background:rgba(251,191,36,.1);color:#fbbf24;">SAG</div><span class="vk-carac-name">Sagesse — 12 (+1)</span><span class="vk-carac-val" style="margin-right:4px;">JdS</span><span class="vk-carac-jds" style="background:var(--bg3);color:var(--txt3);">+1</span><span class="vk-carac-arr">▾</span></div>
+        <div class="vk-sec-bd">
+          <div class="vk-comp-row on"><div class="vk-comp-dot" style="background:#6ee7a1;"></div><span class="vk-comp-name">Survie</span><span class="vk-comp-mod" style="color:#6ee7a1;">+4</span></div>
+          <div class="vk-comp-row"><div class="vk-comp-dot" style="background:var(--bord2);"></div><span class="vk-comp-name">Perception</span><span class="vk-comp-mod" style="color:var(--txt2);">+1</span></div>
+          <div class="vk-comp-row"><div class="vk-comp-dot" style="background:var(--bord2);"></div><span class="vk-comp-name">Médecine</span><span class="vk-comp-mod" style="color:var(--txt2);">+1</span></div>
+        </div>
+      </div>
+      <!-- CHA -->
+      <div class="vk-sec">
+        <div class="vk-sec-hd"><div class="vk-carac-ico" style="background:rgba(244,114,182,.1);color:#f472b6;">CHA</div><span class="vk-carac-name">Charisme — 8 (−1)</span><span class="vk-carac-val" style="margin-right:4px;">JdS</span><span class="vk-carac-jds" style="background:var(--bg3);color:var(--txt3);">−1</span><span class="vk-carac-arr">▾</span></div>
+        <div class="vk-sec-bd">
+          <div class="vk-comp-row on"><div class="vk-comp-dot" style="background:#6ee7a1;"></div><span class="vk-comp-name">Intimidation</span><span class="vk-comp-mod" style="color:#6ee7a1;">+2</span></div>
+          <div class="vk-comp-row"><div class="vk-comp-dot" style="background:var(--bord2);"></div><span class="vk-comp-name">Persuasion</span><span class="vk-comp-mod" style="color:var(--txt3);">−1</span></div>
+          <div class="vk-comp-row"><div class="vk-comp-dot" style="background:var(--bord2);"></div><span class="vk-comp-name">Tromperie</span><span class="vk-comp-mod" style="color:var(--txt3);">−1</span></div>
+        </div>
+      </div>
+      <!-- Capacités -->
+      <p class="cap-section-lbl" style="margin-top:6px;">Capacités — Niveau 5</p>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Second Souffle</span><span class="cap-niv">Niv. 1</span><span class="cap-arr">▾</span></div></div>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Attaque supplémentaire</span><span class="cap-niv">Niv. 5</span><span class="cap-arr">▾</span></div></div>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Style de combat</span><span class="cap-niv">Niv. 1</span><span class="cap-arr">▾</span></div></div>
+    </div>
+  </div>
+
+  <!-- ══════════ VERSION L — Rang coloré + source ══════════ -->
+  <div class="version-wrap">
+    <div class="version-label">
+      <div class="version-header"><span class="version-badge">L</span><span class="version-name">Rang + source minimaliste</span></div>
+      <div class="version-desc">JdS en grille 6 · badge de rang coloré · colonne stat · zero scroll</div>
+    </div>
+    <div class="version-body">
+      <p style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);margin-bottom:6px;">Jets de sauvegarde</p>
+      <div class="vl-jds">
+        <div class="vl-jds-cell on"><div class="vl-jds-mod">+6</div><div class="vl-jds-name">FOR ★</div></div>
+        <div class="vl-jds-cell"><div class="vl-jds-mod">+2</div><div class="vl-jds-name">DEX</div></div>
+        <div class="vl-jds-cell on"><div class="vl-jds-mod">+5</div><div class="vl-jds-name">CON ★</div></div>
+        <div class="vl-jds-cell"><div class="vl-jds-mod">+0</div><div class="vl-jds-name">INT</div></div>
+        <div class="vl-jds-cell"><div class="vl-jds-mod">+1</div><div class="vl-jds-name">SAG</div></div>
+        <div class="vl-jds-cell"><div class="vl-jds-mod" style="color:var(--txt3);">−1</div><div class="vl-jds-name">CHA</div></div>
+      </div>
+      <div class="vl-divider"><div class="vl-divider-line"></div><span class="vl-divider-txt">Compétences — 4 maîtrisées</span><div class="vl-divider-line"></div></div>
+      <div class="vl-all">
+        <div class="vl-row on"><span class="vl-rank">★</span><span class="vl-name">Athlétisme</span><span class="vl-src">FOR</span><span class="vl-mod" style="color:#6ee7a1;">+6</span></div>
+        <div class="vl-row on"><span class="vl-rank">★</span><span class="vl-name">Acrobaties</span><span class="vl-src">DEX</span><span class="vl-mod" style="color:#6ee7a1;">+5</span></div>
+        <div class="vl-row on"><span class="vl-rank">★</span><span class="vl-name">Survie</span><span class="vl-src">SAG</span><span class="vl-mod" style="color:#6ee7a1;">+4</span></div>
+        <div class="vl-row on"><span class="vl-rank">★</span><span class="vl-name">Intimidation</span><span class="vl-src">CHA</span><span class="vl-mod" style="color:#6ee7a1;">+2</span></div>
+        <div class="vl-row"><span class="vl-rank">·</span><span class="vl-name">Discrétion</span><span class="vl-src">DEX</span><span class="vl-mod" style="color:var(--txt2);">+2</span></div>
+        <div class="vl-row"><span class="vl-rank">·</span><span class="vl-name">Dressage</span><span class="vl-src">SAG</span><span class="vl-mod" style="color:var(--txt2);">+1</span></div>
+        <div class="vl-row"><span class="vl-rank">·</span><span class="vl-name">Perception</span><span class="vl-src">SAG</span><span class="vl-mod" style="color:var(--txt2);">+1</span></div>
+        <div class="vl-row"><span class="vl-rank">·</span><span class="vl-name">Médecine</span><span class="vl-src">SAG</span><span class="vl-mod" style="color:var(--txt2);">+1</span></div>
+        <div class="vl-row"><span class="vl-rank">·</span><span class="vl-name">Arcanes</span><span class="vl-src">INT</span><span class="vl-mod" style="color:var(--txt3);">+0</span></div>
+        <div class="vl-row"><span class="vl-rank">·</span><span class="vl-name">Histoire</span><span class="vl-src">INT</span><span class="vl-mod" style="color:var(--txt3);">+0</span></div>
+        <div class="vl-row"><span class="vl-rank">·</span><span class="vl-name">Persuasion</span><span class="vl-src">CHA</span><span class="vl-mod" style="color:var(--txt3);">−1</span></div>
+        <div class="vl-row"><span class="vl-rank">·</span><span class="vl-name">Tromperie</span><span class="vl-src">CHA</span><span class="vl-mod" style="color:var(--txt3);">−1</span></div>
+      </div>
+      <!-- Capacités -->
+      <p class="cap-section-lbl" style="margin-top:10px;">Capacités — Niveau 5</p>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Second Souffle</span><span class="cap-niv">Niv. 1</span><span class="cap-arr">▾</span></div></div>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Attaque supplémentaire</span><span class="cap-niv">Niv. 5</span><span class="cap-arr">▾</span></div></div>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Style de combat</span><span class="cap-niv">Niv. 1</span><span class="cap-arr">▾</span></div></div>
+      <div class="cap-item"><div class="cap-hd"><span class="cap-nom">Indomptable</span><span class="cap-niv locked">Niv. 7</span><span class="cap-arr" style="opacity:.4;">—</span></div></div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>
