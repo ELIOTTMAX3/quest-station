@@ -196,7 +196,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .tbtn-bdg{display:inline-block;font-size:9px;font-weight:800;padding:0 5px;height:14px;line-height:14px;border-radius:999px;background:#fff;color:var(--rouge);margin-left:4px;vertical-align:middle;}
 
 /* ══ BESTIAIRE DRAWER ══ */
-#besti-drawer{position:fixed;top:0;right:0;bottom:0;width:320px;background:#0a1220;border-left:1px solid #1e2d45;z-index:1100;overflow:hidden;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s ease;}
+#besti-drawer{position:fixed;top:0;right:0;bottom:0;width:min(560px,95vw);background:#0a1220;border-left:1px solid #1e2d45;z-index:1100;overflow:hidden;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s ease;}
 #besti-drawer.open{transform:translateX(0);}
 .besti-hd{padding:11px 14px;border-bottom:1px solid #1e2d45;display:flex;align-items:center;gap:8px;flex-shrink:0;}
 .besti-tabs{display:flex;border-bottom:1px solid #1e2d45;flex-shrink:0;}
@@ -386,30 +386,13 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         </div>
         <button class="btn ok" style="width:100%;" onclick="ajouterMonstre()">+ Ajouter</button>
       </div>
-      <!-- Groupes de monstres -->
+      <!-- Groupes de monstres (gérés dans le Bestiaire) -->
       <div class="card" style="margin-top:.75rem;">
         <div style="display:flex;align-items:center;margin-bottom:8px;">
           <p class="st" style="flex:1;margin:0;">Groupes de monstres</p>
-          <button class="btn ok" style="font-size:11px;padding:4px 10px;" onclick="gOuvrirCreer()">+ Nouveau</button>
+          <button class="btn ok" style="font-size:11px;padding:4px 10px;background:rgba(201,162,39,.12);border-color:rgba(201,162,39,.35);color:#c9a227;" onclick="besti_ouvrir();besti_selectTab('groupes')">📖 Gérer</button>
         </div>
         <div id="groupes-liste" class="groupes-liste"></div>
-        <!-- Formulaire de création de groupe -->
-        <div id="groupe-creer" class="groupes-section" style="display:none;">
-          <p style="font-size:12px;font-weight:700;color:var(--txt2);margin-bottom:6px;">Nouveau groupe</p>
-          <input type="text" id="g-nom" placeholder="Nom du groupe…" style="width:100%;margin-bottom:8px;">
-          <div class="mf-grid">
-            <div><label>Nom</label><input type="text" id="g-m-nom" placeholder="Gobelin" onkeydown="if(event.key==='Enter')gAjouterMonstre()"></div>
-            <div><label>PV</label><input type="number" id="g-m-pv" min="1" placeholder="7"></div>
-            <div><label>CA</label><input type="number" id="g-m-ca" min="1" placeholder="15"></div>
-            <div><label>Init</label><input type="number" id="g-m-init" placeholder="—"></div>
-          </div>
-          <button class="btn" style="width:100%;margin:6px 0;" onclick="gAjouterMonstre()">+ Ajouter monstre au groupe</button>
-          <div id="g-draft-list"></div>
-          <div style="display:flex;gap:6px;margin-top:8px;">
-            <button class="btn ok" style="flex:1;" onclick="gSauvegarder()">💾 Sauvegarder le groupe</button>
-            <button class="btn" onclick="gAnnulerCreer()">Annuler</button>
-          </div>
-        </div>
       </div>
       <!-- Liste d'initiative -->
       <div id="combat-list"></div>
@@ -1129,20 +1112,22 @@ function _saveGroupes(){
 
 function rendreGroupes(){
   var cont=el('groupes-liste');if(!cont)return;
-  if(!groupesMonstres.length){
-    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);">Aucun groupe sauvegardé.</p>';
+  var groupes=window._besti_groupes||[];
+  if(!groupes.length){
+    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);">Aucun groupe — créez-en via le Bestiaire.</p>';
     return;
   }
-  cont.innerHTML=groupesMonstres.map(function(g,i){
-    var sub=g.monstres.map(function(m){return m.nom+(m.pvmax?'('+m.pvmax+'PV)':'')+' CA'+m.ca;}).join(' · ');
-    return '<div class="groupe-card">'  +
-      '<div class="groupe-card-info">'  +
-      '<div class="groupe-card-nom">'+g.nom+'</div>'  +
-      '<div class="groupe-card-sub">'+g.monstres.length+' monstre'+(g.monstres.length>1?'s':'')  +'  — '+sub+'</div>'  +
-      '</div>'  +
-      '<button class="btn ok" style="font-size:11px;padding:4px 8px;" onclick="gImporter('+i+')">↓ Importer</button>'  +
-      '<button class="btn danger" style="font-size:11px;padding:4px 8px;" onclick="gSupprimer('+i+')">✕</button>'  +
-      '</div>'  ;
+  cont.innerHTML=groupes.map(function(g){
+    var membres=g.membres||[];
+    var sub=membres.map(function(mb){return(mb.quantite>1?mb.quantite+'× ':'')+besti_esc(mb.monstruId||'?');}).join(' · ');
+    var total=membres.reduce(function(s,mb){return s+(mb.quantite||1);},0);
+    return '<div class="groupe-card">'
+      +'<div class="groupe-card-info">'
+      +'<div class="groupe-card-nom">'+besti_esc(g.nom||'Groupe')+'</div>'
+      +'<div class="groupe-card-sub">'+total+' combattant'+(total>1?'s':'')+' — '+sub+'</div>'
+      +'</div>'
+      +'<button class="btn ok" style="font-size:11px;padding:4px 8px;" onclick="besti_deployerGroupe(\''+besti_esc(g.id)+'\')">⚔ Déployer</button>'
+      +'</div>';
   }).join('');
 }
 
@@ -1636,6 +1621,7 @@ function rendreCombat(){
 }
 
 function ouvrirOngletCombat(){
+  besti_initGroupes(); // S'assurer que les groupes Firestore sont chargés
   var sauvegarde=chargerCombatLocal();
   if(sauvegarde&&sauvegarde.combatants&&sauvegarde.combatants.length>0){
     combatants=sauvegarde.combatants;
@@ -2599,10 +2585,9 @@ function besti_importerMonstre(id,src){
 }
 
 // ── SRD Tab ──────────────────────────────────────────
-function besti_renderSRD(){
-  if(_besti_fiche)return besti_renderFiche(_besti_fiche.id,_besti_fiche.src);
+function besti_filtrerSRD(){
   var monstres=typeof MONSTRES_SRD!=='undefined'?MONSTRES_SRD:[];
-  var filtered=monstres.filter(function(m){
+  return monstres.filter(function(m){
     if(_besti_srd_search&&m.nom.toLowerCase().indexOf(_besti_srd_search.toLowerCase())<0)return false;
     if(_besti_srd_type&&m.type!==_besti_srd_type)return false;
     if(_besti_srd_cr){
@@ -2617,20 +2602,42 @@ function besti_renderSRD(){
     }
     return true;
   });
+}
+function besti_renderSRDList(){
+  var filtered=besti_filtrerSRD();
+  var cnt=document.getElementById('besti-srd-count');
+  if(cnt)cnt.textContent=filtered.length+' monstre'+(filtered.length!==1?'s':'');
+  var list=document.getElementById('besti-srd-results');
+  if(!list)return;
+  list.innerHTML=filtered.map(function(m){
+    var cls='besti-cr '+besti_crClass(m.crNum);
+    return'<div class="besti-row" onclick="besti_ouvrirFiche(\''+besti_esc(m.id)+'\',\'srd\')">'
+      +'<div style="flex:1;min-width:0;">'
+      +'<div class="besti-row-nom">'+besti_esc(m.nom)+'</div>'
+      +'<div class="besti-row-type">'+besti_esc(m.type)+'</div>'
+      +'</div>'
+      +'<span class="'+cls+'">CR '+besti_esc(m.cr)+'</span>'
+      +'<button class="besti-imp-btn" onclick="event.stopPropagation();besti_importerMonstre(\''+besti_esc(m.id)+'\',\'srd\')">⚔</button>'
+      +'</div>';
+  }).join('');
+}
+function besti_renderSRD(){
+  if(_besti_fiche)return besti_renderFiche(_besti_fiche.id,_besti_fiche.src);
+  var filtered=besti_filtrerSRD();
   var types=['','bête','dragon','humanoïde','mort-vivant','fiélon','céleste','fée','géant','monstruosité','élémentaire','aberration','construction','plante','vase'];
-  var crOpts=['','0-1','2-5','6-10','11-15','16-20','21+'];
-  return '<input class="besti-search" id="besti-srd-q" value="'+besti_esc(_besti_srd_search)+'" placeholder="Rechercher…" oninput="besti_searchInput(this.value)">'
+  var crOpts=['0-1','2-5','6-10','11-15','16-20','21+'];
+  return '<input class="besti-search" id="besti-srd-q" placeholder="Rechercher…" oninput="besti_searchInput(this.value)">'
     +'<div class="besti-filters">'
     +'<select class="besti-filter" onchange="besti_filterType(this.value)">'
     +types.map(function(t){return'<option value="'+t+'"'+(t===_besti_srd_type?' selected':'')+'>'+( t?t[0].toUpperCase()+t.slice(1):'Tous types')+'</option>';}).join('')
     +'</select>'
     +'<select class="besti-filter" onchange="besti_filterCr(this.value)">'
     +'<option value="">Tous CR</option>'
-    +crOpts.slice(1).map(function(c){return'<option value="'+c+'"'+(c===_besti_srd_cr?' selected':'')+'>CR '+c+'</option>';}).join('')
+    +crOpts.map(function(c){return'<option value="'+c+'"'+(c===_besti_srd_cr?' selected':'')+'>CR '+c+'</option>';}).join('')
     +'</select>'
     +'</div>'
-    +'<p style="font-size:10px;color:#5a6a8a;margin-bottom:5px;">'+filtered.length+' monstre'+(filtered.length!==1?'s':'')+'</p>'
-    +'<div class="besti-list">'
+    +'<p id="besti-srd-count" style="font-size:10px;color:#5a6a8a;margin-bottom:5px;">'+filtered.length+' monstre'+(filtered.length!==1?'s':'')+'</p>'
+    +'<div class="besti-list" id="besti-srd-results">'
     +filtered.map(function(m){
       var cls='besti-cr '+besti_crClass(m.crNum);
       return'<div class="besti-row" onclick="besti_ouvrirFiche(\''+besti_esc(m.id)+'\',\'srd\')">'
@@ -2645,12 +2652,14 @@ function besti_renderSRD(){
     +'</div>';
 }
 function besti_bindSRD(){
+  /* Restaurer la valeur de recherche sans re-render */
   var q=document.getElementById('besti-srd-q');
-  if(q)q.focus();
+  if(q){q.value=_besti_srd_search;q.focus();q.setSelectionRange(q.value.length,q.value.length);}
 }
-function besti_searchInput(v){_besti_srd_search=v;besti_renderBody();}
-function besti_filterType(v){_besti_srd_type=v;besti_renderBody();}
-function besti_filterCr(v){_besti_srd_cr=v;besti_renderBody();}
+/* Mise à jour partielle : ne re-render que la liste, pas le champ de saisie */
+function besti_searchInput(v){_besti_srd_search=v;besti_renderSRDList();}
+function besti_filterType(v){_besti_srd_type=v;besti_renderSRDList();}
+function besti_filterCr(v){_besti_srd_cr=v;besti_renderSRDList();}
 
 // ── Fiche statblock ──────────────────────────────────
 function besti_ouvrirFiche(id,src){
@@ -3006,6 +3015,7 @@ function besti_initGroupes(){
     _besti_groupes=[];
     qs.forEach(function(d){_besti_groupes.push(Object.assign({},d.data(),{id:d.id}));});
     if(_besti_tab==='groupes')besti_renderBody();
+    rendreGroupes(); // Sync le panneau combat
   });
 }
 function besti_renderGroupes(){
@@ -3017,12 +3027,21 @@ function besti_renderGroupes(){
   }
   _besti_groupes.forEach(function(g){
     var membres=g.membres||[];
-    var resume=membres.map(function(mb){return(mb.quantite>1?mb.quantite+'× ':'')+mb.surnom||(mb.monstruId||'?');}).join(', ');
+    var total=membres.reduce(function(s,mb){return s+(mb.quantite||1);},0);
+    var resume=membres.map(function(mb){
+      var m=besti_getMonstre(mb.monstruId,mb.source||'srd');
+      var nom=mb.surnom||(m?m.nom:mb.monstruId)||'?';
+      var initStr=mb.init!==null&&mb.init!==undefined?'(Init '+mb.init+')':'';
+      return(mb.quantite>1?mb.quantite+'× ':'')+besti_esc(nom)+(initStr?' <span style="color:#c9a227;font-size:9px;">'+besti_esc(initStr)+'</span>':'');
+    }).join('<span style="color:#2a3a5a;"> · </span>');
     html+='<div class="besti-groupe-card">'
+      +'<div style="display:flex;align-items:baseline;gap:6px;margin-bottom:3px;">'
       +'<div class="besti-groupe-nom">'+besti_esc(g.nom||'Groupe')+'</div>'
+      +'<span style="font-size:10px;color:#5a6a8a;">'+total+' combattant'+(total>1?'s':'')+'</span>'
+      +'</div>'
       +(g.description?'<div style="font-size:11px;color:#5a6a8a;margin-bottom:3px;">'+besti_esc(g.description)+'</div>':'')
-      +'<div class="besti-groupe-membres">'+besti_esc(resume||'Vide')+'</div>'
-      +'<div style="display:flex;gap:5px;">'
+      +'<div class="besti-groupe-membres" style="line-height:1.7;">'+resume+'</div>'
+      +'<div style="display:flex;gap:5px;margin-top:6px;">'
       +'<button class="besti-imp-btn" style="flex:1;" onclick="besti_deployerGroupe(\''+besti_esc(g.id)+'\')">⚔ Déployer</button>'
       +'<button class="besti-edit-btn" onclick="besti_editGroupe(\''+besti_esc(g.id)+'\')">✏</button>'
       +'<button class="besti-del-btn" onclick="besti_supprimerGroupe(\''+besti_esc(g.id)+'\')">🗑</button>'
@@ -3034,9 +3053,10 @@ function besti_deployerGroupe(gid){
   var g=_besti_groupes.find(function(x){return x.id===gid;});
   if(!g)return;
   var membres=g.membres||[];
-  members_loop:
   membres.forEach(function(mb){
     var qty=mb.quantite||1;
+    /* Initiative : même valeur pour tout le groupe si définie, sinon null */
+    var initBase=(mb.init!==null&&mb.init!==undefined&&!isNaN(mb.init))?mb.init:null;
     for(var i=0;i<qty;i++){
       var m=besti_getMonstre(mb.monstruId,mb.source||'srd');
       if(!m)continue;
@@ -3046,12 +3066,13 @@ function besti_deployerGroupe(gid){
       var num=already.length+1;
       combatants.push({id:'m-'+Date.now()+'-'+Math.random().toString(36).slice(2),
         nom:num>1?nom+' #'+num:nom,type:'monstre',pvact:m.pv,pvmax:m.pv,ca:m.ca,
-        init:null,avatar:null,revele:false,conditions:[],effets:[]});
+        init:initBase,avatar:null,revele:false,conditions:[],effets:[]});
     }
   });
   if(combatPhase!=='initiative')trierCombatants();
   rendreCombat();syncCombatFirestore();sauvegarderCombat();
-  toast('⚔ Groupe "'+g.nom+'" déployé ('+membres.reduce(function(s,mb){return s+(mb.quantite||1);},0)+' combattants)');
+  var total=membres.reduce(function(s,mb){return s+(mb.quantite||1);},0);
+  toast('⚔ Groupe "'+g.nom+'" déployé ('+total+' combattant'+(total>1?'s':'')+')');
 }
 var _besti_grp_membres_list=[];
 function besti_ouvrirFormGroupe(){
@@ -3085,19 +3106,29 @@ function besti_renderFormGroupe(){
     +'<input class="besti-input" id="grp-desc" placeholder="Description (optionnel)" value="'+besti_esc(_besti_grp_draft.description||'')+'">'
     +'<p class="besti-form-sec">Membres</p>';
   _besti_grp_membres_list.forEach(function(mb,i){
-    html+='<div style="display:flex;align-items:center;gap:4px;margin-bottom:4px;background:#0a1220;border:1px solid #1e2d45;border-radius:5px;padding:6px;">'
-      +'<div style="flex:1;font-size:11px;color:#e8dcc8;">'+besti_esc(mb.monstruId||'?')+(mb.surnom?' ('+besti_esc(mb.surnom)+')':'')+'</div>'
-      +'<span style="font-size:10px;color:#9a8a6a;">×'+( mb.quantite||1)+'</span>'
-      +'<button onclick="_besti_removeGrpMembre('+i+')" style="color:#fca5a5;background:none;border:none;cursor:pointer;font-size:12px;">✕</button>'
+    var m=besti_getMonstre(mb.monstruId,mb.source||'srd');
+    var nomAff=(mb.surnom||(m?m.nom:mb.monstruId))||'?';
+    var initAff=mb.init!==null&&mb.init!==undefined?'Init '+mb.init:'Init ?';
+    html+='<div style="display:flex;align-items:center;gap:5px;margin-bottom:4px;background:#0a1220;border:1px solid #1e2d45;border-radius:5px;padding:6px;">'
+      +'<div style="flex:1;min-width:0;">'
+      +'<div style="font-size:11px;color:#e8dcc8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+besti_esc(nomAff)+(mb.quantite>1?' ×'+mb.quantite:'')+'</div>'
+      +'<div style="font-size:10px;color:#5a6a8a;">'+(m?'PV '+m.pv+' · CA '+m.ca:'')+'</div>'
+      +'</div>'
+      +'<div style="display:flex;flex-direction:column;align-items:center;gap:2px;">'
+      +'<span style="font-size:8px;color:#5a6a8a;text-transform:uppercase;letter-spacing:.05em;">Init</span>'
+      +'<input type="number" value="'+(mb.init!==null&&mb.init!==undefined?mb.init:'')+'" placeholder="?" style="width:42px;background:#111e33;border:1px solid #1e2d45;border-radius:3px;color:#c9a227;font-size:11px;text-align:center;padding:2px;" oninput="_besti_setMbreInit('+i+',this.value)">'
+      +'</div>'
+      +'<button onclick="_besti_removeGrpMembre('+i+')" style="color:#fca5a5;background:none;border:none;cursor:pointer;font-size:14px;padding:0 2px;">✕</button>'
       +'</div>';
   });
   html+='<div style="background:#111e33;border:1px solid #1e2d45;border-radius:5px;padding:8px;margin-top:4px;">'
     +'<p style="font-size:10px;color:#5a6a8a;margin-bottom:5px;">Ajouter un membre :</p>'
     +'<input class="besti-input" id="grp-add-q" placeholder="Rechercher un monstre…" oninput="besti_grpSearch(this.value)" style="margin-bottom:5px;">'
     +'<div id="grp-add-results" style="max-height:120px;overflow-y:auto;"></div>'
-    +'<div class="besti-form-grid" style="margin-top:5px;">'
-    +'<input class="besti-form-half" id="grp-add-qty" type="number" min="1" max="10" value="1" placeholder="Qté">'
-    +'<input class="besti-form-half" id="grp-add-surnom" placeholder="Surnom (optionnel)">'
+    +'<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:5px;margin-top:5px;">'
+    +'<input class="besti-form-half" id="grp-add-qty" type="number" min="1" max="20" value="1" placeholder="Qté" style="width:100%;">'
+    +'<input class="besti-form-half" id="grp-add-init" type="number" placeholder="Init" style="width:100%;">'
+    +'<input class="besti-form-half" id="grp-add-surnom" placeholder="Surnom" style="width:100%;">'
     +'</div>'
     +'<div id="grp-sel" style="font-size:11px;color:#c9a227;margin:4px 0;"></div>'
     +'<button class="besti-add-row" id="grp-add-btn" onclick="_besti_addGrpMembre()">+ Ajouter au groupe</button>'
@@ -3123,15 +3154,30 @@ function besti_grpSelect(id,src,nom){
   _besti_grp_sel={id:id,src:src,nom:nom};
   var s=document.getElementById('grp-sel');if(s)s.textContent='Sélectionné : '+nom;
 }
+function _besti_syncGrpFields(){
+  /* Sauvegarder nom/description avant tout re-render */
+  var n=document.getElementById('grp-nom');
+  var d=document.getElementById('grp-desc');
+  if(n)_besti_grp_draft.nom=n.value;
+  if(d)_besti_grp_draft.description=d.value;
+}
 function _besti_addGrpMembre(){
   if(!_besti_grp_sel){toast('Sélectionne un monstre d\'abord.');return;}
+  _besti_syncGrpFields();
   var qty=parseInt((document.getElementById('grp-add-qty')||{}).value)||1;
   var surnom=((document.getElementById('grp-add-surnom')||{}).value||'').trim();
-  _besti_grp_membres_list.push({monstruId:_besti_grp_sel.id,source:_besti_grp_sel.src,quantite:qty,surnom:surnom||null});
+  var initVal=(document.getElementById('grp-add-init')||{}).value;
+  var init=initVal!==''&&initVal!==undefined?parseInt(initVal):null;
+  _besti_grp_membres_list.push({monstruId:_besti_grp_sel.id,source:_besti_grp_sel.src,quantite:qty,surnom:surnom||null,init:(init!==null&&!isNaN(init)?init:null)});
   _besti_grp_sel=null;
   besti_renderBody();
 }
-function _besti_removeGrpMembre(i){_besti_grp_membres_list.splice(i,1);besti_renderBody();}
+function _besti_removeGrpMembre(i){_besti_syncGrpFields();_besti_grp_membres_list.splice(i,1);besti_renderBody();}
+function _besti_setMbreInit(i,val){
+  /* Mise à jour de l'initiative sans re-render (évite la perte de focus) */
+  var v=val!==''?parseInt(val):null;
+  if(_besti_grp_membres_list[i])_besti_grp_membres_list[i].init=(v!==null&&!isNaN(v)?v:null);
+}
 function besti_annulerFormGroupe(){_besti_grp_form=null;besti_renderBody();}
 function besti_sauvegarderGroupe(){
   if(!db||!campagneActive)return;
