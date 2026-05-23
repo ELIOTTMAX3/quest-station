@@ -368,11 +368,11 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 /* === Combat PJ extras === */
 .cbt-hlist{display:flex;gap:8px;overflow-x:auto;padding:20px 0 10px;margin-bottom:.75rem;scrollbar-width:thin;scrollbar-color:var(--bord) transparent;-webkit-overflow-scrolling:touch;}
 .cbt-hlist::-webkit-scrollbar{height:4px;}.cbt-hlist::-webkit-scrollbar-thumb{background:var(--bord);border-radius:2px;}
-.cbt-hcard{flex-shrink:0;width:110px;background:var(--bg2);border:2px solid var(--bord);border-radius:10px;padding:10px 7px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;transition:border-color .15s;}
+.cbt-hcard{flex-shrink:0;width:165px;background:var(--bg2);border:2px solid var(--bord);border-radius:10px;padding:10px 10px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;transition:border-color .15s;}
 .cbt-hcard.actif{border-color:var(--rouge);background:rgba(217,119,6,.1);}
 .cbt-hcard.moi{border-color:#4ade80;}.cbt-hcard.actif.moi{border-color:var(--rouge);outline:2px solid #4ade80;}
 .cbt-hcard-indicator{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:800;color:var(--rouge);white-space:nowrap;background:rgba(217,119,6,.15);padding:1px 5px;border-radius:4px;border:1px solid rgba(217,119,6,.5);}
-.cbt-hcard-nom{font-size:11px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:96px;}
+.cbt-hcard-nom{font-size:12px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:148px;}
 .cbt-hcard-sub{font-size:10px;color:var(--txt3);}
 .cbt-dropdown-wrap{position:relative;margin-bottom:6px;}
 .cbt-dropdown{background:var(--bg2);border:1px solid var(--bord2);border-radius:8px;padding:8px;margin-top:4px;}
@@ -10292,8 +10292,7 @@ function rqRendreEtatsCamp(container){
   var etats=window._camp_allEtats||[];
   if(!etats.length){
     c.innerHTML='<div style="padding:16px;font-size:13px;color:var(--txt3);text-align:center;">'
-      +'<p style="font-size:24px;margin-bottom:8px;">✨</p>'
-      +'<p>Aucun état de campagne.<br>Le MJ peut en créer depuis l\'onglet États.</p>'
+      +'<p>Aucun état de campagne actif.<br>Le MJ peut en créer depuis l\'onglet Règles.</p>'
       +'</div>';
     return;
   }
@@ -10317,9 +10316,9 @@ function rqRendreEtatsCamp(container){
 function pjVoirEtat(encodedJson){
   var e;
   try{e=JSON.parse(decodeURIComponent(encodedJson));}catch(ex){return;}
-  var typeInfo={buff:{label:'✅ Buff',bg:'rgba(74,222,128,.15)',bord:'rgba(74,222,128,.35)',col:'#4ade80'},
-    debuff:{label:'❌ Debuff',bg:'rgba(239,68,68,.15)',bord:'rgba(239,68,68,.35)',col:'#ef4444'},
-    neutre:{label:'⚪ Neutre',bg:'rgba(148,163,184,.1)',bord:'rgba(148,163,184,.3)',col:'#94a3b8'}};
+  var typeInfo={buff:{label:'Buff',bg:'rgba(74,222,128,.15)',bord:'rgba(74,222,128,.35)',col:'#4ade80'},
+    debuff:{label:'Debuff',bg:'rgba(239,68,68,.15)',bord:'rgba(239,68,68,.35)',col:'#ef4444'},
+    neutre:{label:'Neutre',bg:'rgba(148,163,184,.1)',bord:'rgba(148,163,184,.3)',col:'#94a3b8'}};
   var info=typeInfo[e.type]||typeInfo.neutre;
   var col=e.couleur||info.col;
   var dot=el('pj-etat-modal-dot');if(dot)dot.style.background=col;
@@ -11529,8 +11528,7 @@ function _mjrulesInit(){
     {id:'carac',     label:'Caractéristiques', type:'iframe', file:'ref-carac.html'},
     {id:'objmag',    label:'Objets magiques',  type:'iframe', file:'ref-objmag.html'},
     {id:'objets',    label:'Objets',           type:'iframe', file:'ref-objets.html'},
-    {id:'sorts',     label:'Sorts',            type:'content'},
-    {id:'etats',     label:'États',            type:'content'}
+    {id:'sorts',     label:'Sorts',            type:'content'}
   ];
 
   // ── Conteneur principal (flex column, plein écran) ───────────
@@ -11657,7 +11655,6 @@ function _mjrulesInit(){
     if(id==='race'      && !raInner.firstChild) chargerRace('mjr-ra');
     if(id==='historique'&& !hiInner.firstChild) chargerHistorique('mjr-hi');
     if(id==='sorts') _mjrRendreSorts(pages['sorts']);
-    if(id==='etats') rqRendreEtatsCamp(pages['etats']);
   }
 
   // Afficher Classe par défaut avec données pré-chargées

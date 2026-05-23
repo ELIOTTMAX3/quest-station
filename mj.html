@@ -170,12 +170,12 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .groupes-section{border-top:1px solid var(--bord);margin-top:10px;padding-top:8px;}
 .mj-hlist{display:flex;gap:8px;overflow-x:auto;padding:22px 0 8px;margin-bottom:.75rem;scrollbar-width:thin;scrollbar-color:var(--bord) transparent;}
 .mj-hlist::-webkit-scrollbar{height:4px;}.mj-hlist::-webkit-scrollbar-thumb{background:var(--bord);border-radius:2px;}
-.mj-hcard{flex-shrink:0;width:120px;background:var(--bg2);border:2px solid var(--bord);border-radius:10px;padding:10px 8px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;position:relative;cursor:pointer;transition:border-color .15s;}
+.mj-hcard{flex-shrink:0;width:200px;background:var(--bg2);border:2px solid var(--bord);border-radius:10px;padding:12px 12px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;cursor:pointer;transition:border-color .15s;}
 .mj-hcard:hover{border-color:var(--bord2);}
 .mj-hcard.actif{border-color:var(--rouge);background:rgba(217,119,6,.1);}
 .mj-hcard.mort{opacity:.5;}
 .mj-hcard-indicator{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:8px;font-weight:800;color:var(--rouge);white-space:nowrap;background:rgba(217,119,6,.15);padding:2px 6px;border-radius:4px;border:1px solid rgba(217,119,6,.5);}
-.mj-hcard-nom{font-size:12px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:108px;}
+.mj-hcard-nom{font-size:13px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:178px;}
 .mj-hcard-pv{font-size:11px;color:var(--txt2);}
 .mj-hcard-sub{font-size:10px;color:var(--txt3);}
 .mj-hcard-btns{display:flex;gap:3px;margin-top:3px;flex-wrap:wrap;justify-content:center;}
@@ -551,8 +551,8 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <!-- Onglet Règles -->
     <div id="pt-regles" style="display:none;">
       <div class="pj-stbar" style="margin:0 0 10px;">
-        <button class="pj-stbtn on" onclick="mjReglesSousOnglet('regles',this)">Règles</button>
-        <button class="pj-stbtn" onclick="mjReglesSousOnglet('etats',this)">États</button>
+        <button class="pj-stbtn on" id="mj-rst-btn-regles" onclick="mjReglesSousOnglet('regles',this)">Règles</button>
+        <button class="pj-stbtn" id="mj-rst-btn-etats" onclick="mjReglesSousOnglet('etats',this)">État</button>
       </div>
       <div id="mj-rst-regles" style="height:calc(100vh - 168px);margin:0 -1rem;">
         <iframe id="mj-regles-iframe" style="width:100%;height:100%;border:none;border-radius:0 0 10px 10px;"></iframe>
@@ -958,6 +958,8 @@ function panelTab(name,btn){
   if(name==="combat")ouvrirOngletCombat();
   if(name==="campagne")mjMsgMajSelecteur();
   if(name==="regles"){
+    // Toujours revenir sur le sous-onglet "Règles" à l'ouverture
+    mjReglesSousOnglet('regles', el('mj-rst-btn-regles'));
     var iframe=el("mj-regles-iframe");
     if(iframe && !iframe.getAttribute('data-loaded')){
       iframe.src="index.html?mjrules=1";
@@ -1938,40 +1940,80 @@ function rendreCombat(){
     cont.innerHTML='<p style="font-size:12px;color:var(--txt3);text-align:center;padding:1.5rem 0;">Aucun combattant — ajoute des monstres ou prépare le combat.</p>';
     return;
   }
-  // Vérifier passeTour signal
   var html='<div class="mj-hlist">';
   combatants.forEach(function(cc,idx){
     var estActif=combatActif&&idx===combatTour;
     var pct=cc.pvmax?Math.round(Math.max(0,Math.min(100,cc.pvact/cc.pvmax*100))):0;
     var pvCol=pct>50?'var(--vert)':pct>25?'#d97706':'#dc2626';
     var mort=cc.pvact===0&&cc.pvmax>0;
+
+    // Avatar
     var avH=cc.avatar
-      ?'<img src="'+cc.avatar+'" style="width:42px;height:42px;border-radius:50%;object-fit:cover;">'
-      :(cc.type==='pj'?'<div class="combat-av" style="width:42px;height:42px;font-size:12px;">PJ</div>':'<div class="combat-av" style="width:42px;height:42px;font-size:18px;">👾</div>');
-    var pvBarH=cc.pvmax?('<div class="combat-pv-bg" style="width:100%;height:4px;margin:2px 0;"><div class="combat-pv-fill" style="width:'+pct+'%;background:'+pvCol+';"></div></div>'):''
-    var pvTxt='<div class="mj-hcard-pv">'+(mort?'💀 ':'')+cc.pvact+'/'+cc.pvmax+'</div>';
-    var initTxt='<div class="mj-hcard-sub">Init: '+(cc.init!==null?cc.init:'?')+'</div>';
-    var condBadgesH=(cc.conditions&&cc.conditions.length
-      ?'<div class="mj-hcard-conds">'+cc.conditions.slice(0,3).map(function(cn){return '<span class="mj-cond-badge">'+cn+'</span>';}).join('')+(cc.conditions.length>3?'<span class="mj-cond-badge">+'+( cc.conditions.length-3)+'</span>':'')+'</div>'
-      :'');
-    var passeTourH=(cc.passeTour?'<div style="font-size:8px;color:var(--or);">⏭ passe</div>':'');
-    var btnsH='<div class="mj-hcard-btns">';
-    if(cc.type==='pj')
-      btnsH+='<button onclick="ouvrirHp(\''+cc.jid+'\');event.stopPropagation();">PV</button>';
-    else{
-      btnsH+='<button onclick="majPvMonstre('+idx+',\'degats\');event.stopPropagation();" style="color:#fca5a5;">−</button>';
-      btnsH+='<button onclick="majPvMonstre('+idx+',\'soins\');event.stopPropagation();" style="color:#86efac;">+</button>';
+      ?'<img src="'+cc.avatar+'" style="width:50px;height:50px;border-radius:50%;object-fit:cover;">'
+      :(cc.type==='pj'
+        ?'<div class="combat-av" style="width:50px;height:50px;font-size:13px;font-weight:700;">PJ</div>'
+        :'<div class="combat-av" style="width:50px;height:50px;font-size:22px;">👾</div>');
+
+    // PV bar
+    var pvBarH=cc.pvmax
+      ?'<div style="width:100%;height:5px;background:rgba(255,255,255,.1);border-radius:999px;margin:3px 0;">'
+        +'<div style="width:'+pct+'%;height:100%;background:'+pvCol+';border-radius:999px;transition:width .3s;"></div>'
+        +'</div>'
+      :'';
+
+    // CA + Initiative
+    var infoRow='<div style="display:flex;justify-content:center;gap:10px;font-size:10px;color:var(--txt3);margin:2px 0;">'
+      +(cc.ca?'<span>CA <b style="color:var(--txt2);">'+cc.ca+'</b></span>':'')
+      +(combatPhase==='initiative'&&cc.type==='pj'
+        ?(cc.init!==null?'<span class="init-ok">✓ '+cc.init+'</span>':'<span class="init-wait">⏳</span>')
+        :'<span>Init <b style="color:var(--txt2);">'+(cc.init!==null?cc.init:'?')+'</b></span>')
+      +'</div>';
+
+    // Conditions D&D (cc.conditions)
+    var condH='';
+    if(cc.conditions&&cc.conditions.length){
+      condH='<div style="display:flex;flex-wrap:wrap;gap:2px;justify-content:center;margin-top:3px;">'
+        +cc.conditions.slice(0,4).map(function(cn){
+          return'<span style="font-size:8px;padding:1px 4px;border-radius:4px;background:rgba(251,191,36,.18);border:1px solid rgba(251,191,36,.4);color:#fbbf24;">'+besti_esc(cn)+'</span>';
+        }).join('')
+        +(cc.conditions.length>4?'<span style="font-size:8px;color:var(--txt3);">+'+( cc.conditions.length-4)+'</span>':'')
+        +'</div>';
     }
-    btnsH+='<button onclick="mjToggleEtats('+idx+');event.stopPropagation();">États</button>';
-    btnsH+='<button onclick="retirerCombattant('+idx+');event.stopPropagation();" style="color:#fca5a5;">✕</button>';
+
+    // États de campagne actifs (PJ seulement)
+    var etatH='';
+    if(cc.type==='pj'&&cc.jid){
+      var eBadges=Object.values(_etatsData).filter(function(e){
+        return(e.pjIds||[]).indexOf(cc.jid)>=0;
+      }).map(function(e){
+        var col=e.couleur||'#94a3b8';
+        return'<span style="font-size:8px;padding:1px 4px;border-radius:4px;background:'+col+'22;border:1px solid '+col+'55;color:'+col+';">'+besti_esc(e.nom||'État')+'</span>';
+      });
+      if(eBadges.length)etatH='<div style="display:flex;flex-wrap:wrap;gap:2px;justify-content:center;margin-top:3px;">'+eBadges.join('')+'</div>';
+    }
+
+    // PV buttons + retirer
+    var btnsH='<div class="mj-hcard-btns" style="margin-top:5px;gap:4px;">';
+    if(cc.type==='pj'){
+      btnsH+='<button onclick="ouvrirHp(\''+cc.jid+'\');event.stopPropagation();" style="color:#fca5a5;min-width:28px;">−</button>';
+      btnsH+='<button onclick="ouvrirHp(\''+cc.jid+'\');event.stopPropagation();" style="color:#86efac;min-width:28px;">+</button>';
+    } else {
+      btnsH+='<button onclick="majPvMonstre('+idx+',\'degats\');event.stopPropagation();" style="color:#fca5a5;min-width:28px;">−</button>';
+      btnsH+='<button onclick="majPvMonstre('+idx+',\'soins\');event.stopPropagation();" style="color:#86efac;min-width:28px;">+</button>';
+    }
+    btnsH+='<button onclick="mjToggleEtats('+idx+');event.stopPropagation();" title="États D&D" style="min-width:28px;">⚡</button>';
+    btnsH+='<button onclick="retirerCombattant('+idx+');event.stopPropagation();" style="color:#fca5a5;min-width:28px;" title="Retirer du combat">✕</button>';
     btnsH+='</div>';
+
     html+='<div class="mj-hcard'+(estActif?' actif':'')+(mort?' mort':'')+'" onclick="mjSelCard('+idx+')">';
     if(estActif)html+='<div class="mj-hcard-indicator">▶ Tour</div>';
+    if(cc.type==='monstre'&&!cc.revele)html+='<div style="position:absolute;top:4px;right:6px;font-size:9px;color:var(--txt3);" title="Non révélé">👁</div>';
     html+=avH;
-    html+='<div class="mj-hcard-nom">'+(mort?'<s>':'')+cc.nom+(mort?'</s>':'')+'</div>';
-    if(cc.type==='monstre'&&!cc.revele)html+='<div class="mj-hcard-sub">👁 Non révélé</div>';
-    html+=pvTxt+pvBarH+initTxt+condBadgesH+passeTourH+btnsH;
-    html+='<div class="mj-hcard-sub">'+( combatPhase==='initiative'&&cc.type==='pj'?(cc.init!==null?'<span class="init-ok">✓ '+cc.init+'</span>':'<span class="init-wait">⏳…</span>'):(cc.ca?'CA '+cc.ca:''))+'</div>';
+    html+='<div class="mj-hcard-nom" style="margin-top:3px;">'+(mort?'<s>':'')+besti_esc(cc.nom)+(mort?'</s>':'')+'</div>';
+    html+='<div style="font-size:11px;color:var(--txt2);margin:1px 0;">'+(mort?'💀 ':'')+cc.pvact+'/'+cc.pvmax+'</div>';
+    html+=pvBarH+infoRow+condH+etatH;
+    if(cc.passeTour)html+='<div style="font-size:8px;color:var(--or);">⏭ passe son tour</div>';
+    html+=btnsH;
     html+='</div>';
   });
   html+='</div>';
@@ -3685,6 +3727,7 @@ function etatInitListener(){
     _etatsData={};
     qs.forEach(function(d){_etatsData[d.id]=Object.assign({id:d.id},d.data());});
     etatRendreList();
+    etatSyncCampDoc();
   });
 }
 
@@ -3737,9 +3780,9 @@ function etatRendreForm(e){
     +'<input id="ef-nom" value="'+besti_esc(e.nom||'')+'" placeholder="ex : Béni, Empoisonné…" style="margin-bottom:8px;">'
     +'<label class="etat-form-lbl">Type</label>'
     +'<select id="ef-type" style="margin-bottom:8px;">'
-    +'<option value="buff"'+(e.type==='buff'?' selected':'')+'>✅ Buff</option>'
-    +'<option value="debuff"'+(e.type==='debuff'?' selected':'')+'>❌ Debuff</option>'
-    +'<option value="neutre"'+((!e.type||e.type==='neutre')?' selected':'')+'>⚪ Neutre</option>'
+    +'<option value="buff"'+(e.type==='buff'?' selected':'')+'>Buff</option>'
+    +'<option value="debuff"'+(e.type==='debuff'?' selected':'')+'>Debuff</option>'
+    +'<option value="neutre"'+((!e.type||e.type==='neutre')?' selected':'')+'>Neutre</option>'
     +'</select>'
     +'<label class="etat-form-lbl">Couleur</label>'
     +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center;" id="ef-cols">'
