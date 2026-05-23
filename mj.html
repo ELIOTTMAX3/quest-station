@@ -1091,13 +1091,12 @@ function rendreCartJoueur(jid,d){
     ?'<img src="'+d.avatar+'" onerror="this.style.display=\'none\'">'
     :(d._nom?d._nom.charAt(0).toUpperCase():'?');
 
-  // Niveau (extrait de _cl ex: "Paladin 5" ou "Paladin 3 / Roublard 2")
+  // Niveau
   var cl=d._cl||'—';
-  var lvlNums=(cl.match(/\d+/g)||[]).map(Number);
-  var lvl=lvlNums.length?lvlNums.reduce(function(s,n){return s+n;},0):null;
+  var lvl=d._niv!==undefined?d._niv:null;
 
-  // Or
-  var or=d.or!==undefined?d.or:null;
+  // Or (pièces d'or = clé "po")
+  var or=d.po!==undefined?d.po:null;
 
   // Tags conditions
   var tagsH=conds.map(function(c,i){
@@ -1184,8 +1183,12 @@ function pjSetPv(jid,nv){
   if(!campagneActive)return;
   if(joueursData[jid])joueursData[jid]._pvact=nv;
   syncPvCombat(jid,nv);
+  // Écrire dans le miroir campagne (lu par MJ)
   db.collection("parties").doc(campagneActive.id).collection("joueurs").doc(jid)
     .set({_pvact:nv},{merge:true}).catch(function(){});
+  // Écrire dans la fiche personnelle du PJ (clé "pv-act" lue par index.html)
+  db.collection("parties").doc("campagne-1").collection("joueurs").doc(jid)
+    .set({"pv-act":String(nv)},{merge:true}).catch(function(){});
   pjRendreCard(jid);
 }
 

@@ -10093,9 +10093,9 @@ function campQuitter(){
 function campEcrireJoueur(extra){
   if(!db||!joueurId||!campCode)return;
   var data=collecterDonnees();
-  var payload={_pvact:data._pvact,_pvmax:data._pvmax,_ca:data._ca,_cl:data._cl,_nom:data._nom,_init:data._init,enLigne:true,lastSeen:Date.now()};
+  var payload={_pvact:data._pvact,_pvmax:data._pvmax,_ca:data._ca,_cl:data._cl,_niv:gNiv(),_nom:data._nom,_init:data._init,enLigne:true,lastSeen:Date.now()};
   if(data.avatar)payload.avatar=data.avatar;
-  if(data.monnaie&&data.monnaie.or!==undefined)payload.or=data.monnaie.or;
+  if(data.monnaie&&data.monnaie.po!==undefined)payload.po=data.monnaie.po;
   if(extra)Object.assign(payload,extra);
   db.collection("parties").doc(campCode).collection("joueurs").doc(joueurId)
     .set(payload,{merge:true}).catch(function(){});
@@ -10308,11 +10308,11 @@ function initCampagne(){
   }
 }
 
-// Présence — marquer hors ligne à la fermeture
-window.addEventListener("beforeunload",function(){if(campCode&&db&&joueurId)campEcrireJoueur({enLigne:false,lastSeen:0});});
-window.addEventListener("pagehide",function(){if(campCode&&db&&joueurId)campEcrireJoueur({enLigne:false,lastSeen:0});});
-// C8 Heartbeat lastSeen toutes les 20s
-setInterval(function(){if(campCode&&db&&joueurId)campEcrireJoueur({lastSeen:Date.now()});},20000);
+// Présence — marquer hors ligne à la fermeture (ignoré en mode MJ-view pour éviter de déconnecter le PJ)
+window.addEventListener("beforeunload",function(){if(window._mjviewJid)return;if(campCode&&db&&joueurId)campEcrireJoueur({enLigne:false,lastSeen:0});});
+window.addEventListener("pagehide",function(){if(window._mjviewJid)return;if(campCode&&db&&joueurId)campEcrireJoueur({enLigne:false,lastSeen:0});});
+// C8 Heartbeat lastSeen toutes les 20s (ignoré en mode MJ-view)
+setInterval(function(){if(window._mjviewJid)return;if(campCode&&db&&joueurId)campEcrireJoueur({lastSeen:Date.now()});},20000);
 
 // ══════════════════════════════════════════
 // BOURSE
