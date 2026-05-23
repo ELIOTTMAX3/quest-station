@@ -12284,7 +12284,7 @@ function conn_renderCard(m,src,open){
     var stats=m.stats||{};
     html+='<div class="conn-card-body" style="display:block;">';
     if(m.image){
-      html+='<img src="'+conn_esc(m.image)+'" style="width:100%;max-height:110px;object-fit:cover;border-radius:6px;margin-bottom:8px;" onerror="this.style.display=\'none\'">';
+      html+='<img src="'+conn_esc(m.image)+'" style="width:100%;height:auto;border-radius:6px;margin-bottom:8px;display:block;" onerror="this.style.display=\'none\'">';
     }
     html+=''
       +'<div style="font-size:11px;color:#9a8a6a;margin:6px 0 8px;">'+conn_esc(m.taille)+' · '+conn_esc(m.type)+' · '+conn_esc(m.alignement||'')+'</div>'

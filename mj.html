@@ -2686,7 +2686,7 @@ function besti_renderFiche(id,src){
   var crCls='besti-cr '+besti_crClass(m.crNum);
   var html='<button class="besti-back" onclick="besti_retourListe()">← Retour</button>';
   if(m.image){
-    html+='<img src="'+besti_esc(m.image)+'" style="width:100%;max-height:120px;object-fit:cover;border-radius:6px;margin-bottom:8px;" onerror="this.style.display=\'none\'">';
+    html+='<img src="'+besti_esc(m.image)+'" style="width:100%;height:auto;border-radius:6px;margin-bottom:8px;display:block;" onerror="this.style.display=\'none\'">';
   }
   html+='<div class="besti-fiche-nom">'+besti_esc(m.nom)+'</div>';
   html+='<div class="besti-fiche-sub">'+besti_esc(m.taille)+' · '+besti_esc(m.type)+(m.sousType?'('+besti_esc(m.sousType)+')':'')+' · '+besti_esc(m.alignement)
@@ -3243,7 +3243,7 @@ function besti_compressImage(file,cb){
   reader.onload=function(e){
     var img=new Image();
     img.onload=function(){
-      var maxW=280,maxH=280;
+      var maxW=480,maxH=480;
       var w=img.width,h=img.height;
       if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
       if(h>maxH){w=Math.round(w*maxH/h);h=maxH;}
