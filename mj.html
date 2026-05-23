@@ -207,7 +207,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .besti-search::placeholder{color:#5a6a8a;}
 .besti-filters{display:flex;gap:4px;margin-bottom:8px;}
 .besti-filter{flex:1;background:#111e33;border:1px solid #1e2d45;border-radius:5px;padding:4px 6px;color:#9a8a6a;font-size:11px;font-family:inherit;}
-.besti-list{max-height:300px;overflow-y:auto;display:flex;flex-direction:column;gap:2px;}
+.besti-list{display:flex;flex-direction:column;gap:2px;}
 .besti-row{display:flex;align-items:center;gap:6px;padding:6px 8px;border-radius:6px;cursor:pointer;background:#0d1525;border:1px solid transparent;transition:border-color .12s;}
 .besti-row:hover{border-color:#2a3a5a;}
 .besti-row-nom{flex:1;font-size:12px;color:#e8dcc8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
@@ -697,6 +697,9 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
   </div>
   <div class="besti-body" id="besti-body"></div>
 </div>
+
+<!-- Input fichier image caché pour upload monstre -->
+<input type="file" id="besti-img-input" accept="image/*" style="display:none;" onchange="besti_handleImageUpload(this)">
 
 <!-- ══ MODAL CONDITIONS ═══════════════════════════════════ -->
 <div id="modal-cond" class="modal-bg" style="display:none;" onclick="if(event.target===this)fermerModalCond()">
@@ -2510,6 +2513,10 @@ var _besti_grp_form=null;       // null | 'new' | id = edition
 var _besti_grp_draft={nom:'',description:'',membres:[]};
 var _besti_share_id=null;
 var _besti_share_src=null;
+var _besti_images={};
+var _besti_images_unsub=null;
+var _besti_upload_id=null;
+var _besti_upload_src=null;
 
 function besti_ouvrir(){
   var d=document.getElementById('besti-drawer');
@@ -2518,6 +2525,7 @@ function besti_ouvrir(){
   besti_renderBody();
   besti_initHomebrew();
   besti_initGroupes();
+  besti_initImages();
 }
 function besti_fermer(){
   var d=document.getElementById('besti-drawer');
@@ -2554,9 +2562,13 @@ function besti_crClass(crNum){
 function besti_crLabel(cr){return cr==='0'?'0':cr;}
 function besti_mod(val){var m=Math.floor((val-10)/2);return m>=0?'+'+m:String(m);}
 function besti_getMonstre(id,src){
-  if(src==='homebrew')return _besti_homebrew.find(function(m){return m.id===id;})||null;
-  if(typeof MONSTRES_SRD!=='undefined')return MONSTRES_SRD.find(function(m){return m.id===id;})||null;
-  return null;
+  var base=null;
+  if(src==='homebrew')base=_besti_homebrew.find(function(m){return m.id===id;})||null;
+  else if(typeof MONSTRES_SRD!=='undefined')base=MONSTRES_SRD.find(function(m){return m.id===id;})||null;
+  if(!base)return null;
+  // Augmenter avec l'image uploadée si disponible (écrase l'éventuelle URL homebrew)
+  if(_besti_images[id])return Object.assign({},base,{image:_besti_images[id]});
+  return base;
 }
 function besti_slugify(s){
   return s.toLowerCase()
@@ -2578,7 +2590,7 @@ function besti_importerMonstre(id,src){
   var nomAff=num>1?nom+' #'+num:nom;
   combatants.push({id:'m-'+Date.now()+'-'+Math.random().toString(36).slice(2),
     nom:nomAff,type:'monstre',pvact:m.pv,pvmax:m.pv,ca:m.ca,
-    init:null,avatar:null,revele:false,conditions:[],effets:[]});
+    init:null,avatar:m.image||null,revele:false,conditions:[],effets:[]});
   if(combatPhase!=='initiative')trierCombatants();
   rendreCombat();syncCombatFirestore();sauvegarderCombat();
   toast('⚔ '+nomAff+' ajouté au combat');
@@ -2716,6 +2728,9 @@ function besti_renderFiche(id,src){
   html+=renderSection('Réactions',m.reactions,'reactions');
   html+=renderSection('Actions légendaires',m.actionsLegendaires,'actLeg');
   html+='<button class="besti-action-btn" onclick="besti_importerMonstre(\''+besti_esc(id)+'\',\''+src+'\')">⚔ Importer dans le combat</button>';
+  // Upload image button
+  html+='<button class="besti-action-btn" style="background:rgba(201,162,39,.08);border-color:rgba(201,162,39,.35);color:#c9a227;margin-top:6px;" onclick="besti_triggerUpload(\''+besti_esc(id)+'\',\''+src+'\')">🖼 '+(m.image?'Changer l\'image':'Ajouter une image')+'</button>';
+  if(m.image){html+='<button class="besti-action-btn" style="background:rgba(185,28,28,.12);border-color:rgba(185,28,28,.35);color:#fca5a5;margin-top:4px;" onclick="besti_supprimerImage(\''+besti_esc(id)+'\')">🗑 Supprimer l\'image</button>';}
   // Share button
   html+='<button class="besti-action-btn" style="background:rgba(59,130,246,.12);border-color:rgba(59,130,246,.4);color:#7aadff;margin-top:6px;" onclick="besti_toggleShare(\''+besti_esc(id)+'\',\''+src+'\')">📚 Partager avec des PJ</button>';
   if(_besti_share_id===id)html+=besti_renderShare(id,src);
@@ -3066,7 +3081,7 @@ function besti_deployerGroupe(gid){
       var num=already.length+1;
       combatants.push({id:'m-'+Date.now()+'-'+Math.random().toString(36).slice(2),
         nom:num>1?nom+' #'+num:nom,type:'monstre',pvact:m.pv,pvmax:m.pv,ca:m.ca,
-        init:initBase,avatar:null,revele:false,conditions:[],effets:[]});
+        init:initBase,avatar:m.image||null,revele:false,conditions:[],effets:[]});
     }
   });
   if(combatPhase!=='initiative')trierCombatants();
@@ -3198,7 +3213,74 @@ function besti_sauvegarderGroupe(){
 function besti_resetListeners(){
   if(_besti_homebrew_unsub){_besti_homebrew_unsub();_besti_homebrew_unsub=null;}
   if(_besti_groupes_unsub){_besti_groupes_unsub();_besti_groupes_unsub=null;}
-  _besti_homebrew=[];_besti_groupes=[];
+  if(_besti_images_unsub){_besti_images_unsub();_besti_images_unsub=null;}
+  _besti_homebrew=[];_besti_groupes=[];_besti_images={};
+}
+
+// ── Images monstres ─────────────────────────────────
+function besti_initImages(){
+  if(_besti_images_unsub||!db)return;
+  _besti_images_unsub=db.collection('monstresImages').onSnapshot(function(qs){
+    _besti_images={};
+    qs.forEach(function(d){
+      var data=d.data();
+      if(data.base64)_besti_images[d.id]=data.base64;
+    });
+    // Rafraîchir la fiche ouverte si elle concerne un monstre
+    if(_besti_fiche)besti_renderBody();
+  },function(e){console.warn('monstresImages listener error:',e);});
+}
+
+function besti_triggerUpload(id,src){
+  _besti_upload_id=id;
+  _besti_upload_src=src;
+  var inp=document.getElementById('besti-img-input');
+  if(inp){inp.value='';inp.click();}
+}
+
+function besti_compressImage(file,cb){
+  var reader=new FileReader();
+  reader.onload=function(e){
+    var img=new Image();
+    img.onload=function(){
+      var maxW=280,maxH=280;
+      var w=img.width,h=img.height;
+      if(w>maxW){h=Math.round(h*maxW/w);w=maxW;}
+      if(h>maxH){w=Math.round(w*maxH/h);h=maxH;}
+      var canvas=document.createElement('canvas');
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      cb(canvas.toDataURL('image/jpeg',0.78));
+    };
+    img.src=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function besti_handleImageUpload(input){
+  var id=_besti_upload_id;
+  if(!id||!input.files||!input.files[0])return;
+  var file=input.files[0];
+  if(!file.type.startsWith('image/')){toast('Format image invalide.');return;}
+  toast('⏳ Compression…');
+  besti_compressImage(file,function(base64){
+    if(!db){toast('Pas de connexion.');return;}
+    db.collection('monstresImages').doc(id).set({
+      base64:base64,
+      monstruId:id,
+      uploadedAt:firebase.firestore.FieldValue.serverTimestamp()
+    }).then(function(){
+      toast('🖼 Image enregistrée !');
+    }).catch(function(e){toast('Erreur upload : '+e.message);});
+  });
+}
+
+function besti_supprimerImage(id){
+  if(!db||!id)return;
+  if(!confirm('Supprimer l\'image de ce monstre ?'))return;
+  db.collection('monstresImages').doc(id).delete()
+    .then(function(){toast('Image supprimée.');})
+    .catch(function(e){toast('Erreur : '+e.message);});
 }
 </script>
 </body>

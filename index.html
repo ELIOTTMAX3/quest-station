@@ -7668,7 +7668,7 @@ function rTab(name,btn){
   if(name==="sorts")rRendreSorts();
   if(name==="comps"){rRendreComps();rRendreCaps();}
   if(name==="caps")rRendreCaps();
-  if(name==="notes"){rcRendreNotesTabs();rcRendreInfosTabs();conn_initListener();}
+  if(name==="notes"){rcRendreNotesTabs();rcRendreInfosTabs();conn_initListener();conn_initImages();}
   if(name==="perso"){var rne=el('r-notes-edit');if(rne){rne.style.height='auto';rne.style.height=rne.scrollHeight+'px';}}
   if(name==="equip"){equip_rendreAll();}
   if(name==="campagne"){msgPjMarquerTousLus();}
@@ -10067,6 +10067,7 @@ function campJoindre(){
     equip_init();
     msgPjInit();
     conn_initListener();
+    conn_initImages();
     var nomCamp=snap.data()&&snap.data().nom?snap.data().nom:"Campagne "+code;
     var nomEl=el("rc-nom");if(nomEl)nomEl.textContent=nomCamp;
     var codeEl=el("rc-code-aff");if(codeEl)codeEl.textContent=code;
@@ -10291,6 +10292,7 @@ function initCampagne(){
     equip_init();
     msgPjInit();
     conn_initListener();
+    conn_initImages();
     // Charger le nom de la campagne
     db.collection("parties").doc(campCode).get().then(function(snap){
       if(snap.exists){
@@ -12182,6 +12184,8 @@ var _conn_unsub=null;
 var _conn_data=[];      // [{monstruId, source, ...}, ...]
 var _conn_homebrew={};  // id → data (cache homebrew)
 var _conn_open={};      // monstruId → bool (accordéon ouvert)
+var _conn_images={};    // monstruId → base64 (photos uploadées)
+var _conn_images_unsub=null;
 
 function conn_selectSubtab(t,btn){
   document.getElementById('conn-panel-notes').style.display=t==='notes'?'':'none';
@@ -12203,8 +12207,20 @@ function conn_initListener(){
 }
 function conn_resetListener(){
   if(_conn_unsub){_conn_unsub();_conn_unsub=null;}
-  _conn_data=[];_conn_homebrew={};
+  if(_conn_images_unsub){_conn_images_unsub();_conn_images_unsub=null;}
+  _conn_data=[];_conn_homebrew={};_conn_images={};
   conn_render();
+}
+function conn_initImages(){
+  if(_conn_images_unsub||!db)return;
+  _conn_images_unsub=db.collection('monstresImages').onSnapshot(function(qs){
+    _conn_images={};
+    qs.forEach(function(d){
+      var data=d.data();
+      if(data.base64)_conn_images[d.id]=data.base64;
+    });
+    conn_render();
+  },function(e){console.warn('conn monstresImages error:',e);});
 }
 function conn_fetchHomebrew(){
   var hbIds=_conn_data.filter(function(c){return c.source==='homebrew';}).map(function(c){return c.monstruId;});
@@ -12219,9 +12235,12 @@ function conn_fetchHomebrew(){
   });
 }
 function conn_getMonstre(monstruId,src){
-  if(src==='homebrew')return _conn_homebrew[monstruId]||null;
-  if(typeof MONSTRES_SRD!=='undefined')return MONSTRES_SRD.find(function(m){return m.id===monstruId;})||null;
-  return null;
+  var base=null;
+  if(src==='homebrew')base=_conn_homebrew[monstruId]||null;
+  else if(typeof MONSTRES_SRD!=='undefined')base=MONSTRES_SRD.find(function(m){return m.id===monstruId;})||null;
+  if(!base)return null;
+  if(_conn_images[monstruId])return Object.assign({},base,{image:_conn_images[monstruId]});
+  return base;
 }
 function conn_mod(val){var m=Math.floor((val-10)/2);return m>=0?'+'+m:String(m);}
 function conn_crClass(crNum){
@@ -12263,7 +12282,11 @@ function conn_renderCard(m,src,open){
     var skeys=['for','dex','con','int','sag','cha'];
     var snames=['FOR','DEX','CON','INT','SAG','CHA'];
     var stats=m.stats||{};
-    html+='<div class="conn-card-body" style="display:block;">'
+    html+='<div class="conn-card-body" style="display:block;">';
+    if(m.image){
+      html+='<img src="'+conn_esc(m.image)+'" style="width:100%;max-height:110px;object-fit:cover;border-radius:6px;margin-bottom:8px;" onerror="this.style.display=\'none\'">';
+    }
+    html+=''
       +'<div style="font-size:11px;color:#9a8a6a;margin:6px 0 8px;">'+conn_esc(m.taille)+' · '+conn_esc(m.type)+' · '+conn_esc(m.alignement||'')+'</div>'
       +'<div class="conn-stat-row">'
       +'<div class="conn-stat-box"><div class="conn-stat-lbl">PV</div><div class="conn-stat-val">'+m.pv+'</div><div style="font-size:9px;color:#5a6a8a;">'+(m.pvFormule||'')+'</div></div>'
