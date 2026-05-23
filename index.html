@@ -1037,6 +1037,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <button class="rq-stab"    onclick="rqTab('classe',this)">Classe</button>
       <button class="rq-stab"    onclick="rqTab('historique',this)">Historique</button>
       <button class="rq-stab"    onclick="rqTab('equip',this)">Équipement</button>
+      <button class="rq-stab"    onclick="rqTab('etats',this)">✨ États</button>
     </div>
 
     <!-- ── CLASSE ── -->
@@ -1211,6 +1212,9 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         </div>
       </div>
     </div>
+
+    <!-- ── ÉTATS DE CAMPAGNE ── -->
+    <div id="rq-etats" style="display:none;"></div>
 
     <!-- ── CRÉATION ── -->
     <div id="rq-creation">
@@ -7247,7 +7251,7 @@ function allerEdition(){
 // ══════════════════════════════════════════
 // ── Sous-navigation de l'onglet Règles ──────────────────────
 function rqTab(name, btn) {
-  ['classe','historique','race','equip','creation'].forEach(function(n){
+  ['classe','historique','race','equip','creation','etats'].forEach(function(n){
     var p=el('rq-'+n); if(p) p.style.display='none';
   });
   document.querySelectorAll('#rt-regles .rq-stab').forEach(function(b){b.classList.remove('on');});
@@ -7256,6 +7260,7 @@ function rqTab(name, btn) {
   if(name==='classe')    chargerRegles();
   if(name==='historique') chargerHistorique();
   if(name==='race')      chargerRace();
+  if(name==='etats')     rqRendreEtatsCamp(el('rq-etats'));
 }
 function rqEqTab(name, btn) {
   ['armes','armures','outils'].forEach(function(n){
@@ -10282,7 +10287,7 @@ function majEtatsPJ(etats){
 }
 
 function rqRendreEtatsCamp(container){
-  var c=container||(window._rqPages&&window._rqPages['etats']);
+  var c=container||(window._rqPages&&window._rqPages['etats'])||el('rq-etats');
   if(!c)return;
   var etats=window._camp_allEtats||[];
   if(!etats.length){

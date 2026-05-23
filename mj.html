@@ -3821,6 +3821,7 @@ function etatTogglePJ(etatId,jid){
   if(idx>=0)pjIds.splice(idx,1);else pjIds.push(jid);
   _etatsData[etatId].pjIds=pjIds;
   etatRendreList();
+  pjRendreCard(jid);
   db.collection('parties').doc(campagneActive.id).collection('etats').doc(etatId)
     .update({pjIds:pjIds}).then(etatSyncCampDoc).catch(function(){});
 }
