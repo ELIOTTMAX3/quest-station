@@ -834,6 +834,7 @@ function ouvrirPanel(code){
     qs.forEach(function(d){joueursData[d.id]=d.data();});
     renderJoueursInscrits();
     rendreJoueurs();
+    equip_mj_rendreItems();
     // Auto-fill _initScore dans le tracker
     qs.forEach(function(d){
       if(d.data()._initScore!==null&&d.data()._initScore!==undefined){

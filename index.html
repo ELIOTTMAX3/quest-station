@@ -873,7 +873,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <div class="r-section">
         <p class="st" style="margin-bottom:8px;">📝 Notes partagées</p>
         <div id="rc-notes-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
-        <textarea id="rc-notes-partage" placeholder="Écris ici…" style="width:100%;min-height:120px;font-size:13px;resize:vertical;" oninput="rcNoteInput()"></textarea>
+        <textarea id="rc-notes-partage" placeholder="Écris ici…" style="width:100%;min-height:120px;font-size:13px;resize:none;overflow:hidden;" oninput="rcNoteInput()"></textarea>
       </div>
       <div class="r-section" id="rn-images-card" style="display:none;">
         <p class="st" style="margin-bottom:8px;">🖼️ Images</p>
@@ -10159,12 +10159,12 @@ function rcRendreNotesTabs(){
     var del=_rcNotesTabs.length>1?"<span onclick=\"event.stopPropagation();rcDelNoteTab("+i+")\" style=\"margin-left:4px;opacity:.5;cursor:pointer;\">x</span>":"";
     return "<button class=\"btn\" style=\"font-size:11px;padding:3px 8px;"+a+"\" onclick=\"rcSelectNoteTab("+i+")\">"+t.nom+del+"</button>";
   }).join("")+"<button class=\"btn\" style=\"font-size:11px;padding:3px 8px;opacity:.7;\" onclick=\"rcAddNoteTab()\">+ Onglet</button>";
-  var ta=el("rc-notes-partage");if(ta)ta.value=_rcNotesTabs[_rcNotesIdx].contenu||"";
+  var ta=el("rc-notes-partage");if(ta){ta.value=_rcNotesTabs[_rcNotesIdx].contenu||"";ta.style.height="auto";ta.style.height=ta.scrollHeight+"px";}
 }
 function rcSelectNoteTab(i){var ta=el("rc-notes-partage");if(ta)_rcNotesTabs[_rcNotesIdx].contenu=ta.value;_rcNotesIdx=i;rcRendreNotesTabs();}
 function rcAddNoteTab(){var n=prompt("Nom de l'onglet :","Onglet "+(_rcNotesTabs.length+1));if(!n)return;var ta=el("rc-notes-partage");if(ta)_rcNotesTabs[_rcNotesIdx].contenu=ta.value;_rcNotesTabs.push({nom:n,contenu:""});_rcNotesIdx=_rcNotesTabs.length-1;rcRendreNotesTabs();campEcrireNotesPartage();}
 function rcDelNoteTab(i){if(_rcNotesTabs.length<=1)return;if(!confirm("Supprimer l'onglet ?"))return;_rcNotesTabs.splice(i,1);if(_rcNotesIdx>=_rcNotesTabs.length)_rcNotesIdx=_rcNotesTabs.length-1;rcRendreNotesTabs();campEcrireNotesPartage();}
-function rcNoteInput(){var ta=el("rc-notes-partage");if(ta)_rcNotesTabs[_rcNotesIdx].contenu=ta.value;campEcrireNotesPartage();}
+function rcNoteInput(){var ta=el("rc-notes-partage");if(ta){_rcNotesTabs[_rcNotesIdx].contenu=ta.value;ta.style.height="auto";ta.style.height=ta.scrollHeight+"px";}campEcrireNotesPartage();}
 function rcRendreImages(images){
   var gal=el("rc-img-gallery"),card=el("rn-images-card");
   if(!gal||!card)return;
@@ -10291,6 +10291,10 @@ function bourseMaj(){
   if(mt)mt.textContent=totalStr;
   // Note : sauvegarder() est appelé explicitement par oninput dans le HTML,
   // pas depuis ici pour éviter des sauvegardes parasites lors du chargement.
+  // Rafraîchir la boutique pour mettre à jour les boutons d'achat selon la bourse
+  if(window._equip_boutiqueItemsCache&&window._equip_boutiqueItemsCache.length){
+    equip_rendreBoutique(window._equip_boutiqueItemsCache);
+  }
 }
 function bourseCharger(data){
   var m=data.monnaie||{};
@@ -10778,6 +10782,7 @@ function equip_rendreActif(){
       +'<span class="r-equip-icone">'+icone+'</span>'
       +'<div style="flex:1;min-width:0;">'
       +'<span class="r-equip-nom">'+item.nom+'</span>'
+      +(item.rarete?'<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(0,0,0,.35);color:'+(_EQUIP_RARETE_COLORS[item.rarete]||"#9ca3af")+';margin-left:4px;">'+item.rarete+'</span>':'')
       +'<span class="r-equip-slot">'+(_EQUIP_SLOT_LABELS[s]||s)+'</span>'
       +'</div>'
       +(item.charges&&item.charges.max?'<span style="font-size:10px;color:var(--rouge);font-weight:700;flex-shrink:0;margin-left:6px;">⚡ '+(item.charges.max-(Math.min(equipCharges[id]||0,item.charges.max)))+'/'+item.charges.max+'</span>':'')
@@ -11047,9 +11052,11 @@ function equip_supprimerDeInventaire(itemId){
 function equip_initBoutique(){
   if(window._equip_boutiqueUnsub)return;
   if(!db)return;
+  window._equip_boutiqueItemsCache=[];
   window._equip_boutiqueUnsub=db.collection("items").where("enBoutique","==",true).onSnapshot(function(qs){
     var items=[];
     qs.forEach(function(d){items.push(Object.assign({id:d.id},d.data()));});
+    window._equip_boutiqueItemsCache=items;
     equip_rendreBoutique(items);
   },function(e){console.error("equip boutique listener",e);});
 }
