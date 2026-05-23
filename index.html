@@ -525,8 +525,39 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .sa-card:hover.sa-ec-invocation{border-color:rgba(170,42,170,.6);}
 .sa-card:hover.sa-ec-illusion{border-color:rgba(42,170,122,.6);}
 .sa-card:hover.sa-ec-def{border-color:var(--txt3);}
+
+/* ══ CONNAISSANCES ══ */
+.conn-subnav{display:flex;gap:4px;margin-bottom:10px;border-bottom:1px solid var(--bord2);padding-bottom:8px;}
+.conn-subnav-btn{background:none;border:none;font-family:inherit;font-size:12px;padding:5px 10px;border-radius:5px;cursor:pointer;color:var(--txt3);border-bottom:2px solid transparent;}
+.conn-subnav-btn.on{color:#c9a227;border-bottom-color:#c9a227;}
+.conn-card{background:#0d1525;border:1px solid #1e2d45;border-radius:8px;margin-bottom:6px;overflow:hidden;}
+.conn-card-hd{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;}
+.conn-card-nom{flex:1;font-size:13px;font-weight:600;color:#e8dcc8;}
+.conn-card-cr{font-size:10px;font-weight:700;padding:1px 5px;border-radius:3px;}
+.conn-cr0{background:rgba(74,74,74,.4);color:#aaa;}
+.conn-cr1{background:rgba(34,107,57,.3);color:#6dd88a;}
+.conn-cr2{background:rgba(59,100,184,.3);color:#7aadff;}
+.conn-cr3{background:rgba(100,50,180,.3);color:#b48aff;}
+.conn-cr4{background:rgba(180,40,40,.3);color:#ff7a7a;}
+.conn-card-body{display:none;padding:0 12px 10px;border-top:1px solid #1e2d45;}
+.conn-stat-row{display:flex;gap:5px;margin:7px 0;}
+.conn-stat-box{flex:1;background:#111e33;border:1px solid #1e2d45;border-radius:5px;padding:5px;text-align:center;}
+.conn-stat-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.05em;color:#5a6a8a;}
+.conn-stat-val{font-size:13px;font-weight:700;color:#e8dcc8;}
+.conn-carac-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:3px;margin:7px 0;}
+.conn-carac-box{background:#111e33;border:1px solid #1e2d45;border-radius:4px;padding:4px 2px;text-align:center;}
+.conn-carac-name{font-size:8px;font-weight:700;color:#5a6a8a;text-transform:uppercase;display:block;}
+.conn-carac-val{font-size:11px;color:#e8dcc8;display:block;}
+.conn-carac-mod{font-size:10px;color:#9a8a6a;display:block;}
+.conn-sep{height:1px;background:#1e2d45;margin:7px 0;}
+.conn-lbl{font-size:11px;color:#9a8a6a;margin:2px 0;line-height:1.6;}
+.conn-lbl b{color:#e8dcc8;}
+.conn-sec-title{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8b6914;margin:8px 0 3px;padding-bottom:2px;border-bottom:1px solid #2a3a5a;cursor:pointer;display:flex;align-items:center;justify-content:space-between;}
+.conn-trait{margin:4px 0;font-size:11px;color:#9a8a6a;line-height:1.55;}
+.conn-trait b{color:#e8dcc8;}
 </style>
 <script src="sorts.js?v=2"></script>
+<script src="monstres-srd.js"></script>
 </head>
 <body>
 <div id="s-login" class="on">
@@ -851,6 +882,14 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
   <!-- ONGLET NOTES (infos MJ + notes partagées) -->
   <div id="rt-notes" class="tc">
+    <!-- Sous-navigation -->
+    <div class="conn-subnav">
+      <button class="conn-subnav-btn on" id="conn-subtab-notes" onclick="conn_selectSubtab('notes',this)">📝 Notes</button>
+      <button class="conn-subnav-btn" id="conn-subtab-conn" onclick="conn_selectSubtab('conn',this)">📚 Connaissances</button>
+    </div>
+
+    <!-- Sous-page NOTES -->
+    <div id="conn-panel-notes">
     <!-- Pas encore dans une campagne -->
     <div id="rn-join">
       <div class="r-section">
@@ -880,6 +919,15 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <div id="rc-img-gallery" style="display:flex;flex-direction:column;gap:12px;"></div>
       </div>
     </div>
+    </div><!-- /conn-panel-notes -->
+
+    <!-- Sous-page CONNAISSANCES -->
+    <div id="conn-panel-conn" style="display:none;">
+      <div id="conn-liste">
+        <p style="font-size:12px;color:var(--txt3);font-style:italic;">Aucune connaissance pour l'instant.</p>
+      </div>
+    </div>
+
   </div>
 
   <!-- ONGLET COMPÉTENCES (lecture seule) -->
@@ -7620,7 +7668,7 @@ function rTab(name,btn){
   if(name==="sorts")rRendreSorts();
   if(name==="comps"){rRendreComps();rRendreCaps();}
   if(name==="caps")rRendreCaps();
-  if(name==="notes"){rcRendreNotesTabs();rcRendreInfosTabs();}
+  if(name==="notes"){rcRendreNotesTabs();rcRendreInfosTabs();conn_initListener();}
   if(name==="perso"){var rne=el('r-notes-edit');if(rne){rne.style.height='auto';rne.style.height=rne.scrollHeight+'px';}}
   if(name==="equip"){equip_rendreAll();}
   if(name==="campagne"){msgPjMarquerTousLus();}
@@ -10018,6 +10066,7 @@ function campJoindre(){
     majAffichageCampagne();
     equip_init();
     msgPjInit();
+    conn_initListener();
     var nomCamp=snap.data()&&snap.data().nom?snap.data().nom:"Campagne "+code;
     var nomEl=el("rc-nom");if(nomEl)nomEl.textContent=nomCamp;
     var codeEl=el("rc-code-aff");if(codeEl)codeEl.textContent=code;
@@ -10028,6 +10077,7 @@ function campQuitter(){
   if(!campCode)return;
   campEcrireJoueur({enLigne:false});
   if(campUnsub){campUnsub();campUnsub=null;}
+  conn_resetListener();
   campCode=null;
   localStorage.removeItem("qs_campCode");
   // Effacer le code mémorisé dans Firestore
@@ -10240,6 +10290,7 @@ function initCampagne(){
     majAffichageCampagne();
     equip_init();
     msgPjInit();
+    conn_initListener();
     // Charger le nom de la campagne
     db.collection("parties").doc(campCode).get().then(function(snap){
       if(snap.exists){
@@ -12122,6 +12173,141 @@ function cbtAppliquerPV(){
   if(el('cbt-pv-set'))el('cbt-pv-set').value='';
   if(el('cbt-pv-panel'))el('cbt-pv-panel').style.display='none';
   if(combatPJData&&combatPJData.actif)cbtMajUI();
+}
+
+// ══════════════════════════════════════════════════════
+// CONNAISSANCES — Onglet Notes sous-page
+// ══════════════════════════════════════════════════════
+var _conn_unsub=null;
+var _conn_data=[];      // [{monstruId, source, ...}, ...]
+var _conn_homebrew={};  // id → data (cache homebrew)
+var _conn_open={};      // monstruId → bool (accordéon ouvert)
+
+function conn_selectSubtab(t,btn){
+  document.getElementById('conn-panel-notes').style.display=t==='notes'?'':'none';
+  document.getElementById('conn-panel-conn').style.display=t==='conn'?'':'none';
+  document.querySelectorAll('.conn-subnav-btn').forEach(function(b){b.classList.remove('on');});
+  if(btn)btn.classList.add('on');
+  if(t==='conn')conn_render();
+}
+
+function conn_initListener(){
+  if(_conn_unsub||!db||!campCode||!joueurId)return;
+  _conn_unsub=db.collection('parties').doc(campCode)
+    .collection('joueurs').doc(joueurId)
+    .collection('connaissances').onSnapshot(function(qs){
+      _conn_data=[];
+      qs.forEach(function(d){_conn_data.push(Object.assign({id:d.id},d.data()));});
+      conn_fetchHomebrew();
+    });
+}
+function conn_resetListener(){
+  if(_conn_unsub){_conn_unsub();_conn_unsub=null;}
+  _conn_data=[];_conn_homebrew={};
+  conn_render();
+}
+function conn_fetchHomebrew(){
+  var hbIds=_conn_data.filter(function(c){return c.source==='homebrew';}).map(function(c){return c.monstruId;});
+  if(!hbIds.length){conn_render();return;}
+  var pending=hbIds.length;
+  hbIds.forEach(function(id){
+    if(_conn_homebrew[id]){pending--;if(!pending)conn_render();return;}
+    db.collection('bestiaireHomebrew').doc(id).get().then(function(doc){
+      if(doc.exists)_conn_homebrew[id]=Object.assign({id:doc.id},doc.data());
+      pending--;if(!pending)conn_render();
+    }).catch(function(){pending--;if(!pending)conn_render();});
+  });
+}
+function conn_getMonstre(monstruId,src){
+  if(src==='homebrew')return _conn_homebrew[monstruId]||null;
+  if(typeof MONSTRES_SRD!=='undefined')return MONSTRES_SRD.find(function(m){return m.id===monstruId;})||null;
+  return null;
+}
+function conn_mod(val){var m=Math.floor((val-10)/2);return m>=0?'+'+m:String(m);}
+function conn_crClass(crNum){
+  if(crNum<=1)return'conn-cr0';if(crNum<=5)return'conn-cr1';
+  if(crNum<=10)return'conn-cr2';if(crNum<=15)return'conn-cr3';return'conn-cr4';
+}
+function conn_esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+
+function conn_render(){
+  var cont=document.getElementById('conn-liste');if(!cont)return;
+  if(!_conn_data.length){
+    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);font-style:italic;">Aucune connaissance pour l\'instant.</p>';
+    return;
+  }
+  cont.innerHTML=_conn_data.map(function(c){
+    var m=conn_getMonstre(c.monstruId,c.source||'srd');
+    if(!m)return'<div class="conn-card"><div class="conn-card-hd"><span class="conn-card-nom">'+conn_esc(c.monstruId)+'</span><span style="font-size:10px;color:var(--txt3);">Chargement…</span></div></div>';
+    var crCls=conn_crClass(m.crNum||0);
+    var open=!!_conn_open[c.monstruId];
+    return conn_renderCard(m,c.source||'srd',open);
+  }).join('');
+}
+function conn_toggleCard(monstruId){
+  _conn_open[monstruId]=!_conn_open[monstruId];
+  conn_render();
+}
+function conn_renderCard(m,src,open){
+  var crCls=conn_crClass(m.crNum||0);
+  var chevron=open?'▾':'▸';
+  var html='<div class="conn-card">'
+    +'<div class="conn-card-hd" onclick="conn_toggleCard(\''+conn_esc(m.id)+'\')">'
+    +'<span style="font-size:16px;">'+( m.type==='dragon'?'🐉':m.type==='mort-vivant'?'💀':m.type==='bête'?'🐺':'👾')+'</span>'
+    +'<span class="conn-card-nom">'+conn_esc(m.nom)+'</span>'
+    +(src==='homebrew'?'<span style="font-size:9px;background:rgba(100,50,180,.25);color:#b48aff;padding:1px 5px;border-radius:3px;margin-right:4px;">HB</span>':'')
+    +'<span class="conn-card-cr '+crCls+'">CR '+conn_esc(m.cr||'?')+'</span>'
+    +'<span style="font-size:11px;color:var(--txt3);margin-left:4px;">'+chevron+'</span>'
+    +'</div>';
+  if(open){
+    var skeys=['for','dex','con','int','sag','cha'];
+    var snames=['FOR','DEX','CON','INT','SAG','CHA'];
+    var stats=m.stats||{};
+    html+='<div class="conn-card-body" style="display:block;">'
+      +'<div style="font-size:11px;color:#9a8a6a;margin:6px 0 8px;">'+conn_esc(m.taille)+' · '+conn_esc(m.type)+' · '+conn_esc(m.alignement||'')+'</div>'
+      +'<div class="conn-stat-row">'
+      +'<div class="conn-stat-box"><div class="conn-stat-lbl">PV</div><div class="conn-stat-val">'+m.pv+'</div><div style="font-size:9px;color:#5a6a8a;">'+(m.pvFormule||'')+'</div></div>'
+      +'<div class="conn-stat-box"><div class="conn-stat-lbl">CA</div><div class="conn-stat-val">'+m.ca+'</div><div style="font-size:9px;color:#5a6a8a;">'+(m.caNote||'')+'</div></div>'
+      +'<div class="conn-stat-box"><div class="conn-stat-lbl">Vit.</div><div class="conn-stat-val" style="font-size:11px;">'+(m.vitesse||'—')+'</div></div>'
+      +'</div>'
+      +'<div class="conn-carac-grid">'
+      +skeys.map(function(k,i){var v=stats[k]||10;return'<div class="conn-carac-box"><span class="conn-carac-name">'+snames[i]+'</span><span class="conn-carac-val">'+v+'</span><span class="conn-carac-mod">'+conn_mod(v)+'</span></div>';}).join('')
+      +'</div>'
+      +'<div class="conn-sep"></div>';
+    function lv(lbl,val){if(!val)return'';return'<div class="conn-lbl"><b>'+lbl+'</b> '+conn_esc(val)+'</div>';}
+    function oStr(o){if(!o||typeof o!=='object')return'';return Object.keys(o).map(function(k){return k+' '+o[k];}).join(', ');}
+    function aStr(a){if(!a||!a.length)return'';return a.join(', ');}
+    html+=lv('Jets de sauvegarde',oStr(m.jds));
+    html+=lv('Compétences',oStr(m.competences));
+    html+=lv('Résistances',aStr(m.resistances));
+    html+=lv('Immunités',aStr(m.immunites));
+    html+=lv('Sens',m.senseurs);
+    html+=lv('Langues',m.langues);
+    function renderSec(titre,entries,sid){
+      if(!entries||!entries.length)return'';
+      return'<div class="conn-sec-title" onclick="conn_toggleSec(\''+sid+'\')">'
+        +'<span>'+titre+'</span><span id="conn-chev-'+sid+'">▾</span></div>'
+        +'<div id="conn-sec-'+sid+'">'
+        +entries.map(function(e){return'<div class="conn-trait"><b>'+conn_esc(e.nom)+'.</b> '+conn_esc(e.desc)+'</div>';}).join('')
+        +'</div>';
+    }
+    html+=renderSec('Traits',m.traits,m.id+'-tr');
+    html+=renderSec('Actions',m.actions,m.id+'-ac');
+    html+=renderSec('Actions bonus',m.actionsBonus,m.id+'-ab');
+    html+=renderSec('Réactions',m.reactions,m.id+'-re');
+    html+=renderSec('Actions légendaires',m.actionsLegendaires,m.id+'-al');
+    html+='</div>';
+  }
+  html+='</div>';
+  return html;
+}
+function conn_toggleSec(sid){
+  var s=document.getElementById('conn-sec-'+sid);
+  var c=document.getElementById('conn-chev-'+sid);
+  if(!s)return;
+  var open=s.style.display!=='none';
+  s.style.display=open?'none':'';
+  if(c)c.textContent=open?'▸':'▾';
 }
 
 </script>
