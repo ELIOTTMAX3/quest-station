@@ -11683,6 +11683,25 @@ function cbtRendreActions(monTour){
   }
   if(cl==='Paladin')html+=cbtMakeBtn('action','✨ Frappe divine',false,null);
   if(isSpellcasterClass(cl)){
+    // Bandeau DD / Attaque de sort
+    var _cs=CS_CL[cl]||null;
+    var _sortMod=_cs?gMod(parseInt(v(_cs))||10):0;
+    var _bm2=gBM();
+    var _eqb2=window._equip_bonus_totaux||{};
+    var _atkB=_eqb2['attaque de sort']||0;
+    var _ddB=_eqb2['dd_sorts']||0;
+    var _atkTot=_sortMod+_bm2+_atkB;
+    var _ddTot=8+_bm2+_sortMod+_ddB;
+    html+='<div style="display:flex;gap:4px;margin-bottom:8px;">'
+      +'<div style="flex:1;background:var(--bg3);border:1px solid var(--bord2);border-radius:7px;padding:6px 8px;text-align:center;">'
+      +'<div style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);margin-bottom:2px;">Atk sort</div>'
+      +'<div style="font-size:16px;font-weight:700;'+(_atkB?'color:var(--or)':'color:var(--txt)')+';">'+fMod(_atkTot)+'</div>'
+      +'</div>'
+      +'<div style="flex:1;background:var(--bg3);border:1px solid var(--bord2);border-radius:7px;padding:6px 8px;text-align:center;">'
+      +'<div style="font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);margin-bottom:2px;">DD Save</div>'
+      +'<div style="font-size:16px;font-weight:700;'+(_ddB?'color:var(--or)':'color:var(--txt)')+' ;">'+_ddTot+'</div>'
+      +'</div>'
+      +'</div>';
     html+='<div class="cbt-dropdown-wrap">';
     html+='<button class="cbt-action-btn" onclick="cbtToggleSorts(event)">✨ Sorts ▾</button>';
     html+='<div id="cbt-sorts-menu" class="cbt-dropdown" style="display:none;"></div>';

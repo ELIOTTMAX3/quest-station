@@ -1888,6 +1888,12 @@ function _equip_mj_rendreSection(titre, emoji, items, cle, ouvert){
   var open=ouvert!==false;
   var badge='<span style="font-size:10px;font-weight:700;background:var(--bg2);border:1px solid var(--bord2);border-radius:999px;padding:1px 8px;color:var(--txt3);">'+items.length+'</span>';
   var chevron='<span id="equip-mj-chev-'+cle+'" style="font-size:12px;color:var(--txt3);transition:transform .2s;display:inline-block;transform:rotate('+(open?'0':'180')+'deg);">▾</span>';
+  var body;
+  if(cle==='pj'){
+    body=_equip_mj_rendreSectionPJ(items);
+  } else {
+    body=items.map(_equip_mj_rendreItemCard).join("");
+  }
   return '<div style="margin-bottom:12px;">'
     +'<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;background:var(--bg3);border:1px solid var(--bord2);border-radius:8px;cursor:pointer;user-select:none;" onclick="equip_mj_toggleSection(\''+cle+'\')">'
     +'<span style="font-size:16px;">'+emoji+'</span>'
@@ -1895,9 +1901,50 @@ function _equip_mj_rendreSection(titre, emoji, items, cle, ouvert){
     +badge+chevron
     +'</div>'
     +'<div id="'+bodyId+'" style="margin-top:6px;'+(open?'':'display:none;')+'">'
-    +items.map(_equip_mj_rendreItemCard).join("")
+    +body
     +'</div>'
     +'</div>';
+}
+
+// Rendu section PJ avec sous-onglets par joueur
+window._equip_mj_pjTab=null; // id du joueur sélectionné
+
+function _equip_mj_rendreSectionPJ(allItems){
+  // Construire map jid → {nom, items}
+  var jids=Object.keys(joueursData).filter(function(jid){return joueursData[jid]&&joueursData[jid]._nom;});
+  // Ne garder que les joueurs qui ont au moins un item
+  var joueurs=jids.map(function(jid){
+    var d=joueursData[jid];
+    var inv=d.inventaire||[];
+    var items=allItems.filter(function(item){return inv.indexOf(item.id)>=0;});
+    return {jid:jid,nom:d._nom,items:items};
+  }).filter(function(j){return j.items.length>0;});
+
+  if(!joueurs.length)return '<p style="font-size:12px;color:var(--txt3);">Aucun objet attribué.</p>';
+
+  // Sélection auto si tab invalide
+  if(!window._equip_mj_pjTab||!joueurs.find(function(j){return j.jid===window._equip_mj_pjTab;})){
+    window._equip_mj_pjTab=joueurs[0].jid;
+  }
+  var selJid=window._equip_mj_pjTab;
+
+  // Barre d'onglets
+  var tabs=joueurs.map(function(j){
+    var actif=j.jid===selJid;
+    return '<button onclick="equip_mj_selectPjTab(\''+j.jid+'\')" style="font-family:inherit;font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;border:1px solid '+(actif?'var(--rouge)':'var(--bord2)')+';background:'+(actif?'var(--rouge)':'transparent')+';color:'+(actif?'white':'var(--txt2)')+';white-space:nowrap;">'+j.nom+' <span style="font-size:9px;opacity:.7;">'+j.items.length+'</span></button>';
+  }).join('');
+
+  // Items du joueur sélectionné
+  var selJoueur=joueurs.find(function(j){return j.jid===selJid;});
+  var itemsHtml=selJoueur?selJoueur.items.map(_equip_mj_rendreItemCard).join(''):'';
+
+  return '<div style="display:flex;gap:5px;flex-wrap:wrap;margin-bottom:8px;" id="equip-mj-pj-tabs">'+tabs+'</div>'
+    +'<div id="equip-mj-pj-content">'+itemsHtml+'</div>';
+}
+
+function equip_mj_selectPjTab(jid){
+  window._equip_mj_pjTab=jid;
+  equip_mj_rendreItems(); // re-render complet pour mettre à jour les onglets
 }
 
 window._equip_mj_sections_open={pj:true,boutique:true,reserve:true};
@@ -1923,7 +1970,6 @@ function equip_mj_rendreItems(){
   // Classer chaque item
   var grPJ=[], grBoutique=[], grReserve=[];
   items.forEach(function(item){
-    // Vérifier si dans l'inventaire d'au moins un PJ
     var chezPJ=Object.keys(joueursData).some(function(jid){
       var d=joueursData[jid];
       return d&&d._nom&&(d.inventaire||[]).indexOf(item.id)>=0;
