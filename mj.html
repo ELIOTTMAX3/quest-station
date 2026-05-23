@@ -280,6 +280,35 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .besti-groupe-membres{font-size:11px;color:#5a6a8a;margin-bottom:6px;}
 .besti-img-preview{width:100%;max-height:100px;object-fit:cover;border-radius:5px;margin-bottom:5px;display:none;}
 
+/* ══ JOUEURS — Sous-onglets ══ */
+.pj-stbar{display:flex;gap:6px;margin-bottom:12px;}
+.pj-stbtn{flex:1;background:var(--bg3);border:1px solid var(--bord2);border-radius:8px;color:var(--txt2);font-size:12px;font-weight:600;padding:7px 4px;cursor:pointer;transition:.2s;}
+.pj-stbtn.on{background:var(--rouge);border-color:var(--rouge);color:#fff;}
+/* ══ ÉTATS ══ */
+.etat-card{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;margin-bottom:8px;overflow:hidden;}
+.etat-card-hd{display:flex;align-items:center;gap:8px;padding:10px 12px;}
+.etat-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;}
+.etat-badge-type{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;letter-spacing:.04em;}
+.etat-badge-type.buff{background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.35);color:#4ade80;}
+.etat-badge-type.debuff{background:rgba(239,68,68,.15);border:1px solid rgba(239,68,68,.35);color:#ef4444;}
+.etat-badge-type.neutre{background:rgba(148,163,184,.12);border:1px solid rgba(148,163,184,.3);color:#94a3b8;}
+.etat-desc{font-size:12px;color:var(--txt2);padding:0 12px 8px;line-height:1.6;}
+.etat-effets{padding:0 12px 6px;}
+.etat-effet-item{font-size:11px;color:var(--txt2);padding:2px 0 2px 10px;border-left:2px solid;margin-bottom:3px;line-height:1.5;}
+.etat-pj-row{display:flex;flex-wrap:wrap;gap:6px;padding:8px 12px;border-top:1px solid var(--bord);align-items:center;}
+.etat-pj-lbl{font-size:10px;color:var(--txt3);font-weight:700;text-transform:uppercase;letter-spacing:.06em;margin-right:2px;}
+.etat-pj-chk{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--txt2);cursor:pointer;background:var(--bg3);padding:3px 9px;border-radius:6px;border:1px solid var(--bord2);transition:.15s;user-select:none;}
+.etat-pj-chk input{accent-color:var(--rouge);pointer-events:none;}
+.etat-pj-chk.on{background:rgba(217,119,6,.13);border-color:rgba(217,119,6,.4);color:var(--or);}
+/* Formulaire état */
+.etat-form{background:var(--bg2);border:1px solid var(--bord2);border-radius:10px;padding:1rem;margin-bottom:12px;}
+.etat-form-lbl{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:4px;margin-top:8px;}
+.etat-form-lbl:first-child{margin-top:0;}
+.etat-form input,.etat-form textarea,.etat-form select{width:100%;background:var(--bg3);border:1px solid var(--bord2);border-radius:6px;color:var(--txt);font-size:12px;padding:7px 9px;font-family:inherit;}
+.etat-form textarea{resize:vertical;min-height:56px;}
+.etat-ef-row{display:flex;gap:6px;margin-bottom:4px;}
+.etat-ef-row input{flex:1;}
+.etat-ef-del{background:rgba(185,28,28,.2);border:1px solid rgba(185,28,28,.35);border-radius:5px;color:#fca5a5;padding:0 9px;cursor:pointer;font-size:16px;line-height:1;}
 /* ══ JOUEURS — Refonte ══ */
 .pj-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 @media(max-width:620px){.pj-grid{grid-template-columns:1fr;}}
@@ -440,7 +469,18 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
     <!-- Onglet Joueurs -->
     <div id="pt-joueurs">
-      <div id="panel-joueurs"><p style="font-size:12px;color:var(--txt3);">En attente de joueurs…</p></div>
+      <div class="pj-stbar">
+        <button class="pj-stbtn on" onclick="joueursSousOnglet('joueurs',this)">👥 Joueurs</button>
+        <button class="pj-stbtn" onclick="joueursSousOnglet('etats',this)">✨ États</button>
+      </div>
+      <div id="pst-joueurs">
+        <div id="panel-joueurs"><p style="font-size:12px;color:var(--txt3);">En attente de joueurs…</p></div>
+      </div>
+      <div id="pst-etats" style="display:none;">
+        <button class="btn ok" style="width:100%;margin-bottom:10px;" onclick="etatCreer()">+ Créer un état</button>
+        <div id="etat-form-wrap" style="display:none;"></div>
+        <div id="etats-list"><p style="font-size:12px;color:var(--txt3);">Aucun état créé.</p></div>
+      </div>
     </div>
 
     <!-- Onglet Combat -->
@@ -3606,6 +3646,210 @@ function besti_resetListeners(){
   if(_besti_groupes_unsub){_besti_groupes_unsub();_besti_groupes_unsub=null;}
   if(_besti_images_unsub){_besti_images_unsub();_besti_images_unsub=null;}
   _besti_homebrew=[];_besti_groupes=[];_besti_images={};
+  etatResetListeners();
+}
+
+// ══════════════════════════════════════════
+// ÉTATS / BUFFS / DEBUFFS
+// ══════════════════════════════════════════
+var _etatsData={};
+var _etats_unsub=null;
+var _etat_edit_id=null;
+
+function joueursSousOnglet(name,btn){
+  ['joueurs','etats'].forEach(function(n){var e=el('pst-'+n);if(e)e.style.display='none';});
+  document.querySelectorAll('.pj-stbtn').forEach(function(b){b.classList.remove('on');});
+  var t=el('pst-'+name);if(t)t.style.display='';
+  if(btn)btn.classList.add('on');
+  if(name==='etats'&&campagneActive)etatInitListener();
+}
+
+function etatInitListener(){
+  if(_etats_unsub||!db||!campagneActive)return;
+  _etats_unsub=db.collection('parties').doc(campagneActive.id).collection('etats').onSnapshot(function(qs){
+    _etatsData={};
+    qs.forEach(function(d){_etatsData[d.id]=Object.assign({id:d.id},d.data());});
+    etatRendreList();
+  });
+}
+
+function etatResetListeners(){
+  if(_etats_unsub){_etats_unsub();_etats_unsub=null;}
+  _etatsData={};_etat_edit_id=null;
+  var fw=el('etat-form-wrap');if(fw)fw.style.display='none';
+}
+
+function etatRendreList(){
+  var cont=el('etats-list');if(!cont)return;
+  var ids=Object.keys(_etatsData);
+  if(!ids.length){cont.innerHTML='<p style="font-size:12px;color:var(--txt3);">Aucun état créé. Clique sur « + Créer un état » pour commencer.</p>';return;}
+  cont.innerHTML=ids.map(function(id){return etatRendreCard(_etatsData[id]);}).join('');
+}
+
+function etatRendreCard(e){
+  var typeLabel={buff:'Buff',debuff:'Debuff',neutre:'Neutre'}[e.type]||'Neutre';
+  var col=e.couleur||'#94a3b8';
+  var effetsH=(e.effets&&e.effets.length)
+    ?'<div class="etat-effets">'+e.effets.map(function(ef){
+      return'<div class="etat-effet-item" style="border-color:'+col+'">'+besti_esc(ef)+'</div>';
+    }).join('')+'</div>':'';
+  var pjIds=e.pjIds||[];
+  var pjKeys=Object.keys(joueursData);
+  var pjH='<div class="etat-pj-row">'
+    +(pjKeys.length?'<span class="etat-pj-lbl">PJs :</span>':'<span style="font-size:11px;color:var(--txt3);">Aucun joueur connecté</span>')
+    +pjKeys.map(function(jid){
+      var d=joueursData[jid]||{};
+      var on=pjIds.indexOf(jid)>=0;
+      return'<label class="etat-pj-chk'+(on?' on':'')+'" onclick="etatTogglePJ(\''+e.id+'\',\''+jid+'\')">'
+        +'<input type="checkbox"'+(on?' checked':'')+'>'+besti_esc(d._nom||jid)+'</label>';
+    }).join('')+'</div>';
+  return'<div class="etat-card" id="etat-card-'+e.id+'">'
+    +'<div class="etat-card-hd">'
+    +'<div class="etat-dot" style="background:'+col+'"></div>'
+    +'<span style="flex:1;font-size:13px;font-weight:700;color:var(--txt);">'+besti_esc(e.nom||'Sans nom')+'</span>'
+    +'<span class="etat-badge-type '+besti_esc(e.type||'neutre')+'">'+typeLabel+'</span>'
+    +'<button class="btn" style="font-size:11px;padding:3px 8px;margin-left:6px;" onclick="etatEditer(\''+e.id+'\')">✏️</button>'
+    +'<button class="btn danger" style="font-size:11px;padding:3px 8px;" onclick="etatSupprimer(\''+e.id+'\')">🗑</button>'
+    +'</div>'
+    +(e.description?'<p class="etat-desc">'+besti_esc(e.description)+'</p>':'')
+    +effetsH+pjH+'</div>';
+}
+
+function etatCreer(){
+  _etat_edit_id=null;
+  etatRendreForm({});
+}
+function etatEditer(id){
+  _etat_edit_id=id;
+  etatRendreForm(_etatsData[id]||{});
+}
+
+var ETAT_COLORS=['#4ade80','#60a5fa','#f97316','#ef4444','#a78bfa','#facc15','#94a3b8','#f472b6'];
+
+function etatRendreForm(e){
+  var wrap=el('etat-form-wrap');if(!wrap)return;
+  wrap.style.display='';
+  var effets=(e.effets&&e.effets.length)?e.effets:[''];
+  var curCol=e.couleur||'#94a3b8';
+  wrap.innerHTML='<div class="etat-form">'
+    +'<p style="font-size:13px;font-weight:700;color:var(--txt);margin-bottom:10px;">'+(_etat_edit_id?'Modifier l\'état':'Créer un état')+'</p>'
+    +'<label class="etat-form-lbl">Nom</label>'
+    +'<input id="ef-nom" value="'+besti_esc(e.nom||'')+'" placeholder="ex : Béni, Empoisonné…" style="margin-bottom:8px;">'
+    +'<label class="etat-form-lbl">Type</label>'
+    +'<select id="ef-type" style="margin-bottom:8px;">'
+    +'<option value="buff"'+(e.type==='buff'?' selected':'')+'>✅ Buff</option>'
+    +'<option value="debuff"'+(e.type==='debuff'?' selected':'')+'>❌ Debuff</option>'
+    +'<option value="neutre"'+((!e.type||e.type==='neutre')?' selected':'')+'>⚪ Neutre</option>'
+    +'</select>'
+    +'<label class="etat-form-lbl">Couleur</label>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center;" id="ef-cols">'
+    +ETAT_COLORS.map(function(c){
+      return'<div onclick="etatSelCol(this,\''+c+'\')" data-col="'+c+'" style="width:22px;height:22px;border-radius:50%;background:'+c+';cursor:pointer;border:3px solid '+(curCol===c?'#fff':'transparent')+';flex-shrink:0;"></div>';
+    }).join('')
+    +'<input type="color" id="ef-col-custom" value="'+curCol+'" style="width:24px;height:24px;padding:0;border:none;cursor:pointer;background:none;" title="Couleur personnalisée" oninput="etatSyncCustomCol(this)">'
+    +'</div>'
+    +'<label class="etat-form-lbl">Description</label>'
+    +'<textarea id="ef-desc" placeholder="Décris l\'état, son contexte narratif…" style="margin-bottom:8px;">'+besti_esc(e.description||'')+'</textarea>'
+    +'<label class="etat-form-lbl">Effets</label>'
+    +'<div id="ef-effets-list">'+effets.map(function(ef,i){return etatEffetRow(ef,i);}).join('')+'</div>'
+    +'<button class="btn" style="font-size:11px;padding:4px 10px;margin-bottom:12px;" onclick="etatAjouterEffet()">+ Ajouter un effet</button>'
+    +'<div style="display:flex;gap:8px;">'
+    +'<button class="btn ok" style="flex:1;padding:8px;" onclick="etatSauvegarder()">💾 Sauvegarder</button>'
+    +'<button class="btn" style="padding:8px 14px;" onclick="etatAnnulerForm()">Annuler</button>'
+    +'</div></div>';
+  wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+
+function etatEffetRow(val,i){
+  return'<div class="etat-ef-row" id="ef-ef-row-'+i+'">'
+    +'<input value="'+besti_esc(val||'')+'" placeholder="ex : Avantage aux jets d\'attaque" id="ef-ef-'+i+'">'
+    +'<button class="etat-ef-del" onclick="etatRetirerEffet('+i+')">−</button>'
+    +'</div>';
+}
+
+function etatAjouterEffet(){
+  var list=el('ef-effets-list');if(!list)return;
+  var i=list.querySelectorAll('.etat-ef-row').length;
+  var div=document.createElement('div');
+  div.innerHTML=etatEffetRow('',i);
+  list.appendChild(div.firstChild);
+  var inp=el('ef-ef-'+i);if(inp)inp.focus();
+}
+
+function etatRetirerEffet(i){var r=el('ef-ef-row-'+i);if(r)r.remove();}
+
+function etatSelCol(div,col){
+  document.querySelectorAll('#ef-cols [data-col]').forEach(function(d){d.style.borderColor='transparent';});
+  div.style.borderColor='#fff';
+  var cc=el('ef-col-custom');if(cc)cc.value=col;
+}
+
+function etatSyncCustomCol(inp){
+  document.querySelectorAll('#ef-cols [data-col]').forEach(function(d){d.style.borderColor='transparent';});
+}
+
+function etatAnnulerForm(){
+  var wrap=el('etat-form-wrap');if(wrap)wrap.style.display='none';
+  _etat_edit_id=null;
+}
+
+function etatSauvegarder(){
+  if(!db||!campagneActive)return;
+  var nom=(el('ef-nom')||{}).value||'';
+  if(!nom.trim()){toast('⚠ Donne un nom à l\'état.');return;}
+  var type=(el('ef-type')||{}).value||'neutre';
+  var desc=(el('ef-desc')||{}).value||'';
+  var col=(el('ef-col-custom')||{}).value||'#94a3b8';
+  var effets=[];
+  el('ef-effets-list').querySelectorAll('input').forEach(function(inp){var v=inp.value.trim();if(v)effets.push(v);});
+  var data={nom:nom.trim(),type:type,couleur:col,description:desc.trim(),effets:effets};
+  var ref;
+  if(_etat_edit_id){
+    ref=db.collection('parties').doc(campagneActive.id).collection('etats').doc(_etat_edit_id);
+    // Conserver les pjIds existants
+    if(_etatsData[_etat_edit_id])data.pjIds=_etatsData[_etat_edit_id].pjIds||[];
+  } else {
+    ref=db.collection('parties').doc(campagneActive.id).collection('etats').doc();
+    data.createdAt=firebase.firestore.FieldValue.serverTimestamp();
+    data.pjIds=[];
+  }
+  ref.set(data,{merge:true}).then(function(){
+    toast('✅ État sauvegardé !');
+    etatAnnulerForm();
+    setTimeout(etatSyncCampDoc,600);
+  }).catch(function(e){toast('Erreur : '+e.message);});
+}
+
+function etatSupprimer(id){
+  if(!db||!campagneActive||!confirm('Supprimer cet état ?'))return;
+  db.collection('parties').doc(campagneActive.id).collection('etats').doc(id)
+    .delete().then(function(){toast('🗑 État supprimé');etatSyncCampDoc();}).catch(function(){});
+}
+
+function etatTogglePJ(etatId,jid){
+  if(!db||!campagneActive)return;
+  var e=_etatsData[etatId];if(!e)return;
+  var pjIds=Array.from(e.pjIds||[]);
+  var idx=pjIds.indexOf(jid);
+  if(idx>=0)pjIds.splice(idx,1);else pjIds.push(jid);
+  _etatsData[etatId].pjIds=pjIds;
+  etatRendreList();
+  db.collection('parties').doc(campagneActive.id).collection('etats').doc(etatId)
+    .update({pjIds:pjIds}).then(etatSyncCampDoc).catch(function(){});
+}
+
+function etatSyncCampDoc(){
+  // Construit un map {joueurId: [{id,nom,type,couleur,description,effets}]} écrit dans le doc campagne
+  // pour que les PJs puissent le lire via leur listener existant
+  if(!db||!campagneActive)return;
+  var parPJ={};
+  Object.values(_etatsData).forEach(function(e){
+    (e.pjIds||[]).forEach(function(jid){
+      if(!parPJ[jid])parPJ[jid]=[];
+      parPJ[jid].push({id:e.id,nom:e.nom,type:e.type,couleur:e.couleur||'#94a3b8',description:e.description||'',effets:e.effets||[]});
+    });
+  });
+  db.collection('parties').doc(campagneActive.id).set({etats:parPJ},{merge:true}).catch(function(){});
 }
 
 // ── Images monstres ─────────────────────────────────

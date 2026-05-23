@@ -185,6 +185,10 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .eq-inp::placeholder{color:var(--txt3);}
 .eq-del{background:none;border:none;cursor:pointer;color:var(--txt3);font-size:15px;line-height:1;padding:3px 5px;border-radius:4px;display:block;}
 .eq-del:hover{color:#fca5a5;background:rgba(185,28,28,.2);}
+/* Valeurs effectives (bonus équipement sur armes) */
+.eq-eff-row td{padding:0 4px 5px;border-top:none!important;}
+.eq-eff-val{font-size:11px;font-weight:800;color:var(--or);display:inline-flex;align-items:center;gap:3px;}
+.eq-eff-pill{font-size:9px;font-weight:700;background:rgba(167,139,250,.18);border:1px solid rgba(167,139,250,.35);color:#c4b5fd;border-radius:4px;padding:1px 5px;letter-spacing:.03em;}
 /* ── RÈGLES ÉQUIPEMENTS ──────────────────────────────── */
 .eq-sub-tbar,.rq-subtabs{display:flex;gap:6px;margin-bottom:1rem;flex-wrap:wrap;}
 .eq-sub-btn,.rq-stab{font-family:inherit;font-size:12px;font-weight:600;padding:6px 14px;border-radius:6px;cursor:pointer;border:1px solid var(--bord2);background:var(--bg2);color:var(--txt2);transition:background .12s;}
@@ -234,6 +238,23 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 /* ── Conditions de campagne ──────────────────────────── */
 .r-cond-badges{display:flex;gap:4px;flex-wrap:wrap;margin-top:5px;}
 .r-cond-bdg{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:rgba(220,38,38,.55);color:#fecaca;border:1px solid rgba(220,38,38,.4);}
+/* ── États MJ (buffs/debuffs) ─────────────────────────── */
+.rc-etats-wrap{margin-top:.75rem;}
+.rc-etat-bdg{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:999px;border:1px solid;cursor:pointer;transition:.15s;margin:3px 3px 3px 0;}
+.rc-etat-bdg:hover{filter:brightness(1.2);}
+.rc-etat-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;}
+/* Modal état PJ */
+#pj-etat-modal{position:fixed;inset:0;background:rgba(0,0,0,.72);z-index:1400;display:none;align-items:center;justify-content:center;padding:16px;}
+#pj-etat-modal.open{display:flex;}
+.pj-etat-modal-box{background:var(--bg2);border:1px solid var(--bord2);border-radius:14px;padding:1.25rem;width:100%;max-width:340px;max-height:80vh;overflow-y:auto;}
+.pj-etat-modal-hd{display:flex;align-items:center;gap:8px;margin-bottom:.75rem;}
+.pj-etat-modal-dot{width:12px;height:12px;border-radius:50%;flex-shrink:0;}
+.pj-etat-modal-nom{font-size:15px;font-weight:800;color:var(--txt);flex:1;}
+.pj-etat-modal-type{font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;}
+.pj-etat-modal-desc{font-size:12px;color:var(--txt2);line-height:1.7;margin-bottom:.75rem;}
+.pj-etat-modal-effets-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);margin-bottom:6px;}
+.pj-etat-modal-effet{font-size:12px;color:var(--txt2);padding:4px 0 4px 10px;border-left:2px solid;margin-bottom:3px;line-height:1.5;}
+.pj-etat-modal-close{margin-top:1rem;width:100%;padding:8px;background:var(--bg3);border:1px solid var(--bord2);border-radius:8px;color:var(--txt2);cursor:pointer;font-size:13px;}
 /* ── RÉSUMÉ PERSO — Layout dark redesign ─────────────── */
 .r-section{background:var(--bg2);border:1px solid var(--bord);border-radius:12px;padding:1rem 1.25rem;margin-bottom:.875rem;}
 /* Grille stats 3×2 */
@@ -860,6 +881,11 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <div class="r-section">
         <p class="st">Autres joueurs</p>
         <div id="rc-joueurs"><p style="font-size:12px;color:var(--txt3);">Chargement…</p></div>
+      </div>
+      <!-- ✨ États MJ -->
+      <div class="r-section" id="rc-etats-section" style="display:none;">
+        <p class="st">✨ États actifs</p>
+        <div id="rc-etats-cont" class="rc-etats-wrap"></div>
       </div>
       <!-- 💬 Messages MJ -->
       <div class="r-section" id="rc-msg-section" style="display:none;">
@@ -9302,7 +9328,9 @@ function renderEquipEquipes(){
   }
   emptyMsg.style.display="none";
   table.style.display="";
+  var eb=equip_getBonusArmes();
   equipEquipes.forEach(function(eq,idx){
+    // Ligne saisie
     var tr=document.createElement("tr");
     ["nom","bonus","degats"].forEach(function(field){
       var td=document.createElement("td");
@@ -9312,7 +9340,7 @@ function renderEquipEquipes(){
       inp.value=eq[field]||"";
       inp.placeholder=field==="nom"?"Nom":field==="bonus"?"ex: +5":"ex: 1d8 tranchant";
       (function(i,f){
-        inp.oninput=function(){equipEquipes[i][f]=this.value;sauvegarder();};
+        inp.oninput=function(){equipEquipes[i][f]=this.value;sauvegarder();renderEquipEquipes();};
       })(idx,field);
       td.appendChild(inp);
       tr.appendChild(td);
@@ -9328,6 +9356,33 @@ function renderEquipEquipes(){
     tdDel.appendChild(btnDel);
     tr.appendChild(tdDel);
     tbody.appendChild(tr);
+
+    // Ligne valeurs effectives (si bonus équipement actif)
+    if(eb.attaque||eb.degats){
+      var trEff=document.createElement("tr");
+      trEff.className="eq-eff-row";
+      // Nom — vide
+      trEff.appendChild(document.createElement("td"));
+      // Attaque effective
+      var tdAtk=document.createElement("td");
+      if(eb.attaque){
+        var rawAtk=eq.bonus?parseInt(eq.bonus.replace(/\s/g,''))||0:0;
+        var effAtk=rawAtk+eb.attaque;
+        var sEff=(effAtk>=0?'+':'')+effAtk;
+        var sBonus=(eb.attaque>=0?'+':'')+eb.attaque;
+        tdAtk.innerHTML='<span class="eq-eff-val">'+sEff+' <span class="eq-eff-pill">équip '+sBonus+'</span></span>';
+      }
+      trEff.appendChild(tdAtk);
+      // Dégâts effectifs
+      var tdDmg=document.createElement("td");
+      if(eb.degats){
+        var sD=(eb.degats>=0?'+':'')+eb.degats;
+        tdDmg.innerHTML='<span class="eq-eff-val"><span class="eq-eff-pill">équip '+sD+'</span></span>';
+      }
+      trEff.appendChild(tdDmg);
+      trEff.appendChild(document.createElement("td"));
+      tbody.appendChild(trEff);
+    }
   });
 }
 function ajouterEquip(){
@@ -10088,6 +10143,7 @@ function campQuitter(){
   }
   majAffichageCampagne();
   majConditions([]);
+  majEtatsPJ([]);
 }
 
 function campEcrireJoueur(extra){
@@ -10113,6 +10169,9 @@ function campEcouter(){
     // Conditions adressées à ce joueur
     var conds=(d.conditions&&d.conditions[joueurId])||[];
     majConditions(conds);
+    // États (buffs/debuffs) adressés à ce joueur
+    var etats=(d.etats&&d.etats[joueurId])||[];
+    majEtatsPJ(etats);
     majCombatPJ(d.combat||{actif:false});
     campRendreJoueurs();
     // Infos MJ — onglets lecture seule
@@ -10199,6 +10258,64 @@ function majConditions(conds){
   if(!conds||!conds.length){cont.style.display="none";cont.innerHTML="";return;}
   cont.innerHTML=conds.map(function(c){return '<span class="r-cond-bdg">'+c+'</span>';}).join("");
   cont.style.display="flex";
+}
+
+// ── États MJ (buffs / debuffs / neutres) ───────────────
+function majEtatsPJ(etats){
+  var sec=el('rc-etats-section');
+  var cont=el('rc-etats-cont');
+  if(!sec||!cont)return;
+  if(!etats||!etats.length){sec.style.display='none';cont.innerHTML='';return;}
+  var typeInfo={buff:{label:'Buff',bg:'rgba(74,222,128,.12)',bord:'rgba(74,222,128,.35)',col:'#4ade80'},
+    debuff:{label:'Debuff',bg:'rgba(239,68,68,.12)',bord:'rgba(239,68,68,.35)',col:'#ef4444'},
+    neutre:{label:'Neutre',bg:'rgba(148,163,184,.1)',bord:'rgba(148,163,184,.3)',col:'#94a3b8'}};
+  cont.innerHTML=etats.map(function(e){
+    var info=typeInfo[e.type]||typeInfo.neutre;
+    var col=e.couleur||info.col;
+    var encoded=encodeURIComponent(JSON.stringify(e));
+    return'<button class="rc-etat-bdg" '
+      +'style="background:'+info.bg+';border-color:'+info.bord+';color:'+col+';" '
+      +'onclick="pjVoirEtat(\''+encoded.replace(/'/g,'%27')+'\')">'
+      +'<span class="rc-etat-dot" style="background:'+col+'"></span>'
+      +escHtml(e.nom||'État')
+      +'</button>';
+  }).join('');
+  sec.style.display='';
+}
+
+function pjVoirEtat(encodedJson){
+  var e;
+  try{e=JSON.parse(decodeURIComponent(encodedJson));}catch(ex){return;}
+  var typeInfo={buff:{label:'✅ Buff',bg:'rgba(74,222,128,.15)',bord:'rgba(74,222,128,.35)',col:'#4ade80'},
+    debuff:{label:'❌ Debuff',bg:'rgba(239,68,68,.15)',bord:'rgba(239,68,68,.35)',col:'#ef4444'},
+    neutre:{label:'⚪ Neutre',bg:'rgba(148,163,184,.1)',bord:'rgba(148,163,184,.3)',col:'#94a3b8'}};
+  var info=typeInfo[e.type]||typeInfo.neutre;
+  var col=e.couleur||info.col;
+  var dot=el('pj-etat-modal-dot');if(dot)dot.style.background=col;
+  var nom=el('pj-etat-modal-nom');if(nom)nom.textContent=e.nom||'État';
+  var typ=el('pj-etat-modal-type');
+  if(typ){typ.textContent=info.label;typ.style.background=info.bg;typ.style.border='1px solid '+info.bord;typ.style.color=col;}
+  var desc=el('pj-etat-modal-desc');
+  if(desc){if(e.description){desc.textContent=e.description;desc.style.display='';}else desc.style.display='none';}
+  var ew=el('pj-etat-modal-effets-wrap');
+  var ec=el('pj-etat-modal-effets');
+  if(ew&&ec){
+    if(e.effets&&e.effets.length){
+      ec.innerHTML=e.effets.map(function(ef){
+        return'<div class="pj-etat-modal-effet" style="border-color:'+col+'">'+escHtml(ef)+'</div>';
+      }).join('');
+      ew.style.display='';
+    } else ew.style.display='none';
+  }
+  var modal=el('pj-etat-modal');if(modal)modal.classList.add('open');
+}
+
+function pjFermerEtatModal(){
+  var modal=el('pj-etat-modal');if(modal)modal.classList.remove('open');
+}
+
+function escHtml(s){
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
 // === NOTES PARTAGEES — onglets ===
@@ -10636,6 +10753,28 @@ function equip_calcBonus(){
   window._equip_bonus_totaux=tot;
 }
 
+// Retourne {attaque:N, degats:N} — somme de tous les bonus d'attaque/dégâts des objets équipés
+// Prend en compte les deux systèmes (item.bonus[{cible,valeur}] ET item.effets.bonusAttaque/bonusDegats)
+function equip_getBonusArmes(){
+  var bonusAtk=0,bonusDmg=0;
+  // Système 1 : item.bonus array → _equip_bonus_totaux
+  var tot=window._equip_bonus_totaux||{};
+  // Noms de cible acceptés pour l'attaque
+  ['attaque','attaque arme','attaque_arme','bonus attaque'].forEach(function(k){bonusAtk+=tot[k]||0;});
+  // Noms de cible acceptés pour les dégâts
+  ['dégâts','degats','dégats','degats arme','dégâts arme','bonus degats','bonus dégâts'].forEach(function(k){bonusDmg+=tot[k]||0;});
+  // Système 2 : item.effets.bonusAttaque / bonusDegats (legacy)
+  var equipe=window._equip_equipe||{};
+  var items=window._equip_items||{};
+  _EQUIP_SLOTS.forEach(function(s){
+    var id=equipe[s];if(!id)return;
+    var item=items[id];if(!item||!item.effets)return;
+    bonusAtk+=item.effets.bonusAttaque||0;
+    bonusDmg+=item.effets.bonusDegats||0;
+  });
+  return{attaque:bonusAtk,degats:bonusDmg};
+}
+
 function equip_rendreAll(){
   equip_calcBonus();
   equip_rendreSlots();
@@ -10643,6 +10782,8 @@ function equip_rendreAll(){
   equip_rendreFooter();
   equip_rendreActif();
   equip_rendreCombat();
+  // Mettre à jour le tableau d'armes (bonus d'attaque/dégâts)
+  if(typeof renderEquipEquipes==='function')renderEquipEquipes();
   // Propager les bonus sur les stats du résumé
   if(typeof rafraichirResume==='function')rafraichirResume();
   if(typeof rendreHexagone==='function')rendreHexagone();
@@ -11958,15 +12099,34 @@ function cbtToggleAttaque(e){
   if(!equipEquipes||!equipEquipes.length){
     html='<p style="font-size:12px;color:var(--txt3);padding:4px;">Aucune arme équipée.<br>Ajoute des armes dans la fiche → Equipement.</p>';
   }else{
+    var eb=equip_getBonusArmes();
     html=equipEquipes.map(function(w,i){
+      var atkDisp=w.bonus||'';
+      var atkCol='var(--or)';
+      var atkTag='';
+      if(eb.attaque){
+        var rawA=parseInt((w.bonus||'0').replace(/[^0-9\-]/g,''))||0;
+        var effA=rawA+eb.attaque;
+        atkDisp=(effA>=0?'+':'')+effA;
+        atkCol='#c4b5fd';
+        atkTag='<span style="font-size:9px;color:#a78bfa;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);border-radius:3px;padding:0 4px;margin-left:4px;">équip '+(eb.attaque>=0?'+':'')+eb.attaque+'</span>';
+      }
+      var dmgDisp=w.degats||'';
+      var dmgTag='';
+      if(eb.degats){
+        var sD=(eb.degats>=0?'+':'')+eb.degats;
+        dmgTag='<span style="color:#c4b5fd;font-weight:700;"> '+sD+'</span>'+'<span style="font-size:9px;color:#a78bfa;background:rgba(167,139,250,.15);border:1px solid rgba(167,139,250,.3);border-radius:3px;padding:0 4px;margin-left:3px;">équip</span>';
+      }
+      var atkFull=atkDisp+(eb.attaque?' (équip '+(eb.attaque>=0?'+':'')+eb.attaque+')':'')+' ';
+      var dmgFull=dmgDisp+(eb.degats?' +'+(eb.degats>=0?'+':'')+eb.degats+' équip.':'')+' ';
       return '<div class="cbt-weapon-item" onclick="cbtToggleWeapon('+i+',event)">'+
         '<div style="display:flex;justify-content:space-between;align-items:center;">'+
         '<span style="font-weight:700;font-size:13px;">'+(w.nom||'Arme')+'</span>'+
-        '<span style="font-size:12px;color:var(--or);">'+(w.bonus||'')+'</span>'+
+        '<span style="font-size:12px;color:'+atkCol+';">'+(atkDisp+atkTag)+'</span>'+
         '</div>'+
-        '<div style="font-size:12px;color:var(--txt2);margin-top:2px;">'+(w.degats||'')+'</div>'+
+        '<div style="font-size:12px;color:var(--txt2);margin-top:2px;">'+(dmgDisp+dmgTag)+'</div>'+
         '<div class="cbt-weapon-desc" id="cbt-wd-'+i+'">'+
-        '🗡 '+( w.nom||'?')+' &nbsp;•&nbsp; Attaque : '+(w.bonus||'—')+'&nbsp;•&nbsp; Dégâts : '+(w.degats||'—')+
+        '🗡 '+(w.nom||'?')+' &nbsp;•&nbsp; Attaque : '+atkFull+'&nbsp;•&nbsp; Dégâts : '+dmgFull+
         '</div></div>';
     }).join('');
   }
@@ -12433,6 +12593,23 @@ function conn_toggleSec(sid){
       <button id="modal-achat-ok" class="btn ok" style="flex:1;" onclick="equip_confirmerAchat()">Confirmer</button>
       <button class="btn" style="flex:1;" onclick="el('modal-achat').style.display='none';_achatEnCours=null;">Annuler</button>
     </div>
+  </div>
+</div>
+
+<!-- Modal État PJ -->
+<div id="pj-etat-modal" onclick="if(event.target===this)pjFermerEtatModal()">
+  <div class="pj-etat-modal-box" id="pj-etat-modal-box">
+    <div class="pj-etat-modal-hd">
+      <div class="pj-etat-modal-dot" id="pj-etat-modal-dot"></div>
+      <span class="pj-etat-modal-nom" id="pj-etat-modal-nom">—</span>
+      <span class="pj-etat-modal-type" id="pj-etat-modal-type"></span>
+    </div>
+    <p class="pj-etat-modal-desc" id="pj-etat-modal-desc" style="display:none;"></p>
+    <div id="pj-etat-modal-effets-wrap" style="display:none;">
+      <p class="pj-etat-modal-effets-title">Effets</p>
+      <div id="pj-etat-modal-effets"></div>
+    </div>
+    <button class="pj-etat-modal-close" onclick="pjFermerEtatModal()">Fermer</button>
   </div>
 </div>
 </body>
