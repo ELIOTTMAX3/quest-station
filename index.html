@@ -424,10 +424,16 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .equip-panel{background:var(--bg3);border:1px solid var(--bord2);border-radius:10px;padding:12px;margin-top:10px;}
 .equip-panel-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;}
 .equip-panel-title{font-size:13px;font-weight:700;color:var(--txt);}
-.boutique-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));gap:8px;}
+.equip-quick-slot{flex:1;min-height:62px;border-radius:10px;border:1.5px dashed #3d5a8a;background:#1e2d45;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:inherit;transition:all .15s;padding:4px;}
+.equip-quick-slot:hover{border-color:var(--or);background:rgba(201,162,39,.1);}
+.equip-quick-slot.occupied{border:1.5px solid var(--or);background:rgba(201,162,39,.12);}
+.equip-quick-ico{font-size:20px;line-height:1;}
+.equip-quick-lbl{font-size:9px;font-weight:600;color:#9a8a6a;text-transform:uppercase;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70px;text-align:center;}
+.equip-quick-slot.occupied .equip-quick-lbl{color:#e8dcc8;}
+.boutique-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;}
 .boutique-card{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:3px;}
 .boutique-card-ico{font-size:26px;text-align:center;margin-bottom:3px;}
-.boutique-card-nom{font-size:12px;font-weight:700;color:var(--txt);}
+.boutique-card-nom{font-size:12px;font-weight:700;color:var(--txt);word-break:break-word;white-space:normal;}
 .boutique-card-rar{font-size:10px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(0,0,0,.35);display:inline-block;width:fit-content;}
 .boutique-card-slot{font-size:10px;color:var(--txt3);}
 .boutique-card-desc{font-size:11px;color:var(--txt2);line-height:1.45;margin-top:3px;}
@@ -6250,6 +6256,24 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         </div>
       </div>
 
+      <!-- Inventaire rapide : 3 emplacements -->
+      <div style="margin:10px 0 6px;">
+        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);margin-bottom:6px;">Inventaire rapide</div>
+        <div style="display:flex;gap:6px;">
+          <button class="equip-quick-slot" id="eqs-1" onclick="equip_clickQuickSlot(1)">
+            <span class="equip-quick-ico" id="eqs-1-ico">🎒</span>
+            <span class="equip-quick-lbl" id="eqs-1-lbl">Objet 1</span>
+          </button>
+          <button class="equip-quick-slot" id="eqs-2" onclick="equip_clickQuickSlot(2)">
+            <span class="equip-quick-ico" id="eqs-2-ico">🎒</span>
+            <span class="equip-quick-lbl" id="eqs-2-lbl">Objet 2</span>
+          </button>
+          <button class="equip-quick-slot" id="eqs-3" onclick="equip_clickQuickSlot(3)">
+            <span class="equip-quick-ico" id="eqs-3-ico">🎒</span>
+            <span class="equip-quick-lbl" id="eqs-3-lbl">Objet 3</span>
+          </button>
+        </div>
+      </div>
       <!-- Footer : slots occupés + bonus actifs -->
       <div class="equip-footer" id="equip-footer">
         <span>0/7 slots</span>
@@ -10290,16 +10314,27 @@ function rqRendreEtatsCamp(container){
   var c=container||(window._rqPages&&window._rqPages['etats'])||el('rq-etats');
   if(!c)return;
   var etats=window._camp_allEtats||[];
-  if(!etats.length){
-    c.innerHTML='<div style="padding:16px;font-size:13px;color:var(--txt3);text-align:center;">'
-      +'<p>Aucun état de campagne actif.<br>Le MJ peut en créer depuis l\'onglet Règles.</p>'
-      +'</div>';
-    return;
-  }
+  // Sort alphabetically
+  etats=etats.slice().sort(function(a,b){return(a.nom||'').localeCompare(b.nom||'');});
+  // Filter
+  var f=c._etatFilter||'';
+  if(f) etats=etats.filter(function(e){return(e.type||'neutre')===f;});
   var typeInfo={buff:{label:'Buff',bg:'rgba(74,222,128,.12)',bord:'rgba(74,222,128,.3)',col:'#4ade80'},
     debuff:{label:'Debuff',bg:'rgba(239,68,68,.12)',bord:'rgba(239,68,68,.3)',col:'#ef4444'},
     neutre:{label:'Neutre',bg:'rgba(148,163,184,.1)',bord:'rgba(148,163,184,.25)',col:'#94a3b8'}};
-  c.innerHTML=etats.map(function(e){
+  var filterBar='<div style="display:flex;gap:4px;margin-bottom:10px;">'
+    +'<button class="pj-etats-fb'+(f===''?' on':'')+'" onclick="(function(btn){var c=document.getElementById(\'rq-etats\');if(c){c._etatFilter=\'\';rqRendreEtatsCamp(c);}})(this)" style="font-family:inherit;font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;border:1px solid var(--bord2);background:'+(f===''?'var(--rouge)':'var(--bg3)')+';color:'+(f===''?'#fff':'var(--txt2)')+';cursor:pointer;">Tous</button>'
+    +'<button onclick="(function(){var c=document.getElementById(\'rq-etats\');if(c){c._etatFilter=\'buff\';rqRendreEtatsCamp(c);}})()" style="font-family:inherit;font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;border:1px solid '+(f==='buff'?'rgba(74,222,128,.5)':'var(--bord2)')+';background:'+(f==='buff'?'rgba(74,222,128,.15)':'var(--bg3)')+';color:'+(f==='buff'?'#4ade80':'var(--txt2)')+';cursor:pointer;">Buff</button>'
+    +'<button onclick="(function(){var c=document.getElementById(\'rq-etats\');if(c){c._etatFilter=\'debuff\';rqRendreEtatsCamp(c);}})()" style="font-family:inherit;font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;border:1px solid '+(f==='debuff'?'rgba(239,68,68,.5)':'var(--bord2)')+';background:'+(f==='debuff'?'rgba(239,68,68,.15)':'var(--bg3)')+';color:'+(f==='debuff'?'#ef4444':'var(--txt2)')+';cursor:pointer;">Debuff</button>'
+    +'<button onclick="(function(){var c=document.getElementById(\'rq-etats\');if(c){c._etatFilter=\'neutre\';rqRendreEtatsCamp(c);}})()" style="font-family:inherit;font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;border:1px solid '+(f==='neutre'?'rgba(148,163,184,.4)':'var(--bord2)')+';background:'+(f==='neutre'?'rgba(148,163,184,.15)':'var(--bg3)')+';color:'+(f==='neutre'?'#94a3b8':'var(--txt2)')+';cursor:pointer;">Neutre</button>'
+    +'</div>';
+  if(!etats.length){
+    c.innerHTML=filterBar+'<div style="padding:16px;font-size:13px;color:var(--txt3);text-align:center;">'
+      +'<p>'+(f?'Aucun état de type '+f+'.':'Aucun état de campagne actif.<br>Le MJ peut en créer depuis l\'onglet Règles.')+'</p>'
+      +'</div>';
+    return;
+  }
+  c.innerHTML=filterBar+etats.map(function(e){
     var info=typeInfo[e.type]||typeInfo.neutre;
     var col=e.couleur||info.col;
     return'<div style="background:var(--bg2);border:1px solid var(--bord);border-left:3px solid '+col+';border-radius:10px;padding:12px 14px;margin-bottom:8px;">'
@@ -10753,6 +10788,7 @@ function equip_init(){
       }
       _EQUIP_SLOTS.forEach(function(s){if(equipe[s]===undefined)equipe[s]=null;});
       window._equip_equipe=equipe;
+      if(d._equipQuick&&Array.isArray(d._equipQuick))_equip_quick=d._equipQuick.slice(0,3).concat([null,null,null]).slice(0,3);
       equip_rendreAll();
     },function(e){console.error("equip joueur listener",e);});
 }
@@ -10799,6 +10835,7 @@ function equip_getBonusArmes(){
 function equip_rendreAll(){
   equip_calcBonus();
   equip_rendreSlots();
+  equip_rendreQuickSlots();
   equip_rendreInventaire();
   equip_rendreFooter();
   equip_rendreActif();
@@ -11076,6 +11113,77 @@ function equip_toggleActifDesc(descId,row){
   d.style.display=open?"none":"";
   var chev=row.querySelector('.equip-actif-chevron');
   if(chev)chev.style.transform=open?"":"rotate(90deg)";
+}
+
+// ── Inventaire rapide (3 emplacements) ─────────────────────
+var _equip_quick=[null,null,null]; // [slot1Id, slot2Id, slot3Id]
+function equip_initQuickSlots(){
+  var saved=window._char_equip_quick;
+  if(saved&&Array.isArray(saved))_equip_quick=saved.slice(0,3).concat([null,null,null]).slice(0,3);
+  equip_rendreQuickSlots();
+}
+function equip_rendreQuickSlots(){
+  [1,2,3].forEach(function(n){
+    var btn=el('eqs-'+n),ico=el('eqs-'+n+'-ico'),lbl=el('eqs-'+n+'-lbl');
+    if(!btn)return;
+    var itemId=_equip_quick[n-1];
+    var item=itemId&&window._equip_items?window._equip_items[itemId]:null;
+    if(item){
+      btn.classList.add('occupied');
+      if(ico)ico.textContent=item.icone||'📦';
+      if(lbl)lbl.textContent=item.nom||itemId;
+    } else {
+      btn.classList.remove('occupied');
+      if(ico)ico.textContent='🎒';
+      if(lbl)lbl.textContent='Objet '+n;
+    }
+  });
+}
+function equip_clickQuickSlot(n){
+  var itemId=_equip_quick[n-1];
+  if(itemId){
+    // Show item detail or unequip
+    var items=window._equip_items||{};
+    var nom=(items[itemId]&&items[itemId].nom)||itemId;
+    if(confirm('Retirer "'+nom+'" de l\'emplacement rapide ?')){
+      _equip_quick[n-1]=null;
+      equip_saveQuickSlots();
+      equip_rendreQuickSlots();
+    }
+    return;
+  }
+  // Pick an inventory item
+  var items=window._equip_items?Object.values(window._equip_items).filter(function(it){
+    return it&&it.id;
+  }):[];
+  if(!items.length){toast('Aucun objet dans l\'inventaire.');return;}
+  var list=items.map(function(it){
+    return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;border-radius:6px;border:1px solid var(--bord);background:var(--bg2);margin-bottom:4px;" onclick="equip_setQuickSlot('+n+',\''+it.id+'\')">'
+      +'<span style="font-size:18px;">'+((it.icone&&it.icone.length<=2)?it.icone:'📦')+'</span>'
+      +'<span style="font-size:12px;color:var(--txt);">'+escHtml(it.nom||it.id)+'</span>'
+      +'</div>';
+  }).join('');
+  var modal=document.createElement('div');
+  modal.id='qs-picker-modal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:600;padding:1rem;';
+  modal.innerHTML='<div style="background:var(--bg2);border:1px solid var(--bord2);border-radius:12px;padding:16px;max-width:340px;width:100%;max-height:80vh;overflow-y:auto;">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">'
+    +'<p style="font-size:13px;font-weight:700;color:var(--txt);">Choisir un objet (slot '+n+')</p>'
+    +'<button onclick="var m=document.getElementById(\'qs-picker-modal\');if(m)m.remove();" style="background:none;border:none;color:var(--txt3);font-size:20px;cursor:pointer;">×</button>'
+    +'</div>'+list+'</div>';
+  document.body.appendChild(modal);
+}
+function equip_setQuickSlot(n,itemId){
+  _equip_quick[n-1]=itemId;
+  equip_saveQuickSlots();
+  equip_rendreQuickSlots();
+  var m=el('qs-picker-modal');if(m)m.remove();
+}
+function equip_saveQuickSlots(){
+  window._char_equip_quick=_equip_quick.slice();
+  if(!db||!joueurId||!campCode)return;
+  db.collection('parties').doc(campCode).collection('joueurs').doc(joueurId)
+    .set({_equipQuick:_equip_quick},{merge:true}).catch(function(){});
 }
 
 function equip_clickSlot(slot){
@@ -11481,6 +11589,7 @@ function _mjrFiltrerSorts(){
     if(cl&&(s.cl||[]).indexOf(cl)<0)return false;
     return true;
   });
+  sorts.sort(function(a,b){if(a.nv!==b.nv)return a.nv-b.nv;return a.n.localeCompare(b.n);});
   list.innerHTML=sorts.length?sorts.map(function(s){
     var col=_ECOLE_COLORS[s.e]||'#94a3b8';
     var nLabel=s.nv===0?'Cantrip':'Niv. '+s.nv;
@@ -11502,6 +11611,151 @@ function _mjrFiltrerSorts(){
       +'</div>'
       +'</div>';
   }).join(''):'<p style="font-size:12px;color:var(--txt3);padding:8px 0;">Aucun sort trouvé.</p>';
+}
+
+// ── Gestion États MJ (dans iframe règles) ──────────────────────
+function _mjrRendreEtats(c){
+  if(!c)return;
+  // Register callback so parent notifies us when data changes
+  if(window.parent&&window.parent!==window) window.parent._etat_iframe_callback=function(){_mjrRenderEtatsList();};
+  // Ensure listener is running
+  if(window.parent&&window.parent.etatInitListener&&window.parent.campagneActive) window.parent.etatInitListener();
+  c.innerHTML=
+    '<div style="padding:4px 0 10px;">'
+    +'<div style="display:flex;gap:6px;align-items:center;margin-bottom:10px;">'
+    +'<button class="btn ok" style="flex:1;padding:8px;" onclick="_mjrEtatCreer()">+ Créer un état</button>'
+    +'</div>'
+    +'<div id="mjr-etat-form-wrap" style="display:none;"></div>'
+    +'<div style="display:flex;gap:4px;margin-bottom:8px;" id="mjr-etats-filters">'
+    +'<button class="mjr-ef-btn on" data-f="" onclick="_mjrEtatFiltrer(this,\'\')">Tous</button>'
+    +'<button class="mjr-ef-btn" data-f="buff" onclick="_mjrEtatFiltrer(this,\'buff\')" style="color:#4ade80;">Buff</button>'
+    +'<button class="mjr-ef-btn" data-f="debuff" onclick="_mjrEtatFiltrer(this,\'debuff\')" style="color:#ef4444;">Debuff</button>'
+    +'<button class="mjr-ef-btn" data-f="neutre" onclick="_mjrEtatFiltrer(this,\'neutre\')" style="color:#94a3b8;">Neutre</button>'
+    +'</div>'
+    +'<div id="mjr-etats-list"></div>'
+    +'</div>';
+  // Inject filter button styles
+  if(!document.getElementById('mjr-ef-style')){
+    var st=document.createElement('style');st.id='mjr-ef-style';
+    st.textContent='.mjr-ef-btn{font-family:inherit;font-size:11px;font-weight:600;padding:4px 10px;border-radius:6px;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt2);cursor:pointer;transition:.15s;}.mjr-ef-btn.on{background:var(--rouge);border-color:var(--rouge);color:#fff;}';
+    document.head.appendChild(st);
+  }
+  window._mjrEtatFilter='';
+  _mjrRenderEtatsList();
+}
+window._mjrEtatFilter='';
+function _mjrEtatFiltrer(btn,f){
+  window._mjrEtatFilter=f;
+  document.querySelectorAll('.mjr-ef-btn').forEach(function(b){b.classList.remove('on');});
+  if(btn)btn.classList.add('on');
+  _mjrRenderEtatsList();
+}
+function _mjrRenderEtatsList(){
+  var cont=document.getElementById('mjr-etats-list');
+  if(!cont)return;
+  var parent=window.parent&&window.parent!==window?window.parent:null;
+  var data=parent&&parent._etatsData?parent._etatsData:{};
+  var ids=Object.keys(data).sort(function(a,b){
+    return (data[a].nom||'').localeCompare(data[b].nom||'');
+  });
+  var f=window._mjrEtatFilter||'';
+  if(f) ids=ids.filter(function(id){return (data[id].type||'neutre')===f;});
+  if(!ids.length){
+    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);">Aucun état'+(f?' de type '+f:'')+'. Clique sur « + Créer un état ».</p>';
+    return;
+  }
+  var typeLabel={buff:'Buff',debuff:'Debuff',neutre:'Neutre'};
+  cont.innerHTML=ids.map(function(id){
+    var e=data[id];
+    var col=e.couleur||'#94a3b8';
+    var tl=typeLabel[e.type]||'Neutre';
+    var pjCount=(e.pjIds||[]).length;
+    return '<div style="background:var(--bg2);border:1px solid var(--bord);border-left:3px solid '+col+';border-radius:10px;padding:10px 12px;margin-bottom:7px;">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:'+(e.description?'6':'0')+'px;">'
+      +'<div style="width:9px;height:9px;border-radius:50%;background:'+col+';flex-shrink:0;"></div>'
+      +'<span style="flex:1;font-size:13px;font-weight:700;color:var(--txt);">'+escHtml(e.nom||'Sans nom')+'</span>'
+      +'<span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:999px;background:'+col+'22;border:1px solid '+col+'55;color:'+col+';">'+tl+'</span>'
+      +(pjCount?'<span style="font-size:10px;color:var(--txt3);">'+pjCount+' PJ</span>':'')
+      +'<button style="font-family:inherit;font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt2);cursor:pointer;" onclick="_mjrEtatEditer(\''+id+'\')">✏</button>'
+      +'<button style="font-family:inherit;font-size:11px;padding:3px 8px;border-radius:6px;border:1px solid rgba(185,28,28,.4);background:rgba(185,28,28,.18);color:#fca5a5;cursor:pointer;" onclick="_mjrEtatSuppr(\''+id+'\')">🗑</button>'
+      +'</div>'
+      +(e.description?'<p style="font-size:11px;color:var(--txt2);line-height:1.6;margin:0;">'+escHtml(e.description)+'</p>':'')
+      +'</div>';
+  }).join('');
+}
+var _mjrEtatEditId=null;
+var _ETAT_COLORS_MJR=['#4ade80','#60a5fa','#f97316','#ef4444','#a78bfa','#facc15','#94a3b8','#f472b6'];
+function _mjrEtatCreer(){_mjrEtatEditId=null;_mjrRenderForm({});}
+function _mjrEtatEditer(id){
+  var parent=window.parent&&window.parent!==window?window.parent:null;
+  var e=(parent&&parent._etatsData)?parent._etatsData[id]:{};
+  _mjrEtatEditId=id;_mjrRenderForm(e||{});
+}
+function _mjrRenderForm(e){
+  var wrap=document.getElementById('mjr-etat-form-wrap');if(!wrap)return;
+  wrap.style.display='';
+  var curCol=e.couleur||'#94a3b8';
+  wrap.innerHTML='<div style="background:var(--bg2);border:1px solid var(--bord2);border-radius:10px;padding:12px;margin-bottom:10px;">'
+    +'<p style="font-size:13px;font-weight:700;color:var(--txt);margin-bottom:10px;">'+(_mjrEtatEditId?'Modifier':'Créer un état')+'</p>'
+    +'<label style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:4px;">Nom</label>'
+    +'<input id="mjrf-nom" value="'+escHtml(e.nom||'')+'" placeholder="ex : Béni, Empoisonné…" style="width:100%;background:var(--bg3);border:1px solid var(--bord2);border-radius:6px;color:var(--txt);font-size:12px;padding:7px 9px;font-family:inherit;margin-bottom:8px;">'
+    +'<label style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:4px;">Type</label>'
+    +'<select id="mjrf-type" style="width:100%;background:var(--bg3);border:1px solid var(--bord2);border-radius:6px;color:var(--txt);font-size:12px;padding:7px 9px;font-family:inherit;margin-bottom:8px;">'
+    +'<option value="buff"'+(e.type==='buff'?' selected':'')+'>Buff</option>'
+    +'<option value="debuff"'+(e.type==='debuff'?' selected':'')+'>Debuff</option>'
+    +'<option value="neutre"'+((!e.type||e.type==='neutre')?' selected':'')+'>Neutre</option>'
+    +'</select>'
+    +'<label style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:4px;">Couleur</label>'
+    +'<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;align-items:center;" id="mjrf-cols">'
+    +_ETAT_COLORS_MJR.map(function(c){return'<div onclick="_mjrSelCol(this,\''+c+'\')" data-col="'+c+'" style="width:22px;height:22px;border-radius:50%;background:'+c+';cursor:pointer;border:3px solid '+(curCol===c?'#fff':'transparent')+';flex-shrink:0;"></div>';}).join('')
+    +'<input type="color" id="mjrf-col" value="'+curCol+'" style="width:24px;height:24px;padding:0;border:none;cursor:pointer;background:none;" oninput="_mjrSyncCol(this)">'
+    +'</div>'
+    +'<label style="font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.06em;display:block;margin-bottom:4px;">Description</label>'
+    +'<textarea id="mjrf-desc" placeholder="Décris l\'état…" style="width:100%;background:var(--bg3);border:1px solid var(--bord2);border-radius:6px;color:var(--txt);font-size:12px;padding:7px 9px;font-family:inherit;resize:vertical;min-height:56px;margin-bottom:12px;">'+escHtml(e.description||'')+'</textarea>'
+    +'<div style="display:flex;gap:8px;">'
+    +'<button style="flex:1;font-family:inherit;font-size:13px;font-weight:600;padding:8px;border-radius:8px;background:var(--rouge);color:#fff;border:none;cursor:pointer;" onclick="_mjrEtatSave()">Sauvegarder</button>'
+    +'<button style="font-family:inherit;font-size:13px;padding:8px 14px;border-radius:8px;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt2);cursor:pointer;" onclick="var w=document.getElementById(\'mjr-etat-form-wrap\');if(w)w.style.display=\'none\';">Annuler</button>'
+    +'</div></div>';
+  wrap.scrollIntoView({behavior:'smooth',block:'nearest'});
+}
+function _mjrSelCol(div,col){
+  document.querySelectorAll('#mjrf-cols [data-col]').forEach(function(d){d.style.borderColor='transparent';});
+  div.style.borderColor='#fff';
+  var cc=document.getElementById('mjrf-col');if(cc)cc.value=col;
+}
+function _mjrSyncCol(inp){
+  document.querySelectorAll('#mjrf-cols [data-col]').forEach(function(d){d.style.borderColor='transparent';});
+}
+function _mjrEtatSave(){
+  var parent=window.parent&&window.parent!==window?window.parent:null;
+  if(!parent||!parent.db||!parent.campagneActive)return;
+  var nom=(document.getElementById('mjrf-nom')||{}).value||'';
+  if(!nom.trim()){alert('Donne un nom à l\'état.');return;}
+  var type=(document.getElementById('mjrf-type')||{}).value||'neutre';
+  var desc=(document.getElementById('mjrf-desc')||{}).value||'';
+  var col=(document.getElementById('mjrf-col')||{}).value||'#94a3b8';
+  var data={nom:nom.trim(),type:type,couleur:col,description:desc.trim()};
+  var ref;
+  if(_mjrEtatEditId){
+    ref=parent.db.collection('parties').doc(parent.campagneActive.id).collection('etats').doc(_mjrEtatEditId);
+    var existing=parent._etatsData[_mjrEtatEditId];
+    if(existing)data.pjIds=existing.pjIds||[];
+  } else {
+    ref=parent.db.collection('parties').doc(parent.campagneActive.id).collection('etats').doc();
+    data.createdAt=parent.firebase.firestore.FieldValue.serverTimestamp();
+    data.pjIds=[];
+  }
+  ref.set(data,{merge:true}).then(function(){
+    var w=document.getElementById('mjr-etat-form-wrap');if(w)w.style.display='none';
+    _mjrEtatEditId=null;
+    parent.etatSyncCampDoc();
+  }).catch(function(e){alert('Erreur: '+e.message);});
+}
+function _mjrEtatSuppr(id){
+  var parent=window.parent&&window.parent!==window?window.parent:null;
+  if(!parent||!parent.db||!parent.campagneActive||!confirm('Supprimer cet état ?'))return;
+  parent.db.collection('parties').doc(parent.campagneActive.id).collection('etats').doc(id)
+    .delete().then(function(){parent.etatSyncCampDoc();}).catch(function(){});
 }
 
 function _mjrulesInit(){
@@ -11528,7 +11782,8 @@ function _mjrulesInit(){
     {id:'carac',     label:'Caractéristiques', type:'iframe', file:'ref-carac.html'},
     {id:'objmag',    label:'Objets magiques',  type:'iframe', file:'ref-objmag.html'},
     {id:'objets',    label:'Objets',           type:'iframe', file:'ref-objets.html'},
-    {id:'sorts',     label:'Sorts',            type:'content'}
+    {id:'sorts',     label:'Sorts',            type:'content'},
+    {id:'etats',     label:'États',            type:'content'}
   ];
 
   // ── Conteneur principal (flex column, plein écran) ───────────
@@ -11655,6 +11910,7 @@ function _mjrulesInit(){
     if(id==='race'      && !raInner.firstChild) chargerRace('mjr-ra');
     if(id==='historique'&& !hiInner.firstChild) chargerHistorique('mjr-hi');
     if(id==='sorts') _mjrRendreSorts(pages['sorts']);
+    if(id==='etats') _mjrRendreEtats(pages['etats']);
   }
 
   // Afficher Classe par défaut avec données pré-chargées

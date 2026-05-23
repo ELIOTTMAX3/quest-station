@@ -537,31 +537,46 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <div id="mj-etats-panel">
         <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
           <p class="st" id="mj-etats-titre" style="flex:1;margin:0;">États du combattant</p>
-          <button class="btn" style="font-size:11px;padding:4px 10px;" onclick="el('mj-etats-panel').style.display='none';">✕</button>
+          <button class="btn" style="font-size:11px;padding:4px 10px;" onclick="el('mj-etats-panel').style.display='none';_mjEtatsIdx=-1;">✕</button>
         </div>
+        <!-- D&D Conditions -->
+        <p style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);margin-bottom:5px;">Conditions D&amp;D</p>
         <div class="mj-etats-grid" id="mj-etats-conds"></div>
-        <div style="display:flex;gap:8px;margin-top:6px;">
-          <input type="text" id="mj-effet-input" placeholder="Effet personnalisé…" style="flex:1;font-size:12px;">
-          <button class="btn ok" style="font-size:12px;" onclick="mjAjouterEffet()">+ Ajouter</button>
+        <!-- États de campagne créés par le MJ -->
+        <div id="mj-etats-camp-section" style="margin-top:10px;border-top:1px solid var(--bord);padding-top:8px;">
+          <p style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);margin-bottom:5px;">États de campagne</p>
+          <div id="mj-etats-camp-grid" class="mj-etats-grid"></div>
+          <!-- Durée inline -->
+          <div id="mj-etat-duree-wrap" style="display:none;margin-top:6px;background:var(--bg3);border:1px solid var(--bord2);border-radius:8px;padding:8px;">
+            <p id="mj-etat-duree-nom" style="font-size:12px;font-weight:700;color:var(--txt);margin-bottom:6px;"></p>
+            <div style="display:flex;gap:6px;align-items:center;">
+              <label style="font-size:11px;color:var(--txt3);white-space:nowrap;">Durée (tours) :</label>
+              <input type="number" id="mj-etat-duree-input" value="1" min="1" max="99" style="width:60px;text-align:center;font-size:13px;font-weight:700;padding:4px;">
+              <button class="btn ok" style="font-size:11px;padding:4px 10px;" onclick="mjConfirmerCampEtat()">OK</button>
+              <button class="btn" style="font-size:11px;padding:4px 8px;" onclick="el('mj-etat-duree-wrap').style.display='none';_mjCampEtatPending=null;">✕</button>
+            </div>
+            <p style="font-size:10px;color:var(--txt3);margin-top:4px;">0 = illimité</p>
+          </div>
         </div>
-        <div id="mj-etats-effets" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;"></div>
+        <!-- Effets personnalisés -->
+        <div style="margin-top:10px;border-top:1px solid var(--bord);padding-top:8px;">
+          <p style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);margin-bottom:5px;">Effets personnalisés</p>
+          <div style="display:flex;gap:8px;">
+            <input type="text" id="mj-effet-input" placeholder="Effet personnalisé…" style="flex:1;font-size:12px;">
+            <button class="btn ok" style="font-size:12px;" onclick="mjAjouterEffet()">+ Ajouter</button>
+          </div>
+          <div id="mj-etats-effets" style="margin-top:6px;display:flex;flex-wrap:wrap;gap:4px;"></div>
+        </div>
       </div>
     </div>
 
     <!-- Onglet Règles -->
     <div id="pt-regles" style="display:none;">
-      <div class="pj-stbar" style="margin:0 0 10px;">
-        <button class="pj-stbtn on" id="mj-rst-btn-regles" onclick="mjReglesSousOnglet('regles',this)">Règles</button>
-        <button class="pj-stbtn" id="mj-rst-btn-etats" onclick="mjReglesSousOnglet('etats',this)">État</button>
-      </div>
-      <div id="mj-rst-regles" style="height:calc(100vh - 168px);margin:0 -1rem;">
+      <div style="height:calc(100vh - 128px);margin:0 -1rem;">
         <iframe id="mj-regles-iframe" style="width:100%;height:100%;border:none;border-radius:0 0 10px 10px;"></iframe>
       </div>
-      <div id="mj-rst-etats" style="display:none;overflow-y:auto;max-height:calc(100vh - 168px);">
-        <button class="btn ok" style="width:100%;margin-bottom:10px;" onclick="etatCreer()">+ Créer un état</button>
-        <div id="etat-form-wrap" style="display:none;"></div>
-        <div id="etats-list"><p style="font-size:12px;color:var(--txt3);">Aucun état créé.</p></div>
-      </div>
+      <div id="etat-form-wrap" style="display:none;"></div>
+      <div id="etats-list" style="display:none;"></div>
     </div>
 
     <!-- Onglet Notes -->
@@ -958,8 +973,6 @@ function panelTab(name,btn){
   if(name==="combat")ouvrirOngletCombat();
   if(name==="campagne")mjMsgMajSelecteur();
   if(name==="regles"){
-    // Toujours revenir sur le sous-onglet "Règles" à l'ouverture
-    mjReglesSousOnglet('regles', el('mj-rst-btn-regles'));
     var iframe=el("mj-regles-iframe");
     if(iframe && !iframe.getAttribute('data-loaded')){
       iframe.src="index.html?mjrules=1";
@@ -1853,6 +1866,18 @@ function tourSuivant(){
   var prev=combatants[combatTour];
   combatTour=(combatTour+1)%combatants.length;
   if(combatTour===0)combatRound++;
+  // Expirer les états de campagne chronométrés
+  combatants.forEach(function(cc){
+    if(!cc.etatsActifs)return;
+    Object.keys(cc.etatsActifs).forEach(function(eid){
+      var ea=cc.etatsActifs[eid];
+      if(ea.fins>0&&combatRound>=ea.fins){
+        delete cc.etatsActifs[eid];
+        if(cc.type==='pj'&&cc.jid) etatTogglePJ_remove(eid,cc.jid);
+        toast((cc.nom||'?')+' : état "'+(_etatsData[eid]?_etatsData[eid].nom:eid)+'" expiré');
+      }
+    });
+  });
   var cur=combatants[combatTour];
   if(cur&&cur.type==='monstre'&&!cur.revele)cur.revele=true;
   // Réinitialiser _passeTour du joueur précédent
@@ -1980,16 +2005,25 @@ function rendreCombat(){
         +'</div>';
     }
 
-    // États de campagne actifs (PJ seulement)
+    // États de campagne actifs (PJ + monstres)
     var etatH='';
-    if(cc.type==='pj'&&cc.jid){
-      var eBadges=Object.values(_etatsData).filter(function(e){
-        return(e.pjIds||[]).indexOf(cc.jid)>=0;
+    if(cc.etatsActifs&&Object.keys(cc.etatsActifs).length){
+      var eBadges=Object.keys(cc.etatsActifs).map(function(eid){
+        var e=_etatsData[eid];if(!e)return'';
+        var col=e.couleur||'#94a3b8';
+        var ea=cc.etatsActifs[eid];
+        var reste=ea.fins>0?(' '+Math.max(0,ea.fins-combatRound)+'t'):'';
+        return'<span style="font-size:8px;padding:1px 4px;border-radius:4px;background:'+col+'22;border:1px solid '+col+'55;color:'+col+';">'+besti_esc(e.nom||'État')+reste+'</span>';
+      }).filter(Boolean);
+      if(eBadges.length)etatH='<div style="display:flex;flex-wrap:wrap;gap:2px;justify-content:center;margin-top:3px;">'+eBadges.join('')+'</div>';
+    } else if(cc.type==='pj'&&cc.jid){
+      var eBadges2=Object.values(_etatsData).filter(function(e){
+        return(e.pjIds||[]).indexOf(cc.jid)>=0&&(!cc.etatsActifs||!cc.etatsActifs[e.id]);
       }).map(function(e){
         var col=e.couleur||'#94a3b8';
         return'<span style="font-size:8px;padding:1px 4px;border-radius:4px;background:'+col+'22;border:1px solid '+col+'55;color:'+col+';">'+besti_esc(e.nom||'État')+'</span>';
       });
-      if(eBadges.length)etatH='<div style="display:flex;flex-wrap:wrap;gap:2px;justify-content:center;margin-top:3px;">'+eBadges.join('')+'</div>';
+      if(eBadges2.length)etatH='<div style="display:flex;flex-wrap:wrap;gap:2px;justify-content:center;margin-top:3px;">'+eBadges2.join('')+'</div>';
     }
 
     // PV buttons + retirer
@@ -2170,6 +2204,7 @@ function mjRenderMobPanel(cc){
     +'<p style="font-size:11px;color:#5a6a8a;margin-top:12px;font-style:italic;">Aucune fiche bestiaire disponible pour ce monstre.</p>';
   return html;
 }
+var _mjCampEtatPending=null;
 function mjToggleEtats(idx){
   var panel=el('mj-etats-panel');if(!panel)return;
   if(_mjEtatsIdx===idx&&panel.style.display!=='none'){panel.style.display='none';_mjEtatsIdx=-1;return;}
@@ -2177,15 +2212,84 @@ function mjToggleEtats(idx){
   var cc=combatants[idx];if(!cc)return;
   if(!cc.conditions)cc.conditions=[];
   if(!cc.effets)cc.effets=[];
+  if(!cc.etatsActifs)cc.etatsActifs={};
   var titre=el('mj-etats-titre');if(titre)titre.textContent='États — '+cc.nom;
-  // Conditions
-  var cg=el('mj-etats-conds');if(!cg)return;
-  cg.innerHTML=CONDITIONS_DD.map(function(cn){
-    var on=cc.conditions.indexOf(cn)>=0;
-    return '<button class="mj-etat-btn'+(on?' on':'')+'" onclick="mjToggleCond('+idx+',\''+cn+'\');">'+cn+'</button>';
-  }).join('');
+  // D&D Conditions
+  var cg=el('mj-etats-conds');if(cg){
+    cg.innerHTML=CONDITIONS_DD.map(function(cn){
+      var on=cc.conditions.indexOf(cn)>=0;
+      return '<button class="mj-etat-btn'+(on?' on':'')+'" onclick="mjToggleCond('+idx+',\''+cn+'\');">'+cn+'</button>';
+    }).join('');
+  }
+  // Campaign états
+  mjRendreCampEtats(idx);
   mjRendreEffets(idx);
+  el('mj-etat-duree-wrap').style.display='none';
+  _mjCampEtatPending=null;
   panel.style.display='block';
+}
+function mjRendreCampEtats(idx){
+  var cg=el('mj-etats-camp-grid');if(!cg)return;
+  var cc=combatants[idx];if(!cc)return;
+  if(!cc.etatsActifs)cc.etatsActifs={};
+  var ids=Object.keys(_etatsData).sort(function(a,b){return(_etatsData[a].nom||'').localeCompare(_etatsData[b].nom||'');});
+  if(!ids.length){cg.innerHTML='<p style="font-size:11px;color:var(--txt3);">Aucun état créé dans l\'onglet Règles.</p>';return;}
+  cg.innerHTML=ids.map(function(id){
+    var e=_etatsData[id];
+    var col=e.couleur||'#94a3b8';
+    var actif=cc.etatsActifs[id];
+    var reste=actif&&actif.fins>0?(' ['+Math.max(0,actif.fins-combatRound)+'t]'):(actif?'[∞]':'');
+    return '<button class="mj-etat-btn'+(actif?' on':'')+'" style="border-color:'+(actif?col:'var(--bord2)')+';" onclick="mjClickCampEtat('+idx+',\''+id+'\');">'
+      +'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:'+col+';margin-right:4px;vertical-align:middle;"></span>'
+      +besti_esc(e.nom||'État')+reste+'</button>';
+  }).join('');
+}
+function mjClickCampEtat(idx,etatId){
+  var cc=combatants[idx];if(!cc)return;
+  if(!cc.etatsActifs)cc.etatsActifs={};
+  if(cc.etatsActifs[etatId]){
+    // Remove it
+    delete cc.etatsActifs[etatId];
+    mjRendreCampEtats(idx);
+    // Also remove from pjIds if PJ
+    if(cc.type==='pj'&&cc.jid) etatTogglePJ_remove(etatId,cc.jid);
+    rendreCombat();sauvegarderCombat();syncCombatFirestore();
+    return;
+  }
+  // Adding: ask for duration
+  _mjCampEtatPending={idx:idx,etatId:etatId};
+  var e=_etatsData[etatId];
+  var nom=el('mj-etat-duree-nom');if(nom)nom.textContent='Durée pour : '+(e?e.nom:'État');
+  var inp=el('mj-etat-duree-input');if(inp){inp.value='1';setTimeout(function(){inp.focus();inp.select();},50);}
+  el('mj-etat-duree-wrap').style.display='';
+}
+function mjConfirmerCampEtat(){
+  if(!_mjCampEtatPending)return;
+  var idx=_mjCampEtatPending.idx,etatId=_mjCampEtatPending.etatId;
+  var tours=parseInt((el('mj-etat-duree-input')||{}).value)||1;
+  var cc=combatants[idx];if(!cc)return;
+  if(!cc.etatsActifs)cc.etatsActifs={};
+  cc.etatsActifs[etatId]={fins:tours>0?combatRound+tours:0};
+  el('mj-etat-duree-wrap').style.display='none';
+  _mjCampEtatPending=null;
+  // Also add to pjIds if PJ
+  if(cc.type==='pj'&&cc.jid) etatTogglePJ_add(etatId,cc.jid);
+  mjRendreCampEtats(idx);
+  rendreCombat();sauvegarderCombat();syncCombatFirestore();
+}
+// helpers for PJ état without full toggle
+function etatTogglePJ_add(etatId,jid){
+  var e=_etatsData[etatId];if(!e)return;
+  var pjIds=Array.from(e.pjIds||[]);
+  if(pjIds.indexOf(jid)<0){pjIds.push(jid);_etatsData[etatId].pjIds=pjIds;pjRendreCard(jid);
+    if(db&&campagneActive)db.collection('parties').doc(campagneActive.id).collection('etats').doc(etatId).update({pjIds:pjIds}).then(etatSyncCampDoc).catch(function(){});}
+}
+function etatTogglePJ_remove(etatId,jid){
+  var e=_etatsData[etatId];if(!e)return;
+  var pjIds=Array.from(e.pjIds||[]);
+  var i=pjIds.indexOf(jid);
+  if(i>=0){pjIds.splice(i,1);_etatsData[etatId].pjIds=pjIds;pjRendreCard(jid);
+    if(db&&campagneActive)db.collection('parties').doc(campagneActive.id).collection('etats').doc(etatId).update({pjIds:pjIds}).then(etatSyncCampDoc).catch(function(){});}
 }
 function mjToggleCond(idx,cond){
   var cc=combatants[idx];if(!cc)return;
@@ -3728,6 +3832,7 @@ function etatInitListener(){
     qs.forEach(function(d){_etatsData[d.id]=Object.assign({id:d.id},d.data());});
     etatRendreList();
     etatSyncCampDoc();
+    if(window._etat_iframe_callback) window._etat_iframe_callback();
   });
 }
 
