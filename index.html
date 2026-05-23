@@ -11684,7 +11684,7 @@ function cbtMajUI(){
     var estMoi=cc.type==='pj'&&cc.id===joueurId;
     var avH=cc.type==='pj'
       ?(cc.avatar?'<div class="cbt-av"><img src="'+cc.avatar+'"></div>':'<div class="cbt-av" style="font-size:9px;font-weight:700;">PJ</div>')
-      :'<div class="cbt-av">👾</div>';
+      :(cc.avatar?'<div class="cbt-av"><img src="'+cc.avatar+'"></div>':'<div class="cbt-av">👾</div>');
     var pvH='';
     if(cc.type==='pj'){
       var pva=estMoi?(parseInt(v('pv-act'))||0):(cc.pvact||0);
@@ -11701,7 +11701,7 @@ function cbtMajUI(){
     return '<div class="cbt-hcard'+(estActif?' actif':'')+(estMoi?' moi':'')+'">'+
       indic+avH+
       '<div class="cbt-hcard-nom">'+nomHtml+'</div>'+
-      (cc.type==='pj'?pvH:'<div class="cbt-hcard-sub">👾</div>')+
+      (cc.type==='pj'?pvH:'')+
       '<div class="cbt-hcard-sub">Init '+(cc.initiative!==null&&cc.initiative!==undefined?cc.initiative:'?')+'</div>'+
       condH+
       '</div>';

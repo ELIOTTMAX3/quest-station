@@ -134,7 +134,25 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .combat-controls{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:1rem;align-items:center;}
 .round-badge{background:var(--bg3);border:1px solid var(--bord2);border-radius:6px;padding:4px 12px;font-size:12px;font-weight:700;color:var(--or);}
 .monster-form{background:var(--bg3);border:1px solid var(--bord2);border-radius:10px;padding:12px;margin-bottom:1rem;}
-.mf-grid{display:grid;grid-template-columns:1fr 64px 54px 64px;gap:8px;margin-bottom:8px;align-items:end;}
+/* ── Combat monster search ── */
+.cbtm-wrap{position:relative;}
+.cbtm-dropdown{position:absolute;top:calc(100% + 4px);left:0;right:0;background:#0f1e35;border:1px solid var(--bord2);border-radius:8px;z-index:200;max-height:240px;overflow-y:auto;display:none;box-shadow:0 8px 24px rgba(0,0,0,.5);}
+.cbtm-dropdown.open{display:block;}
+.cbtm-result{display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;border-bottom:1px solid var(--bord);transition:background .1s;}
+.cbtm-result:last-child{border-bottom:none;}
+.cbtm-result:hover{background:rgba(255,255,255,.06);}
+.cbtm-r-av{width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:13px;overflow:hidden;}
+.cbtm-r-av img{width:28px;height:28px;object-fit:cover;border-radius:50%;}
+.cbtm-r-nom{flex:1;font-size:13px;color:var(--txt);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.cbtm-r-hb{font-size:9px;background:rgba(100,50,180,.25);color:#b48aff;padding:1px 4px;border-radius:3px;flex-shrink:0;}
+.cbtm-r-cr{font-size:10px;font-weight:700;color:var(--txt3);flex-shrink:0;}
+.cbtm-preview{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.04);border:1px solid var(--bord2);border-radius:8px;padding:8px 10px;margin-top:8px;}
+.cbtm-preview-av{width:40px;height:40px;border-radius:50%;object-fit:cover;flex-shrink:0;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;}
+.cbtm-preview-av img{width:40px;height:40px;object-fit:cover;border-radius:50%;}
+.cbtm-preview-info{flex:1;min-width:0;}
+.cbtm-preview-nom{font-size:13px;font-weight:700;color:var(--txt);}
+.cbtm-preview-sub{font-size:11px;color:var(--txt3);margin-top:1px;}
+.cbtm-add-row{display:flex;gap:8px;align-items:flex-end;margin-top:8px;}
 .non-revele-badge{font-size:9px;padding:1px 5px;border-radius:4px;background:rgba(107,114,128,.25);color:var(--txt3);border:1px solid var(--bord);margin-left:4px;vertical-align:middle;}
 .pjsel-item{display:flex;align-items:center;gap:10px;padding:9px 12px;background:var(--bg3);border:1px solid var(--bord);border-radius:8px;margin-bottom:6px;cursor:pointer;transition:border-color .12s;user-select:none;}
 .pjsel-item:hover:not(.off){border-color:var(--rouge);}
@@ -390,16 +408,27 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           <button class="btn" onclick="el('combat-select').style.display='none';el('btn-debut-combat').style.display='';">Annuler</button>
         </div>
       </div>
-      <!-- Formulaire monstre -->
+      <!-- Recherche bestiaire pour ajout monstre -->
       <div class="monster-form">
         <p class="st" style="margin-bottom:8px;">Ajouter un monstre</p>
-        <div class="mf-grid">
-          <div><label>Nom</label><input type="text" id="m-nom" placeholder="Gobelin" onkeydown="if(event.key==='Enter')ajouterMonstre()"></div>
-          <div><label>PV max</label><input type="number" id="m-pvmax" min="1" placeholder="7"></div>
-          <div><label>CA</label><input type="number" id="m-ca" min="1" placeholder="15"></div>
-          <div><label>Initiative</label><input type="number" id="m-init" placeholder="12"></div>
+        <div class="cbtm-wrap">
+          <input type="text" id="cbtm-search" placeholder="🔍 Rechercher dans le bestiaire…"
+                 autocomplete="off"
+                 oninput="cbtm_onSearch(this.value)"
+                 onkeydown="cbtm_keydown(event)"
+                 onfocus="cbtm_onSearch(this.value)">
+          <div class="cbtm-dropdown" id="cbtm-dropdown"></div>
         </div>
-        <button class="btn ok" style="width:100%;" onclick="ajouterMonstre()">+ Ajouter</button>
+        <div id="cbtm-preview" style="display:none;">
+          <div class="cbtm-preview" id="cbtm-preview-card"></div>
+          <div class="cbtm-add-row">
+            <div style="flex:1;">
+              <label>Initiative</label>
+              <input type="number" id="cbtm-init" placeholder="ex : 14" onkeydown="if(event.key==='Enter')cbtm_ajouter()">
+            </div>
+            <button class="btn ok" style="height:34px;white-space:nowrap;" onclick="cbtm_ajouter()">⚔ Ajouter</button>
+          </div>
+        </div>
       </div>
       <!-- Groupes de monstres (gérés dans le Bestiaire) -->
       <div class="card" style="margin-top:.75rem;">
@@ -1430,26 +1459,96 @@ function trierCombatants(){
   });
 }
 
-function ajouterMonstre(){
-  var nom=(el('m-nom').value||'').trim();
-  if(!nom){el('m-nom').focus();return;}
-  var pvmax=Math.max(1,parseInt(el('m-pvmax').value)||1);
-  var ca=parseInt(el('m-ca').value)||10;
-  var initVal=el('m-init').value.trim();
+// ── Recherche bestiaire dans le panel combat ──────────
+var _cbtm_sel=null;
+var _cbtm_q='';
+
+function cbtm_filtrer(q){
+  if(!q||q.length<1)return[];
+  var ql=q.toLowerCase();
+  var srd=(typeof MONSTRES_SRD!=='undefined'?MONSTRES_SRD:[])
+    .filter(function(m){return m.nom.toLowerCase().indexOf(ql)>=0;})
+    .map(function(m){return{id:m.id,src:'srd',nom:m.nom,pv:m.pv,ca:m.ca,cr:m.cr};});
+  var hb=(_besti_homebrew||[])
+    .filter(function(m){return(m.nom||'').toLowerCase().indexOf(ql)>=0;})
+    .map(function(m){return{id:m.id,src:'homebrew',nom:m.nom,pv:m.pv,ca:m.ca,cr:m.cr};});
+  return srd.concat(hb).slice(0,10);
+}
+function cbtm_onSearch(v){
+  _cbtm_q=v;
+  if(_cbtm_sel&&_cbtm_sel.nom!==v){_cbtm_sel=null;el('cbtm-preview').style.display='none';}
+  var results=cbtm_filtrer(v);
+  var dd=el('cbtm-dropdown');if(!dd)return;
+  if(!results.length){dd.classList.remove('open');return;}
+  dd.innerHTML=results.map(function(r){
+    var img=_besti_images[r.id];
+    var avHtml=img
+      ?'<div class="cbtm-r-av"><img src="'+(img.token||img.base64)+'" alt=""></div>'
+      :'<div class="cbtm-r-av">👾</div>';
+    return'<div class="cbtm-result" onmousedown="event.preventDefault();cbtm_select(\''+besti_esc(r.id)+'\',\''+r.src+'\')">'
+      +avHtml
+      +'<span class="cbtm-r-nom">'+besti_esc(r.nom)+'</span>'
+      +(r.src==='homebrew'?'<span class="cbtm-r-hb">HB</span>':'')
+      +'<span class="cbtm-r-cr">CR '+besti_esc(r.cr||'?')+'</span>'
+      +'</div>';
+  }).join('');
+  dd.classList.add('open');
+}
+function cbtm_select(id,src){
+  var m=besti_getMonstre(id,src);
+  if(!m)return;
+  _cbtm_sel=m;
+  var inp=el('cbtm-search');if(inp)inp.value=m.nom;
+  el('cbtm-dropdown').classList.remove('open');
+  // Afficher la preview
+  var preview=el('cbtm-preview');var card=el('cbtm-preview-card');
+  if(!preview||!card)return;
+  var avHtml=m.token
+    ?'<div class="cbtm-preview-av"><img src="'+besti_esc(m.token)+'" alt=""></div>'
+    :m.image
+      ?'<div class="cbtm-preview-av"><img src="'+besti_esc(m.image)+'" alt=""></div>'
+      :'<div class="cbtm-preview-av">👾</div>';
+  card.innerHTML=avHtml
+    +'<div class="cbtm-preview-info">'
+    +'<div class="cbtm-preview-nom">'+besti_esc(m.nom)+'</div>'
+    +'<div class="cbtm-preview-sub">PV '+m.pv+' · CA '+m.ca+' · CR '+(m.cr||'?')+'</div>'
+    +'</div>';
+  preview.style.display='';
+  var initInp=el('cbtm-init');if(initInp){initInp.value='';initInp.focus();}
+}
+function cbtm_keydown(e){
+  if(e.key==='Escape'){el('cbtm-dropdown').classList.remove('open');}
+}
+function cbtm_ajouter(){
+  if(!_cbtm_sel){toast('Sélectionne un monstre d\'abord.');return;}
+  var m=_cbtm_sel;
+  var initVal=(el('cbtm-init').value||'').trim();
   var init=initVal!==''?parseInt(initVal):null;
-  // Numérotation
-  monstreInstances[nom]=(monstreInstances[nom]||0)+1;
-  var count=monstreInstances[nom];
-  if(count===2){
-    // Renuméroter le premier
-    var premier=combatants.find(function(c){return c.nom===nom&&c.type==='monstre';});
-    if(premier)premier.nom=nom+' #1';
-  }
-  var nomAff=count>=2?nom+' #'+count:nom;
-  combatants.push({id:'m-'+Date.now(),nom:nomAff,type:'monstre',pvact:pvmax,pvmax:pvmax,ca:ca,init:init,avatar:null,revele:false});
-  trierCombatants();
-  el('m-nom').value='';el('m-pvmax').value='';el('m-ca').value='';el('m-init').value='';
-  el('m-nom').focus();
+  var nom=m.nom;
+  var already=combatants.filter(function(c){return c.type==='monstre'&&c.nom.replace(/ #\d+$/,'')===nom;});
+  if(already.length===1&&!already[0].nom.match(/ #\d+$/))already[0].nom=nom+' #1';
+  var num=already.length+1;
+  var nomAff=num>1?nom+' #'+num:nom;
+  combatants.push({id:'m-'+Date.now()+'-'+Math.random().toString(36).slice(2),
+    nom:nomAff,type:'monstre',pvact:m.pv,pvmax:m.pv,ca:m.ca,
+    init:init,avatar:m.token||m.image||null,revele:false,conditions:[],effets:[]});
+  if(combatPhase!=='initiative')trierCombatants();
+  rendreCombat();syncCombatFirestore();sauvegarderCombat();
+  toast('⚔ '+nomAff+' ajouté');
+  // Reset
+  _cbtm_sel=null;_cbtm_q='';
+  var inp=el('cbtm-search');if(inp){inp.value='';inp.focus();}
+  el('cbtm-preview').style.display='none';
+}
+// Fermer dropdown au clic extérieur
+document.addEventListener('click',function(e){
+  var dd=el('cbtm-dropdown');
+  if(dd&&!dd.contains(e.target)&&e.target!==el('cbtm-search'))dd.classList.remove('open');
+});
+
+function ajouterMonstre(){
+  // Conservé pour compatibilité éventuelle — non utilisé via l'UI
+}
   rendreCombat();majBtnDebut();syncCombatFirestore();sauvegarderCombat();
 }
 
