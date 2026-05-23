@@ -1549,8 +1549,6 @@ document.addEventListener('click',function(e){
 function ajouterMonstre(){
   // Conservé pour compatibilité éventuelle — non utilisé via l'UI
 }
-  rendreCombat();majBtnDebut();syncCombatFirestore();sauvegarderCombat();
-}
 
 function prepCombat(){
   var jids=Object.keys(joueursData).filter(function(jid){return joueursData[jid]._nom;});
