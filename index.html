@@ -10172,6 +10172,9 @@ function campEcouter(){
     // États (buffs/debuffs) adressés à ce joueur
     var etats=(d.etats&&d.etats[joueurId])||[];
     majEtatsPJ(etats);
+    // Stocker tous les états de campagne pour l'onglet règles
+    window._camp_allEtats=d.allEtats||[];
+    rqRendreEtatsCamp();
     majCombatPJ(d.combat||{actif:false});
     campRendreJoueurs();
     // Infos MJ — onglets lecture seule
@@ -10273,14 +10276,50 @@ function majEtatsPJ(etats){
     var info=typeInfo[e.type]||typeInfo.neutre;
     var col=e.couleur||info.col;
     var encoded=encodeURIComponent(JSON.stringify(e));
+    var titleAttr=e.description?(' title="'+e.description.replace(/"/g,'&quot;').replace(/\n/g,' ')+'"'):'';
     return'<button class="rc-etat-bdg" '
       +'style="background:'+info.bg+';border-color:'+info.bord+';color:'+col+';" '
-      +'onclick="pjVoirEtat(\''+encoded.replace(/'/g,'%27')+'\')">'
+      +titleAttr
+      +' onclick="pjVoirEtat(\''+encoded.replace(/'/g,'%27')+'\')">'
       +'<span class="rc-etat-dot" style="background:'+col+'"></span>'
       +escHtml(e.nom||'État')
       +'</button>';
   }).join('');
   sec.style.display='';
+}
+
+function rqRendreEtatsCamp(container){
+  var c=container||(window._rqPages&&window._rqPages['etats']);
+  if(!c)return;
+  var etats=window._camp_allEtats||[];
+  if(!etats.length){
+    c.innerHTML='<div style="padding:16px;font-size:13px;color:var(--txt3);text-align:center;">'
+      +'<p style="font-size:24px;margin-bottom:8px;">✨</p>'
+      +'<p>Aucun état de campagne.<br>Le MJ peut en créer depuis l\'onglet États.</p>'
+      +'</div>';
+    return;
+  }
+  var typeInfo={buff:{label:'Buff',bg:'rgba(74,222,128,.12)',bord:'rgba(74,222,128,.3)',col:'#4ade80'},
+    debuff:{label:'Debuff',bg:'rgba(239,68,68,.12)',bord:'rgba(239,68,68,.3)',col:'#ef4444'},
+    neutre:{label:'Neutre',bg:'rgba(148,163,184,.1)',bord:'rgba(148,163,184,.25)',col:'#94a3b8'}};
+  c.innerHTML=etats.map(function(e){
+    var info=typeInfo[e.type]||typeInfo.neutre;
+    var col=e.couleur||info.col;
+    var effH=(e.effets&&e.effets.length)
+      ?'<div style="margin-top:8px;">'
+        +'<div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);margin-bottom:5px;">Effets</div>'
+        +e.effets.map(function(ef){return'<div style="font-size:12px;color:var(--txt2);padding:3px 0 3px 10px;border-left:2px solid '+col+';margin-bottom:3px;">'+escHtml(ef)+'</div>';}).join('')
+        +'</div>':'';
+    return'<div style="background:var(--bg2);border:1px solid var(--bord);border-left:3px solid '+col+';border-radius:10px;padding:12px 14px;margin-bottom:8px;">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:'+(e.description||(e.effets&&e.effets.length)?'8':'0')+'px;">'
+      +'<div style="width:10px;height:10px;border-radius:50%;background:'+col+';flex-shrink:0;"></div>'
+      +'<span style="font-size:14px;font-weight:700;color:var(--txt);flex:1;">'+escHtml(e.nom||'État')+'</span>'
+      +'<span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:999px;background:'+info.bg+';border:1px solid '+info.bord+';color:'+col+';">'+info.label+'</span>'
+      +'</div>'
+      +(e.description?'<p style="font-size:12px;color:var(--txt2);line-height:1.7;margin:0;">'+escHtml(e.description)+'</p>':'')
+      +effH
+      +'</div>';
+  }).join('');
 }
 
 function pjVoirEtat(encodedJson){
@@ -11446,7 +11485,7 @@ function _mjrulesInit(){
     {id:'carac',     label:'Caractéristiques', type:'iframe', file:'ref-carac.html'},
     {id:'objmag',    label:'Objets magiques',  type:'iframe', file:'ref-objmag.html'},
     {id:'objets',    label:'Objets',           type:'iframe', file:'ref-objets.html'},
-    {id:'etats',     label:'États',            type:'iframe', file:'ref-etats.html'}
+    {id:'etats',     label:'✨ États',          type:'content'}
   ];
 
   // ── Conteneur principal (flex column, plein écran) ───────────
@@ -11481,6 +11520,7 @@ function _mjrulesInit(){
   };
 
   var pages={};
+  window._rqPages=pages;
   var selStyle='width:100%;font-family:inherit;font-size:13px;color:var(--txt);background:var(--bg3);border:1px solid var(--bord2);border-radius:6px;padding:7px 8px;margin-bottom:10px;';
 
   TABS.forEach(function(tab){
@@ -11571,6 +11611,7 @@ function _mjrulesInit(){
     if(id==='classe'    && !clInner.firstChild) chargerRegles('mjr-cl');
     if(id==='race'      && !raInner.firstChild) chargerRace('mjr-ra');
     if(id==='historique'&& !hiInner.firstChild) chargerHistorique('mjr-hi');
+    if(id==='etats') rqRendreEtatsCamp(pages['etats']);
   }
 
   // Afficher Classe par défaut avec données pré-chargées

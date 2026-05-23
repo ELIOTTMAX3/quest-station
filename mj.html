@@ -312,7 +312,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 /* ══ JOUEURS — Refonte ══ */
 .pj-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
 @media(max-width:620px){.pj-grid{grid-template-columns:1fr;}}
-.pj-card{background:var(--bg2);border:1px solid var(--bord);border-left:4px solid transparent;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;transition:border-left-color .35s;}
+.pj-card{background:var(--bg2);border:1px solid var(--bord);border-left:none;border-radius:12px;overflow:hidden;display:flex;flex-direction:column;}
 .pj-card-hd{display:flex;align-items:center;gap:10px;padding:12px 14px 10px;}
 .pj-av{width:42px;height:42px;border-radius:50%;background:var(--bg3);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:800;color:var(--txt3);overflow:hidden;}
 .pj-av img{width:42px;height:42px;object-fit:cover;border-radius:50%;display:block;}
@@ -1103,6 +1103,7 @@ function ouvrirPanel(code){
       }
     }
   },function(){});
+  etatInitListener();
 }
 
 var _pj_picker={};  // jid → bool
@@ -1123,7 +1124,6 @@ function rendreCartJoueur(jid,d){
   var pct=Math.round(Math.max(0,Math.min(100,pvact/pvmax*100)));
   var pvCol=pct>50?'#4ade80':pct>25?'#f97316':'#ef4444';
   var online=estEnLigne(d);
-  var conds=Array.from(condActives[jid]||new Set());
   var pickerOpen=!!_pj_picker[jid];
 
   // Avatar
@@ -1138,24 +1138,31 @@ function rendreCartJoueur(jid,d){
   // Or (pièces d'or = clé "po")
   var or=d.po!==undefined?d.po:null;
 
-  // Tags conditions
-  var tagsH=conds.map(function(c,i){
-    return'<span class="pj-ctag cond">'+besti_esc(c)
-      +'<button onclick="pjRetirerCond(\''+jid+'\','+i+')" title="Retirer">✕</button></span>';
+  // Tags états assignés à ce PJ
+  var tagsH=Object.values(_etatsData).filter(function(e){return(e.pjIds||[]).indexOf(jid)>=0;}).map(function(e){
+    var col=e.couleur||'#94a3b8';
+    return'<span class="pj-ctag" style="background:'+col+'22;border-color:'+col+'55;color:'+col+';">'
+      +besti_esc(e.nom||'État')
+      +'<button onclick="etatTogglePJ(\''+e.id+'\',\''+jid+'\')" title="Retirer">✕</button></span>';
   }).join('');
 
-  // Picker inline
+  // Picker inline — montre tous les états disponibles
   var pickerH='';
   if(pickerOpen){
+    var etatIds=Object.keys(_etatsData);
     pickerH='<div class="pj-picker">'
-      +CONDITIONS_DD.map(function(c,i){
-        var on=condActives[jid]&&condActives[jid].has(c);
-        return'<button class="pj-ptag'+(on?' on':'')+'" onclick="pjToggleCond(\''+jid+'\','+i+')">'+besti_esc(c)+'</button>';
-      }).join('')
+      +(etatIds.length?etatIds.map(function(eid){
+        var e=_etatsData[eid];
+        var on=(e.pjIds||[]).indexOf(jid)>=0;
+        var col=e.couleur||'#94a3b8';
+        var style=on?'background:'+col+'33;border-color:'+col+';color:'+col+';':'';
+        return'<button class="pj-ptag'+(on?' on':'')+'" style="'+style+'" onclick="etatTogglePJ(\''+eid+'\',\''+jid+'\')">'
+          +besti_esc(e.nom||'État')+'</button>';
+      }).join(''):'<span style="font-size:11px;color:var(--txt3);">Aucun état créé dans l\'onglet États.</span>')
       +'</div>';
   }
 
-  return'<div class="pj-card" id="pcard-'+jid+'" style="border-left-color:'+pvCol+';">'
+  return'<div class="pj-card" id="pcard-'+jid+'">'
     // ── Header
     +'<div class="pj-card-hd">'
     +'<div class="pj-av">'+avH+'</div>'
@@ -3661,7 +3668,7 @@ function joueursSousOnglet(name,btn){
   document.querySelectorAll('.pj-stbtn').forEach(function(b){b.classList.remove('on');});
   var t=el('pst-'+name);if(t)t.style.display='';
   if(btn)btn.classList.add('on');
-  if(name==='etats'&&campagneActive)etatInitListener();
+  if(campagneActive)etatInitListener();
 }
 
 function etatInitListener(){
@@ -3689,20 +3696,6 @@ function etatRendreList(){
 function etatRendreCard(e){
   var typeLabel={buff:'Buff',debuff:'Debuff',neutre:'Neutre'}[e.type]||'Neutre';
   var col=e.couleur||'#94a3b8';
-  var effetsH=(e.effets&&e.effets.length)
-    ?'<div class="etat-effets">'+e.effets.map(function(ef){
-      return'<div class="etat-effet-item" style="border-color:'+col+'">'+besti_esc(ef)+'</div>';
-    }).join('')+'</div>':'';
-  var pjIds=e.pjIds||[];
-  var pjKeys=Object.keys(joueursData);
-  var pjH='<div class="etat-pj-row">'
-    +(pjKeys.length?'<span class="etat-pj-lbl">PJs :</span>':'<span style="font-size:11px;color:var(--txt3);">Aucun joueur connecté</span>')
-    +pjKeys.map(function(jid){
-      var d=joueursData[jid]||{};
-      var on=pjIds.indexOf(jid)>=0;
-      return'<label class="etat-pj-chk'+(on?' on':'')+'" onclick="etatTogglePJ(\''+e.id+'\',\''+jid+'\')">'
-        +'<input type="checkbox"'+(on?' checked':'')+'>'+besti_esc(d._nom||jid)+'</label>';
-    }).join('')+'</div>';
   return'<div class="etat-card" id="etat-card-'+e.id+'">'
     +'<div class="etat-card-hd">'
     +'<div class="etat-dot" style="background:'+col+'"></div>'
@@ -3712,7 +3705,7 @@ function etatRendreCard(e){
     +'<button class="btn danger" style="font-size:11px;padding:3px 8px;" onclick="etatSupprimer(\''+e.id+'\')">🗑</button>'
     +'</div>'
     +(e.description?'<p class="etat-desc">'+besti_esc(e.description)+'</p>':'')
-    +effetsH+pjH+'</div>';
+    +'</div>';
 }
 
 function etatCreer(){
@@ -3849,7 +3842,10 @@ function etatSyncCampDoc(){
       parPJ[jid].push({id:e.id,nom:e.nom,type:e.type,couleur:e.couleur||'#94a3b8',description:e.description||'',effets:e.effets||[]});
     });
   });
-  db.collection('parties').doc(campagneActive.id).set({etats:parPJ},{merge:true}).catch(function(){});
+  var allEtats=Object.values(_etatsData).map(function(e){
+    return{id:e.id,nom:e.nom,type:e.type,couleur:e.couleur||'#94a3b8',description:e.description||'',effets:e.effets||[]};
+  });
+  db.collection('parties').doc(campagneActive.id).set({etats:parPJ,allEtats:allEtats},{merge:true}).catch(function(){});
 }
 
 // ── Images monstres ─────────────────────────────────
