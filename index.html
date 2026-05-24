@@ -568,9 +568,10 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .sa-card:hover.sa-ec-def{border-color:var(--txt3);}
 
 /* ══ CONNAISSANCES ══ */
-.conn-subnav{display:flex;gap:4px;margin-bottom:10px;border-bottom:1px solid var(--bord2);padding-bottom:8px;}
-.conn-subnav-btn{background:none;border:none;font-family:inherit;font-size:12px;padding:5px 10px;border-radius:5px;cursor:pointer;color:var(--txt3);border-bottom:2px solid transparent;}
-.conn-subnav-btn.on{color:#c9a227;border-bottom-color:#c9a227;}
+.conn-subnav{display:flex;gap:2px;margin-bottom:10px;background:var(--bg3);border:1px solid var(--bord);border-radius:10px;padding:3px;}
+.conn-subnav-btn{flex:1;background:none;border:none;font-family:inherit;font-size:12px;font-weight:600;padding:8px 6px;border-radius:7px;cursor:pointer;color:var(--txt3);text-align:center;}
+.conn-subnav-btn.on{background:linear-gradient(135deg,#1a2e4a,#0f3460);color:var(--or);}
+.conn-subnav-btn:hover:not(.on){background:rgba(255,255,255,.05);}
 .conn-card{background:#0d1525;border:1px solid #1e2d45;border-radius:8px;margin-bottom:6px;overflow:hidden;}
 .conn-card-hd{display:flex;align-items:center;gap:8px;padding:9px 12px;cursor:pointer;}
 .conn-card-nom{flex:1;font-size:13px;font-weight:600;color:#e8dcc8;}
