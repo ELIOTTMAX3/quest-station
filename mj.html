@@ -3971,7 +3971,22 @@ function besti_initGroupes(){
     qs.forEach(function(d){_besti_groupes.push(Object.assign({},d.data(),{id:d.id}));});
     if(_besti_tab==='groupes')besti_renderBody();
     rendreGroupes(); // Sync le panneau combat
+    // Notifier l'iframe outils_rapides si chargé
+    try{
+      var _ifr=el('mj-outils-iframe');
+      if(_ifr&&_ifr.contentWindow&&typeof _ifr.contentWindow.buildEncGroupesList==='function'){
+        _ifr.contentWindow.buildEncGroupesList();
+      }
+    }catch(e){}
   });
+}
+function besti_sauvegarderGroupeDepuisEnc(data){
+  if(!db||!campagneActive){toast('Aucune campagne active.');return;}
+  var code=campagneActive.id||campagneActive.code||'';if(!code)return;
+  db.collection('parties').doc(code).collection('groupesMonstres').add({
+    nom:data.nom||'Groupe',description:'',membres:data.membres||[]
+  }).then(function(){toast('💾 Groupe "'+besti_esc(data.nom)+'" sauvegardé !');})
+  .catch(function(e){toast('Erreur : '+e.message);});
 }
 function besti_renderGroupes(){
   if(_besti_grp_form)return besti_renderFormGroupe();

@@ -6683,6 +6683,8 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
             <option>Elfe noir</option>
             <option>Gnome</option>
             <option>Halfelin</option>
+            <option>Halfelin Pied-léger</option>
+            <option>Halfelin Robuste</option>
             <option>Haut-elfe</option>
             <option>Humain</option>
             <option>Nain</option>
@@ -7510,7 +7512,9 @@ var RACES_DETAILS = {
   "Elfe noir":    {bonus:"+2 DEX, +1 CHA", vitesse:"9m",    taille:"Moyenne (~1,65m)", langues:["Commun","Elfique","Sous-commun"], sousrace:"Elfe"},
   "Humain":   {bonus:"+1 à toutes les caractéristiques", vitesse:"9m", taille:"Moyenne (~1,70m)", langues:["Commun","Une langue au choix"]},
   "Nain":     {bonus:"+2 CON",          vitesse:"7,5m", taille:"Moyenne (~1,40m)", langues:["Commun","Nain"]},
-  "Halfelin": {bonus:"+2 DEX",          vitesse:"7,5m", taille:"Petite (~90cm)", langues:["Commun","Halfelin"]},
+  "Halfelin":            {bonus:"+2 DEX",          vitesse:"7,5m", taille:"Petite (~90cm)", langues:["Commun","Halfelin"]},
+  "Halfelin Pied-léger":{bonus:"+2 DEX, +1 CHA", vitesse:"7,5m", taille:"Petite (~90cm)", langues:["Commun","Halfelin"], sousrace:"Halfelin"},
+  "Halfelin Robuste":   {bonus:"+2 DEX, +1 CON", vitesse:"7,5m", taille:"Petite (~90cm)", langues:["Commun","Halfelin"], sousrace:"Halfelin"},
   "Tieffelin":{bonus:"+1 INT, +2 CHA", vitesse:"9m", taille:"Moyenne (~1,70m)", langues:["Commun","Infernal"]}
 };
 var HIST_CAPS_EXTRA = {
@@ -7525,6 +7529,12 @@ var HIST_CAPS_EXTRA = {
   "Sauvageon":       [{nom:"Survivant de la nature", desc:"Tu mémorises et retranscriras facilement cartes de territoires, et tu peux toujours te rappeler d'où tu viens et te situer globalement. Tu as aussi l'habitude de vivre sans commodités, et tu souffres moins des conditions difficiles de l'environnement."}]
 };
 var RACES_CAPS_EXTRA = {
+  "Halfelin Pied-léger": [
+    {nom:"Discrétion naturelle", desc:"Tu peux tenter de te cacher si tu te trouves derrière une créature d'une taille supérieure à la tienne, en l'utilisant comme couverture."}
+  ],
+  "Halfelin Robuste": [
+    {nom:"Résistance des robustes", desc:"Tu as l'avantage aux jets de sauvegarde contre le poison et tu as la résistance aux dégâts de poison."}
+  ],
   "Haut-elfe": [
     {nom:"Cantrip supplémentaire", desc:"Tu connais un cantrip supplémentaire de ton choix issu de la liste du Magicien. L'Intelligence est ta caractéristique d'incantation pour ce cantrip."}
   ],
@@ -7611,12 +7621,12 @@ function chargerRace(contId) {
   var caps = (window.CAPS_DATA && CAPS_DATA.races) ? (CAPS_DATA.races[race] || (parentRace && CAPS_DATA.races[parentRace]) || null) : null;
   var capsExtra = RACES_CAPS_EXTRA ? RACES_CAPS_EXTRA[race] || null : null;
   cont.innerHTML = '';
-  var sousTitre = parentRace ? 'Sous-race de l\'Elfe · '+(v('nom')||'ton personnage') : 'Race de '+(v('nom')||'ton personnage');
+  var sousTitre = parentRace ? 'Sous-race de l\''+parentRace+' · '+(v('nom')||'ton personnage') : 'Race de '+(v('nom')||'ton personnage');
   _rqHeader(cont, '🧬', race, sousTitre);
   if(parentRace){
     var noteSR=document.createElement('div');
     noteSR.style.cssText='background:rgba(147,197,253,.08);border:1px solid rgba(147,197,253,.25);border-radius:8px;padding:8px 12px;margin-bottom:12px;font-size:12px;color:var(--txt2);';
-    noteSR.innerHTML='<b style="color:#93c5fd;">Sous-race Elfe</b> — Tu bénéficies de tous les traits raciaux de l\'Elfe, plus les traits spécifiques au '+race+' ci-dessous.';
+    noteSR.innerHTML='<b style="color:#93c5fd;">Sous-race '+parentRace+'</b> — Tu bénéficies de tous les traits raciaux de l\''+parentRace+', plus les traits spécifiques au '+race+' ci-dessous.';
     cont.appendChild(noteSR);
   }
   if(det){
@@ -12442,12 +12452,15 @@ function fermerCombatPJ(){
 function cbtConfirmerInit(){
   if(_cbtInitSoumise)return; // idempotent — empêche tout double-envoi
   var val=parseInt((el('cbt-init-val').value)||'');
-  if(isNaN(val)||val<1||val>30){
+  if(isNaN(val)||val<1||val>20){
     el('cbt-init-val').style.borderColor='#dc2626';
     el('cbt-init-val').focus();
     return;
   }
   el('cbt-init-val').style.borderColor='';
+  var bonus=gStatMod('dex');
+  val=val+bonus;
+  if(val<1)val=1;
   _cbtInitSoumise=true; // verrouiller immédiatement avant tout le reste
   el('cbt-init-saisie').style.display='none';
   _cbtInitVal=val;
@@ -12520,6 +12533,8 @@ function cbtMajUI(){
         +'</div>';
       cbtStartWaitPoll();
     } else {
+      var _bonusLbl=el('cbt-init-bonus-lbl');
+      if(_bonusLbl){var _b=gStatMod('dex');_bonusLbl.textContent=(_b>=0?'+':'')+_b;}
       el('cbt-liste').innerHTML='<p style="font-size:12px;color:var(--txt3);text-align:center;padding:.5rem;">Le MJ lance un nouveau combat. Entre ton initiative !</p>';
     }
     return;
@@ -13251,11 +13266,14 @@ function conn_toggleSec(sid){
     <!-- Saisie initiative -->
     <div id="cbt-init-saisie" style="display:none;">
       <div style="text-align:center;padding:2.5rem 1rem;">
-        <p style="font-size:14px;color:var(--txt2);margin-bottom:.5rem;font-weight:600;">Ton score d’initiative</p>
-        <p style="font-size:11px;color:var(--txt3);margin-bottom:1.5rem;">Entre ton score total — ex : 17</p>
-        <input type="number" id="cbt-init-val" placeholder="17" min="1" max="30"
-          style="font-size:48px;font-weight:800;text-align:center;width:160px;padding:10px;border:2px solid var(--rouge);border-radius:12px;background:var(--bg2);color:var(--txt);"
-          onkeydown="if(event.key==='Enter')cbtConfirmerInit()">
+        <p style="font-size:14px;color:var(--txt2);margin-bottom:.5rem;font-weight:600;">Ton jet d’initiative (1d20)</p>
+        <p style="font-size:11px;color:var(--txt3);margin-bottom:1.5rem;">Entre le résultat du dé — ton bonus sera ajouté automatiquement</p>
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px;">
+          <input type="number" id="cbt-init-val" placeholder="15" min="1" max="20"
+            style="font-size:48px;font-weight:800;text-align:center;width:160px;padding:10px;border:2px solid var(--rouge);border-radius:12px;background:var(--bg2);color:var(--txt);"
+            onkeydown="if(event.key===’Enter’)cbtConfirmerInit()">
+          <span id="cbt-init-bonus-lbl" style="font-size:30px;font-weight:700;color:var(--or);min-width:48px;text-align:left;"></span>
+        </div>
         <div style="margin-top:1.5rem;">
           <button class="btn ok" style="font-size:15px;padding:12px 36px;border-radius:10px;" onclick="cbtConfirmerInit()">Confirmer</button>
         </div>

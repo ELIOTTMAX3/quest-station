@@ -363,6 +363,17 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           <button class="btn sm" onclick="encSauvegarderGroupe()" title="Sauvegarder ce groupe de monstres">💾 Sauvegarder groupe</button>
           <button class="btn sm ok" onclick="encEnvoyerCombat()" title="Ajouter tous les monstres au tracker de combat">⚔ Envoyer au combat</button>
         </div>
+        <!-- Formulaire inline pour sauvegarder un groupe avec initiative -->
+        <div id="enc-grp-form" style="display:none;margin-top:8px;background:var(--bg2);border:1px solid var(--bord);border-radius:8px;padding:10px;">
+          <p style="font-size:11px;font-weight:700;color:var(--txt2);margin-bottom:8px;">Sauvegarder un groupe</p>
+          <input id="enc-grp-nom" type="text" placeholder="Nom du groupe" style="width:100%;box-sizing:border-box;font-size:12px;padding:5px 8px;border:1px solid var(--bord);border-radius:6px;background:var(--bg3);color:var(--txt);margin-bottom:8px;">
+          <p style="font-size:10px;font-weight:600;color:var(--txt3);margin-bottom:5px;text-transform:uppercase;letter-spacing:.05em;">Initiative (optionnel)</p>
+          <div id="enc-grp-inits"></div>
+          <div style="display:flex;gap:6px;margin-top:8px;">
+            <button class="btn sm ok" onclick="encSauvegarderGroupeConfirm()" style="flex:1;">💾 Sauvegarder</button>
+            <button class="btn sm" onclick="encAnnulerGroupeForm()">Annuler</button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -838,7 +849,8 @@ var encPlayers = [{niv:5},{niv:5},{niv:5},{niv:5},{niv:5},{niv:5}];
 var encAddedMonsters = []; // [{uid, monster: MONSTRES_SRD_entry, qty}]
 var encAddedUidCounter = 0;
 var encCurrentFilter = '';
-var encGroupes = JSON.parse(localStorage.getItem('enc_groupes')||'[]'); // [{nom, monstres:[{id,qty}]}]
+// Groupes synchronisés avec mj.html (Firestore) via window.parent._besti_groupes
+function _encGetGroupes(){try{var p=window.parent;if(p&&Array.isArray(p._besti_groupes))return p._besti_groupes;}catch(e){}return [];}
 
 // Fermer le dropdown si clic ailleurs
 document.addEventListener('click',function(e){
@@ -1001,46 +1013,80 @@ function calcEnc(){
   el('enc-result').style.display=totalMons>0?'block':'none';
 }
 
-// ── Groupes de monstres ──────────────────────────────────────────
+// ── Groupes de monstres (synchronisés Firestore via mj.html) ────────────
 function encSauvegarderGroupe(){
   if(!encAddedMonsters.length){alert('Ajoute au moins un monstre avant de sauvegarder un groupe.');return;}
-  var nom=prompt('Nom du groupe :','Groupe '+(encGroupes.length+1));
-  if(!nom)return;
-  var groupe={nom:nom.trim(),monstres:encAddedMonsters.map(function(e){return{id:e.monster.id,qty:e.qty};})};
-  encGroupes.push(groupe);
-  localStorage.setItem('enc_groupes',JSON.stringify(encGroupes));
-  buildEncGroupesList();
+  var groupes=_encGetGroupes();
+  var nomI=el('enc-grp-nom');if(nomI)nomI.value='Groupe '+(groupes.length+1);
+  var initsDiv=el('enc-grp-inits');
+  if(initsDiv){
+    initsDiv.innerHTML=encAddedMonsters.map(function(e,i){
+      return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">'
+        +'<span style="font-size:11px;flex:1;color:var(--txt);">'+e.monster.nom+(e.qty>1?' ×'+e.qty:'')+'</span>'
+        +'<input type="number" id="enc-grp-init-'+i+'" placeholder="—" min="1" max="30"'
+        +' style="width:58px;font-size:11px;padding:3px 6px;border:1px solid var(--bord);border-radius:5px;background:var(--bg3);color:var(--txt);">'
+        +'</div>';
+    }).join('');
+  }
+  var form=el('enc-grp-form');if(form)form.style.display='';
+  if(nomI)nomI.focus();
 }
 
-function encChargerGroupe(idx){
-  var g=encGroupes[idx];if(!g)return;
+function encAnnulerGroupeForm(){
+  var form=el('enc-grp-form');if(form)form.style.display='none';
+}
+
+function encSauvegarderGroupeConfirm(){
+  var nom=(el('enc-grp-nom').value||'').trim();
+  if(!nom){el('enc-grp-nom').focus();return;}
+  var membres=encAddedMonsters.map(function(e,i){
+    var initI=el('enc-grp-init-'+i);
+    var initVal=initI&&initI.value.trim()!==''?parseInt(initI.value):null;
+    return {monstruId:e.monster.id,source:'srd',quantite:e.qty,init:initVal};
+  });
+  var p=window.parent;
+  if(!p||typeof p.besti_sauvegarderGroupeDepuisEnc!=='function'){
+    alert('Impossible de communiquer avec le panel MJ. Assure-toi que l\'outil est ouvert depuis le panel MJ.');
+    return;
+  }
+  p.besti_sauvegarderGroupeDepuisEnc({nom:nom,membres:membres});
+  encAnnulerGroupeForm();
+}
+
+function encChargerGroupe(gid){
+  var g=_encGetGroupes().find(function(x){return x.id===gid;});
+  if(!g)return;
   var monstres=typeof MONSTRES_SRD!=='undefined'?MONSTRES_SRD:[];
-  g.monstres.forEach(function(entry){
-    var m=monstres.find(function(x){return x.id===entry.id;});
+  (g.membres||[]).forEach(function(mb){
+    var m=monstres.find(function(x){return x.id===mb.monstruId;});
     if(!m)return;
     var existing=encAddedMonsters.find(function(e){return e.monster.id===m.id;});
-    if(existing){existing.qty+=entry.qty;}
-    else{encAddedMonsters.push({uid:++encAddedUidCounter,monster:m,qty:entry.qty});}
+    if(existing){existing.qty+=(mb.quantite||1);}
+    else{encAddedMonsters.push({uid:++encAddedUidCounter,monster:m,qty:mb.quantite||1});}
   });
   buildEncMonstersList();
 }
 
-function encSupprimerGroupe(idx){
-  encGroupes.splice(idx,1);
-  localStorage.setItem('enc_groupes',JSON.stringify(encGroupes));
-  buildEncGroupesList();
+function encSupprimerGroupe(gid){
+  if(!confirm('Supprimer ce groupe ?'))return;
+  var p=window.parent;
+  if(!p||typeof p.besti_supprimerGroupe!=='function'){alert('Impossible de communiquer avec le panel MJ.');return;}
+  p.besti_supprimerGroupe(gid);
 }
 
 function buildEncGroupesList(){
   var c=el('enc-groupes-list');if(!c)return;
-  if(!encGroupes.length){c.innerHTML='<p style="font-size:11px;color:var(--txt3);margin:0;">Aucun groupe sauvegardé.</p>';return;}
-  c.innerHTML=encGroupes.map(function(g,i){
-    var total=g.monstres.reduce(function(s,e){return s+e.qty;},0);
+  var groupes=_encGetGroupes();
+  if(!groupes.length){c.innerHTML='<p style="font-size:11px;color:var(--txt3);margin:0;">Aucun groupe sauvegardé.</p>';return;}
+  c.innerHTML=groupes.map(function(g){
+    var membres=g.membres||[];
+    var total=membres.reduce(function(s,mb){return s+(mb.quantite||1);},0);
+    var safeid=String(g.id).replace(/'/g,'');
     return '<div style="display:flex;align-items:center;gap:6px;margin-bottom:5px;">'
-      +'<button class="btn sm ok" onclick="encChargerGroupe('+i+')" style="flex:1;text-align:left;font-size:11px;padding:4px 8px;">'
-        +'<b>'+g.nom+'</b> <span style="font-weight:400;opacity:.7;">('+total+' créature'+(total>1?'s':'')+')</span>'
+      +'<button class="btn sm ok" onclick="encChargerGroupe(\''+safeid+'\')" style="flex:1;text-align:left;font-size:11px;padding:4px 8px;">'
+        +'<b>'+String(g.nom||'Groupe').replace(/</g,'&lt;')+'</b> <span style="font-weight:400;opacity:.7;">('+total+' créature'+(total>1?'s':'')+')</span>'
       +'</button>'
-      +'<button class="btn sm" onclick="encSupprimerGroupe('+i+')" style="font-size:11px;padding:4px 7px;color:var(--rouge);border-color:var(--rouge);">✕</button>'
+      +'<button class="btn sm" onclick="encSupprimerGroupe(\''+safeid+'\')" style="font-size:11px;padding:4px 7px;color:var(--rouge);border-color:var(--rouge);">✕</button>'
       +'</div>';
   }).join('');
 }
