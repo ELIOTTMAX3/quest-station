@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Aperçu styles Notes</title>
+<style>
+  :root {
+    --rouge:#d97706; --bg:#1a1a2e; --bg2:#16213e; --bg3:#0f3460;
+    --or:#c9a227; --txt:#e0e0e0; --txt2:#a0a0b0; --txt3:#6070a0;
+    --bord:#2a3a5a;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--txt); font-family: 'Segoe UI', sans-serif; padding: 20px; }
+
+  h1 { color: var(--or); text-align: center; margin-bottom: 30px; font-size: 1.3rem; letter-spacing: 2px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; max-width: 1100px; margin: 0 auto; }
+  .style-label { color: var(--or); font-size: 0.85rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 10px; text-align: center; }
+
+  textarea { width: 100%; resize: none; font-family: inherit; font-size: 0.85rem; color: var(--txt); padding: 8px; border-radius: 6px; }
+  textarea:focus { outline: none; }
+
+  /* ───────────────────────────────────────── */
+  /* STYLE A — Parchemin sombre (Codex)        */
+  /* ───────────────────────────────────────── */
+  .a-section {
+    background: #1c1a2a;
+    border-left: 4px solid var(--or);
+    border-top: 1px solid rgba(201,162,39,0.25);
+    border-right: 1px solid rgba(201,162,39,0.1);
+    border-bottom: 1px solid rgba(201,162,39,0.1);
+    border-radius: 0 8px 8px 0;
+    padding: 14px 18px;
+    margin-bottom: 12px;
+    position: relative;
+  }
+  .a-section::before {
+    content: '◆';
+    position: absolute;
+    left: -9px;
+    top: 12px;
+    color: var(--or);
+    font-size: 0.7rem;
+    background: #1c1a2a;
+    line-height: 1;
+  }
+  .a-title {
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--or);
+    border-bottom: 1px solid rgba(201,162,39,0.2);
+    padding-bottom: 6px;
+    margin-bottom: 10px;
+  }
+  .a-section textarea {
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid rgba(201,162,39,0.2);
+    border-radius: 0;
+    color: var(--txt);
+    padding: 4px 0;
+    line-height: 1.6;
+  }
+  .a-section textarea:focus { border-bottom-color: var(--or); }
+  .a-chip { display:inline-block; background:rgba(201,162,39,0.1); border:1px solid rgba(201,162,39,0.3); color:var(--or); font-size:0.75rem; padding:3px 10px; border-radius:20px; margin:3px; }
+  .a-btn { background: rgba(201,162,39,0.1); border: 1px solid rgba(201,162,39,0.35); color: var(--or); font-size: 0.75rem; padding: 5px 12px; border-radius: 4px; cursor: pointer; font-family: inherit; }
+
+  /* ───────────────────────────────────────── */
+  /* STYLE B — Fiches épinglées                */
+  /* ───────────────────────────────────────── */
+  .b-section {
+    background: var(--bg3);
+    border-radius: 8px;
+    margin-bottom: 12px;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+    overflow: hidden;
+    position: relative;
+  }
+  .b-section::after {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    border-width: 0 18px 18px 0;
+    border-style: solid;
+    border-color: transparent rgba(0,0,0,0.35) transparent transparent;
+  }
+  .b-header {
+    background: linear-gradient(135deg, #0f3460 0%, #1a2e4a 60%, rgba(217,119,6,0.25) 100%);
+    padding: 10px 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border-bottom: 1px solid rgba(201,162,39,0.2);
+  }
+  .b-header span { font-size: 0.75rem; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--txt); }
+  .b-body { padding: 12px 16px; }
+  .b-section textarea {
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--bord);
+    border-radius: 6px;
+    color: var(--txt);
+    background-image: repeating-linear-gradient(transparent, transparent 22px, rgba(201,162,39,0.05) 22px, rgba(201,162,39,0.05) 23px);
+    line-height: 23px;
+    padding: 4px 8px;
+  }
+  .b-section textarea:focus { border-color: var(--or); }
+  .b-info-row { display:flex; justify-content:space-between; font-size:0.8rem; margin-bottom:6px; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); }
+  .b-info-row span:first-child { color: var(--txt2); }
+  .b-info-row span:last-child { color: var(--txt); font-weight: 600; }
+  .b-btn { background: linear-gradient(135deg,#1a2e4a,#0f3460); border: 1px solid rgba(201,162,39,0.35); color: var(--or); font-size: 0.75rem; padding: 5px 12px; border-radius: 6px; cursor: pointer; font-family: inherit; }
+
+  /* ───────────────────────────────────────── */
+  /* STYLE C — Pierre gravée (Donjon)          */
+  /* ───────────────────────────────────────── */
+  .c-section {
+    background: #141428;
+    background-image: radial-gradient(rgba(255,255,255,0.015) 1px, transparent 1px);
+    background-size: 20px 20px;
+    border: 1px solid #2a3a5a;
+    outline: 1px solid rgba(255,255,255,0.04);
+    outline-offset: -4px;
+    border-radius: 3px;
+    padding: 14px 18px;
+    margin-bottom: 12px;
+  }
+  .c-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--txt);
+    text-shadow: 0 1px 0 rgba(255,255,255,0.15), 0 -1px 0 rgba(0,0,0,0.6);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .c-sep {
+    height: 1px;
+    background: repeating-linear-gradient(90deg, transparent, transparent 4px, rgba(201,162,39,0.2) 4px, rgba(201,162,39,0.2) 8px);
+    margin: 8px 0 12px;
+  }
+  .c-section textarea {
+    background: rgba(0,0,0,0.3);
+    border: 1px solid #2a3a5a;
+    border-radius: 2px;
+    color: var(--txt);
+  }
+  .c-section textarea:focus { border-color: rgba(201,162,39,0.5); box-shadow: inset 0 0 8px rgba(0,0,0,0.4); }
+  .c-info-row { font-size:0.8rem; padding: 5px 0; display:flex; justify-content:space-between; }
+  .c-info-row span:first-child { color: var(--txt3); font-size:0.7rem; letter-spacing:1px; text-transform:uppercase; }
+  .c-info-row span:last-child { color: var(--txt); }
+  .c-btn { background: #141428; border: 1px solid #2a3a5a; color: var(--txt2); font-size: 0.75rem; padding: 5px 12px; border-radius: 2px; cursor: pointer; font-family: inherit; letter-spacing: 1px; text-transform: uppercase; }
+  .c-btn:hover { border-color: var(--or); color: var(--or); }
+
+  /* ───────────────────────────────────────── */
+  /* STYLE D — Interface arcanique (Cristal)   */
+  /* ───────────────────────────────────────── */
+  @keyframes borderGlow {
+    0%   { border-color: rgba(201,162,39,0.5); box-shadow: 0 0 8px rgba(201,162,39,0.15); }
+    50%  { border-color: rgba(217,119,6,0.7);  box-shadow: 0 0 14px rgba(217,119,6,0.25); }
+    100% { border-color: rgba(201,162,39,0.5); box-shadow: 0 0 8px rgba(201,162,39,0.15); }
+  }
+  .d-section {
+    background: rgba(15,52,96,0.45);
+    backdrop-filter: blur(4px);
+    border: 1px solid rgba(201,162,39,0.4);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 12px;
+    box-shadow: 0 0 10px rgba(201,162,39,0.1), inset 0 1px 0 rgba(255,255,255,0.05);
+    animation: borderGlow 4s ease-in-out infinite;
+  }
+  .d-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--or);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .d-icon { font-size: 1rem; filter: drop-shadow(0 0 4px var(--or)); }
+  .d-line { flex:1; height:1px; background: linear-gradient(90deg, rgba(201,162,39,0.4), transparent); }
+  .d-section textarea {
+    background: rgba(0,0,0,0.25);
+    border: 1px solid rgba(201,162,39,0.2);
+    border-radius: 6px;
+    color: var(--txt);
+  }
+  .d-section textarea:focus {
+    border-color: var(--or);
+    box-shadow: 0 0 8px rgba(201,162,39,0.3), inset 0 0 4px rgba(201,162,39,0.05);
+  }
+  .d-info-row { font-size:0.8rem; padding:5px 0; display:flex; justify-content:space-between; align-items:center; }
+  .d-info-row span:first-child { color: var(--txt3); }
+  .d-info-row span:last-child { color: var(--txt); background:rgba(201,162,39,0.08); border:1px solid rgba(201,162,39,0.15); padding:1px 8px; border-radius:10px; font-size:0.8rem; }
+  .d-btn {
+    background: linear-gradient(135deg, rgba(201,162,39,0.15), rgba(217,119,6,0.2));
+    border: 1px solid rgba(201,162,39,0.4);
+    color: var(--or);
+    font-size: 0.75rem;
+    padding: 5px 14px;
+    border-radius: 20px;
+    cursor: pointer;
+    font-family: inherit;
+    box-shadow: 0 0 6px rgba(201,162,39,0.1);
+  }
+  .d-btn:hover { box-shadow: 0 0 12px rgba(201,162,39,0.3); }
+</style>
+</head>
+<body>
+<h1>✦ APERÇU STYLES — PAGE NOTES ✦</h1>
+<div class="grid">
+
+  <!-- ═══ A ═══ -->
+  <div>
+    <div class="style-label">🅐 Parchemin sombre — Codex</div>
+
+    <div class="a-section">
+      <div class="a-title">📋 Infos du MJ</div>
+      <div style="font-size:0.8rem;color:var(--txt2);line-height:1.6;">
+        Vous avez reçu un message crypté de la guilde.<br>
+        L'aubergiste sait quelque chose sur le meurtre.
+      </div>
+    </div>
+
+    <div class="a-section">
+      <div class="a-title">📝 Notes partagées</div>
+      <textarea rows="3" placeholder="Écrire une note…">Le donjon de Karath se trouve au nord des Marais d'Ébène.</textarea>
+      <div style="margin-top:8px;display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="a-btn">+ Ajouter</button>
+      </div>
+    </div>
+
+    <div class="a-section">
+      <div class="a-title">📚 Connaissances</div>
+      <div style="margin-bottom:6px;">
+        <div style="font-size:0.75rem;color:var(--txt3);letter-spacing:1px;margin-bottom:4px;">CATÉGORIE</div>
+        <span class="a-chip">Histoire</span>
+        <span class="a-chip">Arcane</span>
+        <span class="a-chip">Nature</span>
+      </div>
+      <div style="font-size:0.82rem;color:var(--txt2);line-height:1.7;padding-top:6px;border-top:1px solid rgba(201,162,39,0.15);">
+        <strong style="color:var(--txt);">Les Runes de Solfara</strong><br>
+        Anciennes inscriptions elfiques gravées dans la pierre volcanique du Mont Caldera…
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ B ═══ -->
+  <div>
+    <div class="style-label">🅑 Fiches épinglées — Tableau de commandement</div>
+
+    <div class="b-section">
+      <div class="b-header"><span>📋 Infos du MJ</span></div>
+      <div class="b-body">
+        <div class="b-info-row"><span>Dernier message</span><span>Guilde des Marchands</span></div>
+        <div class="b-info-row"><span>Lieu actuel</span><span>Auberge du Griffon d'Or</span></div>
+        <div class="b-info-row" style="border:none;"><span>Indice</span><span>L'aubergiste sait quelque chose</span></div>
+      </div>
+    </div>
+
+    <div class="b-section">
+      <div class="b-header"><span>📝 Notes partagées</span></div>
+      <div class="b-body">
+        <textarea rows="3" placeholder="Écrire une note…">Le donjon de Karath se trouve au nord des Marais d'Ébène.</textarea>
+        <div style="margin-top:8px;text-align:right;">
+          <button class="b-btn">+ Ajouter</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="b-section">
+      <div class="b-header"><span>📚 Connaissances</span></div>
+      <div class="b-body">
+        <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">
+          <span style="font-size:0.75rem;background:rgba(201,162,39,0.15);border:1px solid rgba(201,162,39,0.3);color:var(--or);padding:2px 10px;border-radius:4px;">Histoire</span>
+          <span style="font-size:0.75rem;background:rgba(201,162,39,0.15);border:1px solid rgba(201,162,39,0.3);color:var(--or);padding:2px 10px;border-radius:4px;">Arcane</span>
+        </div>
+        <div style="font-size:0.82rem;color:var(--txt2);line-height:1.7;">
+          <strong style="color:var(--txt);">Les Runes de Solfara</strong><br>
+          Anciennes inscriptions elfiques gravées dans la pierre volcanique…
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ C ═══ -->
+  <div>
+    <div class="style-label">🅒 Pierre gravée — Donjon</div>
+
+    <div class="c-section">
+      <div class="c-title">📋 Infos du MJ</div>
+      <div class="c-sep"></div>
+      <div class="c-info-row"><span>Lieu</span><span>Auberge du Griffon d'Or</span></div>
+      <div class="c-info-row"><span>Mission</span><span>Trouver le meurtrière</span></div>
+      <div class="c-info-row" style="border-top:1px solid rgba(255,255,255,0.04);margin-top:2px;padding-top:6px;"><span>Note</span><span style="color:var(--txt2);font-size:0.8rem;">L'aubergiste sait quelque chose sur le meurtre.</span></div>
+    </div>
+
+    <div class="c-section">
+      <div class="c-title">📝 Notes partagées</div>
+      <div class="c-sep"></div>
+      <textarea rows="3" placeholder="Écrire une note…">Le donjon de Karath se trouve au nord des Marais d'Ébène.</textarea>
+      <div style="margin-top:8px;">
+        <button class="c-btn">+ Graver</button>
+      </div>
+    </div>
+
+    <div class="c-section">
+      <div class="c-title">📚 Connaissances</div>
+      <div class="c-sep"></div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;">
+        <span style="font-size:0.72rem;background:rgba(255,255,255,0.04);border:1px solid #2a3a5a;color:var(--txt2);padding:2px 8px;border-radius:2px;letter-spacing:1px;text-transform:uppercase;">Histoire</span>
+        <span style="font-size:0.72rem;background:rgba(255,255,255,0.04);border:1px solid #2a3a5a;color:var(--txt2);padding:2px 8px;border-radius:2px;letter-spacing:1px;text-transform:uppercase;">Arcane</span>
+        <span style="font-size:0.72rem;background:rgba(255,255,255,0.04);border:1px solid #2a3a5a;color:var(--txt2);padding:2px 8px;border-radius:2px;letter-spacing:1px;text-transform:uppercase;">Nature</span>
+      </div>
+      <div style="font-size:0.82rem;color:var(--txt2);line-height:1.7;">
+        <strong style="color:var(--txt);text-shadow:0 1px 0 rgba(255,255,255,0.1);">Les Runes de Solfara</strong><br>
+        Anciennes inscriptions elfiques gravées dans la pierre volcanique…
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ D ═══ -->
+  <div>
+    <div class="style-label">🅓 Interface arcanique — Cristal magique</div>
+
+    <div class="d-section">
+      <div class="d-title"><span class="d-icon">📋</span> Infos du MJ <span class="d-line"></span></div>
+      <div class="d-info-row"><span>Lieu actuel</span><span>Auberge du Griffon d'Or</span></div>
+      <div class="d-info-row"><span>Indice</span><span>L'aubergiste</span></div>
+      <div class="d-info-row"><span>Mission</span><span>Enquête sur le meurtre</span></div>
+    </div>
+
+    <div class="d-section">
+      <div class="d-title"><span class="d-icon">📝</span> Notes partagées <span class="d-line"></span></div>
+      <textarea rows="3" placeholder="Écrire une note…">Le donjon de Karath se trouve au nord des Marais d'Ébène.</textarea>
+      <div style="margin-top:8px;display:flex;justify-content:flex-end;">
+        <button class="d-btn">✦ Ajouter</button>
+      </div>
+    </div>
+
+    <div class="d-section">
+      <div class="d-title"><span class="d-icon">📚</span> Connaissances <span class="d-line"></span></div>
+      <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:10px;">
+        <span style="font-size:0.75rem;background:rgba(201,162,39,0.1);border:1px solid rgba(201,162,39,0.25);color:var(--or);padding:2px 12px;border-radius:20px;box-shadow:0 0 4px rgba(201,162,39,0.1);">Histoire</span>
+        <span style="font-size:0.75rem;background:rgba(201,162,39,0.1);border:1px solid rgba(201,162,39,0.25);color:var(--or);padding:2px 12px;border-radius:20px;box-shadow:0 0 4px rgba(201,162,39,0.1);">Arcane</span>
+        <span style="font-size:0.75rem;background:rgba(201,162,39,0.1);border:1px solid rgba(201,162,39,0.25);color:var(--or);padding:2px 12px;border-radius:20px;box-shadow:0 0 4px rgba(201,162,39,0.1);">Nature</span>
+      </div>
+      <div style="font-size:0.82rem;color:var(--txt2);line-height:1.7;">
+        <strong style="color:var(--txt);filter:drop-shadow(0 0 3px rgba(201,162,39,0.2));">Les Runes de Solfara</strong><br>
+        Anciennes inscriptions elfiques gravées dans la pierre volcanique…
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

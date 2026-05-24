@@ -597,6 +597,22 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .conn-sec-title{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:#8b6914;margin:8px 0 3px;padding-bottom:2px;border-bottom:1px solid #2a3a5a;cursor:pointer;display:flex;align-items:center;justify-content:space-between;}
 .conn-trait{margin:4px 0;font-size:11px;color:#9a8a6a;line-height:1.55;}
 .conn-trait b{color:#e8dcc8;}
+
+/* ══ STYLE ARCANIQUE — PAGE NOTES ══ */
+@keyframes arcGlow{
+  0%  {border-color:rgba(201,162,39,0.4);box-shadow:0 0 8px rgba(201,162,39,0.12),inset 0 1px 0 rgba(255,255,255,0.05);}
+  50% {border-color:rgba(217,119,6,0.65);box-shadow:0 0 16px rgba(217,119,6,0.2),inset 0 1px 0 rgba(255,255,255,0.05);}
+  100%{border-color:rgba(201,162,39,0.4);box-shadow:0 0 8px rgba(201,162,39,0.12),inset 0 1px 0 rgba(255,255,255,0.05);}
+}
+.arc-section{background:rgba(15,52,96,0.45);border:1px solid rgba(201,162,39,0.4);border-radius:10px;padding:14px 18px;margin-bottom:12px;animation:arcGlow 4s ease-in-out infinite;}
+.arc-title{font-size:0.72rem;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:var(--or);margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.arc-line{flex:1;height:1px;background:linear-gradient(90deg,rgba(201,162,39,0.4),transparent);}
+.arc-textarea{width:100%;background:rgba(0,0,0,0.25);border:1px solid rgba(201,162,39,0.2);border-radius:6px;color:var(--txt);font-family:inherit;font-size:13px;resize:none;overflow:hidden;padding:8px;box-sizing:border-box;}
+.arc-textarea:focus{outline:none;border-color:var(--or);box-shadow:0 0 8px rgba(201,162,39,0.3),inset 0 0 4px rgba(201,162,39,0.05);}
+.arc-notestabs{display:flex;gap:2px;margin-bottom:10px;background:var(--bg3);border:1px solid var(--bord);border-radius:10px;padding:3px;}
+.arc-notetab{flex:1;background:none;border:none;font-family:inherit;font-size:12px;font-weight:600;padding:8px 6px;border-radius:7px;cursor:pointer;color:var(--txt3);text-align:center;}
+.arc-notetab.on{background:linear-gradient(135deg,#1a2e4a,#0f3460);color:var(--or);}
+.arc-notetab:hover:not(.on){background:rgba(255,255,255,.05);}
 </style>
 <script src="sorts.js?v=2"></script>
 <script src="monstres-srd.js"></script>
@@ -935,30 +951,33 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <div id="conn-panel-notes">
     <!-- Pas encore dans une campagne -->
     <div id="rn-join">
-      <div class="r-section">
-        <p class="st">Notes partagées</p>
+      <div class="arc-section">
+        <div class="arc-title">📝 Notes partagées <span class="arc-line"></span></div>
         <p style="font-size:12px;color:var(--txt2);line-height:1.6;">Rejoins une campagne pour accéder aux infos du MJ et aux notes partagées.</p>
       </div>
     </div>
     <!-- Dans une campagne -->
     <div id="rn-panel" style="display:none;">
-      <div class="r-section" id="rc-infos-mj-card" style="display:none;">
-        <div style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;" onclick="rcToggle('rc-infos-mj-body',this)">
-          <p class="st" style="margin:0;border:none;padding:0;">📋 Infos du MJ</p>
-          <span style="font-size:12px;color:var(--txt3);">▾</span>
-        </div>
-        <div id="rc-infos-mj-body" style="display:none;margin-top:8px;">
-          <div id="rc-infos-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;"></div>
-          <div id="rc-infos-mj" style="font-size:13px;line-height:1.6;color:var(--txt2);white-space:pre-wrap;"></div>
-        </div>
+      <!-- Barre d'onglets Infos MJ / Notes -->
+      <div class="arc-notestabs">
+        <button class="arc-notetab" id="rn-tab-infos" onclick="rnSelectTab('infos',this)" style="display:none;">📋 Infos du MJ</button>
+        <button class="arc-notetab on" id="rn-tab-notes" onclick="rnSelectTab('notes',this)">📝 Notes</button>
       </div>
-      <div class="r-section">
-        <p class="st" style="margin-bottom:8px;">📝 Notes partagées</p>
+      <!-- Panel Infos du MJ (lecture seule) -->
+      <div id="rn-panel-infos" class="arc-section" style="display:none;">
+        <div class="arc-title">📋 Infos du MJ <span class="arc-line"></span></div>
+        <div id="rc-infos-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;"></div>
+        <div id="rc-infos-mj" style="font-size:13px;line-height:1.6;color:var(--txt2);white-space:pre-wrap;"></div>
+      </div>
+      <!-- Panel Notes partagées -->
+      <div id="rn-panel-notes" class="arc-section">
+        <div class="arc-title">📝 Notes partagées <span class="arc-line"></span></div>
         <div id="rc-notes-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
-        <textarea id="rc-notes-partage" placeholder="Écris ici…" style="width:100%;min-height:120px;font-size:13px;resize:none;overflow:hidden;" oninput="rcNoteInput()"></textarea>
+        <textarea id="rc-notes-partage" class="arc-textarea" style="min-height:120px;" placeholder="Écris ici…" oninput="rcNoteInput()"></textarea>
       </div>
-      <div class="r-section" id="rn-images-card" style="display:none;">
-        <p class="st" style="margin-bottom:8px;">🖼️ Images</p>
+      <!-- Images partagées -->
+      <div class="arc-section" id="rn-images-card" style="display:none;">
+        <div class="arc-title">🖼️ Images <span class="arc-line"></span></div>
         <div id="rc-img-gallery" style="display:flex;flex-direction:column;gap:12px;"></div>
       </div>
     </div>
@@ -966,8 +985,22 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
     <!-- Sous-page CONNAISSANCES -->
     <div id="conn-panel-conn" style="display:none;">
-      <div id="conn-liste">
-        <p style="font-size:12px;color:var(--txt3);font-style:italic;">Aucune connaissance pour l'instant.</p>
+      <!-- Sous-onglets Monstres / Histoire -->
+      <div class="conn-subnav">
+        <button class="conn-subnav-btn on" id="conn-know-monstres" onclick="conn_selectKnowTab('monstres',this)">👾 Monstres</button>
+        <button class="conn-subnav-btn" id="conn-know-histoire" onclick="conn_selectKnowTab('histoire',this)">📜 Histoire</button>
+      </div>
+      <!-- Panel Monstres -->
+      <div id="conn-panel-monstres">
+        <div id="conn-liste">
+          <p style="font-size:12px;color:var(--txt3);font-style:italic;">Aucune connaissance pour l'instant.</p>
+        </div>
+      </div>
+      <!-- Panel Histoire -->
+      <div id="conn-panel-histoire" style="display:none;">
+        <div id="conn-histoire-liste">
+          <p style="font-size:12px;color:var(--txt3);font-style:italic;">Aucun bloc d'histoire partagé pour l'instant.</p>
+        </div>
       </div>
     </div>
 
@@ -10283,13 +10316,20 @@ function campEcouter(){
     rqRendreEtatsCamp();
     majCombatPJ(d.combat||{actif:false});
     campRendreJoueurs();
-    // Infos MJ — onglets lecture seule
+    // Infos MJ — onglet lecture seule
     var _rawImj=d.infosMJ;
-    var _ic=el("rc-infos-mj-card");
-    if(_ic){
-      var _imjTabs=!_rawImj?null:typeof _rawImj==="string"?[{nom:"General",contenu:_rawImj}]:Array.isArray(_rawImj)?_rawImj:null;
-      _ic.style.display=(_imjTabs&&_imjTabs.length)?"":"none";
-      if(_imjTabs&&_imjTabs.length){window._rcInfosTabs=_imjTabs;rcRendreInfosTabs();}
+    var _imjTabs=!_rawImj?null:typeof _rawImj==="string"?[{nom:"General",contenu:_rawImj}]:Array.isArray(_rawImj)?_rawImj:null;
+    var _tabInfosBtn=el("rn-tab-infos");
+    if(_tabInfosBtn){
+      if(_imjTabs&&_imjTabs.length){
+        _tabInfosBtn.style.display="";
+        window._rcInfosTabs=_imjTabs;
+        rcRendreInfosTabs();
+      } else {
+        _tabInfosBtn.style.display="none";
+        var _pi=el("rn-panel-infos");
+        if(_pi&&_pi.style.display!=="none")rnSelectTab('notes',el('rn-tab-notes'));
+      }
     }
     // Notes partagees — sync onglets
     var _rawNp=d.notesPartage;
@@ -10302,6 +10342,9 @@ function campEcouter(){
     }
     // Images partagées
     rcRendreImages(d.images||[]);
+    // Histoire — blocs lecture seule
+    _conn_histoire=d.histoireBlocs||[];
+    conn_rendreHistoire();
   },function(){
     // Listener mort : se réabonner après 4s si toujours dans la campagne
     if(campCode)setTimeout(campEcouter,4000);
@@ -10498,6 +10541,37 @@ function campEcrireNotesPartage(){
     if(!db||!campCode)return;
     db.collection("parties").doc(campCode).set({notesPartage:_rcNotesTabs},{merge:true}).catch(function(){});
   },1200);
+}
+// ── Onglets Notes (Infos MJ ↔ Notes partagées) ──────────────────────
+function rnSelectTab(t,btn){
+  var panels={infos:'rn-panel-infos',notes:'rn-panel-notes'};
+  Object.keys(panels).forEach(function(k){var p=el(panels[k]);if(p)p.style.display=(k===t)?'':'none';});
+  document.querySelectorAll('.arc-notetab').forEach(function(b){b.classList.remove('on');});
+  if(btn)btn.classList.add('on');
+}
+// ── Onglets Connaissances (Monstres ↔ Histoire) ──────────────────────
+function conn_selectKnowTab(t,btn){
+  var mp=el('conn-panel-monstres'),hp=el('conn-panel-histoire');
+  if(mp)mp.style.display=t==='monstres'?'':'none';
+  if(hp)hp.style.display=t==='histoire'?'':'none';
+  document.querySelectorAll('#conn-panel-conn .conn-subnav-btn').forEach(function(b){b.classList.remove('on');});
+  if(btn)btn.classList.add('on');
+  if(t==='histoire')conn_rendreHistoire();
+}
+// ── Rendu blocs Histoire (lecture seule, alimenté par le MJ) ─────────
+var _conn_histoire=[];
+function conn_rendreHistoire(){
+  var cont=el('conn-histoire-liste');if(!cont)return;
+  if(!_conn_histoire.length){
+    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);font-style:italic;">Aucun bloc d\'histoire partagé pour l\'instant.</p>';
+    return;
+  }
+  cont.innerHTML=_conn_histoire.map(function(b){
+    return '<div class="arc-section" style="margin-bottom:10px;">'
+      +'<div class="arc-title">📜 '+conn_esc(b.titre||'Sans titre')+' <span class="arc-line"></span></div>'
+      +'<div style="font-size:13px;line-height:1.7;color:var(--txt2);white-space:pre-wrap;">'+conn_esc(b.contenu||'')+'</div>'
+      +'</div>';
+  }).join('');
 }
 // Infos MJ — navigation onglets (lecture seule)
 window._rcInfosTabs=[];window._rcInfosIdx=0;
