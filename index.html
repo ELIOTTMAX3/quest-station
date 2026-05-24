@@ -6887,6 +6887,21 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <div class="card"><div class="sl-list" id="e-slist"></div></div>
     </div>
     <div id="st-prep" class="tc">
+      <!-- Barre presets -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:11px;color:var(--txt3);">Tes sorts préparés pour aujourd'hui</span>
+        <button class="btn" style="font-size:11px;padding:4px 10px;" onclick="sortsPresetToggle()">📋 Presets</button>
+      </div>
+      <!-- Panneau presets (caché par défaut) -->
+      <div id="sort-preset-panel" style="display:none;background:var(--bg2);border:1px solid var(--bord2);border-radius:8px;padding:10px;margin-bottom:8px;">
+        <p style="font-size:11px;font-weight:700;color:var(--txt2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em;">📋 Presets de préparation</p>
+        <div id="sort-preset-list"></div>
+        <div style="display:flex;gap:6px;margin-top:8px;border-top:1px solid var(--bord);padding-top:8px;">
+          <input id="sort-preset-nom" type="text" placeholder="Nom du preset..." maxlength="40"
+            style="flex:1;font-size:12px;padding:5px 8px;border:1px solid var(--bord);border-radius:6px;background:var(--bg3);color:var(--txt);">
+          <button class="btn ok" style="font-size:11px;white-space:nowrap;" onclick="sortsPresetSauvegarder()">💾 Sauvegarder</button>
+        </div>
+      </div>
       <div class="card"><div class="sl-list" id="e-sprep"><p style="font-size:13px;color:var(--txt3);">Coche des sorts dans le Grimoire.</p></div></div>
     </div>
     <div id="st-slots" class="tc">
@@ -7355,6 +7370,7 @@ var campCode=null, campUnsub=null, campSaveTO=null;
 var avatarUrl=null; // URL de la photo de profil (Firebase Storage ou blob local)
 var grimoire=new Set();   // sorts connus (édition)
 var prepares=new Set();   // sorts préparés aujourd'hui (résumé)
+var sortsPresets=[];      // [{nom:'Combat', sorts:['Soin',...]}, ...]
 var choixCaps={};          // capacités à choix sélectionnées {classe_nom: valeur}
 var compsExtra=new Set();  // compétences cochées manuellement en mode résumé
 var capsFavoris=new Set(); // capacités favorites cochées en mode résumé
@@ -8132,6 +8148,7 @@ function collecterDonnees(){
   IMMU_IDS.forEach(function(id){data[id]=el(id)&&el(id).checked;});
   data.grimoire=Array.from(grimoire);
   data.prepares=Array.from(prepares);
+  data.sortsPresets=sortsPresets;
   data.compsExtra=Array.from(compsExtra);
   data.capsFavoris=Array.from(capsFavoris);
   data.choixCaps=choixCaps;
@@ -8172,6 +8189,7 @@ function chargerFiche(data){
   IMMU_IDS.forEach(function(id){if(data[id]!==undefined&&el(id))el(id).checked=data[id];});
   if(data.grimoire)grimoire=new Set(data.grimoire);
   if(data.prepares)prepares=new Set(data.prepares);
+  if(Array.isArray(data.sortsPresets))sortsPresets=data.sortsPresets;
   if(data.compsExtra)compsExtra=new Set(data.compsExtra);
   if(data.capsFavoris)capsFavoris=new Set(data.capsFavoris);
   if(data.choixCaps)choixCaps=data.choixCaps;
@@ -10126,6 +10144,58 @@ function eRendrePrep(){
     item.appendChild(hd);item.appendChild(bd);c.appendChild(item);
   });
 }
+
+// ── PRESETS DE SORTS PRÉPARÉS ──────────────────────────────────────
+function sortsPresetToggle(){
+  var p=el('sort-preset-panel');if(!p)return;
+  var vis=p.style.display!=='none';
+  p.style.display=vis?'none':'';
+  if(!vis)sortsPresetRendreUI();
+}
+function sortsPresetRendreUI(){
+  var c=el('sort-preset-list');if(!c)return;
+  if(!sortsPresets.length){
+    c.innerHTML='<p style="font-size:11px;color:var(--txt3);font-style:italic;margin:0 0 4px;">Aucun preset. Sauvegarde ta préparation actuelle ci-dessous.</p>';
+    return;
+  }
+  c.innerHTML=sortsPresets.map(function(pr,i){
+    var nomSafe=String(pr.nom||'Preset').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+    var nb=pr.sorts?pr.sorts.length:0;
+    return '<div style="display:flex;align-items:center;gap:6px;padding:5px 0;border-bottom:1px solid var(--bord);">'
+      +'<span style="flex:1;font-size:12px;font-weight:600;color:var(--txt);">'+nomSafe+'</span>'
+      +'<span style="font-size:10px;color:var(--txt3);">'+nb+' sort'+(nb>1?'s':'')+'</span>'
+      +'<button class="btn sm ok" style="font-size:11px;" onclick="sortsPresetCharger('+i+')">Charger</button>'
+      +'<button class="btn sm" style="font-size:11px;color:var(--rouge);border-color:var(--rouge);" onclick="sortsPresetSupprimer('+i+')">✕</button>'
+      +'</div>';
+  }).join('');
+}
+function sortsPresetSauvegarder(){
+  var nomI=el('sort-preset-nom');
+  var nom=(nomI?nomI.value:'').trim();
+  if(!nom){if(nomI)nomI.focus();return;}
+  if(!prepares.size){alert('Aucun sort préparé à sauvegarder.');return;}
+  sortsPresets.push({nom:nom,sorts:Array.from(prepares)});
+  if(nomI)nomI.value='';
+  sauvegarder();
+  sortsPresetRendreUI();
+}
+function sortsPresetCharger(idx){
+  var pr=sortsPresets[idx];if(!pr)return;
+  prepares.clear();
+  (pr.sorts||[]).forEach(function(s){prepares.add(s);});
+  majCompteurPrepares();
+  eRendrePrep();
+  eFiltrerSorts();
+  sauvegarder();
+  // Fermer le panneau
+  var p=el('sort-preset-panel');if(p)p.style.display='none';
+}
+function sortsPresetSupprimer(idx){
+  sortsPresets.splice(idx,1);
+  sauvegarder();
+  sortsPresetRendreUI();
+}
+// ──────────────────────────────────────────────────────────────────
 
 function rMajInfosSorts(cl,bm,mod,info){
   var caracId=CS_CL[cl]||null;
