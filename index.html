@@ -7366,7 +7366,7 @@ var equipEquipes=[]; // [{nom, bonus, degats}]
 // UTILITAIRES
 // ══════════════════════════════════════════
 function gMod(v){return Math.floor((v-10)/2);}
-function gStatMod(stat){return gMod(parseInt(v(stat))||10)+((window._equip_bonus_totaux||{})[stat]||0);}
+function gStatMod(stat){return gMod((parseInt(v(stat))||10)+((window._equip_bonus_totaux||{})[stat]||0));}
 function fMod(m){return (m>=0?"+":"")+m;}
 function gBM(){return Math.ceil((parseInt(v("niveau"))||1)/4)+1;}
 function gCl(){return v("classe");}
@@ -9811,14 +9811,16 @@ function rendreHexagone(){
   if(list){
     list.innerHTML="";
     vals.forEach(function(val,i){
-      var mod=gMod(val);
+      var bStat=(window._equip_bonus_totaux||{})[CARACS[i]]||0;
+      var effVal=val+bStat;
+      var mod=gMod(effVal);
       var cell=document.createElement("div");
       cell.className="r-stat-cell";
-      var bStat=(window._equip_bonus_totaux||{})[CARACS[i]]||0;
       var lbl=document.createElement("div");lbl.className="r-stat-label";lbl.textContent=abbrevs[i];
-      var vEl=document.createElement("div");vEl.className="r-stat-val";vEl.textContent=val;
+      var vEl=document.createElement("div");vEl.className="r-stat-val";
+      if(bStat){vEl.innerHTML='<span style="color:var(--or);">'+effVal+'</span>';}else{vEl.textContent=val;}
       var mEl=document.createElement("div");mEl.className="r-stat-mod";
-      mEl.innerHTML=bStat?'<span style="color:var(--or)">'+fMod(mod+bStat)+'</span>':fMod(mod);
+      mEl.innerHTML=bStat?'<span style="color:var(--or);">'+fMod(mod)+'</span>':fMod(mod);
       cell.appendChild(lbl);cell.appendChild(vEl);cell.appendChild(mEl);
       list.appendChild(cell);
     });
@@ -12601,6 +12603,52 @@ function cbtMajUI(){
   }
 }
 
+var _cbtResExpanded=new Set();
+function cbtToggleResCard(id){
+  if(_cbtResExpanded.has(id))_cbtResExpanded.delete(id);else _cbtResExpanded.add(id);
+  cbtRendreActions(!!(combatPJData&&combatPJData.joueurActifId===joueurId));
+}
+function cbtMakeResCard(def,niv){
+  var id=def.id;
+  var maxVal=typeof def.max==='function'?def.max(niv):(def.max||0);
+  if(!maxVal)return '';
+  var usedVal=Math.min(ressourcesClasse[id]||0,maxVal);
+  var restVal=maxVal-usedVal;
+  var isExpanded=_cbtResExpanded.has(id);
+  var desc=typeof def.desc==='function'?def.desc(niv):(def.desc||'');
+  var resetLbl={long:'Repos long',short:'Repos court',dawn:'À l\'aube'}[def.reset]||'';
+  var monTourJS='!!(combatPJData&&combatPJData.joueurActifId===joueurId)';
+  // Mini dots (header)
+  var hd='';
+  for(var ci=0;ci<Math.min(maxVal,12);ci++){
+    hd+='<span style="width:9px;height:9px;border-radius:50%;display:inline-block;flex-shrink:0;background:'+(ci<restVal?'var(--rouge)':'rgba(255,255,255,.12)')+';"></span>';
+  }
+  // Clickable dots (body)
+  var bd='';
+  for(var cj=0;cj<maxVal;cj++){
+    var isU=(cj>=restVal);
+    var fn2=isU?'cbtRes(\''+id+'\',1)':'cbtRes(\''+id+'\',-1)';
+    bd+='<span class="r-dot '+(isU?'used':'avail')+'" onclick="event.stopPropagation();'+fn2+';cbtRendreActions('+monTourJS+')" title="'+(isU?'Restaurer':'Utiliser')+'"></span>';
+  }
+  var html='<div style="background:var(--bg2);border:1px solid var(--bord2);border-radius:8px;margin-bottom:6px;overflow:hidden;">';
+  html+='<div style="display:flex;align-items:center;gap:8px;padding:8px 10px;cursor:pointer;" onclick="cbtToggleResCard(\''+id+'\')">';
+  html+='<span style="font-size:15px;">'+def.icon+'</span>';
+  html+='<span style="flex:1;font-size:12px;font-weight:700;color:'+(restVal<=0?'var(--txt3)':'var(--txt)')+';">'+def.nom+'</span>';
+  html+='<div style="display:flex;gap:3px;align-items:center;">'+hd+'</div>';
+  html+='<span style="font-size:10px;color:var(--txt3);margin-left:6px;font-weight:600;min-width:28px;text-align:right;">'+restVal+'/'+maxVal+(isExpanded?' ▴':' ▾')+'</span>';
+  html+='</div>';
+  if(isExpanded){
+    html+='<div style="padding:8px 10px 10px;border-top:1px solid var(--bord);background:var(--bg3);">';
+    if(desc)html+='<p style="font-size:11px;color:var(--txt2);line-height:1.5;margin-bottom:8px;">'+desc+'</p>';
+    html+='<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;">';
+    html+='<div class="r-res-dots">'+bd+'</div>';
+    if(resetLbl)html+='<span style="font-size:10px;color:var(--txt3);padding:2px 6px;background:var(--bg2);border-radius:4px;border:1px solid var(--bord);">↺ '+resetLbl+'</span>';
+    html+='</div>';
+    html+='</div>';
+  }
+  html+='</div>';
+  return html;
+}
 function cbtRendreActions(monTour){
   var cont=el('cbt-actions-content');if(!cont)return;
   var cl=gCl(),niv=parseInt(v('niveau'))||1,html='';
@@ -12613,16 +12661,6 @@ function cbtRendreActions(monTour){
   html+='<button class="cbt-action-btn" onclick="cbtToggleAttaque(event)">🗡 Attaque ▾</button>';
   html+='<div id="cbt-attaque-menu" class="cbt-dropdown" style="display:none;"></div>';
   html+='</div>';
-  if(cl==='Barbare'){
-    var rMax=(RESSOURCES_CL['Barbare'][0].max(niv)||0);
-    var rRest=rMax-(ressourcesClasse['rage']||0);
-    if(rMax>0)html+=cbtMakeBtn('action','🔥 Rage ('+rRest+' restante'+(rRest>1?'s':'')+')',rRest<=0,'cbtRes(\'rage\',-1)');
-  }
-  if(cl==='Druide'){
-    var fsMax=(RESSOURCES_CL['Druide'][0].max(niv)||0);
-    var fsRest=fsMax-(ressourcesClasse['forme-sauvage']||0);
-    if(fsMax>0)html+=cbtMakeBtn('action','🐻 Métamorphose ('+fsRest+')',fsRest<=0,'cbtRes(\'forme-sauvage\',-1)');
-  }
   if(cl==='Paladin')html+=cbtMakeBtn('action','✨ Frappe divine',false,null);
   if(isSpellcasterClass(cl)){
     // Bandeau DD / Attaque de sort
@@ -12649,42 +12687,60 @@ function cbtRendreActions(monTour){
     html+='<div id="cbt-sorts-menu" class="cbt-dropdown" style="display:none;"></div>';
     html+='</div>';
   }
-  // === RESSOURCES (actions bonus / classe) ===
-  if(cl==='Barde'){
-    var iMax=(RESSOURCES_CL['Barde'][0].max(niv)||0);
-    var iRest=iMax-(ressourcesClasse['insp-bardique']||0);
-    if(iMax>0)html+=cbtMakeBtn('bonus','🎵 Inspiration bardique ('+iRest+')',iRest<=0,'cbtRes(\'insp-bardique\',-1)');
-  }
+  // === RESSOURCES (classe — cartes déroulables pour dots, boutons pour le reste) ===
+  var _resDefs=RESSOURCES_CL[cl]||[];
+  var _resShownIds=[];
+  // 1. Toutes les ressources "dots" → carte déroulable
+  _resDefs.forEach(function(def){
+    var mx=typeof def.max==='function'?def.max(niv):(def.max||0);
+    if(def.type==='dots'&&mx>0){
+      html+=cbtMakeResCard(def,niv);
+      _resShownIds.push(def.id);
+    } else if(def.type==='info'){
+      var iDesc=typeof def.desc==='function'?def.desc(niv):(def.desc||'');
+      html+='<div style="background:var(--bg2);border:1px solid var(--bord);border-radius:8px;padding:7px 10px;margin-bottom:6px;">'
+        +'<span style="font-size:12px;font-weight:600;color:var(--txt);">'+def.icon+' '+def.nom+'</span>'
+        +(iDesc?'<p style="font-size:11px;color:var(--txt2);margin:3px 0 0;line-height:1.4;">'+iDesc+'</p>':'')
+        +'</div>';
+      _resShownIds.push(def.id);
+    }
+  });
+  // 2. Cas spéciaux : Moine (ki actions) — counter ki gardé avec ses boutons d'usage
   if(cl==='Moine'){
-    var kiMax=(RESSOURCES_CL['Moine'][0].max(niv)||0);
-    var kiRest=kiMax-(ressourcesClasse['ki']||0);
-    if(kiMax>0){
-      html+=cbtMakeBtn('bonus','🌬 Pas de vent — 1 ki ('+kiRest+')',kiRest<1,'cbtRes(\'ki\',-1)');
+    var kiMx=RESSOURCES_CL['Moine']&&(RESSOURCES_CL['Moine'][0].max(niv)||0);
+    if(kiMx>0){
+      var kiRst=kiMx-(ressourcesClasse['ki']||0);
+      html+=cbtMakeBtn('bonus','🌬 Pas de vent — 1 ki ('+kiRst+')',kiRst<1,'cbtRes(\'ki\',-1)');
       html+=cbtMakeBtn('bonus','👊 Déluge de coups',false,null);
     }
   }
-  if(cl==='Guerrier'){
-    var ssMax=(RESSOURCES_CL['Guerrier'][0].max(niv)||0);
-    var ssRest=ssMax-(ressourcesClasse['second-souffle']||0);
-    if(ssMax>0)html+=cbtMakeBtn('bonus','❤ Second souffle ('+ssRest+')',ssRest<=0,'cbtRes(\'second-souffle\',-1)');
-    var saMax=(RESSOURCES_CL['Guerrier'][1]&&RESSOURCES_CL['Guerrier'][1].max(niv))||0;
-    var saRest=saMax-(ressourcesClasse['sursaut-action']||0);
-    if(saMax>0)html+=cbtMakeBtn('bonus','⚡ Fougue ('+saRest+')',saRest<=0,'cbtRes(\'sursaut-action\',-1)');
-    var inMax=(RESSOURCES_CL['Guerrier'][2]&&RESSOURCES_CL['Guerrier'][2].max(niv))||0;
-    var inRest=inMax-(ressourcesClasse['indomptable']||0);
-    if(inMax>0)html+=cbtMakeBtn('bonus','🛡 Indomptable ('+inRest+')',inRest<=0,'cbtRes(\'indomptable\',-1)');
-  }
+  // 3. Paladin : Imposition des mains (counter PV, traitement spécial)
   if(cl==='Paladin'){
-    var imMax=(RESSOURCES_CL['Paladin']&&RESSOURCES_CL['Paladin'][0].max(niv))||0;
-    var imUsed=(ressourcesClasse['imposition-mains']||0);
-    var imRest=Math.max(0,imMax-imUsed);
-    if(imMax>0)html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="font-size:12px;color:var(--txt2);">🤚 Imposition des mains : <b>'+imRest+'/'+imMax+'</b> PV</span><button class="cbt-action-btn" style="flex:1;" onclick="cbtRes(\'imposition-mains\',-5)">Soigner 5 PV</button></div>';
+    var imDf=RESSOURCES_CL['Paladin']&&RESSOURCES_CL['Paladin'][0];
+    if(imDf){
+      var imMx=imDf.max(niv)||0;
+      if(imMx>0){
+        var imRst=Math.max(0,imMx-(ressourcesClasse['imposition-mains']||0));
+        html+='<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;"><span style="font-size:12px;color:var(--txt2);">🤚 Imposition des mains : <b>'+imRst+'/'+imMx+'</b> PV</span><button class="cbt-action-btn" style="flex:1;" onclick="cbtRes(\'imposition-mains\',-5)">Soigner 5 PV</button></div>';
+      }
+    }
   }
+  // 4. Autres counter non traités (ex: pts-sorcellerie, ki)
+  _resDefs.forEach(function(def){
+    if(_resShownIds.indexOf(def.id)>=0)return;
+    if(def.id==='imposition-mains'||def.id==='ki')return;
+    var mx=typeof def.max==='function'?def.max(niv):(def.max||0);
+    if(def.type==='counter'&&mx>0){
+      var used2=ressourcesClasse[def.id]||0;
+      var rst2=mx-used2;
+      html+=cbtMakeBtn('bonus',def.icon+' '+def.nom+' ('+rst2+'/'+mx+')',rst2<=0,'cbtRes(\''+def.id+'\',-1)');
+    }
+  });
   // === CAPACITÉS DE CLASSE ===
   var capsData=window.CAPS_DATA&&window.CAPS_DATA.classes&&window.CAPS_DATA.classes[cl]||[];
   var _capsSeen={};
   var capsUnlocked=capsData.filter(function(c){
-    if((c.niveau||1)>niv||!_capEstCombat(c,capsData,'cl'))return false;
+    if(!capsFavoris.has('cl_'+c.nom))return false;
     if(_capsSeen[c.nom])return false;
     _capsSeen[c.nom]=true;return true;
   });
@@ -12939,7 +12995,7 @@ function cbtToggleCaps(e){
   var capsData=window.CAPS_DATA&&window.CAPS_DATA.classes&&window.CAPS_DATA.classes[cl]||[];
   var _seen2={};
   var caps=capsData.filter(function(c){
-    if((c.niveau||1)>niv||!_capEstCombat(c,capsData,'cl'))return false;
+    if(!capsFavoris.has('cl_'+c.nom))return false;
     if(_seen2[c.nom])return false;
     _seen2[c.nom]=true;return true;
   });
