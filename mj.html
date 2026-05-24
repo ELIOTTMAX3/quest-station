@@ -1002,19 +1002,48 @@ function panelTab(name,btn){
 function chargerCampagnes(){
   if(!db)return;
   var cont=el("home-list");
-  var codes=JSON.parse(localStorage.getItem("mj_campagnes")||"[]");
-  if(!codes.length){
-    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);">Aucune campagne créée. Crée la première !</p>';
-    return;
-  }
   cont.innerHTML='<p style="font-size:12px;color:var(--txt3);">Chargement…</p>';
+
+  db.collection("mj_data").doc(mjId).get().then(function(snap){
+    var fsCodes=snap.exists?(snap.data().campagnes||[]):[];
+    // Récupérer les codes localStorage (migration one-shot)
+    var localCodes=JSON.parse(localStorage.getItem("mj_campagnes")||"[]");
+    var allCodes=fsCodes.slice();
+    localCodes.forEach(function(c){if(allCodes.indexOf(c)<0)allCodes.unshift(c);});
+
+    // Si des codes locaux manquent dans Firestore → migration
+    if(allCodes.length>fsCodes.length){
+      db.collection("mj_data").doc(mjId).set({campagnes:allCodes},{merge:true}).catch(function(){});
+    }
+
+    if(!allCodes.length){
+      cont.innerHTML='<p style="font-size:12px;color:var(--txt3);">Aucune campagne créée. Crée la première !</p>';
+      return;
+    }
+    _fetchCampagnes(allCodes);
+  }).catch(function(){
+    // Firestore inaccessible → fallback localStorage
+    var codes=JSON.parse(localStorage.getItem("mj_campagnes")||"[]");
+    if(!codes.length){
+      cont.innerHTML='<p style="font-size:12px;color:var(--txt3);">Aucune campagne créée. Crée la première !</p>';
+      return;
+    }
+    _fetchCampagnes(codes);
+  });
+}
+
+function _fetchCampagnes(codes){
+  var cont=el("home-list");
   var items=[],loaded=0;
   codes.forEach(function(code,idx){
     db.collection("parties").doc(code).get().then(function(snap){
-      if(snap.exists){items[idx]={id:code,data:snap.data()};}
+      if(snap.exists)items[idx]={id:code,data:snap.data()};
       loaded++;
       if(loaded===codes.length)afficherListeCampagnes(items.filter(Boolean));
-    }).catch(function(){loaded++;if(loaded===codes.length)afficherListeCampagnes(items.filter(Boolean));});
+    }).catch(function(){
+      loaded++;
+      if(loaded===codes.length)afficherListeCampagnes(items.filter(Boolean));
+    });
   });
 }
 
@@ -1056,6 +1085,11 @@ function creerCampagne(){
   if(!db){errEl.textContent="Firebase non disponible.";errEl.style.display="block";return;}
   var today=new Date().toLocaleDateString("fr-FR");
   db.collection("parties").doc(code).set({nom:nom,creeLe:today,conditions:{},notes:""}).then(function(){
+    // Enregistrer le code en Firestore (synchronisé sur tous les appareils)
+    db.collection("mj_data").doc(mjId).set(
+      {campagnes:firebase.firestore.FieldValue.arrayUnion(code)},{merge:true}
+    ).catch(function(){});
+    // Garder localStorage en miroir
     var codes=JSON.parse(localStorage.getItem("mj_campagnes")||"[]");
     if(codes.indexOf(code)<0){codes.unshift(code);localStorage.setItem("mj_campagnes",JSON.stringify(codes));}
     ouvrirPanel(code);
@@ -1652,9 +1686,15 @@ function mjSupprimerImage(i){
 function supprimerCampagne(){
   if(!campagneActive)return;
   if(!confirm("Supprimer la campagne "+campagneActive.nom+" ? Cette action est irréversible."))return;
-  db.collection("parties").doc(campagneActive.id).delete().then(function(){
+  var codeASuppr=campagneActive.id;
+  db.collection("parties").doc(codeASuppr).delete().then(function(){
+    // Supprimer de Firestore
+    db.collection("mj_data").doc(mjId).update(
+      {campagnes:firebase.firestore.FieldValue.arrayRemove(codeASuppr)}
+    ).catch(function(){});
+    // Supprimer du localStorage
     var codes=JSON.parse(localStorage.getItem("mj_campagnes")||"[]");
-    codes=codes.filter(function(c){return c!==campagneActive.id;});
+    codes=codes.filter(function(c){return c!==codeASuppr;});
     localStorage.setItem("mj_campagnes",JSON.stringify(codes));
     campagneActive=null;
     show("s-home");chargerCampagnes();
@@ -1673,7 +1713,13 @@ function combatKey(){return campagneActive?'combat_'+campagneActive.id:null;}
 
 function sauvegarderCombat(){
   var k=combatKey();if(!k)return;
-  localStorage.setItem(k,JSON.stringify({combatants:combatants,combatTour:combatTour,combatRound:combatRound,combatActif:combatActif,combatPhase:combatPhase,joueursCombat:joueursCombat}));
+  var etat={combatants:combatants,combatTour:combatTour,combatRound:combatRound,combatActif:combatActif,combatPhase:combatPhase,joueursCombat:joueursCombat};
+  // localStorage (accès immédiat)
+  localStorage.setItem(k,JSON.stringify(etat));
+  // Firestore (synchronisation multi-appareils)
+  if(db&&campagneActive){
+    db.collection("parties").doc(campagneActive.id).set({combatMJ:etat},{merge:true}).catch(function(){});
+  }
 }
 
 function chargerCombatLocal(){
@@ -2075,27 +2121,48 @@ function ouvrirOngletCombat(){
   besti_initImages();   // Images/tokens disponibles dès l'onglet combat ouvert
   var sauvegarde=chargerCombatLocal();
   if(sauvegarde&&sauvegarde.combatants&&sauvegarde.combatants.length>0){
-    combatants=sauvegarde.combatants;
-    combatTour=sauvegarde.combatTour;
-    combatRound=sauvegarde.combatRound;
-    combatActif=sauvegarde.combatActif;
-    combatPhase=sauvegarde.combatPhase||'';
-    joueursCombat=sauvegarde.joueursCombat||[];
-    var reprise=el('combat-reprise');
-    if(reprise){
-      reprise.style.display='flex';
-      var txt=el('combat-reprise-txt');
-      if(txt)txt.textContent=combatActif
-        ?'Combat en cours — Round '+combatRound+' · '+combatants.length+' combattant'+(combatants.length>1?'s':'')
-        :'Liste d\'initiative sauvegardée ('+combatants.length+' combattant'+(combatants.length>1?'s':'')+')';
-    }
-    rendreCombat();majControlsCombat();rendreGroupes();
+    _appliquerSauvegardeCombat(sauvegarde);
+  } else if(db&&campagneActive){
+    // Pas de sauvegarde locale → essayer Firestore (autre appareil)
+    db.collection("parties").doc(campagneActive.id).get().then(function(snap){
+      var fsSave=snap.exists&&snap.data().combatMJ;
+      if(fsSave&&fsSave.combatants&&fsSave.combatants.length>0){
+        // Mettre en cache local
+        var k=combatKey();
+        if(k)try{localStorage.setItem(k,JSON.stringify(fsSave));}catch(e){}
+        _appliquerSauvegardeCombat(fsSave);
+      } else {
+        _initCombatVierge();
+      }
+    }).catch(function(){_initCombatVierge();});
   } else {
-    combatants=[];combatTour=-1;combatRound=0;combatActif=false;monstreInstances={};
-    el('combat-reprise').style.display='none';
-    importerPJsCombat();
-    rendreCombat();majControlsCombat();rendreGroupes();
+    _initCombatVierge();
   }
+}
+
+function _appliquerSauvegardeCombat(s){
+  combatants=s.combatants;
+  combatTour=s.combatTour;
+  combatRound=s.combatRound;
+  combatActif=s.combatActif;
+  combatPhase=s.combatPhase||'';
+  joueursCombat=s.joueursCombat||[];
+  var reprise=el('combat-reprise');
+  if(reprise){
+    reprise.style.display='flex';
+    var txt=el('combat-reprise-txt');
+    if(txt)txt.textContent=combatActif
+      ?'Combat en cours — Round '+combatRound+' · '+combatants.length+' combattant'+(combatants.length>1?'s':'')
+      :'Liste d\'initiative sauvegardée ('+combatants.length+' combattant'+(combatants.length>1?'s':'')+')';
+  }
+  rendreCombat();majControlsCombat();rendreGroupes();
+}
+
+function _initCombatVierge(){
+  combatants=[];combatTour=-1;combatRound=0;combatActif=false;monstreInstances={};
+  var r=el('combat-reprise');if(r)r.style.display='none';
+  importerPJsCombat();
+  rendreCombat();majControlsCombat();rendreGroupes();
 }
 
 function syncCombatFirestore(){

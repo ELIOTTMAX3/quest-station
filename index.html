@@ -11068,14 +11068,13 @@ function equip_rendreActif(){
   var items=window._equip_items||{};
   var html='';
   var count=0;
-  _EQUIP_SLOTS.forEach(function(s){
-    var id=equipe[s];if(!id)return;
+  // Fonction partagée pour rendre un item (slot body OU rapide)
+  function _rendreEquipItem(id, slotLabel){
     var item=items[id];if(!item)return;
     var n=count++;
     var icone=item.icone&&!item.icone.startsWith("http")?item.icone:"✨";
     var hasDesc=!!(item.description&&item.description.trim());
     var desc=hasDesc?item.description.trim():'Aucune description disponible.';
-    // Bonus mécaniques (item.bonus array)
     var bonusHtml='';
     if(Array.isArray(item.bonus)&&item.bonus.length>0){
       var badges='';
@@ -11091,7 +11090,6 @@ function equip_rendreActif(){
           +'</div>';
       }
     }
-    // Charges (checkboxes)
     var chargesHtml='';
     if(item.charges&&item.charges.max){
       var mx=item.charges.max;
@@ -11110,15 +11108,13 @@ function equip_rendreActif(){
         +(rechLbl?'<span class="eqchg-badge">'+rechLbl+'</span>':'')
         +'</div>';
     }
-    // Signal visuel dans le header si des charges sont définies
-    var hasDetails=!!(bonusHtml||chargesHtml||!hasDesc);
     html+='<div class="r-equip-item">'
       +'<div class="r-equip-header" onclick="reqToggleDesc('+n+')" style="cursor:pointer;user-select:none;">'
       +'<span class="r-equip-icone">'+icone+'</span>'
       +'<div style="flex:1;min-width:0;">'
       +'<span class="r-equip-nom">'+item.nom+'</span>'
       +(item.rarete?'<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(0,0,0,.35);color:'+(_EQUIP_RARETE_COLORS[item.rarete]||"#9ca3af")+';margin-left:4px;">'+item.rarete+'</span>':'')
-      +'<span class="r-equip-slot">'+(_EQUIP_SLOT_LABELS[s]||s)+'</span>'
+      +'<span class="r-equip-slot">'+slotLabel+'</span>'
       +'</div>'
       +(item.charges&&item.charges.max?'<span style="font-size:10px;color:var(--rouge);font-weight:700;flex-shrink:0;margin-left:6px;">⚡ '+(item.charges.max-(Math.min(equipCharges[id]||0,item.charges.max)))+'/'+item.charges.max+'</span>':'')
       +'<span id="req-chev-'+n+'" style="font-size:11px;color:var(--txt3);margin-left:8px;flex-shrink:0;">▸</span>'
@@ -11129,7 +11125,20 @@ function equip_rendreActif(){
       +chargesHtml
       +'</div>'
       +'</div>';
+  }
+
+  // Slots équipés (corps)
+  _EQUIP_SLOTS.forEach(function(s){
+    var id=equipe[s];if(!id)return;
+    _rendreEquipItem(id, _EQUIP_SLOT_LABELS[s]||s);
   });
+
+  // Inventaire rapide (items de type "inventaire" placés dans les 3 emplacements rapides)
+  _equip_quick.forEach(function(id,i){
+    if(!id)return;
+    _rendreEquipItem(id, '🎒 Rapide '+(i+1));
+  });
+
   if(card)card.style.display=count?'':'none';
   list.innerHTML=html;
 }
@@ -11227,6 +11236,8 @@ function equip_clickQuickSlot(n){
       _equip_quick[n-1]=null;
       equip_saveQuickSlots();
       equip_rendreQuickSlots();
+      equip_rendreInventaire();
+      equip_rendreActif();
     }
     return;
   }
@@ -11255,7 +11266,9 @@ function equip_setQuickSlot(n,itemId){
   _equip_quick[n-1]=itemId;
   equip_saveQuickSlots();
   equip_rendreQuickSlots();
+  equip_rendreActif();
   var m=el('qs-picker-modal');if(m)m.remove();
+  var m2=el('qs-pick2-modal');if(m2)m2.remove();
 }
 function equip_saveQuickSlots(){
   window._char_equip_quick=_equip_quick.slice();
@@ -11298,6 +11311,7 @@ function equip_retirerRapide(itemId){
   equip_saveQuickSlots();
   equip_rendreQuickSlots();
   equip_rendreInventaire();
+  equip_rendreActif();
 }
 
 function equip_clickSlot(slot){
