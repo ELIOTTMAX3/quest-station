@@ -1181,6 +1181,8 @@ function ouvrirPanel(code){
         condActives[jid]=new Set(campagneActive.conditions[jid]||[]);
       });
     }
+    // Initialiser les états dès que campagneActive est disponible
+    etatInitListener();
   },function(){});
 
   // Écouter la collection joueurs
@@ -1216,7 +1218,6 @@ function ouvrirPanel(code){
       }
     }
   },function(){});
-  etatInitListener();
 }
 
 var _pj_picker={};  // jid → bool
@@ -4337,14 +4338,21 @@ function etatTogglePJ(etatId,jid){
 }
 
 function etatSyncCampDoc(){
-  // Construit un map {joueurId: [{id,nom,type,couleur,description,effets}]} écrit dans le doc campagne
+  // Construit un map {joueurId: [{id,nom,type,couleur,description,effets,resteRounds}]} écrit dans le doc campagne
   // pour que les PJs puissent le lire via leur listener existant
   if(!db||!campagneActive)return;
   var parPJ={};
   Object.values(_etatsData).forEach(function(e){
     (e.pjIds||[]).forEach(function(jid){
       if(!parPJ[jid])parPJ[jid]=[];
-      parPJ[jid].push({id:e.id,nom:e.nom,type:e.type,couleur:e.couleur||'#94a3b8',description:e.description||'',effets:e.effets||[]});
+      // Chercher les tours restants dans le tracker de combat
+      var cc=combatants.find(function(x){return x.type==='pj'&&x.jid===jid;});
+      var resteRounds=null; // null = infini / pas en combat
+      if(cc&&cc.etatsActifs&&cc.etatsActifs[e.id]){
+        var ea=cc.etatsActifs[e.id];
+        if(ea.fins>0)resteRounds=Math.max(0,ea.fins-combatRound);
+      }
+      parPJ[jid].push({id:e.id,nom:e.nom,type:e.type,couleur:e.couleur||'#94a3b8',description:e.description||'',effets:e.effets||[],resteRounds:resteRounds});
     });
   });
   var allEtats=Object.values(_etatsData).map(function(e){

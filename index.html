@@ -598,6 +598,10 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .conn-trait{margin:4px 0;font-size:11px;color:#9a8a6a;line-height:1.55;}
 .conn-trait b{color:#e8dcc8;}
 
+/* ══ RÉSISTANCES / IMMUNITÉS ══ */
+.ri-lbl{display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;color:var(--txt2);}
+.ri-lbl input[type=checkbox]{accent-color:var(--or);}
+
 /* ══ STYLE ARCANIQUE — PAGE NOTES ══ */
 @keyframes arcGlow{
   0%  {border-color:rgba(201,162,39,0.4);box-shadow:0 0 8px rgba(201,162,39,0.12),inset 0 1px 0 rgba(255,255,255,0.05);}
@@ -873,10 +877,20 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <p style="font-size:12px;color:var(--txt2);line-height:1.7;white-space:pre-wrap;" id="r-cap"></p>
     </div>
 
-    <!-- LANGUES ─────────────────────────────────────── -->
+    <!-- LANGUES + RÉSISTANCES / IMMUNITÉS ───────────── -->
     <div class="r-section" id="r-lang-card" style="display:none;">
-      <p class="st">Langues maîtrisées</p>
-      <div id="r-lang-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;"></div>
+      <div id="r-lang-block" style="display:none;">
+        <p class="st">Langues maîtrisées</p>
+        <div id="r-lang-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;margin-bottom:10px;"></div>
+      </div>
+      <div id="r-res-block" style="display:none;">
+        <p class="st" style="color:rgba(251,146,60,.9);">🛡 Résistances</p>
+        <div id="r-res-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;margin-bottom:10px;"></div>
+      </div>
+      <div id="r-imm-block" style="display:none;">
+        <p class="st" style="color:rgba(250,204,21,.9);">⚜ Immunités</p>
+        <div id="r-imm-list" style="display:flex;flex-wrap:wrap;gap:6px;margin-top:4px;"></div>
+      </div>
     </div>
 
     <!-- NOTES ──────────────────────────────────────── -->
@@ -1006,6 +1020,11 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
   <!-- ONGLET COMPÉTENCES (lecture seule) -->
   <div id="rt-comps" class="tc">
+    <!-- Maîtrises de classe -->
+    <div class="card" id="r-maitrise-card" style="display:none;margin-bottom:10px;">
+      <p style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--txt3);margin-bottom:8px;">Maîtrises</p>
+      <div id="r-maitrise-body" style="font-size:12px;line-height:1.9;color:var(--txt2);"></div>
+    </div>
     <div class="card">
       <!-- Jets de sauvegarde — pills -->
       <p class="st" style="margin-bottom:8px;">Jets de sauvegarde</p>
@@ -6790,6 +6809,49 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px;"><input type="checkbox" id="lang-souterrain" onchange="updateLangResume();sauvegarder()"> Souterrain</label>
       </div>
     </div>
+
+    <!-- RÉSISTANCES & IMMUNITÉS ─────────────────────────────── -->
+    <div class="card" style="margin-top:10px;">
+      <p class="st" style="border:none;padding:0;margin-bottom:10px;">Résistances & Immunités aux dégâts</p>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0;">
+        <div>
+          <p style="font-size:11px;color:rgba(251,146,60,.8);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">🛡 Résistances</p>
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <label class="ri-lbl"><input type="checkbox" id="res-acide"       onchange="updateLangResume();sauvegarder()"> Acide</label>
+            <label class="ri-lbl"><input type="checkbox" id="res-contondant"  onchange="updateLangResume();sauvegarder()"> Contondant</label>
+            <label class="ri-lbl"><input type="checkbox" id="res-eclair"      onchange="updateLangResume();sauvegarder()"> Éclair</label>
+            <label class="ri-lbl"><input type="checkbox" id="res-feu"         onchange="updateLangResume();sauvegarder()"> Feu</label>
+            <label class="ri-lbl"><input type="checkbox" id="res-force"       onchange="updateLangResume();sauvegarder()"> Force</label>
+            <label class="ri-lbl"><input type="checkbox" id="res-froid"       onchange="updateLangResume();sauvegarder()"> Froid</label>
+            <label class="ri-lbl"><input type="checkbox" id="res-necrotique"  onchange="updateLangResume();sauvegarder()"> Nécrotique</label>
+            <label class="ri-lbl"><input type="checkbox" id="res-perforant"   onchange="updateLangResume();sauvegarder()"> Perforant</label>
+            <label class="ri-lbl"><input type="checkbox" id="res-poison"      onchange="updateLangResume();sauvegarder()"> Poison</label>
+            <label class="ri-lbl"><input type="checkbox" id="res-psychique"   onchange="updateLangResume();sauvegarder()"> Psychique</label>
+            <label class="ri-lbl"><input type="checkbox" id="res-radiant"     onchange="updateLangResume();sauvegarder()"> Radiant</label>
+            <label class="ri-lbl"><input type="checkbox" id="res-tonnerre"    onchange="updateLangResume();sauvegarder()"> Tonnerre</label>
+            <label class="ri-lbl"><input type="checkbox" id="res-tranchant"   onchange="updateLangResume();sauvegarder()"> Tranchant</label>
+          </div>
+        </div>
+        <div style="border-left:1px solid var(--bord);padding-left:12px;">
+          <p style="font-size:11px;color:rgba(250,204,21,.85);font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:8px;">⚜ Immunités</p>
+          <div style="display:flex;flex-direction:column;gap:5px;">
+            <label class="ri-lbl"><input type="checkbox" id="imm-acide"       onchange="updateLangResume();sauvegarder()"> Acide</label>
+            <label class="ri-lbl"><input type="checkbox" id="imm-contondant"  onchange="updateLangResume();sauvegarder()"> Contondant</label>
+            <label class="ri-lbl"><input type="checkbox" id="imm-eclair"      onchange="updateLangResume();sauvegarder()"> Éclair</label>
+            <label class="ri-lbl"><input type="checkbox" id="imm-feu"         onchange="updateLangResume();sauvegarder()"> Feu</label>
+            <label class="ri-lbl"><input type="checkbox" id="imm-force"       onchange="updateLangResume();sauvegarder()"> Force</label>
+            <label class="ri-lbl"><input type="checkbox" id="imm-froid"       onchange="updateLangResume();sauvegarder()"> Froid</label>
+            <label class="ri-lbl"><input type="checkbox" id="imm-necrotique"  onchange="updateLangResume();sauvegarder()"> Nécrotique</label>
+            <label class="ri-lbl"><input type="checkbox" id="imm-perforant"   onchange="updateLangResume();sauvegarder()"> Perforant</label>
+            <label class="ri-lbl"><input type="checkbox" id="imm-poison"      onchange="updateLangResume();sauvegarder()"> Poison</label>
+            <label class="ri-lbl"><input type="checkbox" id="imm-psychique"   onchange="updateLangResume();sauvegarder()"> Psychique</label>
+            <label class="ri-lbl"><input type="checkbox" id="imm-radiant"     onchange="updateLangResume();sauvegarder()"> Radiant</label>
+            <label class="ri-lbl"><input type="checkbox" id="imm-tonnerre"    onchange="updateLangResume();sauvegarder()"> Tonnerre</label>
+            <label class="ri-lbl"><input type="checkbox" id="imm-tranchant"   onchange="updateLangResume();sauvegarder()"> Tranchant</label>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
   <!-- SORTS -->
@@ -6978,6 +7040,10 @@ var COMPS_HIST = {
 var CNOM      = {for:"Force",dex:"Dextérité",con:"Constitution",int:"Intelligence",sag:"Sagesse",cha:"Charisme"};
 var LANG_IDS=["lang-commun","lang-nain","lang-elfique","lang-geant","lang-gnome","lang-gobelin","lang-halfelin","lang-orc","lang-abyssal","lang-celeste","lang-draconique","lang-profondeurs","lang-infernal","lang-primordial","lang-sylvestre","lang-souterrain"];
 var LANG_NOMS={"lang-commun":"Commun","lang-nain":"Nain","lang-elfique":"Elfique","lang-geant":"Géant","lang-gnome":"Gnome","lang-gobelin":"Gobelin","lang-halfelin":"Halfelin","lang-orc":"Orc","lang-abyssal":"Abyssal","lang-celeste":"Céleste","lang-draconique":"Draconique","lang-profondeurs":"Parler des Profondeurs","lang-infernal":"Infernal","lang-primordial":"Primordial","lang-sylvestre":"Sylvestre","lang-souterrain":"Souterrain"};
+var _DMG_TYPES=["acide","contondant","eclair","feu","force","froid","necrotique","perforant","poison","psychique","radiant","tonnerre","tranchant"];
+var _DMG_NOMS={"acide":"Acide","contondant":"Contondant","eclair":"Éclair","feu":"Feu","force":"Force","froid":"Froid","necrotique":"Nécrotique","perforant":"Perforant","poison":"Poison","psychique":"Psychique","radiant":"Radiant","tonnerre":"Tonnerre","tranchant":"Tranchant"};
+var RESIST_IDS=_DMG_TYPES.map(function(t){return "res-"+t;});
+var IMMU_IDS  =_DMG_TYPES.map(function(t){return "imm-"+t;});
 var COMPS     = [
   {n:"Acrobaties",c:"dex"},{n:"Arcanes",c:"int"},{n:"Athlétisme",c:"for"},
   {n:"Discrétion",c:"dex"},{n:"Dressage",c:"sag"},{n:"Escamotage",c:"dex"},
@@ -6992,6 +7058,21 @@ var JDS_CL    = {
   Rôdeur:["for","dex"],Roublard:["dex","int"],Occultiste:["sag","cha"],Magicien:["int","sag"]
 };
 var DV_CL     = {Barbare:"d12",Guerrier:"d10",Paladin:"d10",Rôdeur:"d10",Barde:"d8",Clerc:"d8",Druide:"d8",Moine:"d8",Roublard:"d8",Occultiste:"d8",Ensorceleur:"d6",Magicien:"d6"};
+var _CNOM_FULL={for:"Force",dex:"Dextérité",con:"Constitution",int:"Intelligence",sag:"Sagesse",cha:"Charisme"};
+var MAITRISE_CL={
+  Barbare:   {arm:"Légères, intermédiaires, boucliers",     arm2:null, armes:"Courantes, de guerre",              outils:"Aucun",                          saves:["for","con"], nComp:2,  comps:["Acrobaties","Athlétisme","Dressage","Histoire","Intimidation","Nature","Perception","Survie"]},
+  Barde:     {arm:"Légères",                                arm2:null, armes:"Courantes + rapière, épée longue, épée courte, arbalète de poing", outils:"3 instruments de musique",  saves:["dex","cha"], nComp:3,  comps:["Toutes (au choix)"]},
+  Clerc:     {arm:"Légères, intermédiaires, boucliers",     arm2:null, armes:"Courantes",                         outils:"Aucun",                          saves:["sag","cha"], nComp:2,  comps:["Histoire","Intuition","Médecine","Persuasion","Religion"]},
+  Druide:    {arm:"Légères, intermédiaires, boucliers (non métalliques)", arm2:null, armes:"Gourdin, dague, fléchette, javeline, masse, bâton, serpe, fronde", outils:"Matériel d'herboriste", saves:["int","sag"], nComp:2, comps:["Arcanes","Dressage","Intuition","Médecine","Nature","Perception","Religion","Survie"]},
+  Guerrier:  {arm:"Toutes les armures, boucliers",          arm2:null, armes:"Courantes, de guerre",              outils:"Aucun",                          saves:["for","con"], nComp:2,  comps:["Acrobaties","Athlétisme","Dressage","Histoire","Intimidation","Intuition","Perception","Survie"]},
+  Moine:     {arm:"Aucune",                                 arm2:null, armes:"Courantes, épée courte",            outils:"1 instrument ou outil d'artisan", saves:["for","dex"], nComp:2, comps:["Acrobaties","Athlétisme","Discrétion","Histoire","Intuition","Religion"]},
+  Paladin:   {arm:"Toutes les armures, boucliers",          arm2:null, armes:"Courantes, de guerre",              outils:"Aucun",                          saves:["sag","cha"], nComp:2,  comps:["Athlétisme","Intuition","Intimidation","Médecine","Persuasion","Religion"]},
+  Rôdeur:   {arm:"Légères, intermédiaires, boucliers",     arm2:null, armes:"Courantes, de guerre",              outils:"Aucun",                          saves:["for","dex"], nComp:3,  comps:["Athlétisme","Dressage","Discrétion","Investigation","Nature","Perception","Survie"]},
+  Roublard:  {arm:"Légères",                                arm2:null, armes:"Courantes + rapière, épée courte, arbalète de poing, épée longue",  outils:"Outils de voleur",            saves:["dex","int"], nComp:4,  comps:["Acrobaties","Athlétisme","Discrétion","Escamotage","Intimidation","Investigation","Perception","Persuasion","Représentation","Tromperie"]},
+  Ensorceleur:{arm:"Aucune",                                arm2:null, armes:"Dague, fléchette, fronde, bâton, arbalète de poing", outils:"Aucun",         saves:["con","cha"], nComp:2,  comps:["Arcanes","Intuition","Intimidation","Persuasion","Religion","Tromperie"]},
+  Occultiste: {arm:"Légères",                               arm2:null, armes:"Courantes",                         outils:"Aucun",                          saves:["sag","cha"], nComp:2,  comps:["Arcanes","Histoire","Intimidation","Investigation","Nature","Religion","Tromperie"]},
+  Magicien:   {arm:"Aucune",                                arm2:null, armes:"Dague, fléchette, fronde, bâton, arbalète de poing", outils:"Aucun",         saves:["int","sag"], nComp:2,  comps:["Arcanes","Histoire","Intuition","Investigation","Médecine","Religion"]}
+};
 var CS_CL     = {Barde:"cha",Clerc:"sag",Druide:"sag",Ensorceleur:"cha",Magicien:"int",Paladin:"cha",Rôdeur:"sag",Occultiste:"cha"};
 var LANCEURS  = ["Barde","Clerc","Druide","Ensorceleur","Magicien","Paladin","Rôdeur","Occultiste"];
 
@@ -7283,6 +7364,7 @@ var equipEquipes=[]; // [{nom, bonus, degats}]
 // UTILITAIRES
 // ══════════════════════════════════════════
 function gMod(v){return Math.floor((v-10)/2);}
+function gStatMod(stat){return gMod(parseInt(v(stat))||10)+((window._equip_bonus_totaux||{})[stat]||0);}
 function fMod(m){return (m>=0?"+":"")+m;}
 function gBM(){return Math.ceil((parseInt(v("niveau"))||1)/4)+1;}
 function gCl(){return v("classe");}
@@ -8037,6 +8119,8 @@ function collecterDonnees(){
   ["jr1","jr2","jr3","je1","je2","je3"].forEach(function(id){data[id]=el(id)&&el(id).checked;});
   ["jds-for","jds-dex","jds-con","jds-int","jds-sag","jds-cha"].forEach(function(id){data[id]=el(id)&&el(id).checked;});
   LANG_IDS.forEach(function(id){data[id]=el(id)&&el(id).checked;});
+  RESIST_IDS.forEach(function(id){data[id]=el(id)&&el(id).checked;});
+  IMMU_IDS.forEach(function(id){data[id]=el(id)&&el(id).checked;});
   data.grimoire=Array.from(grimoire);
   data.prepares=Array.from(prepares);
   data.compsExtra=Array.from(compsExtra);
@@ -8050,7 +8134,7 @@ function collecterDonnees(){
   data._pvmax=parseInt(v("pv-max"))||0;
   data._pvact=parseInt(v("pv-act"))||0;
   data._ca=parseInt(v("ca"))||10;
-  data._init=gMod(parseInt(v("dex"))||10);
+  data._init=gStatMod("dex");
   data._cl=gCl();
   data._nom=v("nom");
   if(avatarUrl) data.avatar=avatarUrl;
@@ -8075,6 +8159,8 @@ function chargerFiche(data){
     if(data[id]!==undefined&&el(id))el(id).checked=data[id];
   });
   LANG_IDS.forEach(function(id){if(data[id]!==undefined&&el(id))el(id).checked=data[id];});
+  RESIST_IDS.forEach(function(id){if(data[id]!==undefined&&el(id))el(id).checked=data[id];});
+  IMMU_IDS.forEach(function(id){if(data[id]!==undefined&&el(id))el(id).checked=data[id];});
   if(data.grimoire)grimoire=new Set(data.grimoire);
   if(data.prepares)prepares=new Set(data.prepares);
   if(data.compsExtra)compsExtra=new Set(data.compsExtra);
@@ -8184,12 +8270,11 @@ function updateHeader(){
 }
 function updateAll(){
   CARACS.forEach(function(c){
-    var val=parseInt(v(c))||10;
-    var m=el("md-"+c);if(m)m.textContent=fMod(gMod(val));
+    var m=el("md-"+c);if(m)m.textContent=fMod(gStatMod(c));
   });
   var bm=gBM();
   var bmv=el("bm-v");if(bmv)bmv.textContent="+"+bm;
-  var initv=el("init-v");if(initv)initv.textContent=fMod(gMod(parseInt(v("dex"))||10));
+  var initv=el("init-v");if(initv)initv.textContent=fMod(gStatMod("dex"));
   updateJDS();updateComps();updatePV();
 }
 function updateJDS(){
@@ -8197,7 +8282,7 @@ function updateJDS(){
   if(!c)return;
   c.innerHTML="";
   CARACS.forEach(function(k){
-    var val=parseInt(v(k))||10,m=gMod(val),ok=mai.indexOf(k)>=0;
+    var m=gStatMod(k),ok=mai.indexOf(k)>=0;
     var d=document.createElement("div");d.className="ejrow";
     d.innerHTML="<span>"+(ok?"●":"○")+"</span><span style='flex:1;'>"+CNOM[k]+"</span><span style='font-weight:700;color:var(--rouge);'>"+fMod(m+(ok?bm:0))+"</span>";
     c.appendChild(d);
@@ -8256,7 +8341,7 @@ function updateComps(){
   });
   document.querySelectorAll(".erow[data-ci]").forEach(function(row){
     var i=parseInt(row.dataset.ci),cp=COMPS[i];
-    var val=parseInt(v(cp.c))||10,m=gMod(val);
+    var m=gStatMod(cp.c);
     var chk=row.querySelector(".comp-check");
     var ok=chk.checked;
     var bon=row.querySelector(".comp-bon");if(bon)bon.textContent=fMod(m+(ok?bm:0));
@@ -8272,14 +8357,36 @@ function updateJDSResume(){
   rRendreComps();
 }
 function updateLangResume(){
-  var lc=el("r-lang-card"),ll=el("r-lang-list");if(!lc||!ll)return;
-  var maitrisees=LANG_IDS.filter(function(id){var e=el(id);return e&&e.checked;});
-  if(maitrisees.length){
-    lc.style.display="";
-    ll.innerHTML=maitrisees.map(function(id){return '<span style="font-size:12px;padding:3px 10px;border-radius:999px;background:rgba(147,197,253,.15);border:1px solid rgba(147,197,253,.3);color:#93c5fd;">'+LANG_NOMS[id]+'</span>';}).join('');
-  } else {
-    lc.style.display="none";
+  var lc=el("r-lang-card");if(!lc)return;
+  // Langues
+  var langues=LANG_IDS.filter(function(id){var e=el(id);return e&&e.checked;});
+  var lb=el("r-lang-block"),ll=el("r-lang-list");
+  if(lb&&ll){
+    if(langues.length){
+      lb.style.display="";
+      ll.innerHTML=langues.map(function(id){return '<span style="font-size:12px;padding:3px 10px;border-radius:999px;background:rgba(147,197,253,.15);border:1px solid rgba(147,197,253,.3);color:#93c5fd;">'+LANG_NOMS[id]+'</span>';}).join('');
+    } else { lb.style.display="none"; }
   }
+  // Résistances
+  var resist=RESIST_IDS.filter(function(id){var e=el(id);return e&&e.checked;});
+  var rb=el("r-res-block"),rl=el("r-res-list");
+  if(rb&&rl){
+    if(resist.length){
+      rb.style.display="";
+      rl.innerHTML=resist.map(function(id){var t=id.replace("res-","");return '<span style="font-size:12px;padding:3px 10px;border-radius:999px;background:rgba(251,146,60,.12);border:1px solid rgba(251,146,60,.35);color:rgba(251,146,60,.95);">'+(_DMG_NOMS[t]||t)+'</span>';}).join('');
+    } else { rb.style.display="none"; }
+  }
+  // Immunités
+  var immu=IMMU_IDS.filter(function(id){var e=el(id);return e&&e.checked;});
+  var ib=el("r-imm-block"),il=el("r-imm-list");
+  if(ib&&il){
+    if(immu.length){
+      ib.style.display="";
+      il.innerHTML=immu.map(function(id){var t=id.replace("imm-","");return '<span style="font-size:12px;padding:3px 10px;border-radius:999px;background:rgba(250,204,21,.12);border:1px solid rgba(250,204,21,.4);color:rgba(250,204,21,.95);">'+(_DMG_NOMS[t]||t)+'</span>';}).join('');
+    } else { ib.style.display="none"; }
+  }
+  // Afficher la carte si au moins un élément visible
+  lc.style.display=(langues.length||resist.length||immu.length)?"":"none";
 }
 function updatePV(){
   var max=parseInt(v("pv-max"))||1,act=parseInt(v("pv-act"))||0;
@@ -9572,7 +9679,7 @@ function rafraichirResume(){
   var race=v("race"),niv=v("niveau")||"1",align=v("alignement"),hist=v("historique");
   var ca=v("ca")||"10",vit=v("vitesse")||"9";
   var pvMax=parseInt(v("pv-max"))||1,pvAct=parseInt(v("pv-act"))||0,pvTmp=parseInt(v("pv-tmp"))||0;
-  var bm=gBM(),dexMod=gMod(parseInt(v("dex"))||10);
+  var bm=gBM(),dexMod=gStatMod("dex");
   var _eqb=window._equip_bonus_totaux||{};
   // Header
   var init=nom.split(" ").map(function(w){return w[0]||"";}).slice(0,2).join("").toUpperCase();
@@ -9619,6 +9726,8 @@ function rafraichirResume(){
     else sp.style.display="none";
   }
 
+  // Maîtrises de classe
+  rendreMaitrises();
   // Ressources de classe
   majRessourcesClasse();
 
@@ -9636,6 +9745,22 @@ function rafraichirResume(){
   // Hexagone
   rendreHexagone();
 
+}
+
+function rendreMaitrises(){
+  var card=el("r-maitrise-card"),body=el("r-maitrise-body");if(!card||!body)return;
+  var cl=gCl();
+  var m=MAITRISE_CL[cl];
+  if(!m){card.style.display="none";return;}
+  card.style.display="";
+  var saves=m.saves.map(function(s){return _CNOM_FULL[s]||s;}).join(", ");
+  var comps=m.nComp+" parmi "+m.comps.join(", ");
+  body.innerHTML=
+    '<div><b style="color:var(--txt);">Armures :</b> '+m.arm+'</div>'
+   +'<div><b style="color:var(--txt);">Armes :</b> '+m.armes+'</div>'
+   +'<div><b style="color:var(--txt);">Outils :</b> '+m.outils+'</div>'
+   +'<div><b style="color:var(--txt);">Sauvegardes :</b> <span style="color:var(--rouge);">'+saves+'</span></div>'
+   +'<div><b style="color:var(--txt);">Compétences :</b> '+comps+'</div>';
 }
 
 function rNotesInput(){
@@ -9696,8 +9821,7 @@ function rendreHexagone(){
   var jdsGrid=document.createElement("div");
   jdsGrid.style.cssText="display:grid;grid-template-columns:1fr 1fr;gap:4px;";
   CARACS.forEach(function(k,i){
-    var val=parseInt(v(k))||10;
-    var mod=gMod(val);
+    var mod=gStatMod(k);
     var isMai=mai.indexOf(k)>=0;
     var bJDS=(window._equip_bonus_totaux||{})['jds_'+k]||0;
     var tot=mod+(isMai?bm:0)+bJDS;
@@ -9727,7 +9851,7 @@ function rendreJDSPills(){
   if(!mai.length)return;
   // Afficher seulement le modificateur — plus compact
   mai.forEach(function(k){
-    var val=parseInt(v(k))||10,tot=gMod(val)+bm;
+    var tot=gStatMod(k)+bm;
     var abrev={for:"FOR",dex:"DEX",con:"CON",int:"INT",sag:"SAG",cha:"CHA"};
     var p=document.createElement("span");p.className="jpill";
     p.textContent=abrev[k]+" "+fMod(tot)+" ";
@@ -9739,6 +9863,22 @@ function rMajFavoris(){
   var card = el("r-favoris-card");
   var list = el("r-favoris-list");
   if(!card||!list) return;
+
+  // ── Purger les favoris orphelins (cap plus disponible pour ce PJ) ──
+  if(CAPS_DATA){
+    var caps=getCapsDisponibles();
+    var validKeys=new Set();
+    (caps.classe||[]).forEach(function(c){if(c&&c.nom)validKeys.add('cl_'+c.nom);});
+    (caps.race||[]).forEach(function(c){if(c&&c.nom)validKeys.add('race_'+c.nom);});
+    (caps.historique||[]).forEach(function(c){if(c&&c.nom)validKeys.add('hist_'+c.nom);});
+    var orphelins=[];
+    capsFavoris.forEach(function(k){if(!validKeys.has(k))orphelins.push(k);});
+    if(orphelins.length){
+      orphelins.forEach(function(k){capsFavoris.delete(k);});
+      sauvegarder();
+    }
+  }
+
   if(capsFavoris.size === 0){ card.style.display="none"; return; }
   card.style.display="block";
   list.innerHTML="";
@@ -9838,7 +9978,7 @@ function rRendreComps(){
   if(jc){
     jc.innerHTML="";
     CARACS.forEach(function(k){
-      var val=parseInt(v(k))||10,m=gMod(val);
+      var m=gStatMod(k);
       var chkEl=el("jds-"+k);
       var ok=chkEl?chkEl.checked:false;
       var tot=m+(ok?bm:0);
@@ -9859,7 +9999,7 @@ function rRendreComps(){
   // Collecter toutes les valeurs
   var allComps=[];
   COMPS.forEach(function(cp,i){
-    var val=parseInt(v(cp.c))||10,m=gMod(val);
+    var m=gStatMod(cp.c);
     var editRow=document.querySelector(".erow[data-ci='"+i+"'] .comp-check");
     var ok=editRow?editRow.checked:false;
     if(ok)total++;
@@ -10411,9 +10551,10 @@ function majConditions(conds){
 
 // ── États MJ actifs — badges près de la photo de profil ───
 function majEtatsPJ(etats){
+  window._pj_etats_actifs=etats||[];
   var cont=el('r-etats-badges');
   if(!cont)return;
-  if(!etats||!etats.length){cont.style.display='none';cont.innerHTML='';return;}
+  if(!etats||!etats.length){cont.style.display='none';cont.innerHTML='';cbtRendreEtats();return;}
   var typeInfo={buff:{bg:'rgba(74,222,128,.12)',bord:'rgba(74,222,128,.35)',col:'#4ade80'},
     debuff:{bg:'rgba(239,68,68,.12)',bord:'rgba(239,68,68,.35)',col:'#ef4444'},
     neutre:{bg:'rgba(148,163,184,.1)',bord:'rgba(148,163,184,.3)',col:'#94a3b8'}};
@@ -10426,6 +10567,30 @@ function majEtatsPJ(etats){
       +' onclick="pjVoirEtat(\''+encoded.replace(/'/g,'%27')+'\')">'
       +'<span class="rc-etat-dot" style="background:'+col+'"></span>'
       +escHtml(e.nom||'État')
+      +'</button>';
+  }).join('');
+  cont.style.display='flex';
+  cbtRendreEtats();
+}
+
+function cbtRendreEtats(){
+  var cont=el('cbt-etats-actifs');if(!cont)return;
+  var etats=window._pj_etats_actifs||[];
+  if(!etats.length){cont.style.display='none';return;}
+  var typeInfo={buff:{bg:'rgba(74,222,128,.12)',bord:'rgba(74,222,128,.35)',col:'#4ade80'},
+    debuff:{bg:'rgba(239,68,68,.12)',bord:'rgba(239,68,68,.35)',col:'#ef4444'},
+    neutre:{bg:'rgba(148,163,184,.1)',bord:'rgba(148,163,184,.3)',col:'#94a3b8'}};
+  cont.innerHTML=etats.map(function(e){
+    var info=typeInfo[e.type]||typeInfo.neutre;
+    var col=e.couleur||info.col;
+    var encoded=encodeURIComponent(JSON.stringify(e));
+    var tours=(e.resteRounds!==null&&e.resteRounds!==undefined)
+      ?'<span style="font-size:9px;font-weight:700;margin-left:4px;opacity:.8;">'+e.resteRounds+'t</span>':'';
+    return'<button style="display:flex;align-items:center;gap:5px;font-size:11px;font-weight:600;'
+      +'padding:5px 10px;border-radius:7px;border:1px solid '+info.bord+';background:'+info.bg+';color:'+col+';cursor:pointer;font-family:inherit;" '
+      +'onclick="pjVoirEtat(\''+encoded.replace(/'/g,'%27')+'\')">'
+      +'<span style="width:7px;height:7px;border-radius:50%;background:'+col+';flex-shrink:0;display:inline-block;"></span>'
+      +escHtml(e.nom||'État')+tours
       +'</button>';
   }).join('');
   cont.style.display='flex';
@@ -10483,6 +10648,14 @@ function pjVoirEtat(encodedJson){
   if(typ){typ.textContent=info.label;typ.style.background=info.bg;typ.style.border='1px solid '+info.bord;typ.style.color=col;}
   var desc=el('pj-etat-modal-desc');
   if(desc){if(e.description){desc.textContent=e.description;desc.style.display='';}else desc.style.display='none';}
+  // Tours restants
+  var durDiv=el('pj-etat-modal-duree');
+  if(durDiv){
+    if(e.resteRounds!==null&&e.resteRounds!==undefined){
+      durDiv.textContent='⏱ '+e.resteRounds+' tour'+(e.resteRounds>1?'s':'')+' restant'+(e.resteRounds>1?'s':'');
+      durDiv.style.display='';
+    }else{durDiv.style.display='none';}
+  }
   var ew=el('pj-etat-modal-effets-wrap');if(ew)ew.style.display='none';
   var modal=el('pj-etat-modal');if(modal)modal.classList.add('open');
 }
@@ -10953,14 +11126,15 @@ function equip_calcBonus(){
   var tot={};
   var equipe=window._equip_equipe||{};
   var items=window._equip_items||{};
-  _EQUIP_SLOTS.forEach(function(s){
-    var id=equipe[s];if(!id)return;
-    var item=items[id];if(!item||!Array.isArray(item.bonus))return;
+  function _accItem(item){
+    if(!item||!Array.isArray(item.bonus))return;
     item.bonus.forEach(function(b){
       if(!b||!b.cible||!b.valeur)return;
       tot[b.cible]=(tot[b.cible]||0)+b.valeur;
     });
-  });
+  }
+  _EQUIP_SLOTS.forEach(function(s){_accItem(items[equipe[s]]);});
+  _equip_quick.forEach(function(id){if(id)_accItem(items[id]);});
   window._equip_bonus_totaux=tot;
 }
 
@@ -12220,17 +12394,16 @@ function _cbtResumeCap(cap){
   if(phrase.length>160)phrase=phrase.slice(0,157)+'…';
   return phrase;
 }
-function _capEstCombat(cap){
+function _capEstCombat(cap, allCaps, src){
+  // Exclure les entrées purement structurelles (noms de sous-classe, archétypes, etc.)
   for(var i=0;i<_capExclPfx.length;i++){
     if(cap.nom.indexOf(_capExclPfx[i])===0||cap.nom===_capExclPfx[i].trim())return false;
   }
-  // Inclure uniquement l'option de Métamagie choisie par le PJ
-  if(cap.parent&&cap.parent.indexOf('Métamagie')===0){
-    return choixCaps['cl_'+cap.parent]===cap.nom;
-  }
-  // Seulement les capacités nécessitant une action ou action bonus
-  var d=(cap.desc||'').toLowerCase().replace(/réaction/g,'rxx');
-  return d.indexOf('action')>=0||d.indexOf('attaque')>=0;
+  // Exclure les entrées de type "choix" sans parent (ce sont des sélecteurs, pas des capacités)
+  if(cap.type==='choix'&&!cap.parent)return false;
+  // Vérifier que la cap est active selon les choix du PJ
+  if(allCaps&&src&&!capEstActive(cap,allCaps,src))return false;
+  return true;
 }
 var cbtActionUsed=false, cbtBonusUsed=false;
 var cbtForceCombat=false;
@@ -12496,7 +12669,7 @@ function cbtRendreActions(monTour){
   var capsData=window.CAPS_DATA&&window.CAPS_DATA.classes&&window.CAPS_DATA.classes[cl]||[];
   var _capsSeen={};
   var capsUnlocked=capsData.filter(function(c){
-    if((c.niveau||1)>niv||!_capEstCombat(c))return false;
+    if((c.niveau||1)>niv||!_capEstCombat(c,capsData,'cl'))return false;
     if(_capsSeen[c.nom])return false;
     _capsSeen[c.nom]=true;return true;
   });
@@ -12510,16 +12683,13 @@ function cbtRendreActions(monTour){
   var eqItems=window._equip_items||{};
   var eqEquipe=window._equip_equipe||{};
   var eqRows=[];
-  _EQUIP_SLOTS.forEach(function(s){
-    var id=eqEquipe[s];if(!id)return;
-    var item=eqItems[id];if(!item)return;
+  function _cbtMakeItemRow(item,id,slotLabel){
     var ico=item.icone&&!item.icone.startsWith("http")?item.icone:"✨";
     var hasDesc=!!(item.description&&item.description.trim());
     var hasBonus=Array.isArray(item.bonus)&&item.bonus.length>0;
     var hasCharges=!!(item.charges&&item.charges.max);
     var hasDetail=hasDesc||hasBonus||hasCharges;
-    var did='ceq-'+s;
-    // Contenu du panneau dépliable
+    var did='ceq-'+id;
     var detailHtml='';
     if(hasDesc){
       detailHtml+='<p style="font-size:11px;color:var(--txt2);line-height:1.5;margin-bottom:'+(hasBonus||hasCharges?'6px':'0')+';">'+item.description.replace(/</g,'&lt;')+'</p>';
@@ -12547,22 +12717,30 @@ function cbtRendreActions(monTour){
         +(chgLbl?'<span style="font-size:10px;color:var(--txt3);padding:1px 5px;background:var(--bg3);border-radius:4px;border:1px solid var(--bord);">'+chgLbl+'</span>':'')
         +'</div>';
     }
-    // Indicateur rapide dans le header
     var chgQuick='';
     if(hasCharges){
       var qUsed=Math.min(equipCharges[id]||0,item.charges.max);
       chgQuick='<span style="font-size:10px;color:var(--rouge);font-weight:700;flex-shrink:0;">⚡ '+(item.charges.max-qUsed)+'/'+item.charges.max+'</span>';
     }
-    eqRows.push(
-      '<div class="cbt-equip-item"'+(hasDetail?' onclick="cbtToggleSortDesc(\''+did+'\')"':'')+'>'
+    return '<div class="cbt-equip-item"'+(hasDetail?' onclick="cbtToggleSortDesc(\''+did+'\')"':'')+'>'
       +'<div class="cbt-equip-row">'
       +'<span style="font-size:15px;">'+ico+'</span>'
       +'<span style="flex:1;font-weight:600;color:var(--txt);">'+item.nom+'</span>'
       +chgQuick
-      +'<span style="font-size:10px;color:var(--txt3);margin-left:4px;">'+(_EQUIP_SLOT_LABELS[s]||s)+(hasDetail?' ▾':'')+'</span>'
+      +'<span style="font-size:10px;color:var(--txt3);margin-left:4px;">'+slotLabel+(hasDetail?' ▾':'')+'</span>'
       +'</div>'
       +(hasDetail?'<div class="cbt-weapon-desc" id="'+did+'" onclick="event.stopPropagation();">'+detailHtml+'</div>':'')
-      +'</div>');
+      +'</div>';
+  }
+  _EQUIP_SLOTS.forEach(function(s){
+    var id=eqEquipe[s];if(!id)return;
+    var item=eqItems[id];if(!item)return;
+    eqRows.push(_cbtMakeItemRow(item,id,_EQUIP_SLOT_LABELS[s]||s));
+  });
+  _equip_quick.forEach(function(id,i){
+    if(!id)return;
+    var item=eqItems[id];if(!item)return;
+    eqRows.push(_cbtMakeItemRow(item,id,'🎒 Rapide '+(i+1)));
   });
   if(eqRows.length){
     html+='<p class="cbt-section-titre">🛡 Équipement</p>';
@@ -12746,7 +12924,7 @@ function cbtToggleCaps(e){
   var capsData=window.CAPS_DATA&&window.CAPS_DATA.classes&&window.CAPS_DATA.classes[cl]||[];
   var _seen2={};
   var caps=capsData.filter(function(c){
-    if((c.niveau||1)>niv||!_capEstCombat(c))return false;
+    if((c.niveau||1)>niv||!_capEstCombat(c,capsData,'cl'))return false;
     if(_seen2[c.nom])return false;
     _seen2[c.nom]=true;return true;
   });
@@ -13105,6 +13283,8 @@ function conn_toggleSec(sid){
         <button class="btn ok" onclick="cbtQuickPV(1)">+ Soins</button>
       </div>
     </div>
+    <!-- États actifs du PJ -->
+    <div id="cbt-etats-actifs" style="display:none;flex-wrap:wrap;gap:6px;margin-bottom:.75rem;"></div>
     <!-- Actions / ressources -->
     <div id="cbt-actions-panel" class="card" style="display:none;">
       <p class="st" id="cbt-actions-titre">Tes ressources</p>
@@ -13164,6 +13344,7 @@ function conn_toggleSec(sid){
       <span class="pj-etat-modal-type" id="pj-etat-modal-type"></span>
     </div>
     <p class="pj-etat-modal-desc" id="pj-etat-modal-desc" style="display:none;"></p>
+    <div id="pj-etat-modal-duree" style="display:none;font-size:11px;font-weight:700;color:var(--txt3);margin-bottom:.75rem;"></div>
     <div id="pj-etat-modal-effets-wrap" style="display:none;">
       <p class="pj-etat-modal-effets-title">Effets</p>
       <div id="pj-etat-modal-effets"></div>
