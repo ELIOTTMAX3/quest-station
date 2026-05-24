@@ -939,54 +939,52 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     </div>
   </div>
 
-  <!-- ONGLET NOTES (infos MJ + notes partagées) -->
+  <!-- ONGLET NOTES -->
   <div id="rt-notes" class="tc">
-    <!-- Sous-navigation -->
+
+    <!-- Barre unique 3 onglets -->
     <div class="conn-subnav">
-      <button class="conn-subnav-btn on" id="conn-subtab-notes" onclick="conn_selectSubtab('notes',this)">📝 Notes</button>
-      <button class="conn-subnav-btn" id="conn-subtab-conn" onclick="conn_selectSubtab('conn',this)">📚 Connaissances</button>
+      <button class="conn-subnav-btn" id="nt-tab-infos" onclick="nt_selectTab('infos',this)" style="display:none;">📋 Infos du MJ</button>
+      <button class="conn-subnav-btn on" id="nt-tab-notes" onclick="nt_selectTab('notes',this)">📝 Notes</button>
+      <button class="conn-subnav-btn" id="nt-tab-conn" onclick="nt_selectTab('conn',this)">📚 Connaissances</button>
     </div>
 
-    <!-- Sous-page NOTES -->
-    <div id="conn-panel-notes">
-    <!-- Pas encore dans une campagne -->
-    <div id="rn-join">
+    <!-- Panel : Infos du MJ (lecture seule) -->
+    <div id="nt-panel-infos" style="display:none;">
       <div class="arc-section">
-        <div class="arc-title">📝 Notes partagées <span class="arc-line"></span></div>
-        <p style="font-size:12px;color:var(--txt2);line-height:1.6;">Rejoins une campagne pour accéder aux infos du MJ et aux notes partagées.</p>
-      </div>
-    </div>
-    <!-- Dans une campagne -->
-    <div id="rn-panel" style="display:none;">
-      <!-- Barre d'onglets Infos MJ / Notes -->
-      <div class="arc-notestabs">
-        <button class="arc-notetab" id="rn-tab-infos" onclick="rnSelectTab('infos',this)" style="display:none;">📋 Infos du MJ</button>
-        <button class="arc-notetab on" id="rn-tab-notes" onclick="rnSelectTab('notes',this)">📝 Notes</button>
-      </div>
-      <!-- Panel Infos du MJ (lecture seule) -->
-      <div id="rn-panel-infos" class="arc-section" style="display:none;">
         <div class="arc-title">📋 Infos du MJ <span class="arc-line"></span></div>
         <div id="rc-infos-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px;"></div>
         <div id="rc-infos-mj" style="font-size:13px;line-height:1.6;color:var(--txt2);white-space:pre-wrap;"></div>
       </div>
-      <!-- Panel Notes partagées -->
-      <div id="rn-panel-notes" class="arc-section">
-        <div class="arc-title">📝 Notes partagées <span class="arc-line"></span></div>
-        <div id="rc-notes-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
-        <textarea id="rc-notes-partage" class="arc-textarea" style="min-height:120px;" placeholder="Écris ici…" oninput="rcNoteInput()"></textarea>
+    </div>
+
+    <!-- Panel : Notes -->
+    <div id="nt-panel-notes">
+      <!-- Pas encore dans une campagne -->
+      <div id="rn-join">
+        <div class="arc-section">
+          <div class="arc-title">📝 Notes partagées <span class="arc-line"></span></div>
+          <p style="font-size:12px;color:var(--txt2);line-height:1.6;">Rejoins une campagne pour accéder aux infos du MJ et aux notes partagées.</p>
+        </div>
       </div>
-      <!-- Images partagées -->
-      <div class="arc-section" id="rn-images-card" style="display:none;">
-        <div class="arc-title">🖼️ Images <span class="arc-line"></span></div>
-        <div id="rc-img-gallery" style="display:flex;flex-direction:column;gap:12px;"></div>
+      <!-- Dans une campagne -->
+      <div id="rn-panel" style="display:none;">
+        <div class="arc-section">
+          <div class="arc-title">📝 Notes partagées <span class="arc-line"></span></div>
+          <div id="rc-notes-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
+          <textarea id="rc-notes-partage" class="arc-textarea" style="min-height:120px;" placeholder="Écris ici…" oninput="rcNoteInput()"></textarea>
+        </div>
+        <div class="arc-section" id="rn-images-card" style="display:none;">
+          <div class="arc-title">🖼️ Images <span class="arc-line"></span></div>
+          <div id="rc-img-gallery" style="display:flex;flex-direction:column;gap:12px;"></div>
+        </div>
       </div>
     </div>
-    </div><!-- /conn-panel-notes -->
 
-    <!-- Sous-page CONNAISSANCES -->
-    <div id="conn-panel-conn" style="display:none;">
-      <!-- Sous-onglets Monstres / Histoire -->
-      <div class="conn-subnav">
+    <!-- Panel : Connaissances -->
+    <div id="nt-panel-conn" style="display:none;">
+      <!-- Sous-onglets -->
+      <div class="conn-subnav" style="background:rgba(15,52,96,0.35);margin-bottom:10px;">
         <button class="conn-subnav-btn on" id="conn-know-monstres" onclick="conn_selectKnowTab('monstres',this)">👾 Monstres</button>
         <button class="conn-subnav-btn" id="conn-know-histoire" onclick="conn_selectKnowTab('histoire',this)">📜 Histoire</button>
       </div>
@@ -10319,7 +10317,7 @@ function campEcouter(){
     // Infos MJ — onglet lecture seule
     var _rawImj=d.infosMJ;
     var _imjTabs=!_rawImj?null:typeof _rawImj==="string"?[{nom:"General",contenu:_rawImj}]:Array.isArray(_rawImj)?_rawImj:null;
-    var _tabInfosBtn=el("rn-tab-infos");
+    var _tabInfosBtn=el("nt-tab-infos");
     if(_tabInfosBtn){
       if(_imjTabs&&_imjTabs.length){
         _tabInfosBtn.style.display="";
@@ -10327,8 +10325,9 @@ function campEcouter(){
         rcRendreInfosTabs();
       } else {
         _tabInfosBtn.style.display="none";
-        var _pi=el("rn-panel-infos");
-        if(_pi&&_pi.style.display!=="none")rnSelectTab('notes',el('rn-tab-notes'));
+        // Si on était sur l'onglet infos, basculer vers Notes
+        var _pi=el("nt-panel-infos");
+        if(_pi&&_pi.style.display!=="none")nt_selectTab('notes',el('nt-tab-notes'));
       }
     }
     // Notes partagees — sync onglets
@@ -10342,9 +10341,7 @@ function campEcouter(){
     }
     // Images partagées
     rcRendreImages(d.images||[]);
-    // Histoire — blocs lecture seule
-    _conn_histoire=d.histoireBlocs||[];
-    conn_rendreHistoire();
+    // Histoire — géré via listener joueur (conn_initListener)
   },function(){
     // Listener mort : se réabonner après 4s si toujours dans la campagne
     if(campCode)setTimeout(campEcouter,4000);
@@ -10542,12 +10539,14 @@ function campEcrireNotesPartage(){
     db.collection("parties").doc(campCode).set({notesPartage:_rcNotesTabs},{merge:true}).catch(function(){});
   },1200);
 }
-// ── Onglets Notes (Infos MJ ↔ Notes partagées) ──────────────────────
-function rnSelectTab(t,btn){
-  var panels={infos:'rn-panel-infos',notes:'rn-panel-notes'};
-  Object.keys(panels).forEach(function(k){var p=el(panels[k]);if(p)p.style.display=(k===t)?'':'none';});
-  document.querySelectorAll('.arc-notetab').forEach(function(b){b.classList.remove('on');});
+// ── Onglet principal Notes (Infos MJ | Notes | Connaissances) ────────
+function nt_selectTab(t,btn){
+  ['nt-panel-infos','nt-panel-notes','nt-panel-conn'].forEach(function(id){var p=el(id);if(p)p.style.display='none';});
+  var target={infos:'nt-panel-infos',notes:'nt-panel-notes',conn:'nt-panel-conn'}[t];
+  var p=el(target);if(p)p.style.display='';
+  document.querySelectorAll('#rt-notes .conn-subnav:first-child .conn-subnav-btn').forEach(function(b){b.classList.remove('on');});
   if(btn)btn.classList.add('on');
+  if(t==='conn'){var active=document.querySelector('#nt-panel-conn .conn-subnav-btn.on');conn_selectKnowTab(active?active.id.replace('conn-know-',''):'monstres',active);}
 }
 // ── Onglets Connaissances (Monstres ↔ Histoire) ──────────────────────
 function conn_selectKnowTab(t,btn){
@@ -12901,16 +12900,12 @@ var _conn_open={};      // monstruId → bool (accordéon ouvert)
 var _conn_images={};    // monstruId → base64 (photos uploadées)
 var _conn_images_unsub=null;
 
-function conn_selectSubtab(t,btn){
-  document.getElementById('conn-panel-notes').style.display=t==='notes'?'':'none';
-  document.getElementById('conn-panel-conn').style.display=t==='conn'?'':'none';
-  document.querySelectorAll('.conn-subnav-btn').forEach(function(b){b.classList.remove('on');});
-  if(btn)btn.classList.add('on');
-  if(t==='conn')conn_render();
-}
+function conn_selectSubtab(t,btn){/* remplacé par nt_selectTab */}
 
+var _conn_histoire_unsub=null;
 function conn_initListener(){
   if(_conn_unsub||!db||!campCode||!joueurId)return;
+  // Connaissances (monstres)
   _conn_unsub=db.collection('parties').doc(campCode)
     .collection('joueurs').doc(joueurId)
     .collection('connaissances').onSnapshot(function(qs){
@@ -12918,12 +12913,23 @@ function conn_initListener(){
       qs.forEach(function(d){_conn_data.push(Object.assign({id:d.id},d.data()));});
       conn_fetchHomebrew();
     });
+  // Histoire (blocs read-only par joueur)
+  if(!_conn_histoire_unsub){
+    _conn_histoire_unsub=db.collection('parties').doc(campCode)
+      .collection('joueurs').doc(joueurId)
+      .onSnapshot(function(snap){
+        if(!snap.exists)return;
+        _conn_histoire=snap.data().histoireBlocs||[];
+        conn_rendreHistoire();
+      });
+  }
 }
 function conn_resetListener(){
   if(_conn_unsub){_conn_unsub();_conn_unsub=null;}
   if(_conn_images_unsub){_conn_images_unsub();_conn_images_unsub=null;}
-  _conn_data=[];_conn_homebrew={};_conn_images={};
-  conn_render();
+  if(_conn_histoire_unsub){_conn_histoire_unsub();_conn_histoire_unsub=null;}
+  _conn_data=[];_conn_homebrew={};_conn_images={};_conn_histoire=[];
+  conn_render();conn_rendreHistoire();
 }
 function conn_initImages(){
   if(_conn_images_unsub||!db)return;
