@@ -443,13 +443,13 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .equip-quick-ico{font-size:20px;line-height:1;}
 .equip-quick-lbl{font-size:9px;font-weight:600;color:#9a8a6a;text-transform:uppercase;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70px;text-align:center;}
 .equip-quick-slot.occupied .equip-quick-lbl{color:#e8dcc8;}
-.boutique-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;}
-.boutique-card{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:3px;}
+.boutique-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;align-items:start;}
+.boutique-card{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:3px;min-width:0;overflow:hidden;}
 .boutique-card-ico{font-size:26px;text-align:center;margin-bottom:3px;}
-.boutique-card-nom{font-size:12px;font-weight:700;color:var(--txt);word-break:break-word;white-space:normal;}
-.boutique-card-rar{font-size:10px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(0,0,0,.35);display:inline-block;width:fit-content;}
-.boutique-card-slot{font-size:10px;color:var(--txt3);}
-.boutique-card-desc{font-size:11px;color:var(--txt2);line-height:1.45;margin-top:3px;}
+.boutique-card-nom{font-size:12px;font-weight:700;color:var(--txt);word-break:break-word;overflow-wrap:break-word;white-space:normal;}
+.boutique-card-rar{font-size:10px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(0,0,0,.35);display:inline-block;width:fit-content;max-width:100%;}
+.boutique-card-slot{font-size:10px;color:var(--txt3);word-break:break-word;overflow-wrap:break-word;}
+.boutique-card-desc{font-size:11px;color:var(--txt2);line-height:1.45;margin-top:3px;word-break:break-word;overflow-wrap:break-word;}
 .r-equip-item{background:var(--bg2);border:1px solid var(--bord);border-radius:8px;padding:10px 12px;margin-bottom:8px;}
 .r-equip-item:last-child{margin-bottom:0;}
 .r-equip-header{display:flex;align-items:center;gap:10px;}
@@ -10962,7 +10962,7 @@ function equip_rendreInventaire(){
   });
   function renderItem(itemId,isEquipe){
     var item=items[itemId];
-    if(!item)return '<div style="font-size:11px;color:var(--txt3);padding:4px 0;">Objet inconnu</div>';
+    if(!item)return '';
     var rarColor=_EQUIP_RARETE_COLORS[item.rarete]||"#9ca3af";
     var icone=item.icone||"📦";
     var equipSlot=equipes[itemId]||"";
@@ -10988,6 +10988,14 @@ function equip_rendreInventaire(){
         html+='<button class="btn" style="font-size:10px;padding:2px 7px;" onclick="equip_desequiperItem(\''+itemId+'\')">Déséq.</button>';
       } else {
         html+='<button class="btn ok" style="font-size:10px;padding:2px 7px;" onclick="equip_equiperItem(\''+itemId+'\')">Équiper</button>';
+      }
+    } else {
+      // Objet de type inventaire → peut aller dans un emplacement rapide
+      var inQuick=_equip_quick.indexOf(itemId)>=0;
+      if(inQuick){
+        html+='<button class="btn" style="font-size:10px;padding:2px 7px;border-color:var(--or);color:var(--or);" onclick="equip_retirerRapide(\''+itemId+'\')">🎒 Retirer</button>';
+      } else {
+        html+='<button class="btn" style="font-size:10px;padding:2px 7px;" onclick="equip_ajouterRapide(\''+itemId+'\')">🎒 Rapide</button>';
       }
     }
     html+='<button class="btn" style="font-size:10px;padding:2px 7px;" onclick="equip_ouvrirDonner(\''+itemId+'\')">Donner</button>';
@@ -11032,11 +11040,8 @@ function equip_rendreInventaire(){
 function equip_rendreFooter(){
   var fEl=el("equip-footer");if(!fEl)return;
   var equipe=window._equip_equipe||{};
-  var items=window._equip_items||{}; // déclaré AVANT le premier forEach (évite le bug de hoisting)
-  var count=0;
-  _EQUIP_SLOTS.forEach(function(s){if(equipe[s]&&items[equipe[s]])count++;});
-  var total=_EQUIP_SLOTS.length;
-  var html='<b style="color:var(--txt);">'+count+'</b>/'+total+' slots';
+  var items=window._equip_items||{};
+  var html='';
   var bonus={bonusCA:0,bonusInit:0,bonusAttaque:0,bonusPVMax:0};
   _EQUIP_SLOTS.forEach(function(s){
     var id=equipe[s];if(!id)return;
@@ -11052,6 +11057,7 @@ function equip_rendreFooter(){
   if(bonus.bonusAttaque)html+=' <span class="equip-footer-bonus">⚔ Atk '+(bonus.bonusAttaque>0?'+':'')+bonus.bonusAttaque+'</span>';
   if(bonus.bonusPVMax)html+=' <span class="equip-footer-bonus">❤ PV '+(bonus.bonusPVMax>0?'+':'')+bonus.bonusPVMax+'</span>';
   fEl.innerHTML=html;
+  fEl.style.display=html.trim()?'flex':'none';
 }
 
 function equip_rendreActif(){
@@ -11260,6 +11266,42 @@ function equip_saveQuickSlots(){
   if(!db||!joueurId||!campCode)return;
   db.collection('parties').doc(campCode).collection('joueurs').doc(joueurId)
     .set({_equipQuick:_equip_quick},{merge:true}).catch(function(){});
+}
+
+function equip_ajouterRapide(itemId){
+  var items=window._equip_items||{};
+  var item=items[itemId];
+  var nom=item?item.nom:itemId;
+  var vides=[0,1,2].filter(function(i){return !_equip_quick[i];});
+  if(vides.length===0){
+    if(!confirm('Les 3 emplacements rapides sont occupés.\nRemplacer l\'emplacement 1 ?'))return;
+    equip_setQuickSlot(1,itemId); return;
+  }
+  if(vides.length===1){ equip_setQuickSlot(vides[0]+1,itemId); return; }
+  // Plusieurs slots vides : proposer un choix
+  var old=document.getElementById('qs-pick2-modal');if(old)old.remove();
+  var modal=document.createElement('div');
+  modal.id='qs-pick2-modal';
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.7);display:flex;align-items:center;justify-content:center;z-index:600;padding:1rem;';
+  var btns=vides.map(function(i){
+    var n=i+1;
+    return '<button onclick="equip_setQuickSlot('+n+',\''+itemId+'\');var m=document.getElementById(\'qs-pick2-modal\');if(m)m.remove();" style="background:var(--bg3);border:1px solid var(--bord2);border-radius:8px;padding:10px 20px;color:var(--txt);cursor:pointer;font-family:inherit;font-size:13px;">Slot '+n+'</button>';
+  }).join('');
+  modal.innerHTML='<div style="background:var(--bg2);border:1px solid var(--bord2);border-radius:12px;padding:16px;max-width:280px;width:100%;">'
+    +'<p style="font-size:13px;font-weight:700;color:var(--txt);margin-bottom:12px;">Placer «'+escHtml(nom)+'» dans :</p>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">'+btns+'</div>'
+    +'<button onclick="var m=document.getElementById(\'qs-pick2-modal\');if(m)m.remove();" style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:12px;font-family:inherit;">Annuler</button>'
+    +'</div>';
+  document.body.appendChild(modal);
+}
+
+function equip_retirerRapide(itemId){
+  var idx=_equip_quick.indexOf(itemId);
+  if(idx<0)return;
+  _equip_quick[idx]=null;
+  equip_saveQuickSlots();
+  equip_rendreQuickSlots();
+  equip_rendreInventaire();
 }
 
 function equip_clickSlot(slot){

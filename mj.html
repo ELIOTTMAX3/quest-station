@@ -2541,6 +2541,11 @@ function _equip_mj_rendreItemCard(item,_pjJid){
     +'Boutique</label>'
     +'</div>'
     +possedeursHtml
+    +(item.description?'<div style="margin-top:6px;">'
+      +'<button onclick="equip_mj_toggleDesc(\'mjdesc-'+item.id+'\',this)" style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:11px;padding:0;font-family:inherit;display:flex;align-items:center;gap:4px;">▸ Description</button>'
+      +'<div id="mjdesc-'+item.id+'" style="display:none;margin-top:5px;font-size:11px;color:var(--txt2);line-height:1.55;white-space:pre-wrap;padding:8px;background:var(--bg2);border-radius:6px;border:1px solid var(--bord);">'+item.description+'</div>'
+      +'</div>'
+    :'')
     +'<div style="display:flex;gap:5px;margin-top:8px;flex-wrap:wrap;">'
     +(_pjJid?'<button class="btn" style="font-size:11px;padding:4px 10px;border-color:rgba(201,162,39,.4);color:var(--or);" onclick="equip_mj_recuperer(\''+item.id+'\',\''+_pjJid+'\')">📤 Récupérer</button>':'')
     +'<button class="btn ok" style="font-size:11px;padding:4px 10px;" onclick="equip_mj_ouvrirDonner(\''+item.id+'\')">Donner</button>'
@@ -2622,6 +2627,13 @@ function equip_mj_selectPjTab(jid){
 }
 
 window._equip_mj_sections_open={pj:true,boutique:true,reserve:true};
+
+function equip_mj_toggleDesc(id,btn){
+  var d=el(id);if(!d)return;
+  var open=d.style.display!=="none";
+  d.style.display=open?"none":"block";
+  btn.textContent=open?"▸ Description":"▾ Description";
+}
 
 function equip_mj_toggleSection(cle){
   var body=el("equip-mj-sec-"+cle);

@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Outils Rapides — D&D 5e</title>
+<script src="monstres-srd.js"></script>
 <style>
 :root{
   --rouge:#d97706;--rh:#b45309;
@@ -327,9 +328,35 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
       <!-- Monstres -->
       <div>
-        <p class="st" style="margin-top:0;">Monstres</p>
-        <div id="enc-monsters"></div>
-        <button class="btn sm ok" style="margin-top:6px;" onclick="addMonster()">+ Monstre</button>
+        <p class="st" style="margin-top:0;">Monstres <span style="font-weight:400;color:var(--txt3);font-size:9px;text-transform:none;letter-spacing:0;">Bestiaire SRD — 428 créatures</span></p>
+        <!-- Recherche -->
+        <div style="position:relative;margin-bottom:6px;">
+          <input type="text" id="enc-search" placeholder="🔍 Rechercher un monstre…" oninput="encSearch(this.value)" autocomplete="off" style="padding-right:30px;">
+          <button onclick="encClearSearch()" style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:none;border:none;color:var(--txt3);cursor:pointer;font-size:14px;line-height:1;padding:2px;">✕</button>
+          <div id="enc-dropdown" style="display:none;position:absolute;z-index:200;top:calc(100% + 2px);left:0;right:0;background:var(--bg2);border:1px solid var(--bord2);border-radius:8px;max-height:220px;overflow-y:auto;box-shadow:0 6px 24px rgba(0,0,0,.6);"></div>
+        </div>
+        <!-- Filtre type -->
+        <div style="margin-bottom:6px;">
+          <select id="enc-filter-type" onchange="encFilterType(this.value)" style="font-size:11px;padding:4px 6px;">
+            <option value="">Tous les types</option>
+            <option value="aberration">Aberrations</option>
+            <option value="artificiel">Artificiels</option>
+            <option value="bête">Bêtes</option>
+            <option value="céleste">Célestes</option>
+            <option value="dragon">Dragons</option>
+            <option value="élémentaire">Élémentaires</option>
+            <option value="fée">Fées</option>
+            <option value="fiélon">Fiélons</option>
+            <option value="géant">Géants</option>
+            <option value="humanoïde">Humanoïdes</option>
+            <option value="monstruosité">Monstruosités</option>
+            <option value="mort-vivant">Morts-vivants</option>
+            <option value="plante">Plantes</option>
+            <option value="vase">Vases</option>
+          </select>
+        </div>
+        <!-- Monster list added -->
+        <div id="enc-monsters"><p style="font-size:11px;color:var(--txt3);">Aucun monstre ajouté.</p></div>
       </div>
     </div>
 
@@ -791,8 +818,94 @@ const FP_LIST = ['0','1/8','1/4','1/2','1','2','3','4','5','6','7','8','9','10',
 const MULTS = [[1,1],[2,1.5],[3,6,2],[7,10,2.5],[11,14,3],[15,999,4]]; // ranges→mult
 
 var encPlayers = [{niv:4},{niv:4},{niv:4},{niv:4}];
-var encMonsters = [{fp:'1',qty:1}];
-var monsterIdCounter = 1;
+var encAddedMonsters = []; // [{uid, monster: MONSTRES_SRD_entry, qty}]
+var encAddedUidCounter = 0;
+var encCurrentFilter = '';
+
+// Fermer le dropdown si clic ailleurs
+document.addEventListener('click',function(e){
+  var dd=el('enc-dropdown'), inp=el('enc-search');
+  if(dd&&inp&&!dd.contains(e.target)&&e.target!==inp) dd.style.display='none';
+});
+
+function encSearch(q){
+  var dd=el('enc-dropdown');
+  q=(q||'').trim().toLowerCase();
+  if(!q&&!encCurrentFilter){ dd.style.display='none'; return; }
+  var results=(typeof MONSTRES_SRD!=='undefined'?MONSTRES_SRD:[]).filter(function(m){
+    var matchNom=!q||m.nom.toLowerCase().indexOf(q)>=0;
+    var matchType=!encCurrentFilter||m.type.toLowerCase().indexOf(encCurrentFilter.toLowerCase())>=0;
+    return matchNom&&matchType;
+  });
+  if(results.length===0){
+    dd.innerHTML='<div style="padding:8px 12px;font-size:12px;color:var(--txt3);">Aucun résultat</div>';
+    dd.style.display='block'; return;
+  }
+  var shown=results.slice(0,12);
+  dd.innerHTML=shown.map(function(m){
+    var xp=XP_FP[m.cr]||0;
+    return '<div onclick="encSelectMonster(\''+m.id+'\')" style="padding:7px 12px;cursor:pointer;border-bottom:1px solid var(--bord);display:flex;align-items:center;justify-content:space-between;gap:8px;" onmouseover="this.style.background=\'var(--bg3)\'" onmouseout="this.style.background=\'\'">'
+      +'<span style="font-size:13px;color:var(--txt);">'+m.nom+'</span>'
+      +'<span style="font-size:11px;color:var(--txt3);white-space:nowrap;">'+m.type+' · FP '+m.cr+' · '+xp.toLocaleString('fr')+' XP</span>'
+      +'</div>';
+  }).join('');
+  if(results.length>12) dd.innerHTML+='<div style="padding:6px 12px;font-size:11px;color:var(--txt3);text-align:center;">+'+(results.length-12)+' autres — affinez la recherche</div>';
+  dd.style.display='block';
+}
+
+function encFilterType(type){
+  encCurrentFilter=type;
+  var inp=el('enc-search');
+  if(inp) encSearch(inp.value);
+}
+
+function encSelectMonster(id){
+  var m=(typeof MONSTRES_SRD!=='undefined'?MONSTRES_SRD:[]).find(function(x){return x.id===id;});
+  if(!m) return;
+  var existing=encAddedMonsters.find(function(e){return e.monster.id===id;});
+  if(existing){ existing.qty++; }
+  else { encAddedMonsters.push({uid:++encAddedUidCounter,monster:m,qty:1}); }
+  var inp=el('enc-search'); if(inp) inp.value='';
+  el('enc-dropdown').style.display='none';
+  buildEncMonstersList();
+}
+
+function encRemoveMonster(uid){
+  encAddedMonsters=encAddedMonsters.filter(function(e){return e.uid!==uid;});
+  buildEncMonstersList();
+}
+
+function encUpdateQty(uid,qty){
+  qty=Math.max(1,parseInt(qty)||1);
+  var e=encAddedMonsters.find(function(e){return e.uid===uid;});
+  if(e){ e.qty=qty; calcEnc(); }
+}
+
+function buildEncMonstersList(){
+  var c=el('enc-monsters');
+  if(encAddedMonsters.length===0){
+    c.innerHTML='<p style="font-size:11px;color:var(--txt3);">Aucun monstre ajouté.</p>';
+    calcEnc(); return;
+  }
+  c.innerHTML=encAddedMonsters.map(function(e){
+    var xp=XP_FP[e.monster.cr]||0;
+    var totalXp=(xp*e.qty).toLocaleString('fr');
+    return '<div style="display:grid;grid-template-columns:1fr 62px auto;gap:6px;align-items:center;margin-bottom:6px;">'
+      +'<div style="min-width:0;">'
+        +'<div style="font-size:12px;color:var(--txt);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="'+e.monster.nom+'">'+e.monster.nom+'</div>'
+        +'<div style="font-size:10px;color:var(--txt3);">FP '+e.monster.cr+'·'+xp.toLocaleString('fr')+' XP×'+e.qty+' = '+totalXp+' XP</div>'
+      +'</div>'
+      +'<input type="number" min="1" max="99" value="'+e.qty+'" style="text-align:center;padding:4px;" onchange="encUpdateQty('+e.uid+',this.value)">'
+      +'<button class="btn icon" onclick="encRemoveMonster('+e.uid+')" title="Supprimer" style="padding:4px 7px;font-size:12px;">✕</button>'
+      +'</div>';
+  }).join('');
+  calcEnc();
+}
+
+function encClearSearch(){
+  var inp=el('enc-search'); if(inp) inp.value='';
+  el('enc-dropdown').style.display='none';
+}
 
 function getMult(count, nbPlayers){
   let m;
@@ -829,22 +942,6 @@ function buildEncParty(){
 function addPlayer(){ if(encPlayers.length<12){ encPlayers.push({niv:encPlayers[encPlayers.length-1]?.niv||4}); buildEncParty(); } }
 function removePlayer(){ if(encPlayers.length>1){ encPlayers.pop(); buildEncParty(); } }
 
-function buildEncMonsters(){
-  const c=el('enc-monsters'); c.innerHTML='';
-  encMonsters.forEach((m,i)=>{
-    const row=document.createElement('div');
-    row.className='enc-mon-row';
-    row.innerHTML=`<select onchange="encMonsters[${i}].fp=this.value;calcEnc()">
-        ${FP_LIST.map(fp=>`<option value="${fp}" ${m.fp===fp?'selected':''}>FP ${fp} (${(XP_FP[fp]||0).toLocaleString('fr')} XP)</option>`).join('')}
-      </select>
-      <input type="number" min="1" max="99" value="${m.qty}" style="text-align:center;" onchange="encMonsters[${i}].qty=Math.max(1,parseInt(this.value)||1);calcEnc()">
-      <button class="btn icon" onclick="encMonsters.splice(${i},1);buildEncMonsters()" title="Supprimer">✕</button>`;
-    c.appendChild(row);
-  });
-  calcEnc();
-}
-
-function addMonster(){ encMonsters.push({fp:'1',qty:1}); buildEncMonsters(); }
 
 function calcEnc(){
   const nb = encPlayers.length;
@@ -854,7 +951,7 @@ function calcEnc(){
 
   // XP brut monstres
   let xpBrut=0, totalMons=0;
-  encMonsters.forEach(m=>{ xpBrut+=(XP_FP[m.fp]||0)*m.qty; totalMons+=m.qty; });
+  encAddedMonsters.forEach(function(e){ xpBrut+=(XP_FP[e.monster.cr]||0)*e.qty; totalMons+=e.qty; });
 
   const mult = getMult(totalMons, nb);
   const xpAdj = Math.round(xpBrut * mult);
@@ -905,7 +1002,7 @@ window.addEventListener('DOMContentLoaded',function(){
   buildCalUI();
   renderCal();
   buildEncParty();
-  buildEncMonsters();
+  buildEncMonstersList();
   buildFPTable();
 });
 </script>
