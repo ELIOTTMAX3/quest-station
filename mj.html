@@ -2632,7 +2632,8 @@ function equip_mj_toggleDesc(id,btn){
   var d=el(id);if(!d)return;
   var open=d.style.display!=="none";
   d.style.display=open?"none":"block";
-  btn.textContent=open?"▸ Description":"▾ Description";
+  var txt=(btn.textContent||btn.innerText).trim().replace(/^[▸▴▾]\s*/,'');
+  btn.textContent=(open?'▸ ':'▾ ')+txt;
 }
 
 function equip_mj_toggleSection(cle){

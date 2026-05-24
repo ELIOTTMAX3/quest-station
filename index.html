@@ -11165,7 +11165,9 @@ function equip_toggleDesc(descId,btn){
   var d=el(descId);if(!d)return;
   var open=d.style.display!=="none";
   d.style.display=open?"none":"";
-  btn.textContent=open?"▸ Détails":"▴ Masquer";
+  // Bascule le chevron en gardant le libellé
+  var txt=(btn.textContent||btn.innerText).trim().replace(/^[▸▴]\s*/,'');
+  btn.textContent=(open?'▸ ':'▴ ')+txt;
 }
 
 function equip_switchView(view,btn){
@@ -11183,12 +11185,6 @@ function equip_switchView(view,btn){
   }
 }
 
-function equip_toggleDesc(descId,btn){
-  var d=el(descId);if(!d)return;
-  var open=d.style.display!=="none";
-  d.style.display=open?"none":"";
-  btn.textContent=open?"▸ Détails":"▴ Masquer";
-}
 function equip_toggleActifDesc(descId,row){
   var d=el(descId);if(!d)return;
   var open=d.style.display!=="none";
@@ -11537,13 +11533,19 @@ function equip_rendreBoutique(items){
         +(prix>0?"Acheter · "+prix+" po":"Obtenir (gratuit)")
         +'</button>'
       :"";
+    var descId='bc-desc-'+item.id;
     return '<div class="boutique-card">'
       +'<div class="boutique-card-ico">'+icone+'</div>'
       +'<div class="boutique-card-nom">'+item.nom+'</div>'
       +'<span class="boutique-card-rar" style="color:'+rarColor+';">'+item.rarete+'</span>'
       +'<div class="boutique-card-slot">'+slotLbl+'</div>'
-      +(item.description?'<div class="boutique-card-desc">'+item.description+'</div>':"")
       +effetsHtml
+      +(item.description
+        ?'<div style="margin-top:4px;">'
+          +'<button onclick="equip_toggleDesc(\''+descId+'\',this)" style="background:none;border:none;color:var(--txt3);cursor:pointer;font-size:10px;padding:0;font-family:inherit;display:inline-flex;align-items:center;gap:3px;">▸ Description</button>'
+          +'<div id="'+descId+'" style="display:none;margin-top:4px;font-size:11px;color:var(--txt2);line-height:1.5;white-space:pre-wrap;overflow-wrap:break-word;word-break:break-word;">'+item.description+'</div>'
+          +'</div>'
+        :'')
       +(prix>0?'<div class="boutique-prix">💰 '+prix+' po</div>':"")
       +achatBtn
       +'</div>';
