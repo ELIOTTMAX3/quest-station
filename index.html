@@ -69,8 +69,9 @@ body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--txt);font
 .saving .sdot{animation:p 1s infinite;}
 @keyframes p{0%,100%{opacity:1;}50%{opacity:.3;}}
 /* ── TABS ────────────────────────────────────────────── */
-.tbar{display:flex;background:var(--bg2);border:1px solid var(--bord);border-radius:10px;overflow:hidden;margin-bottom:1rem;}
-.tbtn{flex:1;font-family:inherit;font-size:13px;font-weight:500;padding:10px 4px;cursor:pointer;border:none;background:none;color:var(--txt2);text-align:center;border-right:1px solid var(--bord);}
+.tbar{display:flex;background:var(--bg2);border:1px solid var(--bord);border-radius:10px;overflow-x:auto;overflow-y:hidden;margin-bottom:1rem;scrollbar-width:none;-ms-overflow-style:none;}
+.tbar::-webkit-scrollbar{display:none;}
+.tbtn{flex:1;min-width:max-content;white-space:nowrap;font-family:inherit;font-size:13px;font-weight:500;padding:10px 10px;cursor:pointer;border:none;background:none;color:var(--txt2);text-align:center;border-right:1px solid var(--bord);}
 .tbtn:last-child{border-right:none;}
 .tbtn.on{background:var(--rouge);color:white;}
 .tbtn:hover:not(.on){background:var(--bg3);}
@@ -7732,6 +7733,7 @@ function rTab(name,btn){
   document.querySelectorAll("#s-resume .tbtn").forEach(function(b){b.classList.remove("on");});
   var target=el("rt-"+name);if(target)target.classList.add("on");
   btn.classList.add("on");
+  btn.scrollIntoView({inline:'nearest',block:'nearest'});
   if(name==="sorts")rRendreSorts();
   if(name==="comps"){rRendreComps();rRendreCaps();}
   if(name==="caps")rRendreCaps();
@@ -7763,6 +7765,7 @@ function eTab(name,btn){
   });
   document.querySelectorAll("#s-edit .tbtn").forEach(function(b){b.classList.remove("on");});
   el("et-"+name).classList.add("on");
+  if(btn)btn.scrollIntoView({inline:'nearest',block:'nearest'});
   btn.classList.add("on");
   if(name==="sorts"){calcSortsDD();eBuildChips();eFiltrerSorts();}
   if(name==="caps")eRendreCaps();
@@ -7813,6 +7816,7 @@ function sTab(name,btn){
   document.querySelectorAll("#et-sorts .tbtn").forEach(function(b){b.classList.remove("on");});
   var e2=el("st-"+name);if(e2)e2.classList.add("on");
   btn.classList.add("on");
+  if(btn)btn.scrollIntoView({inline:'nearest',block:'nearest'});
   if(name==="prep")eRendrePrep();
   if(name==="grimoire")eFiltrerSorts();
   if(name==="slots")rendreSlots("e-slots",true);

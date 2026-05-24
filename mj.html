@@ -99,8 +99,9 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .sdot{width:7px;height:7px;border-radius:50%;background:currentColor;}
 
 /* ── TABS ─── */
-.tbar{display:flex;background:var(--bg2);border:1px solid var(--bord);border-radius:10px;overflow:hidden;margin-bottom:1rem;}
-.tbtn{flex:1;font-family:inherit;font-size:13px;font-weight:500;padding:10px 4px;cursor:pointer;border:none;background:none;color:var(--txt2);text-align:center;border-right:1px solid var(--bord);}
+.tbar{display:flex;background:var(--bg2);border:1px solid var(--bord);border-radius:10px;overflow-x:auto;overflow-y:hidden;margin-bottom:1rem;scrollbar-width:none;-ms-overflow-style:none;}
+.tbar::-webkit-scrollbar{display:none;}
+.tbtn{flex:1;min-width:max-content;white-space:nowrap;font-family:inherit;font-size:13px;font-weight:500;padding:10px 10px;cursor:pointer;border:none;background:none;color:var(--txt2);text-align:center;border-right:1px solid var(--bord);}
 .tbtn:last-child{border-right:none;}
 .tbtn.on{background:var(--rouge);color:white;}
 .tbtn:hover:not(.on){background:var(--bg3);}
@@ -978,6 +979,7 @@ function panelTab(name,btn){
   document.querySelectorAll("#s-panel .tbar .tbtn").forEach(function(b){b.classList.remove("on");});
   var t=el("pt-"+name);if(t)t.style.display="";
   btn.classList.add("on");
+  if(btn)btn.scrollIntoView({inline:'nearest',block:'nearest'});
   if(name==="combat")ouvrirOngletCombat();
   if(name==="campagne")mjMsgMajSelecteur();
   if(name==="regles"){

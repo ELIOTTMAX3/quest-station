@@ -25,8 +25,9 @@ body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--txt);font
 .hd-sub{font-size:11px;opacity:.75;}
 
 /* TABS */
-.tbar{display:flex;background:var(--bg2);border:1px solid var(--bord);border-radius:10px;overflow:hidden;margin-bottom:1.25rem;flex-wrap:wrap;}
-.tbtn{flex:1;font-family:inherit;font-size:12px;font-weight:600;padding:10px 6px;cursor:pointer;border:none;background:none;color:var(--txt2);text-align:center;border-right:1px solid var(--bord);white-space:nowrap;min-width:0;}
+.tbar{display:flex;background:var(--bg2);border:1px solid var(--bord);border-radius:10px;overflow-x:auto;overflow-y:hidden;margin-bottom:1.25rem;scrollbar-width:none;-ms-overflow-style:none;}
+.tbar::-webkit-scrollbar{display:none;}
+.tbtn{flex:1;min-width:max-content;white-space:nowrap;font-family:inherit;font-size:12px;font-weight:600;padding:10px 10px;cursor:pointer;border:none;background:none;color:var(--txt2);text-align:center;border-right:1px solid var(--bord);}
 .tbtn:last-child{border-right:none;}
 .tbtn.on{background:var(--rouge);color:white;}
 .tbtn:hover:not(.on){background:var(--bg3);}
@@ -63,7 +64,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 /* GRID */
 .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;}
-@media(max-width:500px){.grid2,.grid3{grid-template-columns:1fr;}.tbar{flex-direction:column;}.tbtn{border-right:none;border-bottom:1px solid var(--bord);}}
+@media(max-width:500px){.grid2,.grid3{grid-template-columns:1fr;}}
 
 /* TAGS */
 .tag{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;}
@@ -390,7 +391,12 @@ function showTab(id){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
   document.querySelectorAll('.tbtn').forEach(b=>b.classList.remove('on'));
   document.getElementById('s-'+id).classList.add('on');
-  document.querySelectorAll('.tbtn').forEach(b=>{ if(b.getAttribute('onclick').includes("'"+id+"'")) b.classList.add('on'); });
+  document.querySelectorAll('.tbtn').forEach(b=>{
+    if(b.getAttribute('onclick').includes("'"+id+"'")){
+      b.classList.add('on');
+      b.scrollIntoView({inline:'nearest',block:'nearest'});
+    }
+  });
 }
 
 // ─────────────────────────────────────────────
