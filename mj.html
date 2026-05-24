@@ -615,9 +615,16 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         </div>
         <!-- Panel Histoire -->
         <div id="mj-conn-panel-histoire" style="display:none;">
-          <div style="display:flex;justify-content:flex-end;margin-bottom:6px;">
-            <button class="btn" style="font-size:11px;padding:4px 10px;" onclick="mjConn_ajouterBloc()">+ Bloc</button>
+          <!-- Créer un bloc et choisir les destinataires -->
+          <div id="mj-conn-hist-new" style="background:var(--bg2);border:1px solid var(--bord);border-radius:8px;padding:10px 12px;margin-bottom:10px;">
+            <p style="font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Nouveau bloc</p>
+            <input id="mj-conn-hist-titre" type="text" placeholder="Titre…" style="width:100%;font-size:12px;font-weight:600;background:transparent;border:none;border-bottom:1px solid var(--bord);color:var(--txt);padding:4px 0;margin-bottom:6px;box-sizing:border-box;">
+            <textarea id="mj-conn-hist-contenu" rows="3" placeholder="Contenu visible par les joueurs sélectionnés…" style="width:100%;font-size:12px;background:rgba(0,0,0,0.2);border:1px solid var(--bord);border-radius:5px;color:var(--txt);padding:6px;resize:none;overflow:hidden;box-sizing:border-box;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';"></textarea>
+            <div id="mj-conn-hist-pj-list" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+            <button class="btn" style="font-size:11px;padding:5px 14px;margin-top:8px;border-color:var(--or);color:var(--or);" onclick="mjConn_publierBloc()">✦ Publier</button>
           </div>
+          <!-- Blocs existants du joueur sélectionné -->
+          <p style="font-size:11px;color:var(--txt3);margin-bottom:6px;">Blocs de <span id="mj-conn-hist-nom-pj" style="color:var(--or);">—</span></p>
           <div id="mj-conn-histoire-liste">
             <p style="font-size:12px;color:var(--txt3);font-style:italic;">Sélectionne un joueur pour voir son histoire.</p>
           </div>
@@ -641,13 +648,6 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <p class="st">🔒 Notes MJ <span style="font-size:10px;color:var(--txt3);font-weight:400;">(privées)</span></p>
         <div id="mj-notes-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
         <textarea id="camp-notes" rows="5" style="min-height:100px;" oninput="mjNoteInput()"></textarea>
-      </div>
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <p class="st" style="margin:0;">📜 Histoire <span style="font-size:10px;color:var(--txt3);font-weight:400;">(blocs lecture seule pour les PJ)</span></p>
-          <button class="btn" style="font-size:11px;padding:4px 10px;" onclick="mjAjouterBlocHistoire()">+ Bloc</button>
-        </div>
-        <div id="mj-histoire-liste"></div>
       </div>
       <div class="card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
@@ -1175,8 +1175,6 @@ function ouvrirPanel(code){
     if(!_focused){_mjNotesPartageTabs=_parseMjTabs(campagneActive.notesPartage||"");_mjNotesPartageIdx=0;mjRendreNotesPartageTabs();}
     // Images partagées
     _mjImages=campagneActive.images||[];mjRendreImagesGallery();
-    // Histoire — blocs lecture seule PJ
-    _mjHistoire=campagneActive.histoireBlocs||[];mjRendreHistoire();
     // Lire condActives depuis le doc
     if(campagneActive.conditions){
       Object.keys(campagneActive.conditions).forEach(function(jid){
@@ -1680,29 +1678,7 @@ function mjDelNpTab(i){if(_mjNotesPartageTabs.length<=1)return;if(!confirm("Supp
 function mjNotesPartageInput(){var ta=el("camp-notes-partage");if(ta)_mjNotesPartageTabs[_mjNotesPartageIdx].contenu=ta.value;clearTimeout(_mjNpTO);_mjNpTO=setTimeout(mjSaveNotesPartage,1000);}
 function mjSaveNotesPartage(){if(!campagneActive)return;db.collection("parties").doc(campagneActive.id).update({notesPartage:_mjNotesPartageTabs}).catch(function(){});}
 // === HISTOIRE — blocs lecture seule pour les PJ ===
-var _mjHistoire=[];
-function mjRendreHistoire(){
-  var cont=el("mj-histoire-liste");if(!cont)return;
-  if(!_mjHistoire.length){cont.innerHTML='<p style="font-size:12px;color:var(--txt3);font-style:italic;">Aucun bloc. Cliquez sur "+ Bloc" pour en ajouter.</p>';return;}
-  cont.innerHTML=_mjHistoire.map(function(b,i){
-    return '<div style="background:var(--bg3);border:1px solid var(--bord);border-radius:8px;padding:10px 12px;margin-bottom:8px;">'
-      +'<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px;">'
-      +'<input value="'+mjEsc(b.titre||'')+'" placeholder="Titre du bloc…" style="flex:1;font-size:12px;font-weight:600;background:transparent;border:none;border-bottom:1px solid var(--bord);color:var(--txt);padding:2px 0;" oninput="mjHistoireTitre('+i+',this.value)">'
-      +'<button class="btn" style="font-size:11px;padding:2px 8px;color:#e05050;border-color:#e05050;" onclick="mjSupprimerBlocHistoire('+i+')">✕</button>'
-      +'</div>'
-      +'<textarea rows="4" style="width:100%;font-size:12px;resize:none;overflow:hidden;background:rgba(0,0,0,0.2);border:1px solid var(--bord);border-radius:5px;color:var(--txt);padding:6px;" placeholder="Contenu visible par les joueurs…" oninput="mjHistoireContenu('+i+',this)">'+mjEsc(b.contenu||'')+'</textarea>'
-      +'</div>';
-  }).join('');
-  // Auto-resize textareas
-  cont.querySelectorAll('textarea').forEach(function(ta){ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';});
-}
 function mjEsc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function mjAjouterBlocHistoire(){_mjHistoire.push({titre:'',contenu:''});mjRendreHistoire();mjSaveHistoire();}
-function mjSupprimerBlocHistoire(i){if(!confirm('Supprimer ce bloc ?'))return;_mjHistoire.splice(i,1);mjRendreHistoire();mjSaveHistoire();}
-var _mjHistoireTO=null;
-function mjHistoireTitre(i,v){_mjHistoire[i].titre=v;clearTimeout(_mjHistoireTO);_mjHistoireTO=setTimeout(mjSaveHistoire,1200);}
-function mjHistoireContenu(i,ta){_mjHistoire[i].contenu=ta.value;ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';clearTimeout(_mjHistoireTO);_mjHistoireTO=setTimeout(mjSaveHistoire,1200);}
-function mjSaveHistoire(){if(!campagneActive)return;db.collection("parties").doc(campagneActive.id).update({histoireBlocs:_mjHistoire}).catch(function(){});}
 
 // ══════════════════════════════════════════════════════════════════
 // === CONNAISSANCES MJ — gestion par joueur ===
@@ -1715,7 +1691,7 @@ var _mjConn_monsDonnees=[]; // liste connaissances monstres du joueur sélection
 var _mjConn_histDonnees=[]; // liste blocs histoire du joueur sélectionné
 var _mjConn_histTO=null;
 
-// Mise à jour du select joueurs quand les joueurs changent
+// Mise à jour du select joueurs + cases à cocher destinataires
 function mjConn_majSelectPJ(){
   var sel=el('mj-conn-pj-select');if(!sel)return;
   var pjs=Object.keys(joueursData).filter(function(jid){return joueursData[jid]&&joueursData[jid]._nom;});
@@ -1723,11 +1699,24 @@ function mjConn_majSelectPJ(){
   sel.innerHTML='<option value="">— Sélectionner un joueur —</option>'
     +pjs.map(function(jid){return '<option value="'+mjEsc(jid)+'"'+(jid===current?' selected':'')+'>'+(mjEsc(joueursData[jid]._nom||jid))+'</option>';}).join('');
   if(!pjs.includes(_mjConn_pjId)){_mjConn_pjId=null;mjConn_resetListeners();}
+  // Remplir les cases à cocher de destinataires
+  var pjList=el('mj-conn-hist-pj-list');
+  if(pjList){
+    pjList.innerHTML=pjs.length
+      ?pjs.map(function(jid){
+          return '<label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--txt2);cursor:pointer;">'
+            +'<input type="checkbox" id="mj-hist-dest-'+jid+'" value="'+mjEsc(jid)+'"> '
+            +mjEsc(joueursData[jid]._nom||jid)+'</label>';
+        }).join('')
+      :'<p style="font-size:12px;color:var(--txt3);font-style:italic;">Aucun joueur connecté.</p>';
+  }
 }
 
 function mjConn_selectPJ(jid){
   _mjConn_pjId=jid||null;
   mjConn_resetListeners();
+  var nomEl=el('mj-conn-hist-nom-pj');
+  if(nomEl)nomEl.textContent=(_mjConn_pjId&&joueursData[_mjConn_pjId])?joueursData[_mjConn_pjId]._nom||jid:'—';
   if(_mjConn_pjId){
     mjConn_initMonstreListener();
     mjConn_initHistoireListener();
@@ -1831,9 +1820,35 @@ function mjConn_rendreHistoire(){
   }).join('');
   cont.querySelectorAll('textarea').forEach(function(ta){ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';});
 }
-function mjConn_ajouterBloc(){
-  if(!_mjConn_pjId){toast('Sélectionne un joueur d\'abord.');return;}
-  _mjConn_histDonnees.push({titre:'',contenu:''});mjConn_rendreHistoire();mjConn_saveHistoire();
+function mjConn_publierBloc(){
+  if(!db||!campagneActive)return;
+  var titre=(el('mj-conn-hist-titre')||{}).value||'';
+  var contenu=(el('mj-conn-hist-contenu')||{}).value||'';
+  if(!titre&&!contenu){toast('Le bloc est vide.');return;}
+  var pjs=Object.keys(joueursData).filter(function(jid){return joueursData[jid]&&joueursData[jid]._nom;});
+  var dest=pjs.filter(function(jid){var cb=el('mj-hist-dest-'+jid);return cb&&cb.checked;});
+  if(!dest.length){toast('Coche au moins un joueur.');return;}
+  var bloc={titre:titre,contenu:contenu};
+  var done=0;
+  dest.forEach(function(jid){
+    var ref=db.collection('parties').doc(campagneActive.id).collection('joueurs').doc(jid);
+    ref.get().then(function(snap){
+      var existing=(snap.exists&&snap.data().histoireBlocs)||[];
+      existing.push(bloc);
+      return ref.set({histoireBlocs:existing},{merge:true});
+    }).then(function(){
+      done++;
+      if(done===dest.length){
+        toast('📜 Bloc publié pour '+dest.length+' joueur'+(dest.length>1?'s':''));
+        el('mj-conn-hist-titre').value='';
+        el('mj-conn-hist-contenu').value='';
+        // Décocher tout
+        pjs.forEach(function(jid){var cb=el('mj-hist-dest-'+jid);if(cb)cb.checked=false;});
+        // Rafraîchir la vue si le joueur sélectionné est parmi les dest
+        if(_mjConn_pjId&&dest.includes(_mjConn_pjId))mjConn_initHistoireListener();
+      }
+    }).catch(function(e){toast('Erreur : '+e.message);});
+  });
 }
 function mjConn_supprimerBloc(i){
   if(!confirm('Supprimer ce bloc ?'))return;
