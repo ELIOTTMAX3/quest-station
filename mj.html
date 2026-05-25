@@ -461,9 +461,8 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
     <div class="tbar">
       <button class="tbtn on" onclick="panelTab('joueurs',this)">Joueurs</button>
-      <button class="tbtn" onclick="panelTab('outils',this)">Outils</button>
       <button class="tbtn" onclick="panelTab('notes',this)">Notes</button>
-      <button class="tbtn" onclick="panelTab('connaissances',this)">Connaissances</button>
+      <button class="tbtn" onclick="panelTab('monstres',this)">Monstres</button>
       <button class="tbtn" onclick="panelTab('combat',this)">Combat</button>
       <button class="tbtn" onclick="panelTab('objets',this)">Objets</button>
       <button class="tbtn" onclick="panelTab('regles',this)">Règles</button>
@@ -478,8 +477,26 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     </div>
 
     <!-- Onglet Outils -->
-    <div id="pt-outils" style="display:none;">
-      <div style="height:calc(100vh - 128px);margin:0 -1rem;">
+    <!-- Onglet Monstres -->
+    <div id="pt-monstres" style="display:none;">
+      <!-- Sous-navigation Bestiaire / Rencontre -->
+      <div style="display:flex;gap:3px;margin-bottom:0;border-bottom:2px solid var(--bord);padding-bottom:2px;">
+        <button class="tbtn on" id="mjm-sub-btn-besti" onclick="mjMonstresSub('besti',this)" style="font-size:12px;padding:5px 14px;">📖 Bestiaire</button>
+        <button class="tbtn" id="mjm-sub-btn-rencontre" onclick="mjMonstresSub('rencontre',this)" style="font-size:12px;padding:5px 14px;">🗺 Rencontre</button>
+      </div>
+
+      <!-- Section Bestiaire inline -->
+      <div id="mjm-sub-besti" style="display:flex;flex-direction:column;height:calc(100vh - 165px);overflow:hidden;">
+        <div class="besti-tabs" style="flex-shrink:0;">
+          <button class="besti-tab-btn on" id="mjb-tab-srd" onclick="mjb_selectTab('srd')">Bestiaire SRD</button>
+          <button class="besti-tab-btn" id="mjb-tab-homebrew" onclick="mjb_selectTab('homebrew')">Homebrew</button>
+          <button class="besti-tab-btn" id="mjb-tab-groupes" onclick="mjb_selectTab('groupes')">Groupes</button>
+        </div>
+        <div class="besti-body" id="mjb-body" style="flex:1;overflow-y:auto;"></div>
+      </div>
+
+      <!-- Section Rencontre (iframe outils) -->
+      <div id="mjm-sub-rencontre" style="display:none;height:calc(100vh - 165px);margin:0 -1rem;">
         <iframe id="mj-outils-iframe" style="width:100%;height:100%;border:none;border-radius:0 0 10px 10px;"></iframe>
       </div>
     </div>
@@ -589,74 +606,78 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <div id="etats-list" style="display:none;"></div>
     </div>
 
-    <!-- Onglet Connaissances MJ -->
-    <div id="pt-connaissances" style="display:none;">
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <p class="st" style="margin:0;">📚 Connaissances</p>
-          <select id="mj-conn-pj-select" style="font-family:inherit;font-size:12px;background:var(--bg3);color:var(--txt);border:1px solid var(--bord);border-radius:6px;padding:4px 8px;" onchange="mjConn_selectPJ(this.value)">
-            <option value="">— Sélectionner un joueur —</option>
-          </select>
-        </div>
-        <!-- Sous-onglets -->
-        <div style="display:flex;gap:2px;margin-bottom:10px;background:var(--bg2);border:1px solid var(--bord);border-radius:8px;padding:3px;">
-          <button class="conn-subnav-btn on" id="mj-conn-tab-monstres" onclick="mjConn_selectTab('monstres',this)" style="flex:1;background:none;border:none;font-family:inherit;font-size:12px;font-weight:600;padding:7px 6px;border-radius:6px;cursor:pointer;color:var(--txt3);">👾 Monstres</button>
-          <button class="conn-subnav-btn" id="mj-conn-tab-histoire" onclick="mjConn_selectTab('histoire',this)" style="flex:1;background:none;border:none;font-family:inherit;font-size:12px;font-weight:600;padding:7px 6px;border-radius:6px;cursor:pointer;color:var(--txt3);">📜 Histoire</button>
-        </div>
-        <!-- Panel Monstres -->
-        <div id="mj-conn-panel-monstres">
-          <div style="display:flex;gap:4px;margin-bottom:6px;">
-            <input id="mj-conn-search" type="text" placeholder="Rechercher un monstre…" style="flex:1;font-size:12px;padding:6px 8px;background:var(--bg2);border:1px solid var(--bord);border-radius:6px;color:var(--txt);" oninput="mjConn_search(this.value)">
-          </div>
-          <div id="mj-conn-search-results" style="max-height:160px;overflow-y:auto;margin-bottom:8px;border:1px solid var(--bord);border-radius:6px;display:none;"></div>
-          <div id="mj-conn-monstres-liste">
-            <p style="font-size:12px;color:var(--txt3);font-style:italic;">Sélectionne un joueur pour voir ses connaissances.</p>
-          </div>
-        </div>
-        <!-- Panel Histoire -->
-        <div id="mj-conn-panel-histoire" style="display:none;">
-          <!-- Créer un bloc et choisir les destinataires -->
-          <div id="mj-conn-hist-new" style="background:var(--bg2);border:1px solid var(--bord);border-radius:8px;padding:10px 12px;margin-bottom:10px;">
-            <p style="font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Nouveau bloc</p>
-            <input id="mj-conn-hist-titre" type="text" placeholder="Titre…" style="width:100%;font-size:12px;font-weight:600;background:transparent;border:none;border-bottom:1px solid var(--bord);color:var(--txt);padding:4px 0;margin-bottom:6px;box-sizing:border-box;">
-            <textarea id="mj-conn-hist-contenu" rows="3" placeholder="Contenu visible par les joueurs sélectionnés…" style="width:100%;font-size:12px;background:rgba(0,0,0,0.2);border:1px solid var(--bord);border-radius:5px;color:var(--txt);padding:6px;resize:none;overflow:hidden;box-sizing:border-box;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';"></textarea>
-            <div id="mj-conn-hist-pj-list" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
-            <button class="btn" style="font-size:11px;padding:5px 14px;margin-top:8px;border-color:var(--or);color:var(--or);" onclick="mjConn_publierBloc()">✦ Publier</button>
-          </div>
-          <!-- Blocs existants du joueur sélectionné -->
-          <p style="font-size:11px;color:var(--txt3);margin-bottom:6px;">Blocs de <span id="mj-conn-hist-nom-pj" style="color:var(--or);">—</span></p>
-          <div id="mj-conn-histoire-liste">
-            <p style="font-size:12px;color:var(--txt3);font-style:italic;">Sélectionne un joueur pour voir son histoire.</p>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Onglet Notes -->
+    <!-- Onglet Notes (avec Connaissances en sous-onglet) -->
     <div id="pt-notes" style="display:none;">
-      <div class="card">
-        <p class="st">📋 Infos du MJ <span style="font-size:10px;color:var(--txt3);font-weight:400;">(visible par les PJ)</span></p>
-        <div id="mj-infos-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
-        <textarea id="camp-infos-mj" rows="4" style="min-height:80px;" oninput="mjInfosInput()" placeholder="Résumé de session, quête en cours, lieux importants…"></textarea>
+      <!-- Sous-navigation Notes / Connaissances -->
+      <div style="display:flex;gap:3px;margin-bottom:10px;border-bottom:2px solid var(--bord);padding-bottom:2px;">
+        <button class="tbtn on" id="mj-notes-sub-btn-notes" onclick="mjNotesSub('notes',this)" style="font-size:12px;padding:5px 14px;">📝 Notes</button>
+        <button class="tbtn" id="mj-notes-sub-btn-conn" onclick="mjNotesSub('connaissances',this)" style="font-size:12px;padding:5px 14px;">📚 Connaissances</button>
       </div>
-      <div class="card">
-        <p class="st">📝 Notes partagées <span style="font-size:10px;color:var(--txt3);font-weight:400;">(PJ et MJ)</span></p>
-        <div id="mj-notes-partage-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
-        <textarea id="camp-notes-partage" rows="5" style="min-height:100px;" oninput="mjNotesPartageInput()" placeholder="Notes accessibles à tous…"></textarea>
-      </div>
-      <div class="card">
-        <p class="st">🔒 Notes MJ <span style="font-size:10px;color:var(--txt3);font-weight:400;">(privées)</span></p>
-        <div id="mj-notes-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
-        <textarea id="camp-notes" rows="5" style="min-height:100px;" oninput="mjNoteInput()"></textarea>
-      </div>
-      <div class="card">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-          <p class="st" style="margin:0;">🖼️ Images <span style="font-size:10px;color:var(--txt3);font-weight:400;">(visible par les PJ)</span></p>
-          <label for="mj-img-input" class="btn" style="font-size:11px;padding:4px 10px;cursor:pointer;border-radius:6px;">📷 Ajouter</label>
-          <input type="file" id="mj-img-input" accept="image/png,image/jpeg" style="display:none;" onchange="mjUploadImage(this)">
+
+      <!-- Section Notes -->
+      <div id="mj-notes-sub-notes">
+        <div class="card">
+          <p class="st">📋 Infos du MJ <span style="font-size:10px;color:var(--txt3);font-weight:400;">(visible par les PJ)</span></p>
+          <div id="mj-infos-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
+          <textarea id="camp-infos-mj" rows="4" style="min-height:80px;" oninput="mjInfosInput()" placeholder="Résumé de session, quête en cours, lieux importants…"></textarea>
         </div>
-        <div id="mj-img-progress" style="display:none;font-size:11px;color:var(--txt3);margin-bottom:8px;text-align:center;"></div>
-        <div id="mj-img-gallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(85px,1fr));gap:6px;"></div>
+        <div class="card">
+          <p class="st">📝 Notes partagées <span style="font-size:10px;color:var(--txt3);font-weight:400;">(PJ et MJ)</span></p>
+          <div id="mj-notes-partage-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
+          <textarea id="camp-notes-partage" rows="5" style="min-height:100px;" oninput="mjNotesPartageInput()" placeholder="Notes accessibles à tous…"></textarea>
+        </div>
+        <div class="card">
+          <p class="st">🔒 Notes MJ <span style="font-size:10px;color:var(--txt3);font-weight:400;">(privées)</span></p>
+          <div id="mj-notes-tabbar" style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;"></div>
+          <textarea id="camp-notes" rows="5" style="min-height:100px;" oninput="mjNoteInput()"></textarea>
+        </div>
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <p class="st" style="margin:0;">🖼️ Images <span style="font-size:10px;color:var(--txt3);font-weight:400;">(visible par les PJ)</span></p>
+            <label for="mj-img-input" class="btn" style="font-size:11px;padding:4px 10px;cursor:pointer;border-radius:6px;">📷 Ajouter</label>
+            <input type="file" id="mj-img-input" accept="image/png,image/jpeg" style="display:none;" onchange="mjUploadImage(this)">
+          </div>
+          <div id="mj-img-progress" style="display:none;font-size:11px;color:var(--txt3);margin-bottom:8px;text-align:center;"></div>
+          <div id="mj-img-gallery" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(85px,1fr));gap:6px;"></div>
+        </div>
+      </div>
+
+      <!-- Section Connaissances (ex pt-connaissances) -->
+      <div id="mj-notes-sub-connaissances" style="display:none;">
+        <div class="card">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <p class="st" style="margin:0;">📚 Connaissances</p>
+            <select id="mj-conn-pj-select" style="font-family:inherit;font-size:12px;background:var(--bg3);color:var(--txt);border:1px solid var(--bord);border-radius:6px;padding:4px 8px;" onchange="mjConn_selectPJ(this.value)">
+              <option value="">— Sélectionner un joueur —</option>
+            </select>
+          </div>
+          <div style="display:flex;gap:2px;margin-bottom:10px;background:var(--bg2);border:1px solid var(--bord);border-radius:8px;padding:3px;">
+            <button class="conn-subnav-btn on" id="mj-conn-tab-monstres" onclick="mjConn_selectTab('monstres',this)" style="flex:1;background:none;border:none;font-family:inherit;font-size:12px;font-weight:600;padding:7px 6px;border-radius:6px;cursor:pointer;color:var(--txt3);">👾 Monstres</button>
+            <button class="conn-subnav-btn" id="mj-conn-tab-histoire" onclick="mjConn_selectTab('histoire',this)" style="flex:1;background:none;border:none;font-family:inherit;font-size:12px;font-weight:600;padding:7px 6px;border-radius:6px;cursor:pointer;color:var(--txt3);">📜 Histoire</button>
+          </div>
+          <div id="mj-conn-panel-monstres">
+            <div style="display:flex;gap:4px;margin-bottom:6px;">
+              <input id="mj-conn-search" type="text" placeholder="Rechercher un monstre…" style="flex:1;font-size:12px;padding:6px 8px;background:var(--bg2);border:1px solid var(--bord);border-radius:6px;color:var(--txt);" oninput="mjConn_search(this.value)">
+            </div>
+            <div id="mj-conn-search-results" style="max-height:160px;overflow-y:auto;margin-bottom:8px;border:1px solid var(--bord);border-radius:6px;display:none;"></div>
+            <div id="mj-conn-monstres-liste">
+              <p style="font-size:12px;color:var(--txt3);font-style:italic;">Sélectionne un joueur pour voir ses connaissances.</p>
+            </div>
+          </div>
+          <div id="mj-conn-panel-histoire" style="display:none;">
+            <div id="mj-conn-hist-new" style="background:var(--bg2);border:1px solid var(--bord);border-radius:8px;padding:10px 12px;margin-bottom:10px;">
+              <p style="font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Nouveau bloc</p>
+              <input id="mj-conn-hist-titre" type="text" placeholder="Titre…" style="width:100%;font-size:12px;font-weight:600;background:transparent;border:none;border-bottom:1px solid var(--bord);color:var(--txt);padding:4px 0;margin-bottom:6px;box-sizing:border-box;">
+              <textarea id="mj-conn-hist-contenu" rows="3" placeholder="Contenu visible par les joueurs sélectionnés…" style="width:100%;font-size:12px;background:rgba(0,0,0,0.2);border:1px solid var(--bord);border-radius:5px;color:var(--txt);padding:6px;resize:none;overflow:hidden;box-sizing:border-box;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';"></textarea>
+              <div id="mj-conn-hist-pj-list" style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;"></div>
+              <button class="btn" style="font-size:11px;padding:5px 14px;margin-top:8px;border-color:var(--or);color:var(--or);" onclick="mjConn_publierBloc()">✦ Publier</button>
+            </div>
+            <p style="font-size:11px;color:var(--txt3);margin-bottom:6px;">Blocs de <span id="mj-conn-hist-nom-pj" style="color:var(--or);">—</span></p>
+            <div id="mj-conn-histoire-liste">
+              <p style="font-size:12px;color:var(--txt3);font-style:italic;">Sélectionne un joueur pour voir son histoire.</p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -1019,7 +1040,7 @@ function seDeconnecter(){
   window.location.href="index.html";
 }
 function panelTab(name,btn){
-  ["joueurs","outils","combat","regles","notes","connaissances","objets","campagne"].forEach(function(n){var e=el("pt-"+n);if(e)e.style.display="none";});
+  ["joueurs","monstres","combat","regles","notes","objets","campagne"].forEach(function(n){var e=el("pt-"+n);if(e)e.style.display="none";});
   document.querySelectorAll("#s-panel .tbar .tbtn").forEach(function(b){b.classList.remove("on");});
   var t=el("pt-"+name);if(t)t.style.display="";
   btn.classList.add("on");
@@ -1033,13 +1054,33 @@ function panelTab(name,btn){
       iframe.setAttribute('data-loaded','1');
     }
   }
-  if(name==="outils"){
+  if(name==="monstres"){
+    mjb_ouvrir();
+  }
+}
+function mjNotesSub(name,btn){
+  ['notes','connaissances'].forEach(function(n){
+    var s=el('mj-notes-sub-'+n);if(s)s.style.display='none';
+    var b=el('mj-notes-sub-btn-'+n);if(b)b.classList.remove('on');
+  });
+  var sec=el('mj-notes-sub-'+name);if(sec)sec.style.display='';
+  btn.classList.add('on');
+}
+function mjMonstresSub(name,btn){
+  ['besti','rencontre'].forEach(function(n){
+    var s=el('mjm-sub-'+n);if(s)s.style.display='none';
+    var b=el('mjm-sub-btn-'+n);if(b)b.classList.remove('on');
+  });
+  var sec=el('mjm-sub-'+name);if(sec)sec.style.display=(name==='besti'?'flex':'');
+  btn.classList.add('on');
+  if(name==='rencontre'){
     var iframeO=el("mj-outils-iframe");
     if(iframeO && !iframeO.getAttribute('data-loaded')){
       iframeO.src="outils_rapides.html";
       iframeO.setAttribute('data-loaded','1');
     }
   }
+  if(name==='besti') mjb_ouvrir();
 }
 
 // ══════════════════════════════════════════
@@ -1737,7 +1778,7 @@ function mjConn_selectTab(t,btn){
   _mjConn_tab=t;
   el('mj-conn-panel-monstres').style.display=t==='monstres'?'':'none';
   el('mj-conn-panel-histoire').style.display=t==='histoire'?'':'none';
-  document.querySelectorAll('#pt-connaissances .conn-subnav-btn').forEach(function(b){b.classList.remove('on');});
+  document.querySelectorAll('#mj-notes-sub-connaissances .conn-subnav-btn').forEach(function(b){b.classList.remove('on');});
   if(btn)btn.classList.add('on');
 }
 
@@ -3435,6 +3476,8 @@ var _besti_srd_search='';
 var _besti_srd_type='';
 var _besti_srd_cr='';
 var _besti_fiche=null;          // {monstruId, source} ou null si liste
+var _besti_ctx='besti';         // 'besti'=drawer flottant, 'mjb'=page Monstres inline
+function _besti_el(s){return document.getElementById(_besti_ctx+'-'+s);}
 var _besti_homebrew=[];
 var _besti_homebrew_unsub=null;
 var _besti_hb_form=null;        // null | 'new' | {id,...} = edition
@@ -3457,6 +3500,7 @@ var _besti_upload_id=null;
 var _besti_upload_src=null;
 
 function besti_ouvrir(){
+  _besti_ctx='besti';
   var d=document.getElementById('besti-drawer');
   if(!d)return;
   d.classList.add('open');
@@ -3469,7 +3513,25 @@ function besti_fermer(){
   var d=document.getElementById('besti-drawer');
   if(d)d.classList.remove('open');
 }
+function mjb_ouvrir(){
+  _besti_ctx='mjb';
+  besti_renderBody();
+  besti_initHomebrew();
+  besti_initGroupes();
+  besti_initImages();
+}
+function mjb_selectTab(t){
+  _besti_ctx='mjb';
+  _besti_tab=t;
+  _besti_fiche=null;_besti_hb_form=null;_besti_grp_form=null;_besti_share_id=null;
+  ['srd','homebrew','groupes'].forEach(function(id){
+    var b=document.getElementById('mjb-tab-'+id);
+    if(b)b.className='besti-tab-btn'+(id===t?' on':'');
+  });
+  besti_renderBody();
+}
 function besti_selectTab(t){
+  _besti_ctx='besti';
   _besti_tab=t;
   _besti_fiche=null;
   _besti_hb_form=null;
@@ -3482,7 +3544,7 @@ function besti_selectTab(t){
   besti_renderBody();
 }
 function besti_renderBody(){
-  var body=document.getElementById('besti-body');
+  var body=_besti_el('body');
   if(!body)return;
   if(_besti_tab==='srd'){body.innerHTML=besti_renderSRD();besti_bindSRD();}
   else if(_besti_tab==='homebrew'){body.innerHTML=besti_renderHomebrew();}
@@ -3556,14 +3618,15 @@ function besti_filtrerSRD(){
   });
 }
 function besti_renderSRDList(){
+  var ctx=_besti_ctx;
   var filtered=besti_filtrerSRD();
-  var cnt=document.getElementById('besti-srd-count');
+  var cnt=_besti_el('srd-count');
   if(cnt)cnt.textContent=filtered.length+' monstre'+(filtered.length!==1?'s':'');
-  var list=document.getElementById('besti-srd-results');
+  var list=_besti_el('srd-results');
   if(!list)return;
   list.innerHTML=filtered.map(function(m){
     var cls='besti-cr '+besti_crClass(m.crNum);
-    return'<div class="besti-row" onclick="besti_ouvrirFiche(\''+besti_esc(m.id)+'\',\'srd\')">'
+    return'<div class="besti-row" onclick="_besti_ctx=\''+ctx+'\';besti_ouvrirFiche(\''+besti_esc(m.id)+'\',\'srd\')">'
       +'<div style="flex:1;min-width:0;">'
       +'<div class="besti-row-nom">'+besti_esc(m.nom)+'</div>'
       +'<div class="besti-row-type">'+besti_esc(m.type)+'</div>'
@@ -3575,24 +3638,25 @@ function besti_renderSRDList(){
 }
 function besti_renderSRD(){
   if(_besti_fiche)return besti_renderFiche(_besti_fiche.id,_besti_fiche.src);
+  var ctx=_besti_ctx;
   var filtered=besti_filtrerSRD();
   var types=['','bête','dragon','humanoïde','mort-vivant','fiélon','céleste','fée','géant','monstruosité','élémentaire','aberration','construction','plante','vase'];
   var crOpts=['0-1','2-5','6-10','11-15','16-20','21+'];
-  return '<input class="besti-search" id="besti-srd-q" placeholder="Rechercher…" oninput="besti_searchInput(this.value)">'
+  return '<input class="besti-search" id="'+ctx+'-srd-q" placeholder="Rechercher…" oninput="_besti_ctx=\''+ctx+'\';besti_searchInput(this.value)">'
     +'<div class="besti-filters">'
-    +'<select class="besti-filter" onchange="besti_filterType(this.value)">'
+    +'<select class="besti-filter" onchange="_besti_ctx=\''+ctx+'\';besti_filterType(this.value)">'
     +types.map(function(t){return'<option value="'+t+'"'+(t===_besti_srd_type?' selected':'')+'>'+( t?t[0].toUpperCase()+t.slice(1):'Tous types')+'</option>';}).join('')
     +'</select>'
-    +'<select class="besti-filter" onchange="besti_filterCr(this.value)">'
+    +'<select class="besti-filter" onchange="_besti_ctx=\''+ctx+'\';besti_filterCr(this.value)">'
     +'<option value="">Tous CR</option>'
     +crOpts.map(function(c){return'<option value="'+c+'"'+(c===_besti_srd_cr?' selected':'')+'>CR '+c+'</option>';}).join('')
     +'</select>'
     +'</div>'
-    +'<p id="besti-srd-count" style="font-size:10px;color:#5a6a8a;margin-bottom:5px;">'+filtered.length+' monstre'+(filtered.length!==1?'s':'')+'</p>'
-    +'<div class="besti-list" id="besti-srd-results">'
+    +'<p id="'+ctx+'-srd-count" style="font-size:10px;color:#5a6a8a;margin-bottom:5px;">'+filtered.length+' monstre'+(filtered.length!==1?'s':'')+'</p>'
+    +'<div class="besti-list" id="'+ctx+'-srd-results">'
     +filtered.map(function(m){
       var cls='besti-cr '+besti_crClass(m.crNum);
-      return'<div class="besti-row" onclick="besti_ouvrirFiche(\''+besti_esc(m.id)+'\',\'srd\')">'
+      return'<div class="besti-row" onclick="_besti_ctx=\''+ctx+'\';besti_ouvrirFiche(\''+besti_esc(m.id)+'\',\'srd\')">'
         +'<div style="flex:1;min-width:0;">'
         +'<div class="besti-row-nom">'+besti_esc(m.nom)+'</div>'
         +'<div class="besti-row-type">'+besti_esc(m.type)+'</div>'
@@ -3604,8 +3668,7 @@ function besti_renderSRD(){
     +'</div>';
 }
 function besti_bindSRD(){
-  /* Restaurer la valeur de recherche sans re-render */
-  var q=document.getElementById('besti-srd-q');
+  var q=_besti_el('srd-q');
   if(q){q.value=_besti_srd_search;q.focus();q.setSelectionRange(q.value.length,q.value.length);}
 }
 /* Mise à jour partielle : ne re-render que la liste, pas le champ de saisie */
