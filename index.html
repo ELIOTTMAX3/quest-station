@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Quest Station</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#d97706">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Quest Station">
+<link rel="apple-touch-icon" href="/icon.svg">
+<script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/service-worker.js');}</script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 /* ── DARK THEME VARIABLES ─────────────────────────────── */
@@ -7189,8 +7196,20 @@ var RESSOURCES_CL = {
   ]
 };
 
+// Ressources raciales — charge(s) par race
+var RESSOURCES_RACE = {
+  'Drakéide': [
+    { id:'souffle-draconique', nom:'Souffle draconique', icon:'🐉', reset:'short', type:'dots',
+      max:function(){ return 1; },
+      desc:function(niv){ var d=niv>=16?'5d6':niv>=11?'4d6':niv>=6?'3d6':'2d6'; return d+' dégâts — DD 8+CON+maîtrise'; }
+    }
+  ]
+};
+
 // État global : ressourcesClasse[id] = nombre d'utilisations dépensées
 var ressourcesClasse = {};
+// État global : ressourcesRace[id] = charges raciales dépensées
+var ressourcesRace = {};
 // État global : equipCharges[itemId] = nombre de charges dépensées
 var equipCharges = {};
 var rations = 0;        // nombre de rations
@@ -7205,23 +7224,29 @@ function majRessourcesClasse() {
 
   var defs = RESSOURCES_CL[cl];
   var niv = gNiv();
+  var race = v('race') || '';
 
   // Filtrer les ressources avec max > 0 à ce niveau
   var actives = [];
   if (defs) {
     defs.forEach(function(d) {
       var mx = typeof d.max === 'function' ? d.max(niv) : (d.max || 0);
-      if (mx > 0 || d.type === 'info') actives.push({def:d, mx:mx});
+      if (mx > 0 || d.type === 'info') actives.push({def:d, mx:mx, src:'cl'});
     });
   }
+  // Ressources raciales
+  (RESSOURCES_RACE[race] || []).forEach(function(d) {
+    var mx = typeof d.max === 'function' ? d.max(niv) : (d.max || 0);
+    if (mx > 0) actives.push({def:d, mx:mx, src:'race'});
+  });
 
   if (!actives.length) { sec.style.display = 'none'; return; }
   sec.style.display = '';
 
   lst.innerHTML = '';
   actives.forEach(function(item) {
-    var d = item.def, mx = item.mx;
-    var used = ressourcesClasse[d.id] || 0;
+    var d = item.def, mx = item.mx, src = item.src || 'cl';
+    var used = (src === 'race' ? ressourcesRace[d.id] : ressourcesClasse[d.id]) || 0;
     if (used > mx) used = mx;
 
     var card = document.createElement('div');
@@ -7256,18 +7281,18 @@ function majRessourcesClasse() {
         dot.className = 'r-dot ' + (i >= mx - used ? 'used' : 'avail');
         dot.title = i >= mx - used ? 'Restaurer' : 'Dépenser';
         // Closure pour i et d.id
-        (function(idx, resId, maxVal) {
-          dot.onclick = function() { toggleRessource(resId, idx, maxVal); };
-        })(i, d.id, mx);
+        (function(idx, resId, maxVal, resSrc) {
+          dot.onclick = function() { toggleRessource(resId, idx, maxVal, resSrc); };
+        })(i, d.id, mx, src);
         body.appendChild(dot);
       }
     } else if (d.type === 'counter') {
       body.className = 'r-res-counter-wrap';
       var rem = mx - used;
       var unite = d.unite || '';
-      body.innerHTML = '<button class="r-res-cnt-btn" onclick="deltaRessource(\'' + d.id + '\',-1,' + mx + ')">−</button>'
+      body.innerHTML = '<button class="r-res-cnt-btn" onclick="deltaRessource(\'' + d.id + '\',-1,' + mx + ',\'' + src + '\')">−</button>'
         + '<span class="r-res-cnt-val" id="r-res-v-' + d.id + '">' + rem + '</span>'
-        + '<button class="r-res-cnt-btn" onclick="deltaRessource(\'' + d.id + '\',1,' + mx + ')">+</button>'
+        + '<button class="r-res-cnt-btn" onclick="deltaRessource(\'' + d.id + '\',1,' + mx + ',\'' + src + '\')">+</button>'
         + '<span class="r-res-cnt-max">/ ' + mx + (unite?' '+unite:'') + '</span>';
     } else { // info — lecture seule, desc affiché directement comme valeur stylée
       body.innerHTML = '<span class="r-res-info-val">' + descText + '</span>';
@@ -7279,19 +7304,20 @@ function majRessourcesClasse() {
 
 // Toggle une charge d'une ressource type "dots"
 // Même convention que les emplacements de sort : disponibles à gauche, dépensés à droite.
-function toggleRessource(id, dotIndex, maxVal) {
-  var cible = maxVal - dotIndex; // nombre de dépensés si ce point est la limite
-  var cur = ressourcesClasse[id] || 0;
-  ressourcesClasse[id] = (cur === cible) ? cible - 1 : cible;
+function toggleRessource(id, dotIndex, maxVal, src) {
+  var dict = (src === 'race') ? ressourcesRace : ressourcesClasse;
+  var cible = maxVal - dotIndex;
+  var cur = dict[id] || 0;
+  dict[id] = (cur === cible) ? cible - 1 : cible;
   majRessourcesClasse();
   sauvegarder();
 }
 
 // Modifier une ressource type "counter"
-function deltaRessource(id, delta, maxVal) {
-  var cur = ressourcesClasse[id] || 0;
-  // cur = used count; delta +1 = dépenser, delta -1 = récupérer
-  ressourcesClasse[id] = Math.max(0, Math.min(maxVal, cur - delta));
+function deltaRessource(id, delta, maxVal, src) {
+  var dict = (src === 'race') ? ressourcesRace : ressourcesClasse;
+  var cur = dict[id] || 0;
+  dict[id] = Math.max(0, Math.min(maxVal, cur - delta));
   majRessourcesClasse();
   sauvegarder();
 }
@@ -7304,6 +7330,9 @@ function resetRessourcesCourt() {
     if (d.reset === 'short' || d.reset === 'long') {
       ressourcesClasse[d.id] = 0;
     }
+  });
+  (RESSOURCES_RACE[v('race')] || []).forEach(function(d) {
+    if (d.reset === 'short' || d.reset === 'long') ressourcesRace[d.id] = 0;
   });
   majRessourcesClasse();
   // Réinitialiser les charges d'objets équipés (repos court ou long)
@@ -7326,6 +7355,7 @@ function resetRessourcesLong() {
   defs.forEach(function(d) {
     ressourcesClasse[d.id] = 0;
   });
+  (RESSOURCES_RACE[v('race')] || []).forEach(function(d) { ressourcesRace[d.id] = 0; });
   majRessourcesClasse();
   // Réinitialiser toutes les charges d'objets équipés (sauf consommables)
   var equipe=window._equip_equipe||{};
@@ -7565,7 +7595,7 @@ var HIST_CAPS_EXTRA = {
 };
 var RACES_CAPS_EXTRA = {
   "Drakéide": [
-    {nom:"Souffle draconique", niveau:1, desc:"Action — Libérez un souffle d'énergie destructrice. Forme et type selon votre ascendance draconique. Toutes les créatures dans la zone font un jet de sauvegarde (type selon ascendance). DD = 8 + mod. CON + bonus de maîtrise. Échec : 2d6 dégâts (3d6 au niv. 6, 4d6 au niv. 11, 5d6 au niv. 16), ou la moitié en cas de réussite. Recharge après un repos court ou long.\n\nAscendances — Blanc : Froid, cône 4,5 m (JS CON) · Bleu : Foudre, ligne 1,5×9 m (JS DEX) · Noir : Acide, ligne 1,5×9 m (JS DEX) · Rouge : Feu, cône 4,5 m (JS DEX) · Vert : Poison, cône 4,5 m (JS CON) · Airain : Feu, cône 4,5 m (JS DEX) · Argent : Froid, cône 4,5 m (JS CON) · Bronze : Foudre, ligne 1,5×9 m (JS DEX) · Cuivre : Acide, ligne 1,5×9 m (JS DEX) · Or : Feu, cône 4,5 m (JS DEX)"}
+    {nom:"Souffle draconique", niveau:1, desc:"⚡ Action  •  1 utilisation / repos court ou long\n\nToutes les créatures dans la zone font un JS (type selon ascendance).\nDD = 8 + mod. CON + bonus de maîtrise\nÉchec : 2d6 dégâts  →  3d6 (niv. 6)  →  4d6 (niv. 11)  →  5d6 (niv. 16)\nMoitié des dégâts sur réussite.\n\nAscendances :\nBlanc   — Froid     cône 4,5 m    JS CON\nBleu    — Foudre   ligne 1,5×9 m  JS DEX\nNoir    — Acide    ligne 1,5×9 m  JS DEX\nRouge   — Feu      cône 4,5 m    JS DEX\nVert    — Poison   cône 4,5 m    JS CON\nAirain  — Feu      cône 4,5 m    JS DEX\nArgent  — Froid    cône 4,5 m    JS CON\nBronze  — Foudre   ligne 1,5×9 m  JS DEX\nCuivre  — Acide    ligne 1,5×9 m  JS DEX\nOr      — Feu      cône 4,5 m    JS DEX"}
   ],
   "Halfelin Pied-léger": [
     {nom:"Discrétion naturelle", desc:"Tu peux tenter de te cacher si tu te trouves derrière une créature d'une taille supérieure à la tienne, en l'utilisant comme couverture."}
@@ -8178,6 +8208,7 @@ function collecterDonnees(){
   data.equipEquipes=equipEquipes.slice();
   data.slots=slotsE;
   data.ressources=ressourcesClasse;
+  data.ressourcesRace=ressourcesRace;
   data.equipCharges=equipCharges;
   data.rations=rations;
   data._rations=rations;
@@ -8223,6 +8254,7 @@ function chargerFiche(data){
   if(data.coches&&!data.grimoire)grimoire=new Set(data.coches);
   if(data.slots)slotsE=data.slots;
   if(data.ressources)ressourcesClasse=data.ressources;
+  if(data.ressourcesRace)ressourcesRace=data.ressourcesRace;
   if(data.equipCharges)equipCharges=data.equipCharges;
   if(data.rations!==undefined)rations=parseInt(data.rations)||0;
   if(data._inspiration!==undefined)inspiration=parseInt(data._inspiration)||0;
@@ -9557,7 +9589,7 @@ if (cap.type === "auto" && cap.options && cap.options.length) {
         var bd = document.createElement("div");
         bd.className = "cap-bd";
         var descEl = document.createElement("p");
-        descEl.style.cssText = "font-size:12px;color:var(--txt);line-height:1.6;";
+        descEl.style.cssText = "font-size:12px;color:var(--txt);line-height:1.6;white-space:pre-line;";
         descEl.textContent = descAffiche;
         bd.appendChild(descEl);
 
