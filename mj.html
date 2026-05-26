@@ -727,6 +727,14 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           </div>
         </div>
         <div style="margin-bottom:.75rem;">
+          <label>Tag de main <span style="font-size:10px;font-weight:400;color:var(--txt3);">— optionnel · 2× "1 main" ou 1× "2 mains" max</span></label>
+          <div style="display:flex;gap:6px;margin-top:5px;" id="equip-mj-grp-btns">
+            <button type="button" onclick="equip_mj_setGroupe('')" data-grp="" class="equip-mj-grp-btn" style="background:var(--bg3);border:2px solid var(--or);color:var(--txt);font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;font-family:inherit;">✕ Aucun</button>
+            <button type="button" onclick="equip_mj_setGroupe('1main')" data-grp="1main" class="equip-mj-grp-btn" style="background:rgba(59,130,246,.2);border:2px solid transparent;color:#93c5fd;font-size:12px;padding:4px 12px;border-radius:6px;cursor:pointer;font-family:inherit;">🤚 1 main</button>
+            <button type="button" onclick="equip_mj_setGroupe('2mains')" data-grp="2mains" class="equip-mj-grp-btn" style="background:rgba(239,68,68,.2);border:2px solid transparent;color:#fca5a5;font-size:12px;padding:4px 12px;border-radius:6px;cursor:pointer;font-family:inherit;">⚔️ 2 mains</button>
+          </div>
+        </div>
+        <div style="margin-bottom:.75rem;">
           <label>Icône</label>
           <div style="display:flex;gap:6px;align-items:center;margin-bottom:6px;">
             <input type="text" id="equip-mj-icone" placeholder="🗡️ ou URL" style="flex:1;">
@@ -3045,6 +3053,15 @@ function _equip_mj_rendreCheckboxPJ(itemId){
   }).join("");
 }
 
+var _equip_mj_groupe='';
+function equip_mj_setGroupe(grp){
+  _equip_mj_groupe=grp;
+  document.querySelectorAll('.equip-mj-grp-btn').forEach(function(btn){
+    var sel=btn.dataset.grp===grp;
+    btn.style.borderColor=sel?(btn.dataset.grp===''?'var(--or)':'white'):'transparent';
+    btn.style.outline=sel?'none':'';
+  });
+}
 function equip_mj_ouvrirForm(id){
   var item=id?window._equip_mj_items.find(function(i){return i.id===id;}):null;
   el("equip-mj-edit-id").value=id||"";
@@ -3054,6 +3071,7 @@ function equip_mj_ouvrirForm(id){
   el("equip-mj-rarete").value=item?item.rarete:"commun";
   el("equip-mj-slot").value=item?item.slot:"inventaire";
   el("equip-mj-icone").value=item?item.icone:"";
+  equip_mj_setGroupe(item?(item.tagMain||''):'');
   el("equip-mj-boutique").checked=item?!!item.enBoutique:false;
   el("equip-mj-prix").value=item?item.prix||0:0;
   _equip_mj_bonus=(item&&item.bonus&&Array.isArray(item.bonus))?item.bonus.slice():[];
@@ -3081,6 +3099,7 @@ function equip_mj_fermerForm(){
   var ep=el("equip-mj-emoji-picker");if(ep)ep.style.display="none";
   _equip_mj_bonus=[];
   equip_mj_rendreBonus();
+  equip_mj_setGroupe('');
   el("equip-mj-has-charges").checked=false;
   equip_mj_toggleCharges(false);
 }
@@ -3185,6 +3204,7 @@ function equip_mj_sauvegarder(){
     enBoutique:el("equip-mj-boutique").checked,
     prix:parseInt(el("equip-mj-prix").value)||0,
     bonus:_equip_mj_bonus.slice(),
+    tagMain:_equip_mj_groupe||null,
     charges:(function(){
       if(!el("equip-mj-has-charges").checked)return null;
       return {max:parseInt(el("equip-mj-charges-max").value)||1,recharge:el("equip-mj-charges-recharge").value};
