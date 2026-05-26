@@ -2414,13 +2414,13 @@ function ouvrirOngletCombat(){
   besti_initHomebrew(); // Homebrew accessible dans la barre de recherche
   besti_initImages();   // Images/tokens disponibles dès l'onglet combat ouvert
   var sauvegarde=chargerCombatLocal();
-  if(sauvegarde&&sauvegarde.combatants&&sauvegarde.combatants.length>0){
+  if(sauvegarde&&sauvegarde.combatants&&sauvegarde.combatants.length>0&&sauvegarde.combatActif){
     _appliquerSauvegardeCombat(sauvegarde);
   } else if(db&&campagneActive){
-    // Pas de sauvegarde locale → essayer Firestore (autre appareil)
+    // Pas de sauvegarde locale active → essayer Firestore (autre appareil)
     db.collection("parties").doc(campagneActive.id).get().then(function(snap){
       var fsSave=snap.exists&&snap.data().combatMJ;
-      if(fsSave&&fsSave.combatants&&fsSave.combatants.length>0){
+      if(fsSave&&fsSave.combatants&&fsSave.combatants.length>0&&fsSave.combatActif){
         // Mettre en cache local
         var k=combatKey();
         if(k)try{localStorage.setItem(k,JSON.stringify(fsSave));}catch(e){}

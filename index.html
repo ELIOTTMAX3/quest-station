@@ -451,6 +451,8 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .equip-quick-ico{font-size:20px;line-height:1;}
 .equip-quick-lbl{font-size:9px;font-weight:600;color:#9a8a6a;text-transform:uppercase;letter-spacing:.04em;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:70px;text-align:center;}
 .equip-quick-slot.occupied .equip-quick-lbl{color:#e8dcc8;}
+.eqs-swap-btn{background:none;border:1px solid var(--bord2);border-radius:6px;color:var(--txt3);font-size:13px;padding:0 3px;cursor:pointer;flex-shrink:0;height:28px;min-width:18px;font-family:inherit;transition:all .15s;}
+.eqs-swap-btn:hover{color:var(--or);border-color:var(--or);}
 .boutique-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;align-items:start;}
 .boutique-card{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:3px;min-width:0;overflow:hidden;}
 .boutique-card-ico{font-size:26px;text-align:center;margin-bottom:3px;}
@@ -6344,21 +6346,36 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         </div>
       </div>
 
-      <!-- Inventaire rapide : 3 emplacements -->
+      <!-- Inventaire rapide : 5 emplacements -->
       <div style="margin:10px 0 6px;">
-        <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);margin-bottom:6px;">Inventaire rapide</div>
-        <div style="display:flex;gap:6px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);">Inventaire rapide</div>
+          <button id="eqs-reorg-btn" onclick="equip_toggleReorganiser()" style="background:none;border:1px solid var(--bord2);border-radius:6px;color:var(--txt3);font-size:10px;padding:2px 8px;cursor:pointer;font-family:inherit;transition:all .15s;">⇄ Réorganiser</button>
+        </div>
+        <div style="display:flex;gap:4px;align-items:center;">
           <button class="equip-quick-slot" id="eqs-1" onclick="equip_clickQuickSlot(1)">
             <span class="equip-quick-ico" id="eqs-1-ico">🎒</span>
             <span class="equip-quick-lbl" id="eqs-1-lbl">Objet 1</span>
           </button>
+          <button class="eqs-swap-btn" id="eqs-swap-12" onclick="equip_swapQuick(1,2)" style="display:none;" title="Déplacer 1↔2">⇄</button>
           <button class="equip-quick-slot" id="eqs-2" onclick="equip_clickQuickSlot(2)">
             <span class="equip-quick-ico" id="eqs-2-ico">🎒</span>
             <span class="equip-quick-lbl" id="eqs-2-lbl">Objet 2</span>
           </button>
+          <button class="eqs-swap-btn" id="eqs-swap-23" onclick="equip_swapQuick(2,3)" style="display:none;" title="Déplacer 2↔3">⇄</button>
           <button class="equip-quick-slot" id="eqs-3" onclick="equip_clickQuickSlot(3)">
             <span class="equip-quick-ico" id="eqs-3-ico">🎒</span>
             <span class="equip-quick-lbl" id="eqs-3-lbl">Objet 3</span>
+          </button>
+          <button class="eqs-swap-btn" id="eqs-swap-34" onclick="equip_swapQuick(3,4)" style="display:none;" title="Déplacer 3↔4">⇄</button>
+          <button class="equip-quick-slot" id="eqs-4" onclick="equip_clickQuickSlot(4)">
+            <span class="equip-quick-ico" id="eqs-4-ico">🎒</span>
+            <span class="equip-quick-lbl" id="eqs-4-lbl">Objet 4</span>
+          </button>
+          <button class="eqs-swap-btn" id="eqs-swap-45" onclick="equip_swapQuick(4,5)" style="display:none;" title="Déplacer 4↔5">⇄</button>
+          <button class="equip-quick-slot" id="eqs-5" onclick="equip_clickQuickSlot(5)">
+            <span class="equip-quick-ico" id="eqs-5-ico">🎒</span>
+            <span class="equip-quick-lbl" id="eqs-5-lbl">Objet 5</span>
           </button>
         </div>
       </div>
@@ -11629,15 +11646,35 @@ function equip_toggleActifDesc(descId,row){
   if(chev)chev.style.transform=open?"":"rotate(90deg)";
 }
 
-// ── Inventaire rapide (3 emplacements) ─────────────────────
-var _equip_quick=[null,null,null]; // [slot1Id, slot2Id, slot3Id]
+// ── Inventaire rapide (5 emplacements) ─────────────────────
+var _equip_quick=[null,null,null,null,null]; // [slot1Id..slot5Id]
+var _eqs_reorg_mode=false;
+function equip_toggleReorganiser(){
+  _eqs_reorg_mode=!_eqs_reorg_mode;
+  ['eqs-swap-12','eqs-swap-23','eqs-swap-34','eqs-swap-45'].forEach(function(id){
+    var btn=el(id);if(btn)btn.style.display=_eqs_reorg_mode?'':'none';
+  });
+  var reorgBtn=el('eqs-reorg-btn');
+  if(reorgBtn){
+    reorgBtn.style.color=_eqs_reorg_mode?'var(--or)':'var(--txt3)';
+    reorgBtn.style.borderColor=_eqs_reorg_mode?'var(--or)':'var(--bord2)';
+  }
+}
+function equip_swapQuick(a,b){
+  var tmp=_equip_quick[a-1];
+  _equip_quick[a-1]=_equip_quick[b-1];
+  _equip_quick[b-1]=tmp;
+  equip_saveQuickSlots();
+  equip_rendreQuickSlots();
+  equip_rendreActif();
+}
 function equip_initQuickSlots(){
   var saved=window._char_equip_quick;
-  if(saved&&Array.isArray(saved))_equip_quick=saved.slice(0,3).concat([null,null,null]).slice(0,3);
+  if(saved&&Array.isArray(saved))_equip_quick=saved.slice(0,5).concat([null,null,null,null,null]).slice(0,5);
   equip_rendreQuickSlots();
 }
 function equip_rendreQuickSlots(){
-  [1,2,3].forEach(function(n){
+  [1,2,3,4,5].forEach(function(n){
     var btn=el('eqs-'+n),ico=el('eqs-'+n+'-ico'),lbl=el('eqs-'+n+'-lbl');
     if(!btn)return;
     var itemId=_equip_quick[n-1];
@@ -11708,9 +11745,9 @@ function equip_ajouterRapide(itemId){
   var items=window._equip_items||{};
   var item=items[itemId];
   var nom=item?item.nom:itemId;
-  var vides=[0,1,2].filter(function(i){return !_equip_quick[i];});
+  var vides=[0,1,2,3,4].filter(function(i){return !_equip_quick[i];});
   if(vides.length===0){
-    if(!confirm('Les 3 emplacements rapides sont occupés.\nRemplacer l\'emplacement 1 ?'))return;
+    if(!confirm('Les 5 emplacements rapides sont occupés.\nRemplacer l\'emplacement 1 ?'))return;
     equip_setQuickSlot(1,itemId); return;
   }
   if(vides.length===1){ equip_setQuickSlot(vides[0]+1,itemId); return; }
