@@ -9110,7 +9110,15 @@ function getCapsDisponibles() {
       raceMatch = r;
     }
   });
-  if (raceMatch) result.race = CAPS_DATA.races[raceMatch];
+  if (raceMatch) {
+    // Caps de base de la race (ou de la race parente si sous-race)
+    var rdet = RACES_DETAILS ? RACES_DETAILS[race] : null;
+    var parentRaceKey = rdet && rdet.sousrace ? rdet.sousrace : null;
+    var baseCaps = CAPS_DATA.races[raceMatch] || (parentRaceKey && CAPS_DATA.races[parentRaceKey]) || [];
+    // Extras spécifiques à la sous-race
+    var extraCaps = (RACES_CAPS_EXTRA && RACES_CAPS_EXTRA[race]) ? RACES_CAPS_EXTRA[race] : [];
+    result.race = baseCaps.concat(extraCaps);
+  }
 
   // Capacités d'historique
   var histMatch = null;
@@ -9187,6 +9195,8 @@ function rendreCapacites(containerId, niveauActuel) {
 
   var sections = [
     { label: "Classe — " + (gCl() || "Non choisie"), items: caps.classe, src: "cl" },
+    { label: "Race — " + (v("race") || "Non choisie"),   items: caps.race,   src: "race" },
+    { label: "Historique — " + (v("historique") || "Non choisi"), items: caps.historique, src: "hist" },
   ];
 
   sections.forEach(function(sec) {
