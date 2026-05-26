@@ -770,6 +770,24 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
             <div class="spill"><div class="spl">Maîtrise</div><div class="spv" id="r-bm">+2</div></div>
             <div class="spill"><div class="spl">Dé de vie</div><div class="spv" id="r-dv">d8</div></div>
           </div>
+          <!-- Rations + Inspiration -->
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <div style="flex:1;background:var(--bg2);border:1px solid var(--bord);border-radius:8px;padding:7px 10px;">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);margin-bottom:5px;">🍖 Rations</div>
+              <div style="display:flex;align-items:center;gap:6px;justify-content:center;">
+                <button class="btn" style="padding:2px 10px;font-size:16px;line-height:1;" onclick="rRationsAdj(-1)">−</button>
+                <span id="r-rations-val" style="font-size:18px;font-weight:700;min-width:28px;text-align:center;">0</span>
+                <button class="btn" style="padding:2px 10px;font-size:16px;line-height:1;" onclick="rRationsAdj(1)">+</button>
+              </div>
+            </div>
+            <div style="flex:1;background:var(--bg2);border:1px solid var(--bord);border-radius:8px;padding:7px 10px;">
+              <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);margin-bottom:5px;">✨ Inspiration</div>
+              <div style="display:flex;align-items:center;justify-content:center;">
+                <span id="r-inspiration-val" style="font-size:18px;font-weight:700;min-width:28px;text-align:center;color:var(--or);">0</span>
+              </div>
+              <div style="font-size:9px;color:var(--txt3);text-align:center;margin-top:2px;">Attribué par le MJ</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -7171,14 +7189,29 @@ var RESSOURCES_CL = {
   ]
 };
 
+// Ressources raciales (1 entrée par race)
+var RESSOURCES_RACE = {
+  'Drakéide': [
+    { id:'souffle-draconique', nom:'Souffle draconique', icon:'🐉', reset:'short', type:'dots',
+      max:function(niv){ return 1; },
+      desc:function(niv){ var d=niv>=16?'5d6':niv>=11?'4d6':niv>=6?'3d6':'2d6'; return d+' dégâts — DD 8+CON+maîtrise — ligne ou cône (ascendance)'; }
+    }
+  ]
+};
+
 // État global : ressourcesClasse[id] = nombre d'utilisations dépensées
 var ressourcesClasse = {};
+// État global : ressourcesRace[id] = nombre d'utilisations dépensées (ressources raciales)
+var ressourcesRace = {};
 // État global : equipCharges[itemId] = nombre de charges dépensées
 var equipCharges = {};
+var rations = 0;        // nombre de rations
+var inspiration = 0;    // points d'inspiration (attribués par le MJ, lecture seule pour le PJ)
 
 // Rend la section ressources dans le résumé
 function majRessourcesClasse() {
   var cl = gCl();
+  var race = v('race') || '';
   var sec = el('r-ressources-section');
   var lst = el('r-ressources-list');
   if (!sec || !lst) return;
@@ -7186,22 +7219,28 @@ function majRessourcesClasse() {
   var defs = RESSOURCES_CL[cl];
   var niv = gNiv();
 
-  // Filtrer les ressources avec max > 0 à ce niveau
+  // Filtrer les ressources de classe avec max > 0 à ce niveau
   var actives = [];
   if (defs) {
     defs.forEach(function(d) {
       var mx = typeof d.max === 'function' ? d.max(niv) : (d.max || 0);
-      if (mx > 0 || d.type === 'info') actives.push({def:d, mx:mx});
+      if (mx > 0 || d.type === 'info') actives.push({def:d, mx:mx, src:'cl'});
     });
   }
+  // Ajouter les ressources raciales
+  var raceDefs = RESSOURCES_RACE[race] || [];
+  raceDefs.forEach(function(d) {
+    var mx = typeof d.max === 'function' ? d.max(niv) : (d.max || 0);
+    if (mx > 0 || d.type === 'info') actives.push({def:d, mx:mx, src:'race'});
+  });
 
   if (!actives.length) { sec.style.display = 'none'; return; }
   sec.style.display = '';
 
   lst.innerHTML = '';
   actives.forEach(function(item) {
-    var d = item.def, mx = item.mx;
-    var used = ressourcesClasse[d.id] || 0;
+    var d = item.def, mx = item.mx, src = item.src;
+    var used = (src==='race' ? ressourcesRace[d.id] : ressourcesClasse[d.id]) || 0;
     if (used > mx) used = mx;
 
     var card = document.createElement('div');
@@ -7236,18 +7275,18 @@ function majRessourcesClasse() {
         dot.className = 'r-dot ' + (i >= mx - used ? 'used' : 'avail');
         dot.title = i >= mx - used ? 'Restaurer' : 'Dépenser';
         // Closure pour i et d.id
-        (function(idx, resId, maxVal) {
-          dot.onclick = function() { toggleRessource(resId, idx, maxVal); };
-        })(i, d.id, mx);
+        (function(idx, resId, maxVal, resSrc) {
+          dot.onclick = function() { toggleRessource(resId, idx, maxVal, resSrc); };
+        })(i, d.id, mx, src);
         body.appendChild(dot);
       }
     } else if (d.type === 'counter') {
       body.className = 'r-res-counter-wrap';
       var rem = mx - used;
       var unite = d.unite || '';
-      body.innerHTML = '<button class="r-res-cnt-btn" onclick="deltaRessource(\'' + d.id + '\',-1,' + mx + ')">−</button>'
+      body.innerHTML = '<button class="r-res-cnt-btn" onclick="deltaRessource(\'' + d.id + '\',-1,' + mx + ',\'' + src + '\')">−</button>'
         + '<span class="r-res-cnt-val" id="r-res-v-' + d.id + '">' + rem + '</span>'
-        + '<button class="r-res-cnt-btn" onclick="deltaRessource(\'' + d.id + '\',1,' + mx + ')">+</button>'
+        + '<button class="r-res-cnt-btn" onclick="deltaRessource(\'' + d.id + '\',1,' + mx + ',\'' + src + '\')">+</button>'
         + '<span class="r-res-cnt-max">/ ' + mx + (unite?' '+unite:'') + '</span>';
     } else { // info — lecture seule, desc affiché directement comme valeur stylée
       body.innerHTML = '<span class="r-res-info-val">' + descText + '</span>';
@@ -7259,19 +7298,21 @@ function majRessourcesClasse() {
 
 // Toggle une charge d'une ressource type "dots"
 // Même convention que les emplacements de sort : disponibles à gauche, dépensés à droite.
-function toggleRessource(id, dotIndex, maxVal) {
+function toggleRessource(id, dotIndex, maxVal, src) {
+  var dict = (src === 'race') ? ressourcesRace : ressourcesClasse;
   var cible = maxVal - dotIndex; // nombre de dépensés si ce point est la limite
-  var cur = ressourcesClasse[id] || 0;
-  ressourcesClasse[id] = (cur === cible) ? cible - 1 : cible;
+  var cur = dict[id] || 0;
+  dict[id] = (cur === cible) ? cible - 1 : cible;
   majRessourcesClasse();
   sauvegarder();
 }
 
 // Modifier une ressource type "counter"
-function deltaRessource(id, delta, maxVal) {
-  var cur = ressourcesClasse[id] || 0;
+function deltaRessource(id, delta, maxVal, src) {
+  var dict = (src === 'race') ? ressourcesRace : ressourcesClasse;
+  var cur = dict[id] || 0;
   // cur = used count; delta +1 = dépenser, delta -1 = récupérer
-  ressourcesClasse[id] = Math.max(0, Math.min(maxVal, cur - delta));
+  dict[id] = Math.max(0, Math.min(maxVal, cur - delta));
   majRessourcesClasse();
   sauvegarder();
 }
@@ -7284,6 +7325,11 @@ function resetRessourcesCourt() {
     if (d.reset === 'short' || d.reset === 'long') {
       ressourcesClasse[d.id] = 0;
     }
+  });
+  // Ressources raciales
+  var raceDefs = RESSOURCES_RACE[v('race')] || [];
+  raceDefs.forEach(function(d) {
+    if (d.reset === 'short' || d.reset === 'long') { ressourcesRace[d.id] = 0; }
   });
   majRessourcesClasse();
   // Réinitialiser les charges d'objets équipés (repos court ou long)
@@ -7306,6 +7352,9 @@ function resetRessourcesLong() {
   defs.forEach(function(d) {
     ressourcesClasse[d.id] = 0;
   });
+  // Ressources raciales
+  var raceDefs = RESSOURCES_RACE[v('race')] || [];
+  raceDefs.forEach(function(d) { ressourcesRace[d.id] = 0; });
   majRessourcesClasse();
   // Réinitialiser toutes les charges d'objets équipés (sauf consommables)
   var equipe=window._equip_equipe||{};
@@ -8107,7 +8156,7 @@ function sauvegarder(){
         });
       // Miroir dans la campagne (si connecté)
       if(campCode && db){
-        var campData={_pvact:data._pvact,_pvmax:data._pvmax,_ca:data._ca,_cl:data._cl,_nom:data._nom,_init:data._init};
+        var campData={_pvact:data._pvact,_pvmax:data._pvmax,_ca:data._ca,_cl:data._cl,_nom:data._nom,_init:data._init,_rations:rations};
         if(data.avatar)campData.avatar=data.avatar;
         db.collection("parties").doc(campCode).collection("joueurs").doc(joueurId)
           .set(campData,{merge:true}).catch(function(){});
@@ -8155,7 +8204,11 @@ function collecterDonnees(){
   data.equipEquipes=equipEquipes.slice();
   data.slots=slotsE;
   data.ressources=ressourcesClasse;
+  data.ressourcesRace=ressourcesRace;
   data.equipCharges=equipCharges;
+  data.rations=rations;
+  data._rations=rations;
+  data._inspiration=inspiration;
   if(campCode)data._campCode=campCode;
   data._pvmax=parseInt(v("pv-max"))||0;
   data._pvact=parseInt(v("pv-act"))||0;
@@ -8197,7 +8250,11 @@ function chargerFiche(data){
   if(data.coches&&!data.grimoire)grimoire=new Set(data.coches);
   if(data.slots)slotsE=data.slots;
   if(data.ressources)ressourcesClasse=data.ressources;
+  if(data.ressourcesRace)ressourcesRace=data.ressourcesRace;
   if(data.equipCharges)equipCharges=data.equipCharges;
+  if(data.rations!==undefined)rations=parseInt(data.rations)||0;
+  if(data._inspiration!==undefined)inspiration=parseInt(data._inspiration)||0;
+  rMajRationsInsp();
   bourseCharger(data);
   el("prep-n").textContent=prepares.size?"("+prepares.size+")":"";
   // updateAll() → buildComps() crée les .erow dans le DOM
@@ -8428,6 +8485,15 @@ function appSoin(){var d=parseInt(v("pv-d"))||0,e=el("pv-act"),max=parseInt(v("p
 function reposLong(){el("pv-act").value=v("pv-max");updatePV();resetSlots();sauvegarder();}
 
 var _rDvN=1;
+function rMajRationsInsp(){
+  var rv=el('r-rations-val');if(rv)rv.textContent=rations;
+  var iv=el('r-inspiration-val');if(iv)iv.textContent=inspiration;
+}
+function rRationsAdj(delta){
+  rations=Math.max(0,rations+delta);
+  rMajRationsInsp();
+  sauvegarder();
+}
 function rModPV(sign){
   var d=parseInt(document.getElementById("r-pv-delta").value)||0;
   if(d<=0)return;
@@ -9560,7 +9626,7 @@ function renderEquipEquipes(){
       inp.value=eq[field]||"";
       inp.placeholder=field==="nom"?"Nom":field==="bonus"?"ex: +5":"ex: 1d8 tranchant";
       (function(i,f){
-        inp.oninput=function(){equipEquipes[i][f]=this.value;sauvegarder();renderEquipEquipes();};
+        inp.oninput=function(){equipEquipes[i][f]=this.value;sauvegarder();};
       })(idx,field);
       td.appendChild(inp);
       tr.appendChild(td);
@@ -9702,6 +9768,7 @@ function eRendreCaps() {
 
 function rafraichirResume(){
   rMajFavoris();
+  rMajRationsInsp();
   var nom=v("nom")||"—",joueur=v("joueur")||"—",cl=v("classe")||"—";
   var race=v("race"),niv=v("niveau")||"1",align=v("alignement"),hist=v("historique");
   var ca=v("ca")||"10",vit=v("vitesse")||"9";
@@ -10591,6 +10658,11 @@ function campEcouter(){
           campQuitter();
           setTimeout(function(){alert('Tu as été retiré de la campagne par le MJ.');},100);
           return;
+        }
+        // Sync inspiration depuis le MJ
+        if(snap.exists&&snap.data()&&snap.data()._inspiration!==undefined){
+          var newInsp=parseInt(snap.data()._inspiration)||0;
+          if(newInsp!==inspiration){inspiration=newInsp;rMajRationsInsp();}
         }
         // Signal direct du MJ : forcer la transition immédiatement sans dépendre de Firestore
         if(snap.exists&&snap.data()&&snap.data()._combatPhase==='combat'){
@@ -12679,7 +12751,7 @@ function cbtMajUI(){
     ap.style.opacity=monTour?'1':'.6';
     // Ne rebuilder le panneau que si quelque chose d'utile a changé
     // → évite de fermer les menus/descriptions à chaque update Firebase
-    var _key=[monTour?1:0,gCl()||'',v('niveau')||'1',JSON.stringify(ressourcesClasse)].join('|');
+    var _key=[monTour?1:0,gCl()||'',v('niveau')||'1',JSON.stringify(ressourcesClasse),JSON.stringify(ressourcesRace)].join('|');
     if(_key!==ap._actionsKey){ap._actionsKey=_key;cbtRendreActions(monTour);}
   }
 }
@@ -12817,6 +12889,32 @@ function cbtRendreActions(monTour){
       html+=cbtMakeBtn('bonus',def.icon+' '+def.nom+' ('+rst2+'/'+mx+')',rst2<=0,'cbtRes(\''+def.id+'\',-1)');
     }
   });
+  // === RESSOURCES RACIALES ===
+  var _raceRes=RESSOURCES_RACE[v('race')]||[];
+  _raceRes.forEach(function(def){
+    var mx=typeof def.max==='function'?def.max(niv):(def.max||0);
+    if(!mx)return;
+    var used=ressourcesRace[def.id]||0;if(used>mx)used=mx;
+    var rest=mx-used;
+    var monTourJS='!!(combatPJData&&combatPJData.joueurActifId===joueurId)';
+    if(def.type==='dots'){
+      var desc=typeof def.desc==='function'?def.desc(niv):(def.desc||'');
+      var resetLbl={long:'Repos long',short:'Repos court'}[def.reset]||'';
+      html+='<div style="background:var(--bg2);border:1px solid var(--bord);border-radius:8px;padding:7px 10px;margin-bottom:6px;">';
+      html+='<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">';
+      html+='<span style="font-size:13px;">'+def.icon+'</span>';
+      html+='<span style="font-size:12px;font-weight:700;color:var(--txt);flex:1;">'+def.nom+'</span>';
+      if(resetLbl)html+='<span style="font-size:10px;background:var(--bg3);border-radius:4px;padding:2px 6px;color:var(--txt3);">'+resetLbl+'</span>';
+      html+='</div>';
+      if(desc)html+='<p style="font-size:11px;color:var(--txt2);margin:0 0 5px;line-height:1.4;">'+desc+'</p>';
+      html+='<div class="r-res-dots">';
+      for(var ri=0;ri<mx;ri++){
+        var isU2=(ri>=rest);
+        html+='<span class="r-dot '+(isU2?'used':'avail')+'" onclick="cbtResRace(\''+def.id+'\','+(isU2?'1':'-1')+');cbtRendreActions('+monTourJS+')" title="'+(isU2?'Restaurer':'Utiliser')+'"></span>';
+      }
+      html+='</div></div>';
+    }
+  });
   // === CAPACITÉS DE CLASSE ===
   var capsData=window.CAPS_DATA&&window.CAPS_DATA.classes&&window.CAPS_DATA.classes[cl]||[];
   var _capsSeen={};
@@ -12921,6 +13019,20 @@ function cbtRes(id,delta){
   var cur=ressourcesClasse[id]||0;
   var newUsed=Math.max(0,Math.min(maxVal,cur-delta));
   ressourcesClasse[id]=newUsed;
+  majRessourcesClasse();
+  sauvegarder();
+  cbtRendreActions(!!(combatPJData&&combatPJData.joueurActifId===joueurId));
+}
+function cbtResRace(id,delta){
+  var race=v('race');
+  var defs=RESSOURCES_RACE[race]||[];
+  var def=null;
+  for(var i=0;i<defs.length;i++){if(defs[i].id===id){def=defs[i];break;}}
+  if(!def)return;
+  var maxVal=typeof def.max==='function'?def.max(gNiv()):(def.max||0);
+  var cur=ressourcesRace[id]||0;
+  var newUsed=Math.max(0,Math.min(maxVal,cur-delta));
+  ressourcesRace[id]=newUsed;
   majRessourcesClasse();
   sauvegarder();
   cbtRendreActions(!!(combatPJData&&combatPJData.joueurActifId===joueurId));

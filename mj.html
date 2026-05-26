@@ -463,6 +463,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <button class="tbtn on" onclick="panelTab('joueurs',this)">Joueurs</button>
       <button class="tbtn" onclick="panelTab('notes',this)">Notes</button>
       <button class="tbtn" onclick="panelTab('monstres',this)">Monstres</button>
+      <button class="tbtn" onclick="panelTab('outils',this)">Outils</button>
       <button class="tbtn" onclick="panelTab('combat',this)">Combat</button>
       <button class="tbtn" onclick="panelTab('objets',this)">Objets</button>
       <button class="tbtn" onclick="panelTab('regles',this)">Règles</button>
@@ -476,29 +477,23 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       </div>
     </div>
 
-    <!-- Onglet Outils -->
     <!-- Onglet Monstres -->
     <div id="pt-monstres" style="display:none;">
-      <!-- Sous-navigation Bestiaire / Rencontre -->
-      <div style="display:flex;gap:3px;margin-bottom:0;border-bottom:2px solid var(--bord);padding-bottom:2px;">
-        <button class="tbtn on" id="mjm-sub-btn-besti" onclick="mjMonstresSub('besti',this)" style="font-size:12px;padding:5px 14px;">📖 Bestiaire</button>
-        <button class="tbtn" id="mjm-sub-btn-rencontre" onclick="mjMonstresSub('rencontre',this)" style="font-size:12px;padding:5px 14px;">🗺 Rencontre</button>
-      </div>
-
       <!-- Section Bestiaire inline -->
-      <div id="mjm-sub-besti" style="display:flex;flex-direction:column;height:calc(100vh - 165px);overflow:hidden;">
+      <div id="mjm-sub-besti" style="display:flex;flex-direction:column;height:calc(100vh - 150px);overflow:hidden;">
         <div class="besti-tabs" style="flex-shrink:0;">
           <button class="besti-tab-btn on" id="mjb-tab-srd" onclick="mjb_selectTab('srd')">Bestiaire SRD</button>
           <button class="besti-tab-btn" id="mjb-tab-homebrew" onclick="mjb_selectTab('homebrew')">Homebrew</button>
           <button class="besti-tab-btn" id="mjb-tab-groupes" onclick="mjb_selectTab('groupes')">Groupes</button>
+          <button class="besti-tab-btn" id="mjb-tab-rencontre" onclick="mjb_selectTab('rencontre')">⚔️ Rencontre</button>
         </div>
         <div class="besti-body" id="mjb-body" style="flex:1;overflow-y:auto;"></div>
       </div>
+    </div>
 
-      <!-- Section Rencontre (iframe outils) -->
-      <div id="mjm-sub-rencontre" style="display:none;height:calc(100vh - 165px);margin:0 -1rem;">
-        <iframe id="mj-outils-iframe" style="width:100%;height:100%;border:none;border-radius:0 0 10px 10px;"></iframe>
-      </div>
+    <!-- Onglet Outils -->
+    <div id="pt-outils" style="display:none;height:calc(100vh - 130px);margin:0 -1rem;">
+      <iframe id="mj-outils-page-iframe" style="width:100%;height:100%;border:none;border-radius:0 0 10px 10px;"></iframe>
     </div>
 
     <!-- Onglet Combat -->
@@ -1040,7 +1035,7 @@ function seDeconnecter(){
   window.location.href="index.html";
 }
 function panelTab(name,btn){
-  ["joueurs","monstres","combat","regles","notes","objets","campagne"].forEach(function(n){var e=el("pt-"+n);if(e)e.style.display="none";});
+  ["joueurs","monstres","outils","combat","regles","notes","objets","campagne"].forEach(function(n){var e=el("pt-"+n);if(e)e.style.display="none";});
   document.querySelectorAll("#s-panel .tbar .tbtn").forEach(function(b){b.classList.remove("on");});
   var t=el("pt-"+name);if(t)t.style.display="";
   btn.classList.add("on");
@@ -1054,8 +1049,13 @@ function panelTab(name,btn){
       iframe.setAttribute('data-loaded','1');
     }
   }
-  if(name==="monstres"){
-    mjb_ouvrir();
+  if(name==="monstres") mjb_ouvrir();
+  if(name==="outils"){
+    var iframeO=el("mj-outils-page-iframe");
+    if(iframeO && !iframeO.getAttribute('data-loaded')){
+      iframeO.src="outils_rapides.html";
+      iframeO.setAttribute('data-loaded','1');
+    }
   }
 }
 function mjNotesSub(name,btn){
@@ -1066,22 +1066,8 @@ function mjNotesSub(name,btn){
   var sec=el('mj-notes-sub-'+name);if(sec)sec.style.display='';
   btn.classList.add('on');
 }
-function mjMonstresSub(name,btn){
-  ['besti','rencontre'].forEach(function(n){
-    var s=el('mjm-sub-'+n);if(s)s.style.display='none';
-    var b=el('mjm-sub-btn-'+n);if(b)b.classList.remove('on');
-  });
-  var sec=el('mjm-sub-'+name);if(sec)sec.style.display=(name==='besti'?'flex':'');
-  btn.classList.add('on');
-  if(name==='rencontre'){
-    var iframeO=el("mj-outils-iframe");
-    if(iframeO && !iframeO.getAttribute('data-loaded')){
-      iframeO.src="outils_rapides.html";
-      iframeO.setAttribute('data-loaded','1');
-    }
-  }
-  if(name==='besti') mjb_ouvrir();
-}
+// mjMonstresSub conservé pour compatibilité (plus de sous-tabs niveau page dans Monstres)
+function mjMonstresSub(name,btn){}
 
 // ══════════════════════════════════════════
 // LISTE DES CAMPAGNES (HOME)
@@ -1345,6 +1331,22 @@ function rendreCartJoueur(jid,d){
     +'<div class="pj-stat"><div class="pj-stat-val">'+(lvl!==null?lvl:'—')+'</div><div class="pj-stat-lbl">Niveau</div></div>'
     +'<div class="pj-stat"><div class="pj-stat-val" style="font-size:13px;">'+(or!==null?or:'—')+'</div><div class="pj-stat-lbl">🪙 Or</div></div>'
     +'</div>'
+    // ── Rations + Inspiration
+    +'<div class="pj-sep"></div>'
+    +'<div style="display:flex;gap:6px;padding:4px 0;">'
+    +'<div style="flex:1;text-align:center;">'
+    +'<div style="font-size:10px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;">🍖 Rations</div>'
+    +'<div style="font-size:17px;font-weight:700;">'+(d._rations!==undefined?d._rations:0)+'</div>'
+    +'</div>'
+    +'<div style="flex:1;text-align:center;">'
+    +'<div style="font-size:10px;color:var(--txt3);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-bottom:2px;">✨ Inspiration</div>'
+    +'<div style="display:flex;align-items:center;justify-content:center;gap:5px;">'
+    +'<button style="font-size:13px;background:none;border:1px solid var(--bord);border-radius:4px;color:var(--txt);cursor:pointer;padding:1px 7px;line-height:1.4;" onclick="pjAdjInspiration(\''+jid+'\',-1)">−</button>'
+    +'<span style="font-size:17px;font-weight:700;color:var(--or);min-width:22px;text-align:center;">'+(d._inspiration!==undefined?d._inspiration:0)+'</span>'
+    +'<button style="font-size:13px;background:none;border:1px solid var(--bord);border-radius:4px;color:var(--txt);cursor:pointer;padding:1px 7px;line-height:1.4;" onclick="pjAdjInspiration(\''+jid+'\',1)">+</button>'
+    +'</div>'
+    +'</div>'
+    +'</div>'
     // ── États
     +'<div class="pj-cond">'
     +'<div class="pj-cond-row">'
@@ -1380,6 +1382,16 @@ function pjHeal(jid){
   pjSetPv(jid,nv);
   if(inp){inp.value='';inp.focus();}
   toast('+'+val+' PV → '+nv);
+}
+function pjAdjInspiration(jid,delta){
+  if(!campagneActive)return;
+  var d=joueursData[jid]||{};
+  var cur=parseInt(d._inspiration)||0;
+  var nv=Math.max(0,cur+delta);
+  if(joueursData[jid])joueursData[jid]._inspiration=nv;
+  db.collection('parties').doc(campagneActive.id).collection('joueurs').doc(jid)
+    .set({_inspiration:nv},{merge:true}).catch(function(){});
+  rendreJoueurs();
 }
 function pjSetPv(jid,nv){
   if(!campagneActive)return;
@@ -3524,10 +3536,17 @@ function mjb_selectTab(t){
   _besti_ctx='mjb';
   _besti_tab=t;
   _besti_fiche=null;_besti_hb_form=null;_besti_grp_form=null;_besti_share_id=null;
-  ['srd','homebrew','groupes'].forEach(function(id){
+  ['srd','homebrew','groupes','rencontre'].forEach(function(id){
     var b=document.getElementById('mjb-tab-'+id);
     if(b)b.className='besti-tab-btn'+(id===t?' on':'');
   });
+  if(t==='rencontre'){
+    var body=document.getElementById('mjb-body');
+    if(body){
+      body.innerHTML='<div style="height:100%;margin:0 -4px;"><iframe id="mjb-enc-iframe" src="outils_rapides.html?tab=rencontre" style="width:100%;height:calc(100vh - 210px);border:none;" allowfullscreen></iframe></div>';
+    }
+    return;
+  }
   besti_renderBody();
 }
 function besti_selectTab(t){

@@ -1146,6 +1146,14 @@ window.addEventListener('DOMContentLoaded',function(){
   buildEncMonstersList();
   buildFPTable();
   buildEncGroupesList();
+  // Ouvrir l'onglet spécifié par le paramètre URL ?tab=
+  var urlParams=new URLSearchParams(window.location.search);
+  var tabParam=urlParams.get('tab');
+  if(tabParam){
+    var tabBtn=document.querySelector('.tbar .tbtn[onclick*="\''+tabParam+'\'"]');
+    if(tabBtn){tabBtn.click();}
+    else{showTab(tabParam);}
+  }
 });
 </script>
 </body>
