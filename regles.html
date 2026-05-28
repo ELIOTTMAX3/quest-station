@@ -107,6 +107,21 @@ a{color:var(--rouge);}
 ::-webkit-scrollbar{width:5px;height:5px;}
 ::-webkit-scrollbar-track{background:var(--bg);}
 ::-webkit-scrollbar-thumb{background:var(--bord2);border-radius:3px;}
+.infos-content{padding:4px 0;}
+.infos-content h1{font-size:16px;font-weight:800;color:var(--txt);margin:12px 0 6px;}
+.infos-content h2,.infos-content h3{font-size:13px;font-weight:700;color:var(--txt);margin:10px 0 4px;}
+.infos-content h4{font-size:12px;font-weight:700;color:var(--txt2);margin:8px 0 3px;}
+.infos-content p,.infos-content li{font-size:13px;color:var(--txt2);line-height:1.65;margin-bottom:4px;}
+.infos-content ul,.infos-content ol{padding-left:18px;margin-bottom:6px;}
+.infos-content strong,.infos-content b{color:var(--txt);}
+.infos-content a{color:#93c5fd;text-decoration:none;}
+.infos-content table{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0;}
+.infos-content th{background:var(--bg3);color:var(--txt3);padding:5px 8px;text-align:left;border-bottom:1px solid var(--bord);}
+.infos-content td{padding:4px 8px;border-bottom:1px solid var(--bord);color:var(--txt2);}
+.infos-content tr:nth-child(odd) td{background:rgba(255,255,255,.02);}
+.infos-content tr:hover td{background:rgba(255,255,255,.05);}
+.infos-content .encadre,.infos-content .citation,.infos-content .officiel{background:rgba(217,119,6,.08);border-left:3px solid #d97706;padding:8px 12px;border-radius:0 6px 6px 0;margin:8px 0;font-size:12px;color:var(--txt2);}
+.infos-content img{display:none;}
 </style>
 </head>
 <body>
@@ -5598,34 +5613,7 @@ function setText(id, text) {
       '<div class="r-hero"><div class="r-hero-icon">' + (ICONS[cl]||'⚔️') + '</div>'
       + '<div><h2>' + cl + '</h2><p>Niveau ' + niv + ' · ' + joueur + '</p></div></div>';
 
-    // Capacités depuis CAPS_DATA
-    if (caps && caps.length) {
-      var card = document.createElement('div');
-      card.className = 'r-card';
-      var clTitle = document.createElement('div');
-      clTitle.className = 'r-card-title';
-      clTitle.textContent = 'Capacités de classe (niveau ≤ ' + niv + ' en avant)';
-      var clList = document.createElement('div');
-      card.appendChild(clTitle);
-      card.appendChild(clList);
-      classeContent.appendChild(card);
-      renderCaps(caps, niv, clList);
-    }
-
-    // Description complète depuis les sections existantes
-    var ruleId  = {'Rôdeur':'Rodeur'}[cl] || cl;
-    var ruleDiv = document.getElementById('regles-' + ruleId);
-    if (ruleDiv) {
-      var clone = ruleDiv.cloneNode(true);
-      clone.removeAttribute('id');
-      clone.classList.remove('on');
-      clone.style.display = 'block';
-      var descCard = document.createElement('div');
-      descCard.className = 'r-card';
-      descCard.innerHTML = '<div class="r-card-title">Description complète</div>';
-      descCard.appendChild(clone);
-      classeContent.appendChild(descCard);
-    }
+    rInjectInfos(classeContent, 'cl_' + cl);
   }
 
   // ── Page "Historique" ────────────────────────────────────────
@@ -5640,23 +5628,7 @@ function setText(id, text) {
       '<div class="r-hero"><div class="r-hero-icon">📖</div>'
       + '<div><h2>' + hist + '</h2><p>Historique de ' + nom + '</p></div></div>';
 
-    if (histCaps && histCaps.length) {
-      var hcard = document.createElement('div');
-      hcard.className = 'r-card';
-      var hTitle = document.createElement('div');
-      hTitle.className = 'r-card-title';
-      hTitle.textContent = 'Capacités d\'historique';
-      var hList = document.createElement('div');
-      hcard.appendChild(hTitle);
-      hcard.appendChild(hList);
-      histContent.appendChild(hcard);
-      renderCaps(histCaps, 99, hList);
-    } else {
-      var hn = document.createElement('div');
-      hn.className = 'r-notice';
-      hn.innerHTML = '<strong>📖 ' + hist + '</strong>Les détails de cet historique ne sont pas dans le référentiel actuel.';
-      histContent.appendChild(hn);
-    }
+    rInjectInfos(histContent, 'hist_' + hist);
   }
 
   // ── Page "Race" ──────────────────────────────────────────────
@@ -5671,29 +5643,27 @@ function setText(id, text) {
       '<div class="r-hero"><div class="r-hero-icon">🧝</div>'
       + '<div><h2>' + race + '</h2><p>Race de ' + nom + '</p></div></div>';
 
-    if (raceCaps && raceCaps.length) {
-      var rcard = document.createElement('div');
-      rcard.className = 'r-card';
-      var rTitle = document.createElement('div');
-      rTitle.className = 'r-card-title';
-      rTitle.textContent = 'Traits raciaux';
-      var rList = document.createElement('div');
-      rcard.appendChild(rTitle);
-      rcard.appendChild(rList);
-      raceContent.appendChild(rcard);
-      renderCaps(raceCaps, 99, rList);
-    } else {
-      var rn = document.createElement('div');
-      rn.className = 'r-notice';
-      rn.innerHTML = '<strong>🧝 ' + race + '</strong>Les traits de cette race ne sont pas dans le référentiel actuel.';
-      raceContent.appendChild(rn);
-    }
+    rInjectInfos(raceContent, 'race_' + race);
   }
   console.log('[regles] init() terminé ✅');
   } catch(err) {
     console.error('[regles] ERREUR dans init() :', err);
   }
 })();
+</script>
+<script src="infos-contenu.js"></script>
+<script>
+function rInjectInfos(cont, key) {
+  if(!cont || !key) return;
+  var inner = document.createElement('div');
+  inner.className = 'infos-content';
+  if(window.INFOS_CONTENT && INFOS_CONTENT[key]) {
+    inner.innerHTML = INFOS_CONTENT[key];
+  } else {
+    inner.innerHTML = '<p style="color:var(--txt3);font-size:12px;">Contenu non disponible — relance build_infos_contenu.py.</p>';
+  }
+  cont.appendChild(inner);
+}
 </script>
 </body>
 </html>
