@@ -7591,7 +7591,7 @@ var HIST_DETAILS = {
   "Charlatan":         {comps:["Tromperie","Escamotage"],      langues:[],                              outils:["Kit de déguisement","Kit de faussaire"],                  equip:"Petits objets pour escroqueries, vêtements fins, kit de déguisement, 15 po"},
   "Criminel":          {comps:["Tromperie","Discrétion"],      langues:[],                              outils:["Jeu d'une sorte","Outils de voleur"],                     equip:"Pied-de-biche, vêtements sombres à capuche, 15 po"},
   "Ermite":            {comps:["Médecine","Religion"],         langues:["Une langue au choix"],         outils:["Kit d'herboriste"],                                       equip:"Kit d'herboriste, parchemin de vos études, vêtements ordinaires, 5 po"},
-  "Hanté":             {comps:["Deux au choix : Arcanes, Investigation, Religion, Survie"],langues:["Une langue exotique au choix (Abyssal, Céleste, Draconique, Infernal, Primordial, Profondeurs, Sylvestre ou Souterrain)"],outils:[],equip:"Amulette morbide, livre de rêves, vêtements de voyage, 1 po"},
+  "Hanté":             {comps:["Deux au choix : Arcanes, Investigation, Religion, Survie"],langues:["Deux langues dont une exotique (Abyssal, Céleste, Commun des profondeurs, Draconique, Infernal, Primordial, Profond ou Sylvestre)"],outils:[],equip:"Amulette morbide, livre de rêves, vêtements de voyage, 1 po"},
   "Héros du peuple":   {comps:["Dressage","Survie"],           langues:[],                              outils:["Outils d'artisan (un type au choix)","Véhicules (terrestres)"], equip:"Outils d'artisan, pelle, pot en fer, vêtements ordinaires, 10 po"},
   "Marin":             {comps:["Athlétisme","Perception"],     langues:[],                              outils:["Outils de navigateur","Véhicules (maritimes)"],            equip:"Filet, coutelas, 50 pieds de soie, chiffre de port, vêtements ordinaires, 10 po"},
   "Noble":             {comps:["Histoire","Persuasion"],       langues:["Une langue au choix"],         outils:["Jeu d'une sorte"],                                        equip:"Vêtements fins, chevalière, parchemin de généalogie, bourse de 25 po"},
@@ -7614,6 +7614,74 @@ var RACES_DETAILS = {
   "Halfelin Robuste":   {bonus:"+2 DEX, +1 CON", vitesse:"7,5m", taille:"Petite (~90cm)", langues:["Commun","Halfelin"], sousrace:"Halfelin"},
   "Tieffelin":{bonus:"+1 INT, +2 CHA", vitesse:"9m", taille:"Moyenne (~1,70m)", langues:["Commun","Infernal"]}
 };
+// ── Correspondance nom → fichier HTML local aidedd.org ────────────────────
+var INFOS_BASE = "file:///E:/13_DONNEES_QUESTSTATION/INFOS/";
+var HIST_FICHES = {
+  "Acolyte":           "acolyte.html",
+  "Artisan de guilde": "artisan de guilde.html",
+  "Artiste":           "artiste.html",
+  "Charlatan":         "charlatan.html",
+  "Criminel":          "criminel.html",
+  "Ermite":            "ermite.html",
+  "Héros du peuple":   "héros du peuple.html",
+  "Hanté":             "Hanté » Donjons & Dragons - D&D 5e.html",
+  "Marin":             "marin.html",
+  "Noble":             "noble.html",
+  "Sauvageon":         "sauvageon.html",
+  "Soldat":            "Soldat » Donjons & Dragons - D&D 5e.html"
+};
+var RACES_FICHES = {
+  "Drakéide":          "Drakéide.html",
+  "Demi-Elfe":         "Demi-elfe » Donjons & Dragons - D&D 5e.html",
+  "Demi-Orc":          "Demi-orc » Donjons & Dragons - D&D 5e.html",
+  "Elfe":              "Elfe » Donjons & Dragons - D&D 5e.html",
+  "Haut-elfe":         "Elfe » Donjons & Dragons - D&D 5e.html",
+  "Elfe des bois":     "Elfe » Donjons & Dragons - D&D 5e.html",
+  "Elfe noir":         "Elfe » Donjons & Dragons - D&D 5e.html",
+  "Gnome":             "gnome.html",
+  "Halfelin":          "halfelin.html",
+  "Halfelin Pied-léger":"halfelin.html",
+  "Halfelin Robuste":  "halfelin.html",
+  "Humain":            "Humain » Donjons & Dragons - D&D 5e.html",
+  "Nain":              "Nain » Donjons & Dragons - D&D 5e.html",
+  "Tieffelin":         "Tieffelin » Donjons & Dragons - D&D 5e.html"
+};
+var CLASSES_FICHES = {
+  "Barbare":     "barbare.html",
+  "Barde":       "barde.html",
+  "Clerc":       "clerc.html",
+  "Druide":      "Druide » Donjons & Dragons - D&D 5e.html",
+  "Ensorceleur": "ensorceleur.html",
+  "Guerrier":    "Guerrier » Donjons & Dragons - D&D 5e.html",
+  "Magicien":    "Magicien » Donjons & Dragons - D&D 5e.html",
+  "Moine":       "Moine » Donjons & Dragons - D&D 5e.html",
+  "Occultiste":  "occultiste.html",
+  "Paladin":     "paladin.html",
+  "Rôdeur":      "rodeur.html",
+  "Roublard":    "roublard.html"
+};
+function _rqFicheIframe(cont, fichier) {
+  if(!fichier || typeof INFOS_BASE === 'undefined') return;
+  var wrap = document.createElement('div');
+  wrap.style.cssText = 'margin-top:16px;';
+  var lbl = document.createElement('p');
+  lbl.className = 'cap-section';
+  lbl.textContent = '📖 Règles complètes (aidedd.org)';
+  wrap.appendChild(lbl);
+  var ifr = document.createElement('iframe');
+  ifr.src = INFOS_BASE + encodeURIComponent(fichier);
+  ifr.style.cssText = 'width:100%;height:720px;border:1px solid var(--bord);border-radius:8px;background:#fff;display:block;margin-top:6px;';
+  ifr.onload = function(){
+    try{
+      var doc = ifr.contentDocument || ifr.contentWindow.document;
+      var s = doc.createElement('style');
+      s.textContent = '.resume-bloc,#resume-bloc-style{display:none!important;}';
+      doc.head.appendChild(s);
+    }catch(e){}
+  };
+  wrap.appendChild(ifr);
+  cont.appendChild(wrap);
+}
 var HIST_CAPS_EXTRA = {
   "Artiste":         [{nom:"Don de représentation", desc:"Tu maîtrises un instrument de musique ou le kit de déguisement de ton choix. Lorsque tu te produis devant un public, tu peux subvenir à ton besoin et à celui de tes compagnons (hébergement modeste et nourriture) pendant 1 semaine."}],
   "Charlatan":       [{nom:"Fausse identité", desc:"Tu t'es créé une seconde identité avec documents, déguisements et faux antécédents. Tu peux aussi falsifier des documents, et tu te souviens facilement des manières, des accents et des comportements pour te faire passer pour quelqu'un d'autre."},
@@ -7688,6 +7756,7 @@ function chargerHistorique(contId) {
   if(!caps&&!det){
     var msg=document.createElement('p');msg.style.cssText='font-size:12px;color:var(--txt3);';msg.textContent='Aucune donnée disponible pour cet historique.';cont.appendChild(msg);
   }
+  _rqFicheIframe(cont, HIST_FICHES && HIST_FICHES[hist]);
 }
 function _rqRendreCaps(cont, caps, titre){
   if(!caps||!caps.length)return;
@@ -7744,6 +7813,7 @@ function chargerRace(contId) {
   if(!caps&&!capsExtra&&!det){
     var msg=document.createElement('p');msg.style.cssText='font-size:12px;color:var(--txt3);';msg.textContent='Aucun trait disponible pour cette race.';cont.appendChild(msg);
   }
+  _rqFicheIframe(cont, RACES_FICHES && RACES_FICHES[race]);
 }
 
 function _newCard(parent){
@@ -7949,6 +8019,7 @@ function chargerRegles(contId) {
     p.textContent='Règles de la classe "'+cl+'" introuvables dans le template.';
     container.appendChild(p);
   }
+  _rqFicheIframe(container, CLASSES_FICHES && CLASSES_FICHES[cl]);
 }
 function rTab(name,btn){
   ["perso","comps","sorts","caps","equip","boutique","regles","notes","campagne"].forEach(function(n){
