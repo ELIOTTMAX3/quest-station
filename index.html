@@ -343,6 +343,23 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 #regles-container td,#er-regles-container td{padding:4px 8px;border-bottom:1px solid var(--bord);color:var(--txt2);}
 .rq-regles-body tr:hover td,
 #regles-container tr:hover td,#er-regles-container tr:hover td{background:rgba(255,255,255,.04);}
+/* ── INFOS CONTENT (contenu extrait aidedd.org) ─────── */
+.infos-content{padding:8px 4px;}
+.infos-content h1{font-size:16px;font-weight:800;color:var(--txt);margin:12px 0 6px;}
+.infos-content h2,.infos-content h3{font-size:13px;font-weight:700;color:var(--txt);margin:10px 0 4px;}
+.infos-content h4{font-size:12px;font-weight:700;color:var(--txt2);margin:8px 0 3px;}
+.infos-content p,.infos-content li{font-size:12px;color:var(--txt2);line-height:1.65;margin-bottom:4px;}
+.infos-content ul,.infos-content ol{padding-left:18px;margin-bottom:6px;}
+.infos-content strong,.infos-content b{color:var(--txt);}
+.infos-content em,.infos-content i{color:var(--txt2);}
+.infos-content a{color:#93c5fd;text-decoration:none;}
+.infos-content table{width:100%;border-collapse:collapse;font-size:11px;margin:8px 0;}
+.infos-content th{background:var(--bg3);color:var(--txt3);padding:5px 8px;text-align:left;border-bottom:1px solid var(--bord);}
+.infos-content td{padding:4px 8px;border-bottom:1px solid var(--bord);color:var(--txt2);}
+.infos-content tr:nth-child(odd) td{background:rgba(255,255,255,.02);}
+.infos-content tr:hover td{background:rgba(255,255,255,.05);}
+.infos-content .encadre,.infos-content .citation,.infos-content .officiel{background:rgba(217,119,6,.08);border-left:3px solid #d97706;padding:8px 12px;border-radius:0 6px 6px 0;margin:8px 0;font-size:11.5px;color:var(--txt2);}
+.infos-content img{display:none;}
 /* ── SCROLLBARS ──────────────────────────────────────── */
 ::-webkit-scrollbar{width:6px;height:6px;}
 ::-webkit-scrollbar-track{background:var(--bg);}
@@ -7614,72 +7631,18 @@ var RACES_DETAILS = {
   "Halfelin Robuste":   {bonus:"+2 DEX, +1 CON", vitesse:"7,5m", taille:"Petite (~90cm)", langues:["Commun","Halfelin"], sousrace:"Halfelin"},
   "Tieffelin":{bonus:"+1 INT, +2 CHA", vitesse:"9m", taille:"Moyenne (~1,70m)", langues:["Commun","Infernal"]}
 };
-// ── Correspondance nom → fichier HTML local aidedd.org ────────────────────
-var INFOS_BASE = "file:///E:/13_DONNEES_QUESTSTATION/INFOS/";
-var HIST_FICHES = {
-  "Acolyte":           "acolyte.html",
-  "Artisan de guilde": "artisan de guilde.html",
-  "Artiste":           "artiste.html",
-  "Charlatan":         "charlatan.html",
-  "Criminel":          "criminel.html",
-  "Ermite":            "ermite.html",
-  "Héros du peuple":   "héros du peuple.html",
-  "Hanté":             "Hanté » Donjons & Dragons - D&D 5e.html",
-  "Marin":             "marin.html",
-  "Noble":             "noble.html",
-  "Sauvageon":         "sauvageon.html",
-  "Soldat":            "Soldat » Donjons & Dragons - D&D 5e.html"
-};
-var RACES_FICHES = {
-  "Drakéide":          "Drakéide.html",
-  "Demi-Elfe":         "Demi-elfe » Donjons & Dragons - D&D 5e.html",
-  "Demi-Orc":          "Demi-orc » Donjons & Dragons - D&D 5e.html",
-  "Elfe":              "Elfe » Donjons & Dragons - D&D 5e.html",
-  "Haut-elfe":         "Elfe » Donjons & Dragons - D&D 5e.html",
-  "Elfe des bois":     "Elfe » Donjons & Dragons - D&D 5e.html",
-  "Elfe noir":         "Elfe » Donjons & Dragons - D&D 5e.html",
-  "Gnome":             "gnome.html",
-  "Halfelin":          "halfelin.html",
-  "Halfelin Pied-léger":"halfelin.html",
-  "Halfelin Robuste":  "halfelin.html",
-  "Humain":            "Humain » Donjons & Dragons - D&D 5e.html",
-  "Nain":              "Nain » Donjons & Dragons - D&D 5e.html",
-  "Tieffelin":         "Tieffelin » Donjons & Dragons - D&D 5e.html"
-};
-var CLASSES_FICHES = {
-  "Barbare":     "barbare.html",
-  "Barde":       "barde.html",
-  "Clerc":       "clerc.html",
-  "Druide":      "Druide » Donjons & Dragons - D&D 5e.html",
-  "Ensorceleur": "ensorceleur.html",
-  "Guerrier":    "Guerrier » Donjons & Dragons - D&D 5e.html",
-  "Magicien":    "Magicien » Donjons & Dragons - D&D 5e.html",
-  "Moine":       "Moine » Donjons & Dragons - D&D 5e.html",
-  "Occultiste":  "occultiste.html",
-  "Paladin":     "paladin.html",
-  "Rôdeur":      "rodeur.html",
-  "Roublard":    "roublard.html"
-};
-function _rqFicheIframe(cont, fichier) {
-  if(!fichier || typeof INFOS_BASE === 'undefined') return;
+function _rqFicheContenu(cont, key) {
+  if(!key || !window.INFOS_CONTENT || !INFOS_CONTENT[key]) return;
   var wrap = document.createElement('div');
   wrap.style.cssText = 'margin-top:16px;';
   var lbl = document.createElement('p');
   lbl.className = 'cap-section';
-  lbl.textContent = '📖 Règles complètes (aidedd.org)';
+  lbl.textContent = '📖 Règles complètes';
   wrap.appendChild(lbl);
-  var ifr = document.createElement('iframe');
-  ifr.src = INFOS_BASE + encodeURIComponent(fichier);
-  ifr.style.cssText = 'width:100%;height:720px;border:1px solid var(--bord);border-radius:8px;background:#fff;display:block;margin-top:6px;';
-  ifr.onload = function(){
-    try{
-      var doc = ifr.contentDocument || ifr.contentWindow.document;
-      var s = doc.createElement('style');
-      s.textContent = '.resume-bloc,#resume-bloc-style{display:none!important;}';
-      doc.head.appendChild(s);
-    }catch(e){}
-  };
-  wrap.appendChild(ifr);
+  var inner = document.createElement('div');
+  inner.className = 'infos-content';
+  inner.innerHTML = INFOS_CONTENT[key];
+  wrap.appendChild(inner);
   cont.appendChild(wrap);
 }
 var HIST_CAPS_EXTRA = {
@@ -7756,7 +7719,7 @@ function chargerHistorique(contId) {
   if(!caps&&!det){
     var msg=document.createElement('p');msg.style.cssText='font-size:12px;color:var(--txt3);';msg.textContent='Aucune donnée disponible pour cet historique.';cont.appendChild(msg);
   }
-  _rqFicheIframe(cont, HIST_FICHES && HIST_FICHES[hist]);
+  _rqFicheContenu(cont, 'hist_' + hist);
 }
 function _rqRendreCaps(cont, caps, titre){
   if(!caps||!caps.length)return;
@@ -7813,7 +7776,7 @@ function chargerRace(contId) {
   if(!caps&&!capsExtra&&!det){
     var msg=document.createElement('p');msg.style.cssText='font-size:12px;color:var(--txt3);';msg.textContent='Aucun trait disponible pour cette race.';cont.appendChild(msg);
   }
-  _rqFicheIframe(cont, RACES_FICHES && RACES_FICHES[race]);
+  _rqFicheContenu(cont, 'race_' + race);
 }
 
 function _newCard(parent){
@@ -8019,7 +7982,7 @@ function chargerRegles(contId) {
     p.textContent='Règles de la classe "'+cl+'" introuvables dans le template.';
     container.appendChild(p);
   }
-  _rqFicheIframe(container, CLASSES_FICHES && CLASSES_FICHES[cl]);
+  _rqFicheContenu(container, 'cl_' + cl);
 }
 function rTab(name,btn){
   ["perso","comps","sorts","caps","equip","boutique","regles","notes","campagne"].forEach(function(n){
@@ -13767,5 +13730,6 @@ function conn_toggleSec(sid){
     <button class="pj-etat-modal-close" onclick="pjFermerEtatModal()">Fermer</button>
   </div>
 </div>
+<script src="infos-contenu.js"></script>
 </body>
 </html>
