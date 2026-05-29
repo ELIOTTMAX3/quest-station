@@ -1188,6 +1188,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <div class="sa-section-hd">
       <span class="sa-section-title" id="r-sprep-titre">Sorts préparés <span id="r-sprep-n" style="font-weight:400;opacity:.7;"></span></span>
       <span id="r-prep-count" style="display:none;font-size:11px;font-weight:700;padding:3px 10px;border-radius:999px;background:rgba(45,138,78,.2);color:#6ee7a1;white-space:nowrap;">0/0 préparés</span>
+      <span id="r-preset-badge" style="display:none;font-size:10px;padding:3px 9px;border-radius:999px;background:rgba(201,162,39,.15);border:1px solid rgba(201,162,39,.35);color:var(--or);white-space:nowrap;max-width:130px;overflow:hidden;text-overflow:ellipsis;" title="Preset actif"></span>
     </div>
     <div id="r-sprep" style="margin-bottom:10px;"></div>
     <!-- ── Grimoire / sélection ── -->
@@ -7539,6 +7540,7 @@ var avatarUrl=null; // URL de la photo de profil (Firebase Storage ou blob local
 var grimoire=new Set();   // sorts connus (édition)
 var prepares=new Set();   // sorts préparés aujourd'hui (résumé)
 var sortsPresets=[];      // [{nom:'Combat', sorts:['Soin',...]}, ...]
+var _presetActif=null;    // nom du preset actuellement chargé (affiché en résumé)
 var choixCaps={};          // capacités à choix sélectionnées {classe_nom: valeur}
 var compsExtra=new Set();  // compétences cochées manuellement en mode résumé
 var capsFavoris=new Set(); // capacités favorites cochées en mode résumé
@@ -8405,6 +8407,7 @@ function collecterDonnees(){
   data.grimoire=Array.from(grimoire);
   data.prepares=Array.from(prepares);
   data.sortsPresets=sortsPresets;
+  data._presetActif=_presetActif||null;
   data.compsExtra=Array.from(compsExtra);
   data.capsFavoris=Array.from(capsFavoris);
   data.capsPerso=capsPerso;
@@ -8451,6 +8454,7 @@ function chargerFiche(data){
   if(data.grimoire)grimoire=new Set(data.grimoire);
   if(data.prepares)prepares=new Set(data.prepares);
   if(Array.isArray(data.sortsPresets))sortsPresets=data.sortsPresets;
+  _presetActif=data._presetActif||null;
   if(data.compsExtra)compsExtra=new Set(data.compsExtra);
   if(data.capsFavoris)capsFavoris=new Set(data.capsFavoris);
   if(Array.isArray(data.capsPerso))capsPerso=data.capsPerso;
@@ -8768,6 +8772,7 @@ function onClasseChange(fromLoad){
     capsPerso=[];
     compsExtra.clear();
     ressourcesClasse={};
+    _presetActif=null;majPresetBadge();
   }
   // Décocher toutes les compétences (appliquerCompsDefaut les remet ensuite)
   if(!fromLoad)document.querySelectorAll(".erow[data-ci] .comp-check").forEach(function(chk){chk.checked=false;});
@@ -10683,6 +10688,10 @@ function sortsPresetCharger(idx){
   var pr=sortsPresets[idx];if(!pr)return;
   prepares.clear();
   (pr.sorts||[]).forEach(function(s){prepares.add(s);});
+  // Réintégrer automatiquement les sorts bonus MJ (toujours préparés)
+  _conn_sortsBonus.forEach(function(s){prepares.add(s);});
+  _presetActif=pr.nom;
+  majPresetBadge();
   majCompteurPrepares();
   eRendrePrep();
   eFiltrerSorts();
@@ -10692,9 +10701,17 @@ function sortsPresetCharger(idx){
 }
 function sortsPresetSupprimer(idx){
   if(_presetEditIdx===idx)_presetEditIdx=-1;
+  if(_presetActif&&sortsPresets[idx]&&sortsPresets[idx].nom===_presetActif){
+    _presetActif=null;majPresetBadge();
+  }
   sortsPresets.splice(idx,1);
   sauvegarder();
   sortsPresetRendreUI();
+}
+function majPresetBadge(){
+  var b=el('r-preset-badge');if(!b)return;
+  if(_presetActif){b.textContent='📋 '+_presetActif;b.style.display='';}
+  else{b.style.display='none';}
 }
 // ──────────────────────────────────────────────────────────────────
 
@@ -10766,6 +10783,7 @@ function rRendreSorts(){
   var mod=caracId?gStatMod(caracId):0;
   var info=LANCEURS.indexOf(cl)>=0?calcNbSorts():null;
   rMajInfosSorts(cl,bm,mod,info);
+  majPresetBadge();
   rendreSlots("r-slots",true);   // remplit slotsE (div caché)
   rRendreSlotsArtwork();          // pills visuels
   var prepType=getClassePreparationType();
@@ -13842,15 +13860,33 @@ function conn_initListener(){
         conn_rendreHistoire();
       });
   }
-  // Sorts bonus accordés par le MJ
+  // Sorts bonus accordés par le MJ — auto-préparés
   if(!_conn_sortsBonus_unsub){
     _conn_sortsBonus_unsub=db.collection('parties').doc(campCode)
       .collection('joueurs').doc(joueurId)
       .collection('sortsBonus').onSnapshot(function(qs){
-        _conn_sortsBonus=new Set();
-        qs.forEach(function(d){var dat=d.data();if(dat.nom)_conn_sortsBonus.add(dat.nom);});
-        // Rafraîchir la liste de sorts si l'onglet sorts est actif
+        var changed=false;
+        qs.docChanges().forEach(function(change){
+          var nom=change.doc.data().nom;
+          if(!nom)return;
+          if(change.type==='removed'){
+            _conn_sortsBonus.delete(nom);
+            // Retirer des préparés seulement si c'est un sort bonus retiré
+            if(prepares.has(nom)){prepares.delete(nom);grimoire.delete(nom);changed=true;}
+          } else {
+            // added ou modified : auto-préparer
+            _conn_sortsBonus.add(nom);
+            if(!prepares.has(nom)){prepares.add(nom);grimoire.add(nom);changed=true;}
+          }
+        });
+        if(changed){
+          majCompteurPrepares();
+          if(typeof eRendrePrep==='function')eRendrePrep();
+          sauvegarder();
+        }
+        // Rafraîchir la liste de sorts
         if(typeof eBuildChips==='function'){eBuildChips();eFiltrerSorts();}
+        if(typeof rRendreSorts==='function')rRendreSorts();
       });
   }
 }
