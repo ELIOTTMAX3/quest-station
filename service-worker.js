@@ -1,10 +1,10 @@
-const CACHE_NAME = 'quest-station-v3';
-const ASSETS = [
-  '/',
-  '/index.html',
-  '/mj.html',
-  '/regles.html',
-  '/outils_rapides.html',
+const CACHE_NAME = 'quest-station-v4';
+
+// Fichiers HTML : network-first (toujours récupérer la version fraîche)
+const HTML_FILES = ['/', '/index.html', '/mj.html', '/regles.html', '/outils_rapides.html'];
+
+// Assets statiques : cache-first (changent peu, chargement rapide)
+const STATIC_ASSETS = [
   '/capacites.js',
   '/sorts.js',
   '/monstres-srd.js',
@@ -13,17 +13,17 @@ const ASSETS = [
   '/manifest.json'
 ];
 
-// Installation : mise en cache des ressources statiques
+// Installation : pré-cache des assets statiques uniquement
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_NAME).then(function(cache) {
-      return cache.addAll(ASSETS);
+      return cache.addAll(STATIC_ASSETS);
     })
   );
   self.skipWaiting();
 });
 
-// Activation : nettoyage des anciens caches
+// Activation : nettoyage de TOUS les anciens caches
 self.addEventListener('activate', function(event) {
   event.waitUntil(
     caches.keys().then(function(keys) {
@@ -36,11 +36,11 @@ self.addEventListener('activate', function(event) {
   self.clients.claim();
 });
 
-// Fetch : cache-first pour les ressources statiques, réseau pour Firebase
 self.addEventListener('fetch', function(event) {
   var url = event.request.url;
+  if (event.request.method !== 'GET') return;
 
-  // Laisser passer les requêtes Firebase (Firestore, Auth, etc.)
+  // Laisser passer Firebase
   if (url.includes('firestore.googleapis.com') ||
       url.includes('firebase.googleapis.com') ||
       url.includes('googleapis.com') ||
@@ -48,24 +48,36 @@ self.addEventListener('fetch', function(event) {
     return;
   }
 
-  event.respondWith(
-    caches.match(event.request).then(function(cached) {
-      if (cached) return cached;
-      return fetch(event.request).then(function(response) {
-        // Mettre en cache les nouvelles ressources statiques (GET uniquement)
-        if (event.request.method === 'GET' && response && response.status === 200) {
-          var responseClone = response.clone();
-          caches.open(CACHE_NAME).then(function(cache) {
-            cache.put(event.request, responseClone);
-          });
+  var isHtml = HTML_FILES.some(function(p) { return url.endsWith(p); })
+               || event.request.mode === 'navigate';
+
+  if (isHtml) {
+    // Network-first pour les HTML : toujours essayer le réseau
+    event.respondWith(
+      fetch(event.request).then(function(response) {
+        if (response && response.status === 200) {
+          var clone = response.clone();
+          caches.open(CACHE_NAME).then(function(cache) { cache.put(event.request, clone); });
         }
         return response;
       }).catch(function() {
-        // Fallback offline : retourner index.html pour les navigations
-        if (event.request.mode === 'navigate') {
-          return caches.match('/index.html');
-        }
-      });
-    })
-  );
+        // Hors-ligne : retourner la version en cache si dispo
+        return caches.match(event.request) || caches.match('/index.html');
+      })
+    );
+  } else {
+    // Cache-first pour les assets statiques
+    event.respondWith(
+      caches.match(event.request).then(function(cached) {
+        if (cached) return cached;
+        return fetch(event.request).then(function(response) {
+          if (response && response.status === 200) {
+            var clone = response.clone();
+            caches.open(CACHE_NAME).then(function(cache) { cache.put(event.request, clone); });
+          }
+          return response;
+        });
+      })
+    );
+  }
 });
