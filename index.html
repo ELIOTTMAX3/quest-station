@@ -44,8 +44,12 @@ body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--txt);font
 .l-big-btn:hover{background:var(--rh);}
 .l-big-btn.l-outline{background:transparent;border:2px solid var(--bord2);color:var(--txt2);}
 .l-big-btn.l-outline:hover{border-color:var(--rouge);color:var(--rouge);}
-.l-pj-card{width:100%;padding:11px 14px;background:var(--bg);border:1px solid var(--bord2);border-radius:10px;cursor:pointer;margin-bottom:8px;text-align:left;font-family:inherit;transition:border-color .15s,background .15s;display:block;}
+.l-pj-card{width:100%;padding:10px 12px;background:var(--bg);border:1px solid var(--bord2);border-radius:10px;cursor:pointer;margin-bottom:8px;text-align:left;font-family:inherit;transition:border-color .15s,background .15s;display:flex;align-items:center;gap:12px;}
 .l-pj-card:hover{border-color:var(--rouge);background:var(--bg3);}
+.l-pj-av{width:48px;height:48px;border-radius:50%;flex-shrink:0;overflow:hidden;background:var(--bg3);display:flex;align-items:center;justify-content:center;}
+.l-pj-av-img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+.l-pj-av-init{font-size:16px;font-weight:800;color:var(--rouge);}
+.l-pj-txt{flex:1;min-width:0;}
 .l-pj-nom{display:block;font-size:15px;font-weight:700;color:var(--txt);}
 .l-pj-detail{display:block;font-size:11px;color:var(--txt3);margin-top:3px;}
 .l-back{background:none;border:none;color:var(--txt3);cursor:pointer;font-size:12px;margin-top:12px;font-family:inherit;display:block;width:100%;text-align:center;padding:4px;}
@@ -8100,10 +8104,25 @@ function chargerListePJ(){
         Guerrier:'🛡',Magicien:'📚',Moine:'👊',Occultiste:'🕯',Paladin:'⚡',
         Rôdeur:'🏹',Roublard:'🗡'}[d.classe] || '🧙';
       var detail = [d.classe, d.race, d.niveau ? 'Niveau ' + d.niveau : ''].filter(Boolean).join(' · ');
+      var nom = d.nom || pj.id;
+      var initiales = nom.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2);
+
       var btn = document.createElement('button');
       btn.className = 'l-pj-card';
-      btn.innerHTML = '<span class="l-pj-nom">' + icon + ' ' + (d.nom || pj.id) + '</span>'
-        + (detail ? '<span class="l-pj-detail">' + detail + '</span>' : '');
+
+      // Avatar (photo ou initiales)
+      var avHtml;
+      if(d.avatar){
+        avHtml = '<img src="' + d.avatar + '" class="l-pj-av-img" alt="">';
+      } else {
+        avHtml = '<div class="l-pj-av-init">' + initiales + '</div>';
+      }
+
+      btn.innerHTML = '<div class="l-pj-av">' + avHtml + '</div>'
+        + '<div class="l-pj-txt">'
+        + '<span class="l-pj-nom">' + nom + '</span>'
+        + (detail ? '<span class="l-pj-detail">' + icon + ' ' + detail + '</span>' : '')
+        + '</div>';
       btn.onclick = function(){ connecterPJ(pj.id, d.nom || pj.id); };
       cont.appendChild(btn);
     });
