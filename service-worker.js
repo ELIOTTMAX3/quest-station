@@ -1,12 +1,14 @@
-const CACHE_NAME = 'quest-station-v1';
+const CACHE_NAME = 'quest-station-v3';
 const ASSETS = [
   '/',
   '/index.html',
   '/mj.html',
+  '/regles.html',
   '/outils_rapides.html',
   '/capacites.js',
   '/sorts.js',
   '/monstres-srd.js',
+  '/infos-contenu.js',
   '/icon.svg',
   '/manifest.json'
 ];
