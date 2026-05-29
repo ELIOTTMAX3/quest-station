@@ -10798,7 +10798,6 @@ function rRendreSortsBonus(){
       +'<span class="sa">▾</span>';
     var bd=document.createElement('div');
     bd.className='sb2';
-    bd.style.cssText='display:none;padding:8px 10px;border-top:1px solid rgba(201,162,39,.2);';
     if(s.i&&s.i!=='—'){
       var meta=document.createElement('div');meta.className='smeta';
       [['Incantation',s.i],['Portée',s.p],['Composantes',s.c],['Durée',s.d]].forEach(function(pair){
@@ -10809,9 +10808,8 @@ function rRendreSortsBonus(){
     }
     if(s.t){var desc=document.createElement('div');desc.className='sdesc';desc.textContent=s.t;bd.appendChild(desc);}
     hd.addEventListener('click',function(){
-      var open=bd.style.display!=='none';
-      bd.style.display=open?'none':'';
-      hd.querySelector('.sa').textContent=open?'▾':'▴';
+      bd.classList.toggle('on');
+      hd.querySelector('.sa').textContent=bd.classList.contains('on')?'▴':'▾';
     });
     item.appendChild(hd);item.appendChild(bd);
     list.appendChild(item);
