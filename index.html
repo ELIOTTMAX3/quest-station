@@ -8049,6 +8049,14 @@ function eTab(name,btn){
   btn.classList.add("on");
   if(name==="sorts"){calcSortsDD();eBuildChips();eFiltrerSorts();}
   if(name==="caps")eRendreCaps();
+  if(name==="notes"){
+    requestAnimationFrame(function(){
+      ['traits','ideaux','liens','defauts','capacites','notes'].forEach(function(id){
+        var ta=el(id);if(!ta)return;
+        ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';
+      });
+    });
+  }
   if(name==="regles"){
     // Charger le contenu du sous-onglet actif (Création par défaut)
     var actif=document.querySelector('#et-regles .rq-stab.on');
