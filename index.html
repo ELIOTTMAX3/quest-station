@@ -8845,7 +8845,7 @@ var CANTRIPS = {
 function calcNbSorts() {
   var cl  = gCl();
   var niv = gNiv();
-  var mod = CS_CL[cl] ? gMod(parseInt(v(CS_CL[cl]))||10) : 0;
+  var mod = CS_CL[cl] ? gStatMod(CS_CL[cl]) : 0;
   var idx = niv - 1;
 
   if (LANCEURS.indexOf(cl) < 0) return null;
@@ -10461,7 +10461,7 @@ function rRendreSlotsArtwork(){
 function rRendreSorts(){
   var cl=gCl(),bm=gBM();
   var caracId=CS_CL[cl]||null;
-  var mod=caracId?gMod(parseInt(v(caracId))||10):0;
+  var mod=caracId?gStatMod(caracId):0;
   var info=LANCEURS.indexOf(cl)>=0?calcNbSorts():null;
   rMajInfosSorts(cl,bm,mod,info);
   rendreSlots("r-slots",true);   // remplit slotsE (div caché)
