@@ -1244,17 +1244,27 @@ function ouvrirPanel(code){
 
   // Écouter la collection joueurs
   joueursUnsub=db.collection("parties").doc(code).collection("joueurs").onSnapshot(function(qs){
-    joueursData={};
-    qs.forEach(function(d){joueursData[d.id]=d.data();});
+    // Mise à jour incrémentale : évite le reset complet qui cause des disparitions
+    // lors des snapshots depuis le cache (fromCache=true) au démarrage ou reconnexion
+    qs.docChanges().forEach(function(change){
+      if(change.type==='removed'){
+        delete joueursData[change.doc.id];
+      } else {
+        joueursData[change.doc.id]=change.doc.data();
+      }
+    });
     renderJoueursInscrits();
     rendreJoueurs();
     mjConn_majSelectPJ();
     equip_mj_rendreItems();
     // Auto-fill _initScore dans le tracker
-    qs.forEach(function(d){
-      if(d.data()._initScore!==null&&d.data()._initScore!==undefined){
-        var c=combatants.find(function(x){return x.jid===d.id;});
-        if(c){c.init=d.data()._initScore;}
+    qs.docChanges().forEach(function(change){
+      if(change.type!=='removed'){
+        var d=change.doc;
+        if(d.data()._initScore!==null&&d.data()._initScore!==undefined){
+          var c=combatants.find(function(x){return x.jid===d.id;});
+          if(c){c.init=d.data()._initScore;}
+        }
       }
     });
     // Mettre à jour PV des PJ dans le tracker si actif
