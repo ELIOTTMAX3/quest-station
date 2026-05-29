@@ -1214,6 +1214,14 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <p id="r-scount" style="font-size:11px;color:var(--txt3);margin-bottom:8px;"></p>
       <div class="sa-grid" id="r-slist"></div>
     </div>
+
+    <!-- ── Sorts bonus MJ ── -->
+    <div id="r-sorts-bonus-section" style="display:none;margin-top:14px;">
+      <div class="sa-section-hd" style="margin-bottom:8px;">
+        <span class="sa-section-title" style="color:var(--or);">⭐ Dons du Maître du Jeu</span>
+      </div>
+      <div id="r-sorts-bonus-list" class="sa-grid"></div>
+    </div>
   </div>
 
   <div id="rt-regles" class="tc">
@@ -9049,15 +9057,8 @@ function getSortsFiltres(){
   if (!SORTS || !SORTS.length) return [];
   var cl=gCl();
   var clF=cl==="Occultiste"?"Sorcier":cl==="Rôdeur"?"Ranger":cl;
-  if(cl&&LANCEURS.indexOf(cl)>=0){
-    var classeSorts=SORTS.filter(function(s){return s.cl.indexOf(clF)>=0;});
-    if(!_conn_sortsBonus||!_conn_sortsBonus.size)return classeSorts;
-    // Ajouter les sorts bonus accordés par le MJ qui ne sont pas déjà dans la liste de classe
-    var existants=new Set(classeSorts.map(function(s){return s.n;}));
-    var bonus=SORTS.filter(function(s){return _conn_sortsBonus.has(s.n)&&!existants.has(s.n);});
-    return classeSorts.concat(bonus);
-  }
-  return SORTS;
+  // Les sorts bonus MJ ne sont PAS dans la liste normale — ils ont leur propre section en résumé
+  return cl&&LANCEURS.indexOf(cl)>=0?SORTS.filter(function(s){return s.cl.indexOf(clF)>=0;}):SORTS;
 }
 function eBuildChips(){
   var ss=getSortsFiltres();
@@ -9231,15 +9232,6 @@ function rendreListeSorts(ss, cid, mode) {
     eco.className = "se";
     eco.textContent = s.e.replace(/\s*\(rituel\)/i, "").trim();
     hd.appendChild(eco);
-
-    // Badge "Don MJ" si sort bonus
-    if(_conn_sortsBonus&&_conn_sortsBonus.has(s.n)){
-      var mjBadge=document.createElement("span");
-      mjBadge.title="Sort accordé par le MJ";
-      mjBadge.style.cssText="font-size:10px;flex-shrink:0;opacity:.85;";
-      mjBadge.textContent="⭐";
-      hd.appendChild(mjBadge);
-    }
 
     // Flèche
     var arr = document.createElement("span");
@@ -10777,6 +10769,56 @@ function rRendreSlotsArtwork(){
 }
 
 // ── Rendu principal onglet sorts ────────────────────────
+function rRendreSortsBonus(){
+  var sec=el('r-sorts-bonus-section');
+  var list=el('r-sorts-bonus-list');
+  if(!sec||!list)return;
+  if(!_conn_sortsBonus||!_conn_sortsBonus.size){sec.style.display='none';return;}
+  // Récupérer les données complètes depuis SORTS
+  var allS=window.SORTS||[];
+  var bonusSorts=[];
+  _conn_sortsBonus.forEach(function(nom){
+    var found=allS.find(function(s){return s.n===nom;});
+    if(found)bonusSorts.push(found);
+    else bonusSorts.push({n:nom,nv:0,e:'—',i:'—',p:'—',c:'—',d:'—',t:''});
+  });
+  bonusSorts.sort(function(a,b){if(a.nv!==b.nv)return a.nv-b.nv;return a.n.localeCompare(b.n,'fr');});
+  list.innerHTML='';
+  bonusSorts.forEach(function(s){
+    var item=document.createElement('div');
+    item.className='si';
+    item.style.cssText='border:1px solid rgba(201,162,39,.3);background:rgba(201,162,39,.05);border-radius:8px;margin-bottom:6px;overflow:hidden;';
+    var nvLbl=s.nv===0?'Cantrip':'Niv.'+s.nv;
+    var hd=document.createElement('div');
+    hd.className='sh';
+    hd.style.cssText='display:flex;align-items:center;gap:6px;padding:8px 10px;cursor:pointer;';
+    hd.innerHTML='<span class="bdg b'+s.nv+'" style="background:rgba(201,162,39,.2);color:var(--or);border-color:rgba(201,162,39,.4);">'+nvLbl+'</span>'
+      +'<span class="sn" style="flex:1;">'+escHtml(s.n)+'</span>'
+      +'<span class="se">'+escHtml((s.e||'').replace(/\s*\(rituel\)/i,'').trim())+'</span>'
+      +'<span class="sa">▾</span>';
+    var bd=document.createElement('div');
+    bd.className='sb2';
+    bd.style.cssText='display:none;padding:8px 10px;border-top:1px solid rgba(201,162,39,.2);';
+    if(s.i&&s.i!=='—'){
+      var meta=document.createElement('div');meta.className='smeta';
+      [['Incantation',s.i],['Portée',s.p],['Composantes',s.c],['Durée',s.d]].forEach(function(pair){
+        var sp=document.createElement('span');sp.innerHTML='<b>'+pair[0]+' : </b>'+escHtml(pair[1]||'');
+        meta.appendChild(sp);
+      });
+      bd.appendChild(meta);
+    }
+    if(s.t){var desc=document.createElement('div');desc.className='sdesc';desc.textContent=s.t;bd.appendChild(desc);}
+    hd.addEventListener('click',function(){
+      var open=bd.style.display!=='none';
+      bd.style.display=open?'none':'';
+      hd.querySelector('.sa').textContent=open?'▾':'▴';
+    });
+    item.appendChild(hd);item.appendChild(bd);
+    list.appendChild(item);
+  });
+  sec.style.display='';
+}
+
 function rRendreSorts(){
   var cl=gCl(),bm=gBM();
   var caracId=CS_CL[cl]||null;
@@ -10784,6 +10826,7 @@ function rRendreSorts(){
   var info=LANCEURS.indexOf(cl)>=0?calcNbSorts():null;
   rMajInfosSorts(cl,bm,mod,info);
   majPresetBadge();
+  rRendreSortsBonus();
   rendreSlots("r-slots",true);   // remplit slotsE (div caché)
   rRendreSlotsArtwork();          // pills visuels
   var prepType=getClassePreparationType();
@@ -13860,33 +13903,14 @@ function conn_initListener(){
         conn_rendreHistoire();
       });
   }
-  // Sorts bonus accordés par le MJ — auto-préparés
+  // Sorts bonus accordés par le MJ — section dédiée en résumé
   if(!_conn_sortsBonus_unsub){
     _conn_sortsBonus_unsub=db.collection('parties').doc(campCode)
       .collection('joueurs').doc(joueurId)
       .collection('sortsBonus').onSnapshot(function(qs){
-        var changed=false;
-        qs.docChanges().forEach(function(change){
-          var nom=change.doc.data().nom;
-          if(!nom)return;
-          if(change.type==='removed'){
-            _conn_sortsBonus.delete(nom);
-            // Retirer des préparés seulement si c'est un sort bonus retiré
-            if(prepares.has(nom)){prepares.delete(nom);grimoire.delete(nom);changed=true;}
-          } else {
-            // added ou modified : auto-préparer
-            _conn_sortsBonus.add(nom);
-            if(!prepares.has(nom)){prepares.add(nom);grimoire.add(nom);changed=true;}
-          }
-        });
-        if(changed){
-          majCompteurPrepares();
-          if(typeof eRendrePrep==='function')eRendrePrep();
-          sauvegarder();
-        }
-        // Rafraîchir la liste de sorts
-        if(typeof eBuildChips==='function'){eBuildChips();eFiltrerSorts();}
-        if(typeof rRendreSorts==='function')rRendreSorts();
+        _conn_sortsBonus=new Set();
+        qs.forEach(function(d){var dat=d.data();if(dat.nom)_conn_sortsBonus.add(dat.nom);});
+        rRendreSortsBonus();
       });
   }
 }
@@ -13897,7 +13921,7 @@ function conn_resetListener(){
   if(_conn_sortsBonus_unsub){_conn_sortsBonus_unsub();_conn_sortsBonus_unsub=null;}
   _conn_data=[];_conn_homebrew={};_conn_images={};_conn_histoire=[];
   _conn_sortsBonus=new Set();
-  conn_render();conn_rendreHistoire();
+  conn_render();conn_rendreHistoire();rRendreSortsBonus();
 }
 function conn_initImages(){
   if(_conn_images_unsub||!db)return;
