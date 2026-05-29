@@ -7074,12 +7074,12 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <div class="card">
       <p class="st">Personnalité</p>
       <div class="g2" style="margin-bottom:12px;">
-        <div><label>Traits</label><textarea id="traits" oninput="sauvegarder()"></textarea></div>
-        <div><label>Idéaux</label><textarea id="ideaux" oninput="sauvegarder()"></textarea></div>
+        <div><label>Traits</label><textarea id="traits" style="resize:none;overflow:hidden;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';sauvegarder()"></textarea></div>
+        <div><label>Idéaux</label><textarea id="ideaux" style="resize:none;overflow:hidden;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';sauvegarder()"></textarea></div>
       </div>
       <div class="g2">
-        <div><label>Liens</label><textarea id="liens" oninput="sauvegarder()"></textarea></div>
-        <div><label>Défauts</label><textarea id="defauts" oninput="sauvegarder()"></textarea></div>
+        <div><label>Liens</label><textarea id="liens" style="resize:none;overflow:hidden;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';sauvegarder()"></textarea></div>
+        <div><label>Défauts</label><textarea id="defauts" style="resize:none;overflow:hidden;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';sauvegarder()"></textarea></div>
       </div>
     </div>
     <div class="card"><label>Histoire du personnage</label><textarea id="capacites" style="min-height:100px;resize:none;overflow:hidden;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';sauvegarder()"></textarea></div>
@@ -8493,7 +8493,7 @@ function chargerFiche(data){
     show("s-resume");
     // Resize auto-height textareas AFTER elements are visible
     requestAnimationFrame(function(){
-      ['notes','capacites'].forEach(function(id){
+      ['notes','capacites','traits','ideaux','liens','defauts'].forEach(function(id){
         var ta=el(id);if(!ta)return;
         ta.style.height='auto';ta.style.height=ta.scrollHeight+'px';
       });
@@ -9036,7 +9036,15 @@ function getSortsFiltres(){
   if (!SORTS || !SORTS.length) return [];
   var cl=gCl();
   var clF=cl==="Occultiste"?"Sorcier":cl==="Rôdeur"?"Ranger":cl;
-  return cl&&LANCEURS.indexOf(cl)>=0?SORTS.filter(function(s){return s.cl.indexOf(clF)>=0;}):SORTS;
+  if(cl&&LANCEURS.indexOf(cl)>=0){
+    var classeSorts=SORTS.filter(function(s){return s.cl.indexOf(clF)>=0;});
+    if(!_conn_sortsBonus||!_conn_sortsBonus.size)return classeSorts;
+    // Ajouter les sorts bonus accordés par le MJ qui ne sont pas déjà dans la liste de classe
+    var existants=new Set(classeSorts.map(function(s){return s.n;}));
+    var bonus=SORTS.filter(function(s){return _conn_sortsBonus.has(s.n)&&!existants.has(s.n);});
+    return classeSorts.concat(bonus);
+  }
+  return SORTS;
 }
 function eBuildChips(){
   var ss=getSortsFiltres();
@@ -9210,6 +9218,15 @@ function rendreListeSorts(ss, cid, mode) {
     eco.className = "se";
     eco.textContent = s.e.replace(/\s*\(rituel\)/i, "").trim();
     hd.appendChild(eco);
+
+    // Badge "Don MJ" si sort bonus
+    if(_conn_sortsBonus&&_conn_sortsBonus.has(s.n)){
+      var mjBadge=document.createElement("span");
+      mjBadge.title="Sort accordé par le MJ";
+      mjBadge.style.cssText="font-size:10px;flex-shrink:0;opacity:.85;";
+      mjBadge.textContent="⭐";
+      hd.appendChild(mjBadge);
+    }
 
     // Flèche
     var arr = document.createElement("span");
@@ -13731,6 +13748,9 @@ var _conn_images_unsub=null;
 function conn_selectSubtab(t,btn){/* remplacé par nt_selectTab */}
 
 var _conn_histoire_unsub=null;
+var _conn_sortsBonus=new Set(); // noms des sorts bonus accordés par le MJ
+var _conn_sortsBonus_unsub=null;
+
 function conn_initListener(){
   if(_conn_unsub||!db||!campCode||!joueurId)return;
   // Connaissances (monstres)
@@ -13751,12 +13771,25 @@ function conn_initListener(){
         conn_rendreHistoire();
       });
   }
+  // Sorts bonus accordés par le MJ
+  if(!_conn_sortsBonus_unsub){
+    _conn_sortsBonus_unsub=db.collection('parties').doc(campCode)
+      .collection('joueurs').doc(joueurId)
+      .collection('sortsBonus').onSnapshot(function(qs){
+        _conn_sortsBonus=new Set();
+        qs.forEach(function(d){var dat=d.data();if(dat.nom)_conn_sortsBonus.add(dat.nom);});
+        // Rafraîchir la liste de sorts si l'onglet sorts est actif
+        if(typeof eBuildChips==='function'){eBuildChips();eFiltrerSorts();}
+      });
+  }
 }
 function conn_resetListener(){
   if(_conn_unsub){_conn_unsub();_conn_unsub=null;}
   if(_conn_images_unsub){_conn_images_unsub();_conn_images_unsub=null;}
   if(_conn_histoire_unsub){_conn_histoire_unsub();_conn_histoire_unsub=null;}
+  if(_conn_sortsBonus_unsub){_conn_sortsBonus_unsub();_conn_sortsBonus_unsub=null;}
   _conn_data=[];_conn_homebrew={};_conn_images={};_conn_histoire=[];
+  _conn_sortsBonus=new Set();
   conn_render();conn_rendreHistoire();
 }
 function conn_initImages(){

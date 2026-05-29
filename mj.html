@@ -655,6 +655,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           </div>
           <div style="display:flex;gap:2px;margin-bottom:10px;background:var(--bg2);border:1px solid var(--bord);border-radius:8px;padding:3px;">
             <button class="conn-subnav-btn on" id="mj-conn-tab-monstres" onclick="mjConn_selectTab('monstres',this)" style="flex:1;background:none;border:none;font-family:inherit;font-size:12px;font-weight:600;padding:7px 6px;border-radius:6px;cursor:pointer;color:var(--txt3);">👾 Monstres</button>
+            <button class="conn-subnav-btn" id="mj-conn-tab-sorts" onclick="mjConn_selectTab('sorts',this)" style="flex:1;background:none;border:none;font-family:inherit;font-size:12px;font-weight:600;padding:7px 6px;border-radius:6px;cursor:pointer;color:var(--txt3);">🔮 Sorts</button>
             <button class="conn-subnav-btn" id="mj-conn-tab-histoire" onclick="mjConn_selectTab('histoire',this)" style="flex:1;background:none;border:none;font-family:inherit;font-size:12px;font-weight:600;padding:7px 6px;border-radius:6px;cursor:pointer;color:var(--txt3);">📜 Histoire</button>
           </div>
           <div id="mj-conn-panel-monstres">
@@ -666,6 +667,19 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
               <p style="font-size:12px;color:var(--txt3);font-style:italic;">Sélectionne un joueur pour voir ses connaissances.</p>
             </div>
           </div>
+          <!-- Panel Sorts bonus MJ -->
+          <div id="mj-conn-panel-sorts" style="display:none;">
+            <p style="font-size:11px;color:var(--txt3);margin-bottom:8px;line-height:1.5;">Accorde des sorts hors liste de classe. Ils apparaîtront chez le joueur avec un indicateur ⭐.</p>
+            <div style="display:flex;gap:4px;margin-bottom:6px;">
+              <input id="mj-conn-sort-search" type="text" placeholder="Rechercher un sort (toutes classes)…" style="flex:1;font-size:12px;padding:6px 8px;background:var(--bg2);border:1px solid var(--bord);border-radius:6px;color:var(--txt);" oninput="mjConn_searchSort(this.value)" autocomplete="off">
+            </div>
+            <div id="mj-conn-sort-results" style="max-height:200px;overflow-y:auto;margin-bottom:10px;border:1px solid var(--bord);border-radius:6px;display:none;background:var(--bg);"></div>
+            <p style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);margin-bottom:6px;">Sorts accordés</p>
+            <div id="mj-conn-sorts-liste">
+              <p style="font-size:12px;color:var(--txt3);font-style:italic;">Sélectionne un joueur pour voir ses sorts bonus.</p>
+            </div>
+          </div>
+
           <div id="mj-conn-panel-histoire" style="display:none;">
             <div id="mj-conn-hist-new" style="background:var(--bg2);border:1px solid var(--bord);border-radius:8px;padding:10px 12px;margin-bottom:10px;">
               <p style="font-size:11px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px;">Nouveau bloc</p>
@@ -986,6 +1000,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 </div>
 
 <script src="monstres-srd.js"></script>
+<script src="sorts.js"></script>
 <script>
 // ══════════════════════════════════════════
 // VARIABLES GLOBALES
@@ -1756,8 +1771,10 @@ var _mjConn_pjId=null; // joueur sélectionné
 var _mjConn_tab='monstres';
 var _mjConn_monsUnsub=null;
 var _mjConn_histUnsub=null;
+var _mjConn_sortsUnsub=null;
 var _mjConn_monsDonnees=[]; // liste connaissances monstres du joueur sélectionné
 var _mjConn_histDonnees=[]; // liste blocs histoire du joueur sélectionné
+var _mjConn_sortsDonnees=[]; // sorts bonus accordés au joueur
 var _mjConn_histTO=null;
 
 // Mise à jour du select joueurs + cases à cocher destinataires
@@ -1789,24 +1806,29 @@ function mjConn_selectPJ(jid){
   if(_mjConn_pjId){
     mjConn_initMonstreListener();
     mjConn_initHistoireListener();
+    mjConn_initSortsListener();
   } else {
     el('mj-conn-monstres-liste').innerHTML='<p style="font-size:12px;color:var(--txt3);font-style:italic;">Sélectionne un joueur pour voir ses connaissances.</p>';
     el('mj-conn-histoire-liste').innerHTML='<p style="font-size:12px;color:var(--txt3);font-style:italic;">Sélectionne un joueur pour voir son histoire.</p>';
+    el('mj-conn-sorts-liste').innerHTML='<p style="font-size:12px;color:var(--txt3);font-style:italic;">Sélectionne un joueur pour voir ses sorts bonus.</p>';
   }
 }
 
 function mjConn_resetListeners(){
   if(_mjConn_monsUnsub){_mjConn_monsUnsub();_mjConn_monsUnsub=null;}
   if(_mjConn_histUnsub){_mjConn_histUnsub();_mjConn_histUnsub=null;}
-  _mjConn_monsDonnees=[];_mjConn_histDonnees=[];
+  if(_mjConn_sortsUnsub){_mjConn_sortsUnsub();_mjConn_sortsUnsub=null;}
+  _mjConn_monsDonnees=[];_mjConn_histDonnees=[];_mjConn_sortsDonnees=[];
 }
 
 function mjConn_selectTab(t,btn){
   _mjConn_tab=t;
   el('mj-conn-panel-monstres').style.display=t==='monstres'?'':'none';
+  el('mj-conn-panel-sorts').style.display=t==='sorts'?'':'none';
   el('mj-conn-panel-histoire').style.display=t==='histoire'?'':'none';
   document.querySelectorAll('#mj-notes-sub-connaissances .conn-subnav-btn').forEach(function(b){b.classList.remove('on');});
   if(btn)btn.classList.add('on');
+  if(t==='sorts'){var inp=el('mj-conn-sort-search');if(inp){inp.value='';el('mj-conn-sort-results').style.display='none';}}
 }
 
 // ── Monstres ─────────────────────────────────────────────────────
@@ -1862,6 +1884,86 @@ function mjConn_retirerMonstre(monstruId){
   db.collection('parties').doc(campagneActive.id)
     .collection('joueurs').doc(_mjConn_pjId)
     .collection('connaissances').doc(monstruId).delete()
+    .catch(function(e){toast('Erreur : '+e.message);});
+}
+
+// ── Sorts bonus ──────────────────────────────────────────────────
+function mjConn_slugSort(nom){
+  return nom.toLowerCase()
+    .normalize('NFD').replace(/[̀-ͯ]/g,'')
+    .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+}
+function mjConn_initSortsListener(){
+  if(!db||!campagneActive||!_mjConn_pjId)return;
+  _mjConn_sortsUnsub=db.collection('parties').doc(campagneActive.id)
+    .collection('joueurs').doc(_mjConn_pjId)
+    .collection('sortsBonus').onSnapshot(function(qs){
+      _mjConn_sortsDonnees=[];
+      qs.forEach(function(d){_mjConn_sortsDonnees.push(Object.assign({id:d.id},d.data()));});
+      mjConn_rendreSortsListe();
+    });
+}
+function mjConn_rendreSortsListe(){
+  var cont=el('mj-conn-sorts-liste');if(!cont)return;
+  if(!_mjConn_sortsDonnees.length){
+    cont.innerHTML='<p style="font-size:12px;color:var(--txt3);font-style:italic;">Aucun sort bonus accordé à ce joueur.</p>';
+    return;
+  }
+  var html=_mjConn_sortsDonnees.map(function(s){
+    var nvLbl=s.nv===0?'Cantrip':'Niv.'+s.nv;
+    return '<div style="display:flex;align-items:center;gap:6px;padding:6px 4px;border-bottom:1px solid var(--bord);">'
+      +'<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:rgba(201,162,39,.18);color:var(--or);flex-shrink:0;">'+mjEsc(nvLbl)+'</span>'
+      +'<span style="flex:1;font-size:12px;color:var(--txt);">'+mjEsc(s.nom)+'</span>'
+      +'<span style="font-size:10px;color:var(--txt3);margin-right:4px;">'+mjEsc(s.ecole||'')+'</span>'
+      +'<button class="btn" style="font-size:10px;padding:2px 7px;color:#e05050;border-color:#e05050;" onclick="mjConn_retirerSort(\''+mjEsc(s.id)+'\',\''+mjEsc(s.nom)+'\')">✕</button>'
+      +'</div>';
+  }).join('');
+  cont.innerHTML=html;
+}
+function mjConn_searchSort(q){
+  var res=el('mj-conn-sort-results');if(!res)return;
+  q=q.trim();
+  if(!q||q.length<2){res.style.display='none';return;}
+  var ql=q.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+  var allS=(window.SORTS||[]);
+  // Exclure les sorts déjà accordés
+  var dejaIds=new Set(_mjConn_sortsDonnees.map(function(s){return s.id;}));
+  var found=allS.filter(function(s){
+    var nl=s.n.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+    return nl.indexOf(ql)>=0 && !dejaIds.has(mjConn_slugSort(s.n));
+  }).slice(0,10);
+  if(!found.length){res.style.display='none';return;}
+  res.style.display='';
+  res.innerHTML=found.map(function(s){
+    var nvLbl=s.nv===0?'Cantrip':'Niv.'+s.nv;
+    var nomEsc=mjEsc(s.n).replace(/'/g,'\\\'');
+    var nvVal=s.nv;
+    var ecoleEsc=mjEsc(s.e||'').replace(/'/g,'\\\'');
+    return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;border-bottom:1px solid var(--bord);transition:background .1s;" '
+      +'onmouseover="this.style.background=\'rgba(201,162,39,.1)\'" onmouseout="this.style.background=\'\'" '
+      +'onmousedown="mjConn_ajouterSort(\''+nomEsc+'\','+nvVal+',\''+ecoleEsc+'\');el(\'mj-conn-sort-search\').value=\'\';el(\'mj-conn-sort-results\').style.display=\'none\';">'
+      +'<span style="font-size:10px;font-weight:700;padding:1px 5px;border-radius:4px;background:rgba(201,162,39,.18);color:var(--or);flex-shrink:0;">'+mjEsc(nvLbl)+'</span>'
+      +'<span style="flex:1;font-size:12px;color:var(--txt);">'+mjEsc(s.n)+'</span>'
+      +'<span style="font-size:10px;color:var(--txt3);">'+mjEsc(s.e||'')+'</span>'
+      +'</div>';
+  }).join('');
+}
+function mjConn_ajouterSort(nom,nv,ecole){
+  if(!db||!campagneActive||!_mjConn_pjId){toast('Sélectionne un joueur d\'abord.');return;}
+  var docId=mjConn_slugSort(nom);
+  db.collection('parties').doc(campagneActive.id)
+    .collection('joueurs').doc(_mjConn_pjId)
+    .collection('sortsBonus').doc(docId)
+    .set({nom:nom,nv:nv,ecole:ecole||'',dateAccorde:firebase.firestore.FieldValue.serverTimestamp(),accordePar:mjId||'mj'})
+    .then(function(){toast('🔮 Sort accordé !');})
+    .catch(function(e){toast('Erreur : '+e.message);});
+}
+function mjConn_retirerSort(docId,nom){
+  if(!db||!campagneActive||!_mjConn_pjId)return;
+  if(!confirm('Retirer "'+nom+'" des sorts bonus de ce joueur ?'))return;
+  db.collection('parties').doc(campagneActive.id)
+    .collection('joueurs').doc(_mjConn_pjId)
+    .collection('sortsBonus').doc(docId).delete()
     .catch(function(e){toast('Erreur : '+e.message);});
 }
 
