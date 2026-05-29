@@ -40,6 +40,17 @@ body{font-family:system-ui,sans-serif;background:var(--bg);color:var(--txt);font
 #btn-login:hover{background:var(--rh);}
 .lerreur{font-size:12px;color:#fca5a5;background:rgba(185,28,28,.25);border-radius:6px;padding:8px;margin-top:8px;display:none;}
 .lnote{font-size:11px;color:var(--txt3);margin-top:1rem;line-height:1.6;}
+.l-big-btn{width:100%;padding:14px;font-size:15px;font-weight:700;border-radius:10px;background:var(--rouge);color:white;border:none;cursor:pointer;font-family:inherit;margin-top:.75rem;transition:background .2s;}
+.l-big-btn:hover{background:var(--rh);}
+.l-big-btn.l-outline{background:transparent;border:2px solid var(--bord2);color:var(--txt2);}
+.l-big-btn.l-outline:hover{border-color:var(--rouge);color:var(--rouge);}
+.l-pj-card{width:100%;padding:11px 14px;background:var(--bg);border:1px solid var(--bord2);border-radius:10px;cursor:pointer;margin-bottom:8px;text-align:left;font-family:inherit;transition:border-color .15s,background .15s;display:block;}
+.l-pj-card:hover{border-color:var(--rouge);background:var(--bg3);}
+.l-pj-nom{display:block;font-size:15px;font-weight:700;color:var(--txt);}
+.l-pj-detail{display:block;font-size:11px;color:var(--txt3);margin-top:3px;}
+.l-back{background:none;border:none;color:var(--txt3);cursor:pointer;font-size:12px;margin-top:12px;font-family:inherit;display:block;width:100%;text-align:center;padding:4px;}
+.l-back:hover{color:var(--txt2);}
+.l-pj-list{max-height:320px;overflow-y:auto;margin-top:4px;}
 /* ── LOADING ─────────────────────────────────────────── */
 #s-loading{display:none;min-height:100vh;align-items:center;justify-content:center;background:linear-gradient(135deg,#0a000a,#1a0000,#2d0808);}
 #s-loading.on{display:flex;}
@@ -658,12 +669,30 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <div class="llogo"></div>
     <div class="ltitre">Quest Station</div>
     <div class="lsous">D&D 5e · Fiche de personnage connectée</div>
-    <div class="lf"><label>Identifiant</label>
-      <input type="text" id="li-id" placeholder="Ex : jean-aldric" autocomplete="off"
-        onkeydown="if(event.key==='Enter')connecter()">
+
+    <!-- Écran choix -->
+    <div id="l-choix">
+      <button class="l-big-btn" onclick="loginMode('liste')">🎭 Jouer un personnage</button>
+      <button class="l-big-btn l-outline" onclick="loginMode('creer')">✨ Créer un personnage</button>
     </div>
-    <div class="lerreur" id="li-err"></div>
-    <button id="btn-login" onclick="connecter()">Connexion Firebase...</button>
+
+    <!-- Écran liste PJ -->
+    <div id="l-liste" style="display:none;">
+      <div class="l-pj-list" id="l-pj-list"></div>
+      <button class="l-back" onclick="loginMode('choix')">← Retour</button>
+    </div>
+
+    <!-- Écran création -->
+    <div id="l-creer" style="display:none;">
+      <div class="lf" style="margin-top:.5rem;"><label>Nom du personnage</label>
+        <input type="text" id="li-id" placeholder="Ex : Jean Aldric" autocomplete="off"
+          onkeydown="if(event.key==='Enter')connecter()">
+      </div>
+      <div class="lerreur" id="li-err"></div>
+      <button id="btn-login" onclick="connecter()">Créer →</button>
+      <button class="l-back" onclick="loginMode('choix')">← Retour</button>
+    </div>
+
     <p class="lnote">Sauvegarde automatique · Temps réel · Multi-appareils</p>
     <div id="diag" style="font-size:11px;color:var(--txt3);margin-top:8px;text-align:left;line-height:1.8;">
       <div id="diag-firebase"> Firebase...</div>
@@ -8035,6 +8064,62 @@ function sTab(name,btn){
 // ══════════════════════════════════════════
 // FIREBASE — CONNEXION
 // ══════════════════════════════════════════
+function loginMode(mode){
+  el('l-choix').style.display = mode==='choix' ? '' : 'none';
+  el('l-liste').style.display = mode==='liste' ? '' : 'none';
+  el('l-creer').style.display = mode==='creer' ? '' : 'none';
+  if(mode==='liste') chargerListePJ();
+  if(mode==='creer') setTimeout(function(){ var i=el('li-id'); if(i) i.focus(); }, 50);
+}
+
+function chargerListePJ(){
+  var cont = el('l-pj-list');
+  cont.innerHTML = '<p style="text-align:center;color:var(--txt3);padding:16px;">Chargement…</p>';
+  if(!db){
+    cont.innerHTML = '<p style="color:var(--txt3);text-align:center;padding:12px;">Firebase non disponible.</p>';
+    return;
+  }
+  db.collection('parties').doc(PARTIE).collection('joueurs').get().then(function(qs){
+    cont.innerHTML = '';
+    var pjs = [];
+    qs.forEach(function(doc){
+      var d = doc.data();
+      // Ignorer les fiches sans nom (vraiment vides)
+      if(!d.nom && !d.classe) return;
+      pjs.push({id: doc.id, data: d});
+    });
+    if(!pjs.length){
+      cont.innerHTML = '<p style="color:var(--txt3);text-align:center;padding:12px;">Aucun personnage trouvé.<br><small>Commence par en créer un.</small></p>';
+      return;
+    }
+    // Trier par nom
+    pjs.sort(function(a,b){ return (a.data.nom||a.id).localeCompare(b.data.nom||b.id); });
+    pjs.forEach(function(pj){
+      var d = pj.data;
+      var icon = {Barbare:'⚔',Barde:'🎵',Clerc:'✨',Druide:'🌿',Ensorceleur:'🔮',
+        Guerrier:'🛡',Magicien:'📚',Moine:'👊',Occultiste:'🕯',Paladin:'⚡',
+        Rôdeur:'🏹',Roublard:'🗡'}[d.classe] || '🧙';
+      var detail = [d.classe, d.race, d.niveau ? 'Niveau ' + d.niveau : ''].filter(Boolean).join(' · ');
+      var btn = document.createElement('button');
+      btn.className = 'l-pj-card';
+      btn.innerHTML = '<span class="l-pj-nom">' + icon + ' ' + (d.nom || pj.id) + '</span>'
+        + (detail ? '<span class="l-pj-detail">' + detail + '</span>' : '');
+      btn.onclick = function(){ connecterPJ(pj.id, d.nom || pj.id); };
+      cont.appendChild(btn);
+    });
+  }).catch(function(e){
+    cont.innerHTML = '<p style="color:#fca5a5;text-align:center;padding:12px;">Erreur de chargement.<br><small>' + e.message + '</small></p>';
+  });
+}
+
+function connecterPJ(id, label){
+  joueurId = id;
+  el('joueur').value = label;
+  show('s-loading');
+  updateHeader();
+  ecouterJoueur();
+}
+
 function connecter(){
   var id=(el("li-id").value||"").trim();
   var err=el("li-err");
