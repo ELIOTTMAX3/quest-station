@@ -9845,6 +9845,8 @@ if (cap.type === "auto" && cap.options && cap.options.length) {
   }
 
   // ── Section capacités personnalisées ──────────────────────────────
+  // En résumé : masquer la section entière si aucune cap perso
+  if (!modeEdit && !capsPerso.length) return;
   var secTitle = document.createElement("p");
   secTitle.className = "cap-section";
   secTitle.style.marginTop = "18px";
@@ -9859,10 +9861,13 @@ if (cap.type === "auto" && cap.options && cap.options.length) {
   function renderPersoList() {
     persoList.innerHTML = "";
     if (!capsPerso.length) {
-      var empty = document.createElement("p");
-      empty.style.cssText = "font-size:12px;color:var(--txt3);margin-bottom:8px;";
-      empty.textContent = "Aucune capacité personnalisée.";
-      persoList.appendChild(empty);
+      if (modeEdit) {
+        var empty = document.createElement("p");
+        empty.style.cssText = "font-size:12px;color:var(--txt3);margin-bottom:8px;";
+        empty.textContent = "Aucune capacité personnalisée.";
+        persoList.appendChild(empty);
+      }
+      return;
     }
     capsPerso.forEach(function(cap, idx) {
       var capKey = "perso_" + cap.nom;
@@ -9893,20 +9898,22 @@ if (cap.type === "auto" && cap.options && cap.options.length) {
       nomSpan.textContent = cap.nom;
       hd.appendChild(nomSpan);
 
-      // Bouton supprimer
-      var delBtn = document.createElement("button");
-      delBtn.textContent = "🗑";
-      delBtn.title = "Supprimer";
-      delBtn.style.cssText = "background:none;border:none;cursor:pointer;font-size:12px;padding:2px 4px;opacity:.6;flex-shrink:0;";
-      (function(i, k) {
-        delBtn.onclick = function(e) {
-          e.stopPropagation();
-          capsPerso.splice(i, 1);
-          capsFavoris.delete(k);
-          sauvegarder(); renderPersoList(); rMajFavoris();
-        };
-      })(idx, capKey);
-      hd.appendChild(delBtn);
+      // Bouton supprimer — édition uniquement
+      if (modeEdit) {
+        var delBtn = document.createElement("button");
+        delBtn.textContent = "🗑";
+        delBtn.title = "Supprimer";
+        delBtn.style.cssText = "background:none;border:none;cursor:pointer;font-size:12px;padding:2px 4px;opacity:.6;flex-shrink:0;";
+        (function(i, k) {
+          delBtn.onclick = function(e) {
+            e.stopPropagation();
+            capsPerso.splice(i, 1);
+            capsFavoris.delete(k);
+            sauvegarder(); renderPersoList(); rMajFavoris();
+          };
+        })(idx, capKey);
+        hd.appendChild(delBtn);
+      }
 
       item.appendChild(hd);
 
@@ -9936,43 +9943,45 @@ if (cap.type === "auto" && cap.options && cap.options.length) {
   }
   renderPersoList();
 
-  // Formulaire ajout
-  var formWrap = document.createElement("div");
-  formWrap.style.cssText = "margin-top:10px;padding:10px;background:var(--bg3);border-radius:8px;border:1px solid var(--bord);";
+  // Formulaire ajout — édition uniquement
+  if (modeEdit) {
+    var formWrap = document.createElement("div");
+    formWrap.style.cssText = "margin-top:10px;padding:10px;background:var(--bg3);border-radius:8px;border:1px solid var(--bord);";
 
-  var formTitle = document.createElement("p");
-  formTitle.style.cssText = "font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--txt3);margin-bottom:8px;";
-  formTitle.textContent = "Nouvelle capacité";
-  formWrap.appendChild(formTitle);
+    var formTitle = document.createElement("p");
+    formTitle.style.cssText = "font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--txt3);margin-bottom:8px;";
+    formTitle.textContent = "Nouvelle capacité";
+    formWrap.appendChild(formTitle);
 
-  var nomInp = document.createElement("input");
-  nomInp.type = "text";
-  nomInp.placeholder = "Nom de la capacité";
-  nomInp.style.cssText = "width:100%;margin-bottom:6px;font-size:13px;";
-  formWrap.appendChild(nomInp);
+    var nomInp = document.createElement("input");
+    nomInp.type = "text";
+    nomInp.placeholder = "Nom de la capacité";
+    nomInp.style.cssText = "width:100%;margin-bottom:6px;font-size:13px;";
+    formWrap.appendChild(nomInp);
 
-  var descInp = document.createElement("textarea");
-  descInp.placeholder = "Description (optionnelle)";
-  descInp.rows = 3;
-  descInp.style.cssText = "width:100%;font-size:12px;resize:vertical;margin-bottom:8px;";
-  formWrap.appendChild(descInp);
+    var descInp = document.createElement("textarea");
+    descInp.placeholder = "Description (optionnelle)";
+    descInp.rows = 3;
+    descInp.style.cssText = "width:100%;font-size:12px;resize:vertical;margin-bottom:8px;";
+    formWrap.appendChild(descInp);
 
-  var addBtn = document.createElement("button");
-  addBtn.textContent = "+ Ajouter";
-  addBtn.style.cssText = "background:var(--rouge);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;";
-  addBtn.onclick = function() {
-    var nom = nomInp.value.trim();
-    if (!nom) { nomInp.focus(); return; }
-    if (capsPerso.find(function(c){ return c.nom === nom; })) {
-      alert("Une capacité avec ce nom existe déjà.");
-      return;
-    }
-    capsPerso.push({ nom: nom, desc: descInp.value.trim() });
-    nomInp.value = ""; descInp.value = "";
-    sauvegarder(); renderPersoList(); rMajFavoris();
-  };
-  formWrap.appendChild(addBtn);
-  c.appendChild(formWrap);
+    var addBtn = document.createElement("button");
+    addBtn.textContent = "+ Ajouter";
+    addBtn.style.cssText = "background:var(--rouge);color:#fff;border:none;border-radius:6px;padding:6px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:inherit;";
+    addBtn.onclick = function() {
+      var nom = nomInp.value.trim();
+      if (!nom) { nomInp.focus(); return; }
+      if (capsPerso.find(function(c){ return c.nom === nom; })) {
+        alert("Une capacité avec ce nom existe déjà.");
+        return;
+      }
+      capsPerso.push({ nom: nom, desc: descInp.value.trim() });
+      nomInp.value = ""; descInp.value = "";
+      sauvegarder(); renderPersoList(); rMajFavoris();
+    };
+    formWrap.appendChild(addBtn);
+    c.appendChild(formWrap);
+  }
 }
 
 
@@ -10239,6 +10248,22 @@ function rRendreDons() {
     hd.className = "cap-hd";
     hd.style.cursor = "pointer";
 
+    // Étoile favori
+    var donKey = "don_" + don.nom;
+    var star = document.createElement("span");
+    star.textContent = capsFavoris.has(donKey) ? "★" : "✩";
+    star.style.cssText = "cursor:pointer;font-size:13px;padding:0 2px;flex-shrink:0;color:" + (capsFavoris.has(donKey) ? "var(--or)" : "var(--txt3)") + ";";
+    star.title = "Ajouter aux favoris";
+    (function(k, s) {
+      star.onclick = function(e) {
+        e.stopPropagation();
+        if (capsFavoris.has(k)) { capsFavoris.delete(k); s.textContent = "✩"; s.style.color = "var(--txt3)"; }
+        else { capsFavoris.add(k); s.textContent = "★"; s.style.color = "var(--or)"; }
+        sauvegarder(); rMajFavoris();
+      };
+    })(donKey, star);
+    hd.appendChild(star);
+
     var nomSpan = document.createElement("span");
     nomSpan.style.cssText = "flex:1;font-size:13px;font-weight:600;color:var(--or);";
     nomSpan.textContent = don.nom;
@@ -10484,6 +10509,7 @@ function rMajFavoris(){
     (caps.race||[]).forEach(function(c){if(c&&c.nom)validKeys.add('race_'+c.nom);});
     (caps.historique||[]).forEach(function(c){if(c&&c.nom)validKeys.add('hist_'+c.nom);});
     (capsPerso||[]).forEach(function(c){if(c&&c.nom)validKeys.add('perso_'+c.nom);});
+    donsChoisis.forEach(function(nom){validKeys.add('don_'+nom);});
     var orphelins=[];
     capsFavoris.forEach(function(k){if(!validKeys.has(k))orphelins.push(k);});
     if(orphelins.length){
@@ -10539,9 +10565,14 @@ function rMajFavoris(){
 
   capsFavoris.forEach(function(key){
     var nom = key.replace(/^[a-z]+_/, "");
-    // Caps personnalisées : chercher directement dans capsPerso
+    // Dons : chercher dans window.DONS
     var desc;
-    if(key.indexOf('perso_')===0){
+    var isDon = key.indexOf('don_')===0;
+    if(isDon){
+      var donFound=(window.DONS||[]).find(function(d){return d.nom===nom;});
+      desc=donFound?donFound.desc:null;
+    } else if(key.indexOf('perso_')===0){
+      // Caps personnalisées : chercher directement dans capsPerso
       var persoFound=(capsPerso||[]).find(function(c){return c.nom===nom;});
       desc=persoFound?persoFound.desc:null;
     } else {
@@ -10562,7 +10593,9 @@ function rMajFavoris(){
     var hd = document.createElement("div");
     hd.className = "cap-hd";
     hd.style.cursor = desc ? "pointer" : "default";
-    hd.innerHTML = "<span style='color:var(--or);flex-shrink:0;'></span><span style='flex:1;font-size:13px;font-weight:500;'>" + nomAff + "</span>";
+    var nomColor = isDon ? "var(--or)" : "var(--txt)";
+    var prefixIcon = isDon ? "🏅 " : "";
+    hd.innerHTML = "<span style='color:var(--or);flex-shrink:0;'></span><span style='flex:1;font-size:13px;font-weight:500;color:"+nomColor+";'>"+prefixIcon + nomAff + "</span>";
     // Bouton supprimer favori
     var delBtn=document.createElement("button");
     delBtn.textContent="✕";
@@ -13591,7 +13624,7 @@ function cbtRendreActions(monTour){
       html+=cbtMakeBtn('bonus',def.icon+' '+def.nom+' ('+rst2+'/'+mx+')',rst2<=0,'cbtRes(\''+def.id+'\',-1)');
     }
   });
-  // === CAPACITÉS DE CLASSE ===
+  // === CAPACITÉS DE CLASSE + DONS ===
   var capsData=window.CAPS_DATA&&window.CAPS_DATA.classes&&window.CAPS_DATA.classes[cl]||[];
   var _capsSeen={};
   var capsUnlocked=capsData.filter(function(c){
@@ -13599,7 +13632,9 @@ function cbtRendreActions(monTour){
     if(_capsSeen[c.nom])return false;
     _capsSeen[c.nom]=true;return true;
   });
-  if(capsUnlocked.length){
+  var capsPersoFavCbt=(capsPerso||[]).filter(function(c){return capsFavoris.has('perso_'+c.nom);});
+  var donsFavCbt=(window.DONS||[]).filter(function(d){return capsFavoris.has('don_'+d.nom);});
+  if(capsUnlocked.length||capsPersoFavCbt.length||donsFavCbt.length){
     html+='<div class="cbt-dropdown-wrap">';
     html+='<button class="cbt-action-btn" onclick="cbtToggleCaps(event)">📖 Capacités ▾</button>';
     html+='<div id="cbt-caps-menu" class="cbt-dropdown" style="display:none;"></div>';
@@ -13866,7 +13901,10 @@ function cbtToggleCaps(e){
   });
   // Ajouter les caps personnalisées favorites
   var capsPersoFav=(capsPerso||[]).filter(function(c){return capsFavoris.has('perso_'+c.nom);});
-  var allCaps=caps.concat(capsPersoFav.map(function(c){return {nom:c.nom,desc:c.desc,_perso:true};}));
+  // Ajouter les dons favoris
+  var donsFav=(window.DONS||[]).filter(function(d){return capsFavoris.has('don_'+d.nom);});
+  var allCaps=caps.concat(capsPersoFav.map(function(c){return {nom:c.nom,desc:c.desc,_perso:true};}))
+                  .concat(donsFav.map(function(d){return {nom:d.nom,desc:d.desc,_don:true};}));
   if(!allCaps.length){menu.innerHTML='<p style="font-size:12px;color:var(--txt3);padding:6px;">Aucune capacité.</p>';menu.style.display='';return;}
   menu.innerHTML=allCaps.map(function(cap,i){
     var did='ccap'+i;
@@ -13884,13 +13922,17 @@ function cbtToggleCaps(e){
     }
     var resume=cap._perso
       ? (descAff||'(Aucune description)')
-      : (CAPS_COMBAT_RESUME[choixVal]||CAPS_COMBAT_RESUME[cap.nom]||_cbtResumeCap({nom:cap.nom,desc:descAff}));
-    var full=cap._perso?'':(descAff||'').replace(/</g,'&lt;');
+      : cap._don
+        ? (descAff||'(Aucune description)')
+        : (CAPS_COMBAT_RESUME[choixVal]||CAPS_COMBAT_RESUME[cap.nom]||_cbtResumeCap({nom:cap.nom,desc:descAff}));
+    var full=(cap._perso||cap._don)?'':(descAff||'').replace(/</g,'&lt;');
     // Afficher le bouton "règles complètes" seulement si la desc est nettement plus riche que le résumé
-    var hasFull=!cap._perso&&full.length>220;
+    var hasFull=!(cap._perso||cap._don)&&full.length>220;
+    var nomColor=cap._don?'var(--or)':'var(--txt)';
+    var nomPrefix=cap._don?'🏅 ':'';
     return '<div class="cbt-sort-item" style="flex-direction:column;align-items:flex-start;cursor:default;margin-bottom:2px;">'
       +'<div style="display:flex;align-items:center;width:100%;gap:6px;margin-bottom:2px;">'
-      +'<span style="flex:1;font-size:12px;font-weight:600;color:var(--txt);">'+nomAff+'</span>'
+      +'<span style="flex:1;font-size:12px;font-weight:600;color:'+nomColor+';">'+nomPrefix+nomAff+'</span>'
       +(hasFull?'<span style="font-size:10px;color:var(--txt3);cursor:pointer;text-decoration:underline;text-underline-offset:2px;" onclick="cbtToggleSortDesc(\''+did+'\')">règles ▾</span>':'')
       +'</div>'
       +'<p style="font-size:11px;color:var(--txt2);line-height:1.5;margin:0;white-space:pre-wrap;">'+resume+'</p>'
