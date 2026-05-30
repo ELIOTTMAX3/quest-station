@@ -6804,7 +6804,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <button class="tbtn" onclick="eTab('caps',this)">Capacités</button>
     <button class="tbtn" id="e-tbtn-sorts" onclick="eTab('sorts',this)">Sorts</button>
     <button class="tbtn" onclick="eTab('regles',this)">Règles</button>
-    <button class="tbtn" onclick="eTab('notes',this)">Notes</button>
+    <button class="tbtn" onclick="eTab('notes',this)">Histoire</button>
   </div>
 
   <!-- IDENTITÉ -->
@@ -7103,7 +7103,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       </div>
     </div>
     <div class="card"><label>Histoire du personnage</label><textarea id="capacites" style="min-height:100px;resize:none;overflow:hidden;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';sauvegarder()"></textarea></div>
-    <div class="card"><label>Notes libres</label><textarea id="notes" style="min-height:100px;resize:none;overflow:hidden;" oninput="this.style.height='auto';this.style.height=this.scrollHeight+'px';sauvegarder()"></textarea></div>
+    <textarea id="notes" style="display:none;" aria-hidden="true"></textarea>
   </div>
 
 
@@ -10164,8 +10164,14 @@ function eDonsRendreUI(filtre) {
   list.innerHTML = "";
   filtered.forEach(function(don) {
     var checked = donsChoisis.has(don.nom);
+
+    // Wrapper global (contient header + desc déroulable)
+    var wrap = document.createElement("div");
+    wrap.style.cssText = "border-radius:7px;border:1px solid " + (checked ? "rgba(201,162,39,.4)" : "var(--bord)") + ";background:" + (checked ? "rgba(201,162,39,.07)" : "transparent") + ";overflow:hidden;transition:border-color .15s,background .15s;";
+
+    // Ligne principale
     var row = document.createElement("div");
-    row.style.cssText = "display:flex;align-items:flex-start;gap:8px;padding:7px 8px;border-radius:7px;border:1px solid " + (checked ? "rgba(201,162,39,.4)" : "var(--bord)") + ";background:" + (checked ? "rgba(201,162,39,.07)" : "transparent") + ";cursor:pointer;transition:border-color .15s,background .15s;";
+    row.style.cssText = "display:flex;align-items:flex-start;gap:8px;padding:7px 8px;cursor:pointer;";
 
     var chk = document.createElement("input");
     chk.type = "checkbox";
@@ -10178,7 +10184,6 @@ function eDonsRendreUI(filtre) {
     var nomSpan = document.createElement("span");
     nomSpan.style.cssText = "font-size:13px;font-weight:600;color:" + (checked ? "var(--or)" : "var(--txt)") + ";display:block;";
     nomSpan.textContent = don.nom;
-
     info.appendChild(nomSpan);
 
     if (don.pr) {
@@ -10188,35 +10193,60 @@ function eDonsRendreUI(filtre) {
       info.appendChild(prSpan);
     }
 
+    // Bouton dérouler description
+    var arr = document.createElement("span");
+    arr.style.cssText = "font-size:10px;color:var(--txt3);flex-shrink:0;align-self:center;padding:0 2px;";
+    arr.textContent = "▾";
+
     row.appendChild(chk);
     row.appendChild(info);
+    row.appendChild(arr);
+    wrap.appendChild(row);
 
-    (function(d, r, c, ns) {
-      function toggle() {
+    // Zone description (masquée par défaut)
+    var desc = document.createElement("div");
+    desc.style.cssText = "display:none;padding:8px 10px 10px 10px;border-top:1px solid var(--bord);background:var(--bg3);";
+    var descP = document.createElement("p");
+    descP.style.cssText = "font-size:12px;color:var(--txt2);line-height:1.65;white-space:pre-wrap;margin:0;";
+    descP.textContent = don.desc;
+    desc.appendChild(descP);
+    wrap.appendChild(desc);
+
+    (function(d, w, c, ns, ar, dv) {
+      function toggleCheck() {
         if (donsChoisis.has(d.nom)) {
           donsChoisis.delete(d.nom);
           c.checked = false;
-          r.style.borderColor = "var(--bord)";
-          r.style.background = "transparent";
+          w.style.borderColor = "var(--bord)";
+          w.style.background = "transparent";
           ns.style.color = "var(--txt)";
         } else {
           donsChoisis.add(d.nom);
           c.checked = true;
-          r.style.borderColor = "rgba(201,162,39,.4)";
-          r.style.background = "rgba(201,162,39,.07)";
+          w.style.borderColor = "rgba(201,162,39,.4)";
+          w.style.background = "rgba(201,162,39,.07)";
           ns.style.color = "var(--or)";
         }
         sauvegarder();
         rRendreDons();
       }
-      r.addEventListener("click", function(e) {
-        if (e.target === c) return; // let checkbox handle it
-        toggle();
+      function toggleDesc() {
+        var open = dv.style.display === "none" || !dv.style.display;
+        dv.style.display = open ? "block" : "none";
+        ar.textContent = open ? "▴" : "▾";
+      }
+      // Clic sur la flèche → dérouler uniquement
+      ar.addEventListener("click", function(e) { e.stopPropagation(); toggleDesc(); });
+      // Clic sur la checkbox → cocher uniquement
+      c.addEventListener("change", function(e) { e.stopPropagation(); toggleCheck(); });
+      // Clic sur le reste de la ligne → dérouler
+      row.addEventListener("click", function(e) {
+        if (e.target === c) return;
+        toggleDesc();
       });
-      c.addEventListener("change", toggle);
-    })(don, row, chk, nomSpan);
+    })(don, wrap, chk, nomSpan, arr, desc);
 
-    list.appendChild(row);
+    list.appendChild(wrap);
   });
 
   if (!filtered.length) {
