@@ -673,6 +673,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .arc-notetab:hover:not(.on){background:rgba(255,255,255,.05);}
 </style>
 <script src="sorts.js?v=2"></script>
+<script src="dons.js"></script>
 <script src="monstres-srd.js"></script>
 </head>
 <body>
@@ -1159,6 +1160,10 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         Les capacités vertes sont débloquées à ton niveau actuel.
       </p>
       <div id="r-caps-list"></div>
+    </div>
+    <div class="card" id="r-dons-card" style="display:none;margin-top:10px;">
+      <p class="st" style="margin-bottom:10px;">🏅 Dons maîtrisés</p>
+      <div id="r-dons-list"></div>
     </div>
   </div>
 
@@ -7076,6 +7081,12 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       </p>
       <div id="e-caps-list"></div>
     </div>
+    <div class="card" id="e-dons-card">
+      <p class="st" style="margin-bottom:4px;">🏅 Dons maîtrisés</p>
+      <p style="font-size:11px;color:var(--txt3);margin-bottom:10px;">Coche les dons que ton personnage a acquis. Les prérequis sont indiqués à titre indicatif.</p>
+      <input id="e-dons-search" type="text" placeholder="Rechercher un don…" style="width:100%;margin-bottom:8px;font-size:13px;" oninput="eDonsFiltrer(this.value)">
+      <div id="e-dons-list" style="max-height:360px;overflow-y:auto;display:flex;flex-direction:column;gap:4px;"></div>
+    </div>
   </div>
 
   <!-- NOTES -->
@@ -7549,6 +7560,7 @@ var grimoire=new Set();   // sorts connus (édition)
 var prepares=new Set();   // sorts préparés aujourd'hui (résumé)
 var sortsPresets=[];      // [{nom:'Combat', sorts:['Soin',...]}, ...]
 var _presetActif=null;    // nom du preset actuellement chargé (affiché en résumé)
+var donsChoisis=new Set(); // noms des dons maîtrisés
 var choixCaps={};          // capacités à choix sélectionnées {classe_nom: valeur}
 var compsExtra=new Set();  // compétences cochées manuellement en mode résumé
 var capsFavoris=new Set(); // capacités favorites cochées en mode résumé
@@ -8419,6 +8431,7 @@ function collecterDonnees(){
   data.compsExtra=Array.from(compsExtra);
   data.capsFavoris=Array.from(capsFavoris);
   data.capsPerso=capsPerso;
+  data.donsChoisis=Array.from(donsChoisis);
   data.choixCaps=choixCaps;
   data.equipEquipes=equipEquipes.slice();
   data.slots=slotsE;
@@ -8466,6 +8479,7 @@ function chargerFiche(data){
   if(data.compsExtra)compsExtra=new Set(data.compsExtra);
   if(data.capsFavoris)capsFavoris=new Set(data.capsFavoris);
   if(Array.isArray(data.capsPerso))capsPerso=data.capsPerso;
+  if(Array.isArray(data.donsChoisis))donsChoisis=new Set(data.donsChoisis);
   if(data.choixCaps)choixCaps=data.choixCaps;
   if(data.equipEquipes)equipEquipes=data.equipEquipes;
   if(data.coches&&!data.grimoire)grimoire=new Set(data.coches);
@@ -8778,6 +8792,7 @@ function onClasseChange(fromLoad){
     prepares.clear();
     capsFavoris.clear();
     capsPerso=[];
+    donsChoisis=new Set();
     compsExtra.clear();
     ressourcesClasse={};
     _presetActif=null;majPresetBadge();
@@ -10120,10 +10135,151 @@ function rRendreCaps() {
   var el_niv = el("r-cap-niv");
   if (el_niv) el_niv.textContent = niv;
   rendreCapacites("r-caps-list", niv);
+  rRendreDons();
 }
 
 function eRendreCaps() {
   rendreCapacites("e-caps-list", gNiv());
+  eDonsRendreUI();
+}
+
+// ══════════════════════════════════════════
+// DONS (FEATS)
+// ══════════════════════════════════════════
+function eDonsRendreUI(filtre) {
+  var list = el("e-dons-list");
+  if (!list) return;
+  var dons = window.DONS || [];
+  var q = (filtre || "").toLowerCase().trim();
+  var filtered = q ? dons.filter(function(d){ return d.nom.toLowerCase().indexOf(q) >= 0 || d.pr.toLowerCase().indexOf(q) >= 0; }) : dons;
+  list.innerHTML = "";
+  filtered.forEach(function(don) {
+    var checked = donsChoisis.has(don.nom);
+    var row = document.createElement("div");
+    row.style.cssText = "display:flex;align-items:flex-start;gap:8px;padding:7px 8px;border-radius:7px;border:1px solid " + (checked ? "rgba(201,162,39,.4)" : "var(--bord)") + ";background:" + (checked ? "rgba(201,162,39,.07)" : "transparent") + ";cursor:pointer;transition:border-color .15s,background .15s;";
+
+    var chk = document.createElement("input");
+    chk.type = "checkbox";
+    chk.checked = checked;
+    chk.style.cssText = "margin-top:3px;flex-shrink:0;accent-color:var(--or);width:14px;height:14px;cursor:pointer;";
+
+    var info = document.createElement("div");
+    info.style.cssText = "flex:1;min-width:0;";
+
+    var nomSpan = document.createElement("span");
+    nomSpan.style.cssText = "font-size:13px;font-weight:600;color:" + (checked ? "var(--or)" : "var(--txt)") + ";display:block;";
+    nomSpan.textContent = don.nom;
+
+    info.appendChild(nomSpan);
+
+    if (don.pr) {
+      var prSpan = document.createElement("span");
+      prSpan.style.cssText = "font-size:11px;color:var(--txt3);display:block;margin-top:1px;";
+      prSpan.textContent = "Prérequis : " + don.pr;
+      info.appendChild(prSpan);
+    }
+
+    row.appendChild(chk);
+    row.appendChild(info);
+
+    (function(d, r, c, ns) {
+      function toggle() {
+        if (donsChoisis.has(d.nom)) {
+          donsChoisis.delete(d.nom);
+          c.checked = false;
+          r.style.borderColor = "var(--bord)";
+          r.style.background = "transparent";
+          ns.style.color = "var(--txt)";
+        } else {
+          donsChoisis.add(d.nom);
+          c.checked = true;
+          r.style.borderColor = "rgba(201,162,39,.4)";
+          r.style.background = "rgba(201,162,39,.07)";
+          ns.style.color = "var(--or)";
+        }
+        sauvegarder();
+        rRendreDons();
+      }
+      r.addEventListener("click", function(e) {
+        if (e.target === c) return; // let checkbox handle it
+        toggle();
+      });
+      c.addEventListener("change", toggle);
+    })(don, row, chk, nomSpan);
+
+    list.appendChild(row);
+  });
+
+  if (!filtered.length) {
+    list.innerHTML = "<p style='font-size:12px;color:var(--txt3);'>Aucun don trouvé.</p>";
+  }
+}
+
+function eDonsFiltrer(q) {
+  eDonsRendreUI(q);
+}
+
+function rRendreDons() {
+  var card = el("r-dons-card");
+  var list = el("r-dons-list");
+  if (!card || !list) return;
+  if (!donsChoisis.size) { card.style.display = "none"; return; }
+  card.style.display = "";
+  var dons = window.DONS || [];
+  list.innerHTML = "";
+  donsChoisis.forEach(function(nom) {
+    var don = dons.find(function(d){ return d.nom === nom; });
+    if (!don) return;
+
+    var item = document.createElement("div");
+    item.className = "cap-item";
+    item.style.marginBottom = "4px";
+
+    var hd = document.createElement("div");
+    hd.className = "cap-hd";
+    hd.style.cursor = "pointer";
+
+    var nomSpan = document.createElement("span");
+    nomSpan.style.cssText = "flex:1;font-size:13px;font-weight:600;color:var(--or);";
+    nomSpan.textContent = don.nom;
+    hd.appendChild(nomSpan);
+
+    if (don.pr) {
+      var prSpan = document.createElement("span");
+      prSpan.style.cssText = "font-size:10px;color:var(--txt3);margin-right:6px;";
+      prSpan.textContent = don.pr;
+      hd.appendChild(prSpan);
+    }
+
+    var arr = document.createElement("span");
+    arr.className = "cap-arr";
+    arr.textContent = "▾";
+    hd.appendChild(arr);
+
+    var bd = document.createElement("div");
+    bd.className = "cap-bd";
+
+    if (don.pr) {
+      var prBd = document.createElement("p");
+      prBd.style.cssText = "font-size:11px;color:var(--txt3);margin-bottom:6px;font-style:italic;";
+      prBd.textContent = "Prérequis : " + don.pr;
+      bd.appendChild(prBd);
+    }
+
+    var descP = document.createElement("p");
+    descP.style.cssText = "font-size:12px;color:var(--txt);line-height:1.65;white-space:pre-wrap;";
+    descP.textContent = don.desc;
+    bd.appendChild(descP);
+
+    hd.addEventListener("click", function() {
+      bd.classList.toggle("on");
+      arr.textContent = bd.classList.contains("on") ? "▴" : "▾";
+    });
+
+    item.appendChild(hd);
+    item.appendChild(bd);
+    list.appendChild(item);
+  });
 }
 
 function rafraichirResume(){
