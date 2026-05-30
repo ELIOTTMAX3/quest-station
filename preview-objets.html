@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Aperçu — Page Objets MJ</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#1a1a2e;--bg2:#16213e;--bg3:#0f3460;
+  --txt:#e0e0e0;--txt2:#a0a0b0;--txt3:#6a6a8a;
+  --bord:rgba(255,255,255,0.08);--bord2:rgba(255,255,255,0.14);
+  --rouge:#d97706;--rh:#b45309;--or:#c9a227;
+  --vert:#2d8a4e;--vbg:#132b1c;
+}
+body{font-family:system-ui,sans-serif;background:#111;color:var(--txt);font-size:14px;padding:20px;display:flex;gap:20px;flex-wrap:wrap;}
+
+/* Nav options */
+.opt-nav{width:100%;display:flex;gap:10px;margin-bottom:4px;}
+.opt-btn{padding:8px 18px;border-radius:8px;border:2px solid var(--bord2);background:var(--bg2);color:var(--txt2);cursor:pointer;font-size:13px;font-weight:600;font-family:inherit;transition:.15s;}
+.opt-btn.on{border-color:var(--rouge);color:var(--rouge);background:rgba(217,119,6,.1);}
+
+/* Panels */
+.panel{width:340px;height:640px;background:var(--bg2);border-radius:14px;border:1px solid var(--bord2);overflow:hidden;display:flex;flex-direction:column;}
+.panel-hd{background:var(--rouge);padding:12px 16px;font-size:13px;font-weight:700;color:#fff;flex-shrink:0;}
+.panel-body{flex:1;overflow-y:auto;padding:12px;}
+.panel-body::-webkit-scrollbar{width:4px;}.panel-body::-webkit-scrollbar-thumb{background:var(--bord2);border-radius:2px;}
+
+/* Shared components */
+label{font-size:11px;font-weight:600;color:var(--txt3);display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;}
+input,select,textarea{width:100%;padding:8px 10px;background:var(--bg3);border:1px solid var(--bord2);border-radius:7px;color:var(--txt);font-size:13px;font-family:inherit;outline:none;}
+input:focus,select:focus,textarea:focus{border-color:var(--rouge);}
+.btn{padding:7px 14px;border-radius:7px;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt2);cursor:pointer;font-size:12px;font-weight:600;font-family:inherit;}
+.btn.ok{background:var(--rouge);color:#fff;border-color:transparent;}
+.btn.sm{padding:4px 10px;font-size:11px;}
+
+/* ── OPTION A : DRAWER ─────────────────────── */
+.opt-a{display:none;}
+.opt-a.visible{display:flex;flex-direction:column;}
+
+.oa-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.oa-topbar h3{font-size:14px;font-weight:700;}
+.oa-search{position:relative;margin-bottom:10px;}
+.oa-search input{padding-left:28px;font-size:12px;}
+.oa-search .ico{position:absolute;left:9px;top:50%;transform:translateY(-50%);color:var(--txt3);font-size:12px;}
+
+.oa-section-lbl{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--txt3);margin:10px 0 5px;}
+
+.oa-item{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:8px;border:1px solid var(--bord);background:var(--bg3);margin-bottom:5px;cursor:pointer;transition:.15s;}
+.oa-item:hover{border-color:var(--rouge);background:rgba(217,119,6,.07);}
+.oa-item .ico{font-size:20px;width:32px;text-align:center;flex-shrink:0;}
+.oa-item .info{flex:1;min-width:0;}
+.oa-item .nom{font-size:12px;font-weight:700;color:var(--txt);}
+.oa-item .sub{font-size:10px;color:var(--txt3);margin-top:1px;}
+.oa-item .rarete{font-size:9px;padding:1px 6px;border-radius:999px;font-weight:700;}
+.r-commun{background:rgba(156,163,175,.15);color:#9ca3af;}
+.r-rare{background:rgba(96,165,250,.15);color:#60a5fa;}
+.r-tresrare{background:rgba(167,139,250,.15);color:#a78bfa;}
+.r-legendaire{background:rgba(251,191,36,.15);color:#fbbf24;}
+.oa-item .where{font-size:9px;color:var(--txt3);}
+
+/* Drawer slide-in */
+.oa-wrap{display:flex;gap:0;flex:1;overflow:hidden;position:relative;}
+.oa-list{flex:1;overflow-y:auto;transition:opacity .2s;}
+.oa-drawer{width:0;overflow:hidden;transition:width .25s;flex-shrink:0;background:var(--bg);border-left:1px solid var(--bord2);}
+.oa-drawer.open{width:210px;}
+.oa-drawer-inner{width:210px;padding:12px;overflow-y:auto;height:100%;}
+.oa-drawer-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;}
+.oa-drawer-hd span{font-size:13px;font-weight:700;color:var(--txt);}
+.oa-drawer-hd button{background:none;border:none;color:var(--txt3);font-size:18px;cursor:pointer;line-height:1;}
+.form-row{margin-bottom:10px;}
+.form-2col{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+
+/* ── OPTION B : MODAL + GRILLE ─────────────── */
+.opt-b{display:none;}
+.opt-b.visible{display:flex;flex-direction:column;}
+
+.ob-topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.ob-filters{display:flex;gap:6px;margin-bottom:12px;}
+.ob-filter{padding:4px 10px;border-radius:999px;border:1px solid var(--bord2);background:transparent;color:var(--txt3);font-size:11px;font-weight:600;cursor:pointer;font-family:inherit;transition:.15s;}
+.ob-filter.on{background:rgba(217,119,6,.15);border-color:rgba(217,119,6,.5);color:var(--rouge);}
+.ob-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.ob-card{background:var(--bg3);border:1px solid var(--bord);border-radius:10px;padding:10px;cursor:pointer;transition:.15s;position:relative;}
+.ob-card:hover{border-color:var(--rouge);transform:translateY(-1px);}
+.ob-card-ico{font-size:26px;text-align:center;margin-bottom:6px;}
+.ob-card-nom{font-size:12px;font-weight:700;color:var(--txt);text-align:center;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ob-card-row{display:flex;justify-content:center;gap:4px;flex-wrap:wrap;}
+.ob-card-where{font-size:9px;color:var(--txt3);text-align:center;margin-top:3px;}
+.ob-card-btns{position:absolute;top:6px;right:6px;display:flex;gap:3px;opacity:0;transition:.15s;}
+.ob-card:hover .ob-card-btns{opacity:1;}
+.ob-card-btn{background:rgba(0,0,0,.4);border:none;color:var(--txt2);font-size:10px;padding:2px 5px;border-radius:4px;cursor:pointer;}
+
+/* Modal */
+.ob-modal-bg{position:absolute;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:100;}
+.ob-modal{background:var(--bg2);border-radius:12px;border:1px solid var(--bord2);width:280px;max-height:540px;overflow-y:auto;padding:16px;}
+.ob-modal-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;}
+.ob-modal-hd h3{font-size:14px;font-weight:700;}
+.ob-modal-hd button{background:none;border:none;color:var(--txt3);font-size:20px;cursor:pointer;line-height:1;}
+.ob-section-toggle{display:flex;align-items:center;gap:6px;padding:6px 0;cursor:pointer;margin-bottom:4px;border-bottom:1px solid var(--bord);}
+.ob-section-toggle span{font-size:12px;font-weight:700;color:var(--txt2);flex:1;}
+.ob-section-toggle .arr{font-size:10px;color:var(--txt3);}
+
+/* ── OPTION C : ACCORDÉON FORM ─────────────── */
+.opt-c{display:none;}
+.opt-c.visible{display:flex;flex-direction:column;}
+
+.oc-form{background:var(--bg3);border:1px solid var(--bord2);border-radius:10px;overflow:hidden;margin-bottom:12px;}
+.oc-form-hd{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:rgba(217,119,6,.1);border-bottom:1px solid var(--bord);}
+.oc-form-hd h3{font-size:13px;font-weight:700;color:var(--rouge);}
+.oc-section{border-bottom:1px solid var(--bord);}
+.oc-section-hd{display:flex;align-items:center;gap:8px;padding:9px 14px;cursor:pointer;user-select:none;}
+.oc-section-hd:hover{background:rgba(255,255,255,.03);}
+.oc-section-icon{font-size:14px;width:20px;text-align:center;}
+.oc-section-lbl{font-size:12px;font-weight:700;color:var(--txt2);flex:1;}
+.oc-section-arr{font-size:10px;color:var(--txt3);}
+.oc-section-body{padding:10px 14px;display:none;}
+.oc-section-body.open{display:block;}
+.oc-form-foot{padding:10px 14px;display:flex;gap:8px;}
+
+.oc-list{display:flex;flex-direction:column;gap:5px;}
+.oc-row{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:7px;background:var(--bg3);border:1px solid var(--bord);}
+.oc-row .ico{font-size:16px;width:24px;text-align:center;flex-shrink:0;}
+.oc-row .nom{flex:1;font-size:12px;font-weight:600;color:var(--txt);}
+.oc-row .actions{display:flex;gap:4px;}
+</style>
+</head>
+<body>
+
+<div class="opt-nav">
+  <button class="opt-btn on" onclick="showOpt('a',this)">Option A — Drawer latéral</button>
+  <button class="opt-btn" onclick="showOpt('b',this)">Option B — Grille + Modal</button>
+  <button class="opt-btn" onclick="showOpt('c',this)">Option C — Accordéon</button>
+</div>
+
+<!-- ═══ OPTION A : DRAWER ═══════════════════════════════════════ -->
+<div class="panel opt-a visible" id="panel-a">
+  <div class="panel-hd">🎒 Objets</div>
+  <div class="panel-body" style="display:flex;flex-direction:column;height:100%;">
+    <div class="oa-topbar">
+      <h3>Tous les objets</h3>
+      <button class="btn ok sm" onclick="toggleDrawer()">+ Créer</button>
+    </div>
+    <div class="oa-search">
+      <span class="ico">🔍</span>
+      <input placeholder="Rechercher…">
+    </div>
+
+    <div class="oa-wrap" id="oa-wrap">
+      <div class="oa-list" id="oa-list">
+        <div class="oa-section-lbl">🎒 Chez les PJ</div>
+        <div class="oa-item" onclick="openDrawerEdit()">
+          <div class="ico">🗡️</div>
+          <div class="info">
+            <div class="nom">Épée longue +1</div>
+            <div class="sub"><span class="rarete r-rare">Rare</span></div>
+          </div>
+          <div class="where">Aria</div>
+        </div>
+        <div class="oa-item">
+          <div class="ico">🧪</div>
+          <div class="info">
+            <div class="nom">Potion de soin</div>
+            <div class="sub"><span class="rarete r-commun">Commun</span></div>
+          </div>
+          <div class="where">Thorin</div>
+        </div>
+
+        <div class="oa-section-lbl">🏪 En boutique</div>
+        <div class="oa-item">
+          <div class="ico">🔮</div>
+          <div class="info">
+            <div class="nom">Boule de cristal</div>
+            <div class="sub"><span class="rarete r-tresrare">Très rare</span></div>
+          </div>
+          <div class="where">15 po</div>
+        </div>
+
+        <div class="oa-section-lbl">🗃️ Réserve MJ</div>
+        <div class="oa-item">
+          <div class="ico">💍</div>
+          <div class="info">
+            <div class="nom">Anneau de protection</div>
+            <div class="sub"><span class="rarete r-legendaire">Légendaire</span></div>
+          </div>
+          <div class="where">—</div>
+        </div>
+        <div class="oa-item">
+          <div class="ico">🧲</div>
+          <div class="info">
+            <div class="nom">Amulette des sorts</div>
+            <div class="sub"><span class="rarete r-rare">Rare</span></div>
+          </div>
+          <div class="where">—</div>
+        </div>
+      </div>
+
+      <div class="oa-drawer" id="oa-drawer">
+        <div class="oa-drawer-inner">
+          <div class="oa-drawer-hd">
+            <span id="oa-drawer-titre">Nouvel objet</span>
+            <button onclick="toggleDrawer()">×</button>
+          </div>
+          <div class="form-row"><label>Nom</label><input placeholder="Épée longue +1"></div>
+          <div class="form-row"><label>Icône</label><input placeholder="🗡️ ou URL" value="🗡️"></div>
+          <div class="form-2col">
+            <div><label>Rareté</label>
+              <select><option>Commun</option><option selected>Rare</option><option>Très rare</option><option>Légendaire</option></select>
+            </div>
+            <div><label>Slot</label>
+              <select><option>Inventaire</option><option>Armure</option><option>Anneau</option></select>
+            </div>
+          </div>
+          <div class="form-row"><label>Description</label><textarea rows="3" placeholder="Description…"></textarea></div>
+          <div class="form-row"><label>Bonus mécaniques</label>
+            <div style="display:flex;gap:5px;">
+              <select style="flex:1;font-size:11px;padding:5px;"><option>CA</option><option>Attaque</option><option>Dégâts</option></select>
+              <input type="number" value="1" style="width:50px;text-align:center;padding:5px;">
+              <button class="btn sm ok">+</button>
+            </div>
+            <div style="margin-top:5px;display:flex;gap:4px;flex-wrap:wrap;">
+              <span style="font-size:10px;background:rgba(201,162,39,.15);border:1px solid rgba(201,162,39,.35);border-radius:4px;padding:1px 6px;color:var(--or);">CA +1 ✕</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:6px;margin-top:4px;">
+            <button class="btn ok" style="flex:1;">Sauvegarder</button>
+            <button class="btn" onclick="toggleDrawer()">×</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ OPTION B : GRILLE + MODAL ═══════════════════════════════ -->
+<div class="panel opt-b" id="panel-b" style="position:relative;">
+  <div class="panel-hd">🎒 Objets</div>
+  <div class="panel-body" style="display:flex;flex-direction:column;height:100%;">
+    <div class="ob-topbar">
+      <span style="font-size:13px;font-weight:700;">Objets magiques</span>
+      <button class="btn ok sm" onclick="showModal()">+ Créer</button>
+    </div>
+    <div class="ob-filters">
+      <button class="ob-filter on">Tous</button>
+      <button class="ob-filter">🎒 PJ</button>
+      <button class="ob-filter">🏪 Boutique</button>
+      <button class="ob-filter">🗃️ Réserve</button>
+    </div>
+    <div class="ob-grid">
+      <div class="ob-card" onclick="showModal()">
+        <div class="ob-card-btns">
+          <button class="ob-card-btn">✏️</button>
+          <button class="ob-card-btn">🗑</button>
+        </div>
+        <div class="ob-card-ico">🗡️</div>
+        <div class="ob-card-nom">Épée longue +1</div>
+        <div class="ob-card-row"><span class="rarete r-rare">Rare</span></div>
+        <div class="ob-card-where">🎒 Aria</div>
+      </div>
+      <div class="ob-card">
+        <div class="ob-card-btns">
+          <button class="ob-card-btn">✏️</button>
+          <button class="ob-card-btn">🗑</button>
+        </div>
+        <div class="ob-card-ico">🧪</div>
+        <div class="ob-card-nom">Potion de soin</div>
+        <div class="ob-card-row"><span class="rarete r-commun">Commun</span></div>
+        <div class="ob-card-where">🎒 Thorin</div>
+      </div>
+      <div class="ob-card">
+        <div class="ob-card-btns">
+          <button class="ob-card-btn">✏️</button>
+          <button class="ob-card-btn">🗑</button>
+        </div>
+        <div class="ob-card-ico">🔮</div>
+        <div class="ob-card-nom">Boule de cristal</div>
+        <div class="ob-card-row"><span class="rarete r-tresrare">Très rare</span></div>
+        <div class="ob-card-where">🏪 15 po</div>
+      </div>
+      <div class="ob-card">
+        <div class="ob-card-btns">
+          <button class="ob-card-btn">✏️</button>
+          <button class="ob-card-btn">🗑</button>
+        </div>
+        <div class="ob-card-ico">💍</div>
+        <div class="ob-card-nom">Anneau de protection</div>
+        <div class="ob-card-row"><span class="rarete r-legendaire">Légendaire</span></div>
+        <div class="ob-card-where">🗃️ Réserve</div>
+      </div>
+      <div class="ob-card">
+        <div class="ob-card-btns">
+          <button class="ob-card-btn">✏️</button>
+          <button class="ob-card-btn">🗑</button>
+        </div>
+        <div class="ob-card-ico">🧲</div>
+        <div class="ob-card-nom">Amulette des sorts</div>
+        <div class="ob-card-row"><span class="rarete r-rare">Rare</span></div>
+        <div class="ob-card-where">🗃️ Réserve</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal -->
+  <div class="ob-modal-bg" id="ob-modal" style="display:none;" onclick="if(event.target===this)hideModal()">
+    <div class="ob-modal">
+      <div class="ob-modal-hd">
+        <h3>Créer un objet</h3>
+        <button onclick="hideModal()">×</button>
+      </div>
+      <!-- Section 1 -->
+      <div class="ob-section-toggle" onclick="toggleModalSection(this)">
+        <span>📋 Infos de base</span><span class="arr">▴</span>
+      </div>
+      <div style="padding:10px 0 12px;">
+        <div class="form-row"><label>Nom</label><input placeholder="Épée longue +1"></div>
+        <div class="form-2col">
+          <div><label>Icône</label><input placeholder="🗡️" value="🗡️"></div>
+          <div><label>Rareté</label><select><option>Commun</option><option selected>Rare</option></select></div>
+        </div>
+        <div class="form-row"><label>Description</label><textarea rows="2" placeholder="Description…"></textarea></div>
+      </div>
+      <!-- Section 2 -->
+      <div class="ob-section-toggle" onclick="toggleModalSection(this)">
+        <span>⚙️ Mécanique</span><span class="arr">▾</span>
+      </div>
+      <!-- Section 3 -->
+      <div class="ob-section-toggle" onclick="toggleModalSection(this)">
+        <span>⚡ Charges</span><span class="arr">▾</span>
+      </div>
+      <!-- Section 4 -->
+      <div class="ob-section-toggle" onclick="toggleModalSection(this)" style="border:none;">
+        <span>🏪 Boutique</span><span class="arr">▾</span>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:14px;">
+        <button class="btn ok" style="flex:1;" onclick="hideModal()">Sauvegarder</button>
+        <button class="btn" onclick="hideModal()">Annuler</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ OPTION C : ACCORDÉON FORM ═══════════════════════════════ -->
+<div class="panel opt-c" id="panel-c">
+  <div class="panel-hd">🎒 Objets</div>
+  <div class="panel-body">
+
+    <!-- Formulaire accordéon -->
+    <div class="oc-form" id="oc-form" style="display:none;">
+      <div class="oc-form-hd">
+        <h3 id="oc-form-titre">✨ Nouvel objet</h3>
+        <button class="btn sm" onclick="hideOcForm()">× Fermer</button>
+      </div>
+
+      <div class="oc-section">
+        <div class="oc-section-hd" onclick="toggleOcSection(this)">
+          <span class="oc-section-icon">📋</span>
+          <span class="oc-section-lbl">Infos de base</span>
+          <span class="oc-section-arr">▴</span>
+        </div>
+        <div class="oc-section-body open">
+          <div class="form-row"><label>Nom</label><input placeholder="Épée longue +1"></div>
+          <div class="form-2col">
+            <div><label>Icône</label><input placeholder="🗡️" value="🗡️"></div>
+            <div><label>Rareté</label><select><option>Commun</option><option>Rare</option><option>Très rare</option><option>Légendaire</option></select></div>
+          </div>
+          <div class="form-row"><label>Description</label><textarea rows="2" placeholder="Description…"></textarea></div>
+        </div>
+      </div>
+
+      <div class="oc-section">
+        <div class="oc-section-hd" onclick="toggleOcSection(this)">
+          <span class="oc-section-icon">⚙️</span>
+          <span class="oc-section-lbl">Mécanique (slot, bonus, groupe)</span>
+          <span class="oc-section-arr">▾</span>
+        </div>
+        <div class="oc-section-body">
+          <div class="form-2col">
+            <div><label>Emplacement</label><select><option>Inventaire</option><option>Armure</option><option>Anneau</option></select></div>
+            <div><label>Main</label>
+              <div style="display:flex;gap:4px;margin-top:4px;">
+                <button class="btn sm" style="border-color:var(--or);flex:1;">✕</button>
+                <button class="btn sm" style="flex:1;">🤚</button>
+                <button class="btn sm" style="flex:1;">⚔️</button>
+              </div>
+            </div>
+          </div>
+          <div><label>Bonus</label>
+            <div style="display:flex;gap:5px;margin-bottom:5px;">
+              <select style="flex:1;font-size:11px;padding:5px;"><option>CA</option><option>Attaque</option></select>
+              <input type="number" value="1" style="width:50px;text-align:center;padding:5px;">
+              <button class="btn sm ok">+</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="oc-section">
+        <div class="oc-section-hd" onclick="toggleOcSection(this)">
+          <span class="oc-section-icon">⚡</span>
+          <span class="oc-section-lbl">Charges</span>
+          <span class="oc-section-arr">▾</span>
+        </div>
+        <div class="oc-section-body">
+          <div class="form-2col">
+            <div><label>Max</label><input type="number" value="3"></div>
+            <div><label>Recharge</label><select><option>Repos long</option><option>Repos court</option><option>Aube</option></select></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="oc-section" style="border:none;">
+        <div class="oc-section-hd" onclick="toggleOcSection(this)">
+          <span class="oc-section-icon">🏪</span>
+          <span class="oc-section-lbl">Boutique</span>
+          <span class="oc-section-arr">▾</span>
+        </div>
+        <div class="oc-section-body">
+          <div class="form-row"><label>Prix (PO)</label><input type="number" placeholder="0"></div>
+        </div>
+      </div>
+
+      <div class="oc-form-foot">
+        <button class="btn ok" style="flex:1;">Sauvegarder</button>
+        <button class="btn" onclick="hideOcForm()">Annuler</button>
+      </div>
+    </div>
+
+    <!-- Bouton créer -->
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+      <span style="font-size:13px;font-weight:700;">Objets créés</span>
+      <button class="btn ok sm" onclick="showOcForm()">+ Créer un objet</button>
+    </div>
+
+    <!-- Liste compacte -->
+    <div class="oc-list">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--txt3);margin-bottom:4px;">🎒 Chez les PJ</div>
+      <div class="oc-row">
+        <div class="ico">🗡️</div>
+        <div class="nom">Épée longue +1 <span class="rarete r-rare" style="margin-left:4px;">Rare</span></div>
+        <div class="actions"><button class="btn sm">✏️</button><button class="btn sm">🗑</button></div>
+      </div>
+      <div class="oc-row">
+        <div class="ico">🧪</div>
+        <div class="nom">Potion de soin <span class="rarete r-commun" style="margin-left:4px;">Commun</span></div>
+        <div class="actions"><button class="btn sm">✏️</button><button class="btn sm">🗑</button></div>
+      </div>
+      <div style="font-size:10px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--txt3);margin:8px 0 4px;">🗃️ Réserve MJ</div>
+      <div class="oc-row">
+        <div class="ico">💍</div>
+        <div class="nom">Anneau de protection <span class="rarete r-legendaire" style="margin-left:4px;">Légendaire</span></div>
+        <div class="actions"><button class="btn sm">✏️</button><button class="btn sm">🗑</button></div>
+      </div>
+      <div class="oc-row">
+        <div class="ico">🔮</div>
+        <div class="nom">Boule de cristal <span class="rarete r-tresrare" style="margin-left:4px;">Très rare</span></div>
+        <div class="actions"><button class="btn sm">✏️</button><button class="btn sm">🗑</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Nav
+function showOpt(opt, btn) {
+  document.querySelectorAll('.opt-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
+  ['a','b','c'].forEach(o => {
+    var el = document.querySelector('.opt-'+o);
+    el.classList.toggle('visible', o === opt);
+  });
+}
+
+// Option A : Drawer
+var drawerOpen = false;
+function toggleDrawer() {
+  drawerOpen = !drawerOpen;
+  document.getElementById('oa-drawer').classList.toggle('open', drawerOpen);
+  document.getElementById('oa-drawer-titre').textContent = 'Nouvel objet';
+}
+function openDrawerEdit() {
+  drawerOpen = true;
+  document.getElementById('oa-drawer').classList.add('open');
+  document.getElementById('oa-drawer-titre').textContent = 'Épée longue +1';
+}
+
+// Option B : Modal
+function showModal() { document.getElementById('ob-modal').style.display = 'flex'; }
+function hideModal() { document.getElementById('ob-modal').style.display = 'none'; }
+function toggleModalSection(hd) {
+  var arr = hd.querySelector('.arr');
+  var body = hd.nextElementSibling;
+  if (!body || body.tagName === 'DIV' && body.classList.contains('ob-section-toggle')) return;
+  var open = arr.textContent === '▴';
+  arr.textContent = open ? '▾' : '▴';
+  if (body && body.style) body.style.display = open ? 'none' : 'block';
+}
+document.querySelectorAll('.ob-filter').forEach(function(btn) {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.ob-filter').forEach(b => b.classList.remove('on'));
+    btn.classList.add('on');
+  });
+});
+
+// Option C : Accordéon
+function showOcForm() { document.getElementById('oc-form').style.display = ''; }
+function hideOcForm() { document.getElementById('oc-form').style.display = 'none'; }
+function toggleOcSection(hd) {
+  var arr = hd.querySelector('.oc-section-arr');
+  var body = hd.nextElementSibling;
+  var open = body.classList.toggle('open');
+  arr.textContent = open ? '▴' : '▾';
+}
+</script>
+</body>
+</html>
