@@ -3021,11 +3021,19 @@ function _equip_mj_rendreItemCard(item,_pjJid){
       +'<div id="mjdesc-'+item.id+'" style="display:none;margin-top:4px;font-size:11px;color:var(--txt2);line-height:1.5;white-space:pre-wrap;padding:7px;background:rgba(0,0,0,.2);border-radius:6px;border:1px solid var(--bord);">'+item.description+'</div>'
       +'</div>'
     :'')
+    // Toggle boutique inline
+    +'<div style="display:flex;gap:5px;align-items:center;margin-top:2px;">'
+    +(item.enBoutique
+      ?'<button onclick="equip_mj_toggleBoutique(\''+item.id+'\',false)" style="font-family:inherit;font-size:10px;font-weight:600;padding:3px 9px;border-radius:999px;cursor:pointer;border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.12);color:#4ade80;">🏪 En boutique</button>'
+      :'<button onclick="equip_mj_toggleBoutique(\''+item.id+'\',true)" style="font-family:inherit;font-size:10px;font-weight:600;padding:3px 9px;border-radius:999px;cursor:pointer;border:1px solid var(--bord);background:transparent;color:var(--txt3);">🗃️ Réserve</button>'
+    )
+    +'</div>'
     // Boutons d'action
-    +'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:2px;">'
+    +'<div style="display:flex;gap:4px;flex-wrap:wrap;margin-top:4px;">'
     +(_pjJid?'<button class="btn" style="font-size:10px;padding:3px 8px;border-color:rgba(201,162,39,.4);color:var(--or);" onclick="equip_mj_recuperer(\''+item.id+'\',\''+_pjJid+'\')">📤 Récup.</button>':'')
     +'<button class="btn ok" style="font-size:10px;padding:3px 8px;" onclick="equip_mj_ouvrirDonner(\''+item.id+'\')">Donner</button>'
-    +'<button class="btn" style="font-size:10px;padding:3px 8px;" onclick="equip_mj_ouvrirForm(\''+item.id+'\')">✏️ Modifier</button>'
+    +'<button class="btn" style="font-size:10px;padding:3px 8px;" onclick="equip_mj_dupliquer(\''+item.id+'\')">📋</button>'
+    +'<button class="btn" style="font-size:10px;padding:3px 8px;" onclick="equip_mj_ouvrirForm(\''+item.id+'\')">✏️</button>'
     +'<button class="btn danger" style="font-size:10px;padding:3px 8px;" onclick="equip_mj_supprimer(\''+item.id+'\')">🗑️</button>'
     +'</div>'
     // Panneau "Donner"
@@ -3408,6 +3416,18 @@ function equip_mj_supprimer(id){  // Note: les joueurs qui possèdent cet objet 
 
 function equip_mj_toggleBoutique(id,val){
   db.collection("items").doc(id).update({enBoutique:!!val}).catch(function(e){toast("Erreur : "+e.message);});
+}
+
+function equip_mj_dupliquer(id){
+  var item=window._equip_mj_items.find(function(i){return i.id===id;});
+  if(!item)return;
+  var copy=Object.assign({},item);
+  delete copy.id;
+  copy.nom=(item.nom||'Objet')+' — Copie';
+  copy.creeLe=new Date().toISOString();
+  db.collection("items").doc().set(copy).then(function(){
+    toast('📋 Objet dupliqué !');
+  }).catch(function(e){toast('Erreur : '+e.message);});
 }
 
 function equip_mj_ouvrirDonner(id){
