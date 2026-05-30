@@ -502,6 +502,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           <button class="besti-tab-btn on" id="mjb-tab-srd" onclick="mjb_selectTab('srd')">Bestiaire SRD</button>
           <button class="besti-tab-btn" id="mjb-tab-homebrew" onclick="mjb_selectTab('homebrew')">Homebrew</button>
           <button class="besti-tab-btn" id="mjb-tab-groupes" onclick="mjb_selectTab('groupes')">Groupes</button>
+          <button class="besti-tab-btn" id="mjb-tab-rencontre" onclick="mjb_selectTab('rencontre')">⚔️ Rencontre</button>
         </div>
         <div class="besti-body" id="mjb-body" style="flex:1;overflow-y:auto;"></div>
       </div>
@@ -2140,7 +2141,7 @@ function effacerCombat(){
   if(el('btn-debut-combat'))el('btn-debut-combat').style.display='';
   if(el('btn-commencer'))el('btn-commencer').style.display='none';
   rendreCombat();majControlsCombat();
-  syncCombatFirestore();resetInitScoresPJ();
+  syncCombatFirestore();sauvegarderCombat();resetInitScoresPJ();
 }
 
 function importerPJsCombat(){
@@ -3735,7 +3736,7 @@ function mjb_selectTab(t){
   _besti_ctx='mjb';
   _besti_tab=t;
   _besti_fiche=null;_besti_hb_form=null;_besti_grp_form=null;_besti_share_id=null;
-  ['srd','homebrew','groupes'].forEach(function(id){
+  ['srd','homebrew','groupes','rencontre'].forEach(function(id){
     var b=document.getElementById('mjb-tab-'+id);
     if(b)b.className='besti-tab-btn'+(id===t?' on':'');
   });
@@ -3760,6 +3761,9 @@ function besti_renderBody(){
   if(_besti_tab==='srd'){body.innerHTML=besti_renderSRD();besti_bindSRD();}
   else if(_besti_tab==='homebrew'){body.innerHTML=besti_renderHomebrew();}
   else if(_besti_tab==='groupes'){body.innerHTML=besti_renderGroupes();}
+  else if(_besti_tab==='rencontre'){
+    body.innerHTML='<div style="height:100%;margin:0 -4px;"><iframe id="mjb-enc-iframe" src="outils_rapides.html?tab=rencontre" style="width:100%;height:calc(100vh - 210px);border:none;" allowfullscreen></iframe></div>';
+  }
 }
 
 // ── Helpers CR ──────────────────────────────────────
