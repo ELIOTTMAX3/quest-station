@@ -198,10 +198,10 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .mj-etat-btn{font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt2);cursor:pointer;}
 .mj-etat-btn.on{background:rgba(220,38,38,.3);color:#fca5a5;border-color:#dc2626;}
 /* ── EMOJI PICKER ── */
-.ra-picker-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;max-height:200px;overflow-y:auto;padding-right:2px;}
-.ra-picker-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:7px;cursor:pointer;border:1px solid transparent;background:none;transition:background .1s,border-color .1s;font-family:inherit;}
-.ra-picker-btn i{font-size:18px;color:var(--or);}
-.ra-picker-btn span{font-size:8px;color:var(--txt3);text-align:center;line-height:1.2;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ra-picker-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:6px;max-height:260px;overflow-y:auto;padding-right:4px;}
+.ra-picker-btn{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 4px;border-radius:8px;cursor:pointer;border:1px solid transparent;background:none;transition:background .1s,border-color .1s;font-family:inherit;}
+.ra-picker-btn i{font-size:26px;color:var(--or);}
+.ra-picker-btn span{font-size:9px;color:var(--txt3);text-align:center;line-height:1.2;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .ra-picker-btn:hover{background:var(--bg2);border-color:var(--bord2);}
 .ra-picker-btn.on{background:rgba(201,162,39,.15);border-color:rgba(201,162,39,.4);}
 .ra-cat-btn{font-family:inherit;font-size:10px;padding:3px 8px;border-radius:6px;cursor:pointer;border:1px solid var(--bord2);background:var(--bg2);color:var(--txt2);white-space:nowrap;}
@@ -3070,51 +3070,65 @@ function _item_iconHtml(icone,sz){
 
 var _RA_CATS=[
   {label:'⚔ Armes', icons:[
-    ['ra-sword','Épée'],['ra-crossed-swords','Épées'],['ra-broadsword','Espadon'],
+    ['ra-sword','Épée'],['ra-crossed-swords','Épées croisées'],['ra-broadsword','Espadon'],
     ['ra-dervish-swords','Sabres'],['ra-spinning-sword','Tournante'],['ra-relic-blade','Relique'],
     ['ra-bat-sword','Courbe'],['ra-lightning-sword','Éclairs'],['ra-fireball-sword','Feu'],
-    ['ra-dripping-sword','Poison'],['ra-daggers','Dagues'],['ra-plain-dagger','Dague'],
-    ['ra-bowie-knife','Couteau'],['ra-axe','Hache'],['ra-crossed-axes','Haches'],
-    ['ra-hammer','Marteau'],['ra-large-hammer','Masse'],['ra-halberd','Hallebarde'],
-    ['ra-scythe','Faux'],['ra-sickle','Faucille'],['ra-trident','Trident'],
-    ['ra-harpoon-trident','Harpon'],['ra-flaming-trident','Trident feu'],['ra-spear-head','Lance'],
-    ['ra-crossbow','Arbalète'],['ra-broadhead-arrow','Flèche'],['ra-flaming-arrow','Fl. enflammée'],
+    ['ra-dripping-sword','Poison'],['ra-daggers','Dagues croisées'],['ra-plain-dagger','Dague'],
+    ['ra-bowie-knife','Couteau'],['ra-bone-knife','Couteau os'],
+    ['ra-axe','Hache'],['ra-crossed-axes','Haches croisées'],['ra-battered-axe','Hache usée'],
+    ['ra-hammer','Marteau'],['ra-large-hammer','Masse'],['ra-flat-hammer','Maillet'],
+    ['ra-halberd','Hallebarde'],['ra-scythe','Faux'],['ra-sickle','Faucille'],
+    ['ra-trident','Trident'],['ra-harpoon-trident','Harpon'],['ra-flaming-trident','Trident feu'],
+    ['ra-spear-head','Lance'],['ra-crossbow','Arbalète'],['ra-broadhead-arrow','Flèche'],
+    ['ra-flaming-arrow','Fl. enflammée'],['ra-frozen-arrow','Fl. givrée'],['ra-barbed-arrow','Fl. barbelée'],
     ['ra-shuriken','Shuriken'],['ra-kunai','Kunai'],['ra-spiked-mace','Masse épines'],
+    ['ra-gavel','Marteau juge'],['ra-cloak-and-dagger','Cape & Dague'],
   ]},
   {label:'🛡 Armures', icons:[
-    ['ra-shield','Bouclier'],['ra-round-shield','Écu'],['ra-heavy-shield','Lourd'],
-    ['ra-circular-shield','Rond'],['ra-bolt-shield','Éclair'],['ra-fire-shield','Feu'],
-    ['ra-eye-shield','Œil'],['ra-broken-shield','Brisé'],['ra-helmet','Casque'],
-    ['ra-knight-helmet','Heaume'],['ra-cracked-helm','Fissuré'],['ra-hood','Capuche'],
-    ['ra-vest','Gilet'],['ra-chain','Mailles'],['ra-boot-stomp','Bottes'],
-    ['ra-boot-kick','Botte'],['ra-gauntlet','Gantelet'],
+    ['ra-shield','Bouclier'],['ra-round-shield','Écu'],['ra-bolt-shield','Bouclier éclair'],
+    ['ra-fire-shield','Bouclier feu'],['ra-eye-shield','Bouclier œil'],
+    ['ra-broken-shield','Bouclier brisé'],['ra-cracked-shield','Bouclier fissuré'],
+    ['ra-zebra-shield','Bouclier strié'],['ra-guarded-tower','Tour gardée'],
+    ['ra-helmet','Casque'],['ra-knight-helmet','Heaume'],['ra-cracked-helm','Casque fissuré'],
+    ['ra-hood','Capuche'],['ra-vest','Gilet'],['ra-chain','Cotte mailles'],
+    ['ra-boot-stomp','Bottes'],['ra-boot-kick','Botte coup'],['ra-metal-gate','Grille métal'],
   ]},
   {label:'💍 Bijoux', icons:[
-    ['ra-gem','Gemme'],['ra-gems','Gemmes'],['ra-gem-pendant','Pendentif'],
+    ['ra-fire-ring','Anneau'],['ra-gem-pendant','Anneau gemme'],['ra-amulet','Amulette'],
+    ['ra-necklace-pendant','Collier'],['ra-gem','Gemme'],['ra-gems','Gemmes'],
     ['ra-emerald','Émeraude'],['ra-sapphire','Saphir'],['ra-diamond','Diamant'],
-    ['ra-crown','Couronne'],['ra-queen-crown','Reine'],['ra-crown-of-thorns','Épines'],
-    ['ra-trophy','Trophée'],['ra-skull-trophy','Crâne'],['ra-amulet','Amulette'],
-    ['ra-ankh','Ankh'],['ra-angel-wings','Ailes'],['ra-omega','Omega'],
+    ['ra-crystal-cluster','Cristaux'],['ra-crown','Couronne'],['ra-queen-crown','Couronne reine'],
+    ['ra-crown-of-thorns','Couronne épines'],['ra-crowned-heart','Cœur couronné'],
+    ['ra-trophy','Trophée'],['ra-skull-trophy','Crâne trophée'],
+    ['ra-ankh','Ankh'],['ra-angel-wings','Ailes ange'],['ra-batwings','Ailes chauve-s.'],
+    ['ra-omega','Omega'],['ra-triforce','Triforce'],
   ]},
   {label:'🔮 Magie', icons:[
-    ['ra-fairy-wand','Baguette'],['ra-crystal-wand','Cryst.'],['ra-crystal-ball','Boule'],
-    ['ra-crystal-cluster','Cristaux'],['ra-rune-stone','Rune'],['ra-scroll-unfurled','Parchemin'],
-    ['ra-book','Livre'],['ra-burning-book','Grimoire'],['ra-bottle-vapors','Potion'],
-    ['ra-bubbling-potion','Bouillonnante'],['ra-potion','Fiole'],['ra-flask','Flacon'],
-    ['ra-health-increase','Soin'],['ra-regeneration','Regen'],['ra-aura','Aura'],
-    ['ra-arcane-mask','Masque'],['ra-lightning','Éclair'],['ra-lightning-bolt','Foudre'],
-    ['ra-fire-symbol','Feu'],['ra-frost-emblem','Givre'],['ra-explosion','Explosion'],
-    ['ra-acid','Acide'],['ra-poison-cloud','Toxique'],['ra-fire-ring','Anneau feu'],
+    ['ra-fairy-wand','Baguette'],['ra-crystal-wand','Baguette cryst.'],['ra-crystal-ball','Boule cryst.'],
+    ['ra-rune-stone','Rune'],['ra-crystals','Cristaux'],['ra-scroll-unfurled','Parchemin'],
+    ['ra-book','Livre'],['ra-burning-book','Grimoire'],['ra-bottle-vapors','Potion vapeurs'],
+    ['ra-bubbling-potion','Potion bouill.'],['ra-potion','Potion'],['ra-flask','Fiole'],
+    ['ra-round-bottom-flask','Fiole ronde'],['ra-vial','Ampoule'],['ra-corked-tube','Tube bouchon'],
+    ['ra-health-increase','Soin'],['ra-health-decrease','Malédiction'],['ra-regeneration','Régénération'],
+    ['ra-aura','Aura'],['ra-magic-swirl','Tourbillon'],['ra-arcane-mask','Masque arcane'],
+    ['ra-lightning','Éclair'],['ra-lightning-bolt','Foudre'],['ra-focused-lightning','Éclair ciblé'],
+    ['ra-fire-symbol','Feu'],['ra-flame-symbol','Flamme'],['ra-frost-emblem','Givre'],
+    ['ra-explosion','Explosion'],['ra-acid','Acide'],['ra-poison-cloud','Toxique'],
+    ['ra-burning-embers','Braises'],['ra-fire-bomb','Bombe feu'],
   ]},
   {label:'🏰 Divers', icons:[
-    ['ra-key','Clé'],['ra-three-keys','3 clés'],['ra-locked-fortress','Forteresse'],
-    ['ra-castle-flag','Château'],['ra-tower','Tour'],['ra-torch','Torche'],
-    ['ra-lantern-flame','Lanterne'],['ra-campfire','Feu camp'],['ra-candle','Bougie'],
-    ['ra-quill-ink','Plume'],['ra-hourglass','Sablier'],['ra-compass','Boussole'],
-    ['ra-telescope','Lunette'],['ra-dice-six','Dé'],['ra-dragon','Dragon'],
-    ['ra-dragon-wing','Aile'],['ra-wolf-head','Loup'],['ra-skull','Crâne'],
-    ['ra-coins','Pièces'],['ra-gold-bar','Lingot'],['ra-anchor','Ancre'],
-    ['ra-anvil','Enclume'],['ra-player-king','Roi'],['ra-player','Perso'],
+    ['ra-key','Clé'],['ra-key-basic','Clé simple'],['ra-three-keys','3 clés'],
+    ['ra-locked-fortress','Forteresse'],['ra-castle-flag','Château'],['ra-castle-emblem','Emblème château'],
+    ['ra-tower','Tour'],['ra-lighthouse','Phare'],
+    ['ra-torch','Torche'],['ra-lantern-flame','Lanterne'],['ra-campfire','Feu de camp'],
+    ['ra-candle-fire','Bougie'],['ra-lit-candelabra','Candélabre'],
+    ['ra-quill-ink','Plume encre'],['ra-hourglass','Sablier'],['ra-compass','Boussole'],
+    ['ra-telescope','Lunette'],['ra-dice-six','Dé 6'],['ra-perspective-dice-six','Dé 3D'],
+    ['ra-dragon','Dragon'],['ra-dragon-wing','Aile dragon'],['ra-dragon-breath','Souffle dragon'],
+    ['ra-wolf-head','Loup'],['ra-skull','Crâne'],['ra-pawprint','Empreinte'],
+    ['ra-coins','Pièces'],['ra-gold-bar','Lingot d\'or'],['ra-anchor','Ancre'],
+    ['ra-anvil','Enclume'],['ra-player-king','Roi'],['ra-player','Personnage'],
+    ['ra-bear-trap','Piège'],['ra-grappling-hook','Grappin'],
   ]},
 ];
 var _RA_CAT_IDX=0;
