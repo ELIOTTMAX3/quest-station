@@ -990,6 +990,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
   <div class="son-hd">
     <span style="font-size:18px;line-height:1;">🎵</span>
     <span style="font-size:14px;font-weight:700;color:#e8dcc8;flex:1;">Son &amp; Ambiance</span>
+    <button onclick="son_ouvrirForm()" title="Nouveau son" style="background:rgba(201,162,39,.15);border:1px solid rgba(201,162,39,.4);color:#c9a227;font-size:16px;cursor:pointer;line-height:1;padding:3px 9px;border-radius:7px;margin-right:6px;">＋</button>
     <button onclick="son_fermer()" style="background:none;border:none;color:#5a6a8a;font-size:18px;cursor:pointer;line-height:1;padding:0;">✕</button>
   </div>
   <div class="son-tabs">
@@ -1011,9 +1012,13 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     </div>
     <input type="hidden" id="son-form-id">
     <div style="display:grid;grid-template-columns:60px 1fr;gap:10px;margin-bottom:10px;">
-      <div>
+      <div style="position:relative;">
         <label style="font-size:10px;color:#5a6a8a;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;">Icône</label>
-        <input class="son-finp" id="son-form-icone" placeholder="🔥" style="text-align:center;font-size:22px;padding:6px 4px;">
+        <button type="button" id="son-emoji-btn" onclick="son_toggleEmojiPanel()" style="width:100%;background:#0a1220;border:1px solid #1e2d45;border-radius:7px;padding:6px 4px;font-size:22px;cursor:pointer;text-align:center;line-height:1.2;" title="Choisir un emoji">🎵</button>
+        <input type="hidden" id="son-form-icone" value="🎵">
+        <div id="son-emoji-panel" style="display:none;position:absolute;top:calc(100% + 4px);left:0;z-index:1400;background:#0e1929;border:1px solid #1e2d45;border-radius:10px;padding:8px;width:220px;display:none;">
+          <div style="display:flex;flex-wrap:wrap;gap:4px;" id="son-emoji-grid"></div>
+        </div>
       </div>
       <div>
         <label style="font-size:10px;color:#5a6a8a;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;">Nom</label>
@@ -5088,43 +5093,81 @@ function son_stopSFX(sonId){
   son_rendreDrawer();son_rendreNowPlaying();
 }
 
+// ── Emoji picker ──
+var _son_emojis=['🎵','🎶','🎸','🎹','🥁','🎺','🎻','🪗','🎷','🎙','🔊','📯',
+  '🌿','🌊','🌧','⛈','🌙','🌟','🔥','💥','❄','🌪','🌈','🌄',
+  '⚡','💀','🗡','🛡','⚔','🏹','🪄','🔮','🧨','💣','🚨','🔔',
+  '🐉','🦁','🐺','🦅','🐍','🐗','🕷','🦇','🐻','🦊','🦝','🐦',
+  '🏰','⛩','🗺','🌋','🏔','🌑','🕯','🪔','🏺','🎭','👑','🎲'];
+function son_toggleEmojiPanel(){
+  var p=document.getElementById('son-emoji-panel');if(!p)return;
+  if(p.style.display==='none'||!p.style.display){
+    var g=document.getElementById('son-emoji-grid');
+    if(g&&!g.dataset.built){
+      g.dataset.built='1';
+      g.innerHTML=_son_emojis.map(function(e){
+        return '<button type="button" onclick="son_selectEmoji(\''+e+'\')" style="background:none;border:none;font-size:22px;cursor:pointer;padding:3px;border-radius:5px;line-height:1;" title="'+e+'">'+e+'</button>';
+      }).join('');
+    }
+    p.style.display='block';
+  }else{p.style.display='none';}
+}
+function son_selectEmoji(e){
+  document.getElementById('son-form-icone').value=e;
+  var btn=document.getElementById('son-emoji-btn');if(btn)btn.textContent=e;
+  document.getElementById('son-emoji-panel').style.display='none';
+}
+document.addEventListener('click',function(ev){
+  var p=document.getElementById('son-emoji-panel');
+  var b=document.getElementById('son-emoji-btn');
+  if(p&&p.style.display!=='none'&&!p.contains(ev.target)&&ev.target!==b)p.style.display='none';
+});
+
 // ── Formulaire son ──
 function son_ouvrirForm(sonId){
   var m=document.getElementById('son-form-modal');if(!m)return;
   var s=sonId?(_son.sons.find(function(x){return x.id===sonId;})||null):null;
   document.getElementById('son-form-id').value=s?s.id:'';
   document.getElementById('son-form-title').textContent=s?'Modifier le son':'Nouveau son';
-  document.getElementById('son-form-icone').value=s?(s.icone||''):'';
+  var iconeVal=s?(s.icone||'🎵'):'🎵';
+  document.getElementById('son-form-icone').value=iconeVal;
+  var emojiBtn=document.getElementById('son-emoji-btn');if(emojiBtn)emojiBtn.textContent=iconeVal;
   document.getElementById('son-form-nom').value=s?(s.nom||''):'';
   document.getElementById('son-form-cat').value=s?(s.categorie||_son.tab):_son.tab;
   document.getElementById('son-form-url').value=s?(s.url||''):'';
   document.getElementById('son-form-loop').checked=s?(s.loop!==false):true;
   document.getElementById('son-form-del-row').style.display=s?'':'none';
+  var ep=document.getElementById('son-emoji-panel');if(ep)ep.style.display='none';
   m.style.display='flex';
 }
 function son_fermerForm(){
   var m=document.getElementById('son-form-modal');if(m)m.style.display='none';
+}
+function _son_fixUrl(url){
+  // Dropbox: dl=0 → raw=1 pour lecture directe
+  return url.replace(/[?&]dl=0/g,function(m){return m.replace('dl=0','raw=1');});
 }
 function son_sauvegarderSon(){
   var id=(document.getElementById('son-form-id').value||'').trim();
   var icone=(document.getElementById('son-form-icone').value||'').trim()||'🎵';
   var nom=(document.getElementById('son-form-nom').value||'').trim();
   var cat=document.getElementById('son-form-cat').value||'musique';
-  var url=(document.getElementById('son-form-url').value||'').trim();
+  var url=_son_fixUrl((document.getElementById('son-form-url').value||'').trim());
   var loop=document.getElementById('son-form-loop').checked;
   if(!nom){toast('Donne un nom au son.');return;}
   if(!url){toast('URL requise.');return;}
-  if(!db||!mjId)return;
+  if(!db){toast('Erreur : base de données non connectée.');return;}
+  if(!mjId){toast('Erreur : session MJ introuvable.');return;}
   var data={mjId:mjId,nom:nom,icone:icone,categorie:cat,url:url,loop:loop};
   if(id){
     db.collection('sons').doc(id).update(data)
       .then(function(){son_fermerForm();toast('✅ Son modifié !');})
-      .catch(function(e){toast('Erreur : '+e.message);});
+      .catch(function(e){toast('Erreur sauvegarde : '+e.message);});
   }else{
     data.creeLe=new Date().toISOString();
     db.collection('sons').add(data)
       .then(function(){son_fermerForm();toast('✅ Son ajouté !');})
-      .catch(function(e){toast('Erreur : '+e.message);});
+      .catch(function(e){toast('Erreur sauvegarde : '+e.message);});
   }
 }
 function son_supprimerSon(){
@@ -5176,8 +5219,7 @@ function _son_rendreChannel(chan){
           +'</div>';
       }).join('')
     :'<p style="font-size:12px;color:#5a6a8a;margin:8px 0 12px;">Aucun son. Clique « + Ajouter » pour commencer.</p>';
-  return _son_devSelect()+volHtml+listHtml
-    +'<button onclick="son_ouvrirForm()" style="width:100%;margin-top:10px;padding:9px;border-radius:8px;border:1px dashed #2a3d5a;background:transparent;color:#5a6a8a;font-size:12px;cursor:pointer;font-family:inherit;">+ Ajouter un son '+emoji+'</button>';
+  return _son_devSelect()+volHtml+listHtml;
 }
 
 function _son_rendreSFX(){
@@ -5200,8 +5242,7 @@ function _son_rendreSFX(){
     }).join('')+'</div>'):'';
   return (sfxs.length
     ?'<div class="son-sfx-grid">'+btns+'</div>'+editRows
-    :'<p style="font-size:12px;color:#5a6a8a;margin:8px 0 12px;">Aucun SFX. Clique « + Ajouter » pour commencer.</p>')
-    +'<button onclick="son_ouvrirForm()" style="width:100%;padding:9px;border-radius:8px;border:1px dashed #2a3d5a;background:transparent;color:#5a6a8a;font-size:12px;cursor:pointer;font-family:inherit;">+ Ajouter un SFX ⚡</button>';
+    :'<p style="font-size:12px;color:#5a6a8a;margin:8px 0 12px;">Aucun SFX. Clique « ＋ » en haut pour commencer.</p>');
 }
 
 // ── Now Playing Bar ──
