@@ -6,6 +6,8 @@
 <title>Quest Station</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#d97706">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/rpg-awesome@0.2.0/css/rpg-awesome.min.css">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Quest Station">
@@ -11957,6 +11959,15 @@ window._equip_desequiperSlotTarget = null;
 window._equip_donnerItemId = null;
 
 var _EQUIP_SLOTS = ["chapeau","armure","amulette","cape","anneau","ceinture","bottes"];
+function _item_iconHtml(icone,sz){
+  sz=sz||22;
+  if(!icone||icone==='📦'||icone==='✨')return '<i class="ra ra-gem" style="font-size:'+sz+'px;color:var(--or,#c9a227);"></i>';
+  if(icone.indexOf('ra-')===0)return '<i class="ra '+icone+'" style="font-size:'+sz+'px;color:var(--or,#c9a227);"></i>';
+  if(icone.indexOf('fa-')===0)return '<i class="'+icone+'" style="font-size:'+sz+'px;color:var(--or,#c9a227);"></i>';
+  if(icone.startsWith('http'))return '<img src="'+icone+'" style="width:'+sz+'px;height:'+sz+'px;object-fit:cover;border-radius:4px;">';
+  return '<span style="font-size:'+sz+'px;line-height:1;">'+icone+'</span>';
+}
+
 var _EQUIP_RARETE_COLORS = {
   "commun":"#9ca3af","peu commun":"#4ade80","rare":"#60a5fa",
   "très rare":"#c084fc","légendaire":"var(--or)"
@@ -12064,7 +12075,7 @@ function equip_rendreSlots(){
     var item=itemId?(window._equip_items||{})[itemId]:null;
     if(item){
       btn.classList.add("occupied");
-      if(icoEl)icoEl.textContent=item.icone&&!item.icone.startsWith("http")?item.icone:"✨";
+      if(icoEl)icoEl.innerHTML=_item_iconHtml(item.icone,22);
       if(lblEl)lblEl.textContent=(item.nom||"").substring(0,7)+(item.nom&&item.nom.length>7?"…":"");
     } else {
       btn.classList.remove("occupied");
@@ -12093,7 +12104,7 @@ function equip_rendreInventaire(){
     var item=items[itemId];
     if(!item)return '';
     var rarColor=_EQUIP_RARETE_COLORS[item.rarete]||"#9ca3af";
-    var icone=item.icone||"📦";
+    var icone=item.icone||"ra-gem";
     var equipSlot=equipes[itemId]||"";
     // Résumé rapide en sous-titre : charges si l'objet en a
     var chargesInfo='';
@@ -12103,7 +12114,7 @@ function equip_rendreInventaire(){
     }
     var descId="eqd-"+itemId;
     var html='<div class="equip-item-row" style="flex-wrap:wrap;">'
-      +'<div class="equip-item-ico">'+(icone.startsWith("http")?'<img src="'+icone+'" style="width:20px;height:20px;object-fit:contain;">':icone)+'</div>'
+      +'<div class="equip-item-ico">'+_item_iconHtml(icone,22)+'</div>'
       +'<div class="equip-item-info">'
       +'<div class="equip-item-nom">'+item.nom+'</div>'
       +'<div class="equip-item-sub" style="color:'+rarColor+';">'+item.rarete
@@ -12201,7 +12212,7 @@ function equip_rendreActif(){
   function _rendreEquipItem(id, slotLabel){
     var item=items[id];if(!item)return;
     var n=count++;
-    var icone=item.icone&&!item.icone.startsWith("http")?item.icone:"✨";
+    var icone=item.icone||"ra-gem";
     var hasDesc=!!(item.description&&item.description.trim());
     var desc=hasDesc?item.description.trim():'Aucune description disponible.';
     var bonusHtml='';
@@ -12239,7 +12250,7 @@ function equip_rendreActif(){
     }
     html+='<div class="r-equip-item">'
       +'<div class="r-equip-header" onclick="reqToggleDesc('+n+')" style="cursor:pointer;user-select:none;">'
-      +'<span class="r-equip-icone">'+icone+'</span>'
+      +'<span class="r-equip-icone">'+_item_iconHtml(icone,24)+'</span>'
       +'<div style="flex:1;min-width:0;">'
       +'<span class="r-equip-nom">'+item.nom+'</span>'
       +(item.rarete?'<span style="font-size:9px;font-weight:700;padding:1px 5px;border-radius:3px;background:rgba(0,0,0,.35);color:'+(_EQUIP_RARETE_COLORS[item.rarete]||"#9ca3af")+';margin-left:4px;">'+item.rarete+'</span>':'')
@@ -12389,7 +12400,7 @@ function equip_rendreQuickSlots(){
     var item=itemId&&window._equip_items?window._equip_items[itemId]:null;
     if(item){
       btn.classList.add('occupied');
-      if(ico)ico.textContent=item.icone||'📦';
+      if(ico)ico.innerHTML=_item_iconHtml(item.icone,22);
       if(lbl)lbl.textContent=item.nom||itemId;
       var tag=item.tagMain;
       var tagEl=el('eqs-'+n+'-tag');
@@ -12430,7 +12441,7 @@ function equip_clickQuickSlot(n){
   if(!items.length){toast('Aucun objet dans l\'inventaire.');return;}
   var list=items.map(function(it){
     return '<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;border-radius:6px;border:1px solid var(--bord);background:var(--bg2);margin-bottom:4px;" onclick="equip_setQuickSlot('+n+',\''+it.id+'\')">'
-      +'<span style="font-size:18px;">'+((it.icone&&it.icone.length<=2)?it.icone:'📦')+'</span>'
+      +'<span style="display:inline-flex;align-items:center;justify-content:center;width:22px;">'+_item_iconHtml(it.icone,18)+'</span>'
       +'<span style="font-size:12px;color:var(--txt);">'+escHtml(it.nom||it.id)+'</span>'
       +'</div>';
   }).join('');
