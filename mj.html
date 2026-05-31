@@ -439,6 +439,8 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .son-finp::placeholder{color:#5a6a8a;}
 .son-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#4ade80;animation:sonpulse 1.5s ease-in-out infinite;flex-shrink:0;}
 @keyframes sonpulse{0%,100%{opacity:1;}50%{opacity:.2;}}
+.son-sous-tab-btn{display:inline-block;padding:7px 13px;font-size:11px;font-weight:600;font-family:inherit;cursor:pointer;color:#5a6a8a;border:none;border-bottom:2px solid transparent;background:none;white-space:nowrap;transition:color .15s,border-color .15s;}
+.son-sous-tab-btn.on{color:#c9a227;border-bottom-color:#c9a227;}
 .son-groupe-hd{font-size:10px;font-weight:700;color:#8a9aba;text-transform:uppercase;letter-spacing:.08em;padding:10px 2px 5px;border-top:1px solid #1a2840;margin-top:4px;display:flex;align-items:center;gap:6px;}
 .son-groupe-hd .son-groupe-pill{background:#1a2840;border-radius:5px;padding:2px 7px;font-size:10px;color:#c9a227;border:1px solid rgba(201,162,39,.25);}
 .son-ord-btn{background:none;border:1px solid #1e2d45;border-radius:5px;color:#5a6a8a;font-size:11px;cursor:pointer;padding:3px 6px;line-height:1;font-family:inherit;}
@@ -1004,6 +1006,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <button class="son-tab-btn" id="son-tab-ambiance" onclick="son_setTab('ambiance')">🌿 Ambiance</button>
     <button class="son-tab-btn" id="son-tab-sfx" onclick="son_setTab('sfx')">⚡ SFX</button>
   </div>
+  <div id="son-sous-tabs" style="display:none;border-bottom:1px solid #1a2840;background:#060d1a;overflow-x:auto;white-space:nowrap;flex-shrink:0;"></div>
   <div class="son-body" id="son-body">
     <p style="font-size:12px;color:#5a6a8a;padding:10px 0;">Chargement…</p>
   </div>
@@ -1042,10 +1045,6 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
     <datalist id="son-groupes-list"></datalist>
     <label style="font-size:10px;color:#5a6a8a;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;">URL directe MP3 / WAV</label>
     <input class="son-finp" id="son-form-url" placeholder="https://…" style="margin-bottom:10px;">
-    <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#c0c8dc;cursor:pointer;margin-bottom:16px;">
-      <input type="checkbox" id="son-form-loop" checked style="width:14px;height:14px;accent-color:#c9a227;">
-      Boucle (loop)
-    </label>
     <div style="display:flex;gap:8px;">
       <button onclick="son_sauvegarderSon()" style="flex:1;padding:10px;border-radius:8px;border:none;background:#c9a227;color:#000;font-weight:700;font-size:13px;cursor:pointer;font-family:inherit;">Sauvegarder</button>
       <button onclick="son_fermerForm()" style="padding:10px 14px;border-radius:8px;border:1px solid #1e2d45;background:transparent;color:#c0c8dc;font-size:13px;cursor:pointer;font-family:inherit;">Annuler</button>
@@ -4970,6 +4969,7 @@ var _son={
   deviceId:'',_devices:[],
   sons:[],sonsUnsub:null,
   tab:'musique',
+  sousTabs:{musique:null,ambiance:null,sfx:null}, // null = "Tous"
   _npTick:null
 };
 
@@ -5008,6 +5008,10 @@ function son_setTab(t){
     var b=document.getElementById('son-tab-'+x);
     if(b)b.classList.toggle('on',x===t);
   });
+  son_rendreDrawer();
+}
+function son_setSousTab(groupe){
+  _son.sousTabs[_son.tab]=groupe; // null = Tous
   son_rendreDrawer();
 }
 
@@ -5050,7 +5054,7 @@ function son_toggleSound(sonId){
   var s=_son.sons.find(function(x){return x.id===sonId;});
   if(!s)return;
   var vol=0.7;
-  var a=_son_mkAudio(s.url,s.loop!==false,vol);
+  var a=_son_mkAudio(s.url,false,vol); // loop géré depuis "En cours" uniquement
   _son.playing[sonId]={audio:a,vol:vol,paused:false};
   a.onended=function(){
     if(_son.playing[sonId]&&_son.playing[sonId].audio===a)delete _son.playing[sonId];
@@ -5125,7 +5129,6 @@ function son_ouvrirForm(sonId){
   document.getElementById('son-form-cat').value=s?(s.categorie||_son.tab):_son.tab;
   document.getElementById('son-form-groupe').value=s?(s.groupe||''):'';
   document.getElementById('son-form-url').value=s?(s.url||''):'';
-  document.getElementById('son-form-loop').checked=s?(s.loop!==false):true;
   document.getElementById('son-form-del-row').style.display=s?'':'none';
   var ep=document.getElementById('son-emoji-panel');if(ep)ep.style.display='none';
   // Remplir la datalist avec les groupes existants
@@ -5150,12 +5153,11 @@ function son_sauvegarderSon(){
   var cat=document.getElementById('son-form-cat').value||'musique';
   var groupe=(document.getElementById('son-form-groupe').value||'').trim();
   var url=_son_fixUrl((document.getElementById('son-form-url').value||'').trim());
-  var loop=document.getElementById('son-form-loop').checked;
   if(!nom){toast('Donne un nom au son.');return;}
   if(!url){toast('URL requise.');return;}
   if(!db){toast('Erreur : base de données non connectée.');return;}
   if(!mjId){toast('Erreur : session MJ introuvable.');return;}
-  var data={mjId:mjId,nom:nom,icone:icone,categorie:cat,groupe:groupe,url:url,loop:loop};
+  var data={mjId:mjId,nom:nom,icone:icone,categorie:cat,groupe:groupe,url:url};
   if(id){
     db.collection('sons').doc(id).update(data)
       .then(function(){son_fermerForm();toast('✅ Son modifié !');})
@@ -5224,7 +5226,7 @@ function _son_mkCard(s,peers,emoji){
     +'<span style="font-size:22px;line-height:1;flex-shrink:0;">'+(s.icone||emoji)+'</span>'
     +'<div style="flex:1;min-width:0;">'
       +'<div style="font-size:13px;font-weight:700;color:#e8dcc8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+besti_esc(s.nom)+'</div>'
-      +'<div style="font-size:10px;color:#5a6a8a;margin-top:2px;">'+(s.loop!==false?'🔁 Boucle':'▶ Une fois')+'</div>'
+      +'<div style="font-size:10px;color:#5a6a8a;margin-top:2px;">'+besti_esc(s.groupe||'')+'</div>'
     +'</div>'
     +(isP
       ?'<button onclick="son_stopSound(\''+s.id+'\')" style="padding:5px 10px;border-radius:7px;border:1px solid rgba(201,162,39,.4);background:rgba(201,162,39,.1);color:#c9a227;font-size:13px;cursor:pointer;font-family:inherit;">⏹</button>'
@@ -5254,13 +5256,19 @@ function _son_rendreGroupes(sons,emoji){
   return html;
 }
 
-function _son_rendreChannel(chan){
+function _son_rendreChannel(chan,sons,filtre){
   var emoji=chan==='musique'?'🎵':'🌿';
-  return _son_devSelect()+_son_rendreGroupes(_son.sons.filter(function(s){return s.categorie===chan;}),emoji);
+  // Si sous-onglet actif : afficher les sons sans en-tête de groupe (déjà filtré)
+  if(filtre!=null){
+    var sorted=(sons||[]).slice().sort(function(a,b){return (a.ordre||0)-(b.ordre||0);});
+    if(!sorted.length)return _son_devSelect()+'<p style="font-size:12px;color:#5a6a8a;margin:8px 0;">Aucun son dans ce groupe.</p>';
+    return _son_devSelect()+sorted.map(function(s){return _son_mkCard(s,sorted,emoji);}).join('');
+  }
+  return _son_devSelect()+_son_rendreGroupes(sons||[],emoji);
 }
 
-function _son_rendreSFX(){
-  var sfxs=_son.sons.filter(function(s){return s.categorie==='sfx';});
+function _son_rendreSFX(sfxs,filtre){
+  sfxs=sfxs||[];
   if(!sfxs.length)return '<p style="font-size:12px;color:#5a6a8a;margin:8px 0;">Aucun SFX. Clique « ＋ » en haut pour commencer.</p>';
   sfxs=sfxs.slice().sort(function(a,b){return (a.ordre||0)-(b.ordre||0);});
   var sansGroupe=sfxs.filter(function(s){return !(s.groupe||'').trim();});
@@ -5276,7 +5284,6 @@ function _son_rendreSFX(){
       return '<button class="son-sfx-btn'+(isP?' playing':'')+'" onclick="son_toggleSound(\''+s.id+'\')">'
         +'<div style="font-size:26px;margin-bottom:4px;line-height:1;">'+(s.icone||'⚡')+'</div>'
         +'<div style="font-size:11px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">'+besti_esc(s.nom)+'</div>'
-        +(s.loop!==false?'<div style="font-size:9px;margin-top:3px;opacity:.55;">🔁</div>':'')
         +'</button>';
     }).join('');
     var rows=membres.map(function(s,i){
@@ -5291,6 +5298,10 @@ function _son_rendreSFX(){
     return '<div class="son-sfx-grid">'+btns+'</div><div style="margin-bottom:6px;">'+rows+'</div>';
   }
   var html='';
+  // Si sous-onglet actif : pas d'en-têtes, juste les sons du groupe
+  if(filtre!=null){
+    return sfxGroupe(sfxs);
+  }
   if(sansGroupe.length)html+=sfxGroupe(sansGroupe);
   groupNames.forEach(function(g){
     var membres=sfxs.filter(function(s){return (s.groupe||'').trim()===g;});
@@ -5382,8 +5393,30 @@ function son_rendreNowPlaying(){
 // ── Rendu du drawer ──
 function son_rendreDrawer(){
   var body=document.getElementById('son-body');if(!body)return;
-  if(_son.tab==='sfx'){body.innerHTML=_son_rendreSFX();}
-  else{body.innerHTML=_son_rendreChannel(_son.tab);}
+  var tab=_son.tab;
+  var sonsDuTab=_son.sons.filter(function(s){return s.categorie===tab;});
+  // Calcul des groupes disponibles pour cet onglet
+  var groupes=[...new Set(sonsDuTab.map(function(s){return (s.groupe||'').trim();}).filter(Boolean))].sort();
+  var stDiv=document.getElementById('son-sous-tabs');
+  if(stDiv){
+    if(groupes.length){
+      var actif=_son.sousTabs[tab];
+      // Valider que le sous-onglet actif existe encore
+      if(actif&&!groupes.includes(actif))actif=_son.sousTabs[tab]=null;
+      stDiv.style.display='';
+      stDiv.innerHTML='<button class="son-sous-tab-btn'+(actif===null?' on':'')+'" onclick="son_setSousTab(null)">Tous</button>'
+        +groupes.map(function(g){
+          return '<button class="son-sous-tab-btn'+(actif===g?' on':'')+'" onclick="son_setSousTab(\''+besti_esc(g)+'\')">'+besti_esc(g)+'</button>';
+        }).join('');
+    }else{
+      stDiv.style.display='none';stDiv.innerHTML='';
+      _son.sousTabs[tab]=null;
+    }
+  }
+  var filtre=_son.sousTabs[tab]; // null = tous, sinon nom de groupe
+  var sonsFiltrés=filtre===null?sonsDuTab:sonsDuTab.filter(function(s){return (s.groupe||'').trim()===filtre;});
+  if(tab==='sfx'){body.innerHTML=_son_rendreSFX(sonsFiltrés,filtre);}
+  else{body.innerHTML=_son_rendreChannel(tab,sonsFiltrés,filtre);}
 }
 </script>
 </body>
