@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RPG Awesome — Aperçu Objets</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/rpg-awesome@0.2.0/css/rpg-awesome.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0f0f12;font-family:system-ui,sans-serif;color:#e0e0e0;padding:28px;}
+h1{font-size:12px;font-weight:700;color:#c9a227;letter-spacing:.14em;text-transform:uppercase;margin-bottom:5px;text-align:center;}
+p.intro{text-align:center;font-size:11px;color:#5a6a8a;margin-bottom:24px;}
+.section{margin-bottom:22px;}
+.section-title{font-size:9px;font-weight:700;color:#c9a227;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;padding-bottom:5px;border-bottom:1px solid rgba(201,162,39,.2);}
+.grid{display:flex;flex-wrap:wrap;gap:7px;}
+.icon-btn{display:flex;flex-direction:column;align-items:center;gap:5px;background:#16213e;border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:10px 6px;width:78px;}
+.icon-btn i{font-size:24px;color:#c9a227;}
+.icon-btn span{font-size:9px;color:#6a6a8a;text-align:center;line-height:1.3;}
+
+.compare{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-top:30px;padding-top:24px;border-top:1px solid #1e2d45;}
+.compare-col h2{font-size:9px;font-weight:700;color:#aaa;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;}
+.fake-card{background:#16213e;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:10px 11px;display:flex;flex-direction:column;gap:5px;margin-bottom:7px;}
+.fake-card-top{display:flex;align-items:flex-start;gap:8px;}
+.fake-card-icon{flex-shrink:0;width:28px;text-align:center;line-height:1;color:#c9a227;}
+.fake-card-icon i{font-size:22px;}
+.fake-card-icon .em{font-size:22px;}
+.fake-card-name{font-size:11px;font-weight:700;color:#e0e0e0;}
+.fake-card-meta{font-size:9px;color:#6a6a8a;display:flex;gap:4px;align-items:center;margin-top:1px;}
+.badge{font-size:9px;font-weight:700;padding:1px 6px;border-radius:999px;background:rgba(0,0,0,.4);}
+.tr{color:#c084fc;} .r{color:#60a5fa;} .unc{color:#4ade80;} .leg{color:#c9a227;}
+.fake-actions{display:flex;gap:3px;flex-wrap:wrap;}
+.fake-btn{font-size:9px;padding:2px 6px;border-radius:5px;background:#0f3460;border:1px solid rgba(255,255,255,.12);color:#a0a0b0;}
+.fake-btn.ok{background:#d97706;color:#fff;border-color:#d97706;}
+.fake-btn.danger{background:rgba(185,28,28,.25);color:#fca5a5;border-color:rgba(185,28,28,.4);}
+</style>
+</head>
+<body>
+
+<h1>RPG Awesome — Icônes spécialisées Jeu de Rôle</h1>
+<p class="intro">Police d'icônes créée pour le JdR sur table · format <code style="color:#c9a227;">ra ra-[nom]</code></p>
+
+<div id="sections"></div>
+
+<div class="compare">
+  <div class="compare-col">
+    <h2>Avant — Emoji</h2>
+    <div class="fake-card">
+      <div class="fake-card-top"><div class="fake-card-icon"><span class="em">💍</span></div><div><div class="fake-card-name">Anneau de protection</div><div class="fake-card-meta"><span class="badge tr">très rare</span> Anneau</div></div></div>
+      <div class="fake-actions"><span class="fake-btn">📤 Récup.</span><span class="fake-btn ok">Donner</span><span class="fake-btn danger">🗑️</span></div>
+    </div>
+    <div class="fake-card">
+      <div class="fake-card-top"><div class="fake-card-icon"><span class="em">🥾</span></div><div><div class="fake-card-name">Bottes du Foudroyant</div><div class="fake-card-meta"><span class="badge r">rare</span> Bottes</div></div></div>
+      <div class="fake-actions"><span class="fake-btn">📤 Récup.</span><span class="fake-btn ok">Donner</span><span class="fake-btn danger">🗑️</span></div>
+    </div>
+    <div class="fake-card">
+      <div class="fake-card-top"><div class="fake-card-icon"><span class="em">⚗️</span></div><div><div class="fake-card-name">Potion de soins suprêmes</div><div class="fake-card-meta"><span class="badge unc">peu commun</span> Inventaire</div></div></div>
+      <div class="fake-actions"><span class="fake-btn">📤 Récup.</span><span class="fake-btn ok">Donner</span><span class="fake-btn danger">🗑️</span></div>
+    </div>
+    <div class="fake-card">
+      <div class="fake-card-top"><div class="fake-card-icon"><span class="em">⚔️</span></div><div><div class="fake-card-name">Épée de feu ancienne</div><div class="fake-card-meta"><span class="badge leg">légendaire</span> Inventaire</div></div></div>
+      <div class="fake-actions"><span class="fake-btn">📤 Récup.</span><span class="fake-btn ok">Donner</span><span class="fake-btn danger">🗑️</span></div>
+    </div>
+  </div>
+
+  <div class="compare-col">
+    <h2>Font Awesome</h2>
+    <div class="fake-card">
+      <div class="fake-card-top"><div class="fake-card-icon"><i class="fa-solid fa-ring"></i></div><div><div class="fake-card-name">Anneau de protection</div><div class="fake-card-meta"><span class="badge tr">très rare</span> Anneau</div></div></div>
+      <div class="fake-actions"><span class="fake-btn">📤 Récup.</span><span class="fake-btn ok">Donner</span><span class="fake-btn danger">🗑️</span></div>
+    </div>
+    <div class="fake-card">
+      <div class="fake-card-top"><div class="fake-card-icon"><i class="fa-solid fa-boot"></i></div><div><div class="fake-card-name">Bottes du Foudroyant</div><div class="fake-card-meta"><span class="badge r">rare</span> Bottes</div></div></div>
+      <div class="fake-actions"><span class="fake-btn">📤 Récup.</span><span class="fake-btn ok">Donner</span><span class="fake-btn danger">🗑️</span></div>
+    </div>
+    <div class="fake-card">
+      <div class="fake-card-top"><div class="fake-card-icon"><i class="fa-solid fa-flask"></i></div><div><div class="fake-card-name">Potion de soins suprêmes</div><div class="fake-card-meta"><span class="badge unc">peu commun</span> Inventaire</div></div></div>
+      <div class="fake-actions"><span class="fake-btn">📤 Récup.</span><span class="fake-btn ok">Donner</span><span class="fake-btn danger">🗑️</span></div>
+    </div>
+    <div class="fake-card">
+      <div class="fake-card-top"><div class="fake-card-icon"><i class="fa-solid fa-khanda"></i></div><div><div class="fake-card-name">Épée de feu ancienne</div><div class="fake-card-meta"><span class="badge leg">légendaire</span> Inventaire</div></div></div>
+      <div class="fake-actions"><span class="fake-btn">📤 Récup.</span><span class="fake-btn ok">Donner</span><span class="fake-btn danger">🗑️</span></div>
+    </div>
+  </div>
+
+  <div class="compare-col">
+    <h2>RPG Awesome ✨</h2>
+    <div class="fake-card">
+      <div class="fake-card-top"><div class="fake-card-icon"><i class="ra ra-gem-pendant"></i></div><div><div class="fake-card-name">Anneau de protection</div><div class="fake-card-meta"><span class="badge tr">très rare</span> Anneau</div></div></div>
+      <div class="fake-actions"><span class="fake-btn">📤 Récup.</span><span class="fake-btn ok">Donner</span><span class="fake-btn danger">🗑️</span></div>
+    </div>
+    <div class="fake-card">
+      <div class="fake-card-top"><div class="fake-card-icon"><i class="ra ra-boot-stomp"></i></div><div><div class="fake-card-name">Bottes du Foudroyant</div><div class="fake-card-meta"><span class="badge r">rare</span> Bottes</div></div></div>
+      <div class="fake-actions"><span class="fake-btn">📤 Récup.</span><span class="fake-btn ok">Donner</span><span class="fake-btn danger">🗑️</span></div>
+    </div>
+    <div class="fake-card">
+      <div class="fake-card-top"><div class="fake-card-icon"><i class="ra ra-bottle-vapors"></i></div><div><div class="fake-card-name">Potion de soins suprêmes</div><div class="fake-card-meta"><span class="badge unc">peu commun</span> Inventaire</div></div></div>
+      <div class="fake-actions"><span class="fake-btn">📤 Récup.</span><span class="fake-btn ok">Donner</span><span class="fake-btn danger">🗑️</span></div>
+    </div>
+    <div class="fake-card">
+      <div class="fake-card-top"><div class="fake-card-icon"><i class="ra ra-fireball-sword"></i></div><div><div class="fake-card-name">Épée de feu ancienne</div><div class="fake-card-meta"><span class="badge leg">légendaire</span> Inventaire</div></div></div>
+      <div class="fake-actions"><span class="fake-btn">📤 Récup.</span><span class="fake-btn ok">Donner</span><span class="fake-btn danger">🗑️</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var sections=[
+  {title:'⚔ Armes', icons:[
+    ['ra-sword','Épée'],['ra-crossed-swords','Épées croisées'],['ra-broadsword','Espadon'],
+    ['ra-dervish-swords','Sabres'],['ra-spinning-sword','Épée tournante'],['ra-relic-blade','Épée relique'],
+    ['ra-bat-sword','Épée courbe'],['ra-lightning-sword','Épée éclairs'],['ra-fireball-sword','Épée feu'],
+    ['ra-dripping-sword','Épée empoisonnée'],['ra-daggers','Dagues croisées'],['ra-plain-dagger','Dague'],
+    ['ra-bowie-knife','Couteau'],['ra-axe','Hache'],['ra-crossed-axes','Haches croisées'],
+    ['ra-battered-axe','Hache abimée'],['ra-broken-axe','Hache brisée'],['ra-hammer','Marteau'],
+    ['ra-large-hammer','Masse'],['ra-flat-hammer','Maillet'],['ra-halberd','Hallebarde'],
+    ['ra-scythe','Faux'],['ra-sickle','Faucille'],['ra-trident','Trident'],
+    ['ra-harpoon-trident','Harpon'],['ra-flaming-trident','Trident de feu'],['ra-spear-head','Lance'],
+    ['ra-crossbow','Arbalète'],['ra-broadhead-arrow','Flèche'],['ra-barbed-arrow','Flèche barbelée'],
+    ['ra-flaming-arrow','Flèche enflammée'],['ra-frozen-arrow','Flèche givrée'],['ra-shuriken','Shuriken'],
+    ['ra-kunai','Kunai'],['ra-spiked-mace','Masse épines'],['ra-gavel','Marteau de juge'],
+  ]},
+  {title:'🛡 Armures & Protection', icons:[
+    ['ra-shield','Bouclier'],['ra-round-shield','Écu'],['ra-heavy-shield','Écu lourd'],
+    ['ra-circular-shield','Bouclier rond'],['ra-zebra-shield','Bouclier strié'],['ra-bolt-shield','Bouclier éclair'],
+    ['ra-fire-shield','Bouclier feu'],['ra-eye-shield','Bouclier œil'],['ra-broken-shield','Bouclier brisé'],
+    ['ra-cracked-shield','Bouclier fissuré'],['ra-helmet','Casque'],['ra-knight-helmet','Heaume'],
+    ['ra-cracked-helm','Casque fissuré'],['ra-hood','Capuche'],['ra-vest','Gilet'],
+    ['ra-chain','Cotte de mailles'],['ra-boot-stomp','Bottes'],['ra-boot-kick','Botte coup'],
+  ]},
+  {title:'💍 Accessoires & Bijoux', icons:[
+    ['ra-gem','Gemme'],['ra-gems','Gemmes'],['ra-gem-pendant','Pendentif'],
+    ['ra-emerald','Émeraude'],['ra-sapphire','Saphir'],['ra-diamond','Diamant'],
+    ['ra-crown','Couronne'],['ra-queen-crown','Couronne reine'],['ra-crown-of-thorns','Couronne épines'],
+    ['ra-crowned-heart','Cœur couronné'],['ra-trophy','Trophée'],['ra-skull-trophy','Crâne trophée'],
+    ['ra-amulet','Amulette'],['ra-ankh','Ankh'],['ra-angel-wings','Ailes d\'ange'],
+    ['ra-feather-wing','Plume aile'],['ra-batwings','Ailes chauve-souris'],['ra-omega','Omega'],
+  ]},
+  {title:'🔮 Magie & Consommables', icons:[
+    ['ra-fairy-wand','Baguette'],['ra-crystal-wand','Baguette cryst.'],['ra-crystal-ball','Boule de cristal'],
+    ['ra-crystal-cluster','Cristaux groupés'],['ra-crystals','Cristaux'],['ra-rune-stone','Rune'],
+    ['ra-scroll-unfurled','Parchemin'],['ra-book','Livre'],['ra-burning-book','Grimoire'],
+    ['ra-bottle-vapors','Potion vapeurs'],['ra-bubbling-potion','Potion bouillonnante'],['ra-potion','Potion'],
+    ['ra-flask','Fiole'],['ra-round-bottom-flask','Fiole ronde'],['ra-vial','Ampoule'],
+    ['ra-corked-tube','Tube'],['ra-health-increase','Soin'],['ra-health-decrease','Malédiction'],
+    ['ra-regeneration','Régénération'],['ra-aura','Aura'],['ra-magic-swirl','Tourbillon'],
+    ['ra-arcane-mask','Masque arcane'],['ra-lightning','Éclair'],['ra-lightning-bolt','Foudre'],
+    ['ra-focused-lightning','Éclair ciblé'],['ra-fire-symbol','Feu'],['ra-flame-symbol','Flamme'],
+    ['ra-fire-ring','Anneau de feu'],['ra-frost-emblem','Givre'],['ra-explosion','Explosion'],
+    ['ra-blast','Souffle'],['ra-acid','Acide'],['ra-poison-cloud','Nuage toxique'],
+  ]},
+  {title:'🏰 Lieux & Divers', icons:[
+    ['ra-key','Clé'],['ra-key-basic','Clé simple'],['ra-three-keys','3 clés'],
+    ['ra-locked-fortress','Forteresse'],['ra-castle-flag','Château'],['ra-castle-emblem','Emblème château'],
+    ['ra-tower','Tour'],['ra-guarded-tower','Tour gardée'],['ra-lighthouse','Phare'],
+    ['ra-torch','Torche'],['ra-lantern-flame','Lanterne'],['ra-campfire','Feu de camp'],
+    ['ra-candle','Bougie'],['ra-lit-candelabra','Candélabre'],['ra-quill-ink','Plume encre'],
+    ['ra-feather-wing','Plume'],['ra-hourglass','Sablier'],['ra-compass','Boussole'],
+    ['ra-telescope','Télescope'],['ra-dice-six','Dé 6'],['ra-perspective-dice-six','Dé 3D'],
+    ['ra-dragon','Dragon'],['ra-dragon-wing','Aile dragon'],['ra-dragon-breath','Souffle dragon'],
+    ['ra-wolf-head','Loup'],['ra-skull','Crâne'],['ra-pawprint','Empreinte'],
+    ['ra-coins','Pièces'],['ra-gold-bar','Lingot d\'or'],['ra-anchor','Ancre'],
+    ['ra-player-king','Roi'],['ra-player','Personnage'],['ra-anvil','Enclume'],
+  ]},
+];
+
+var container=document.getElementById('sections');
+sections.forEach(function(s){
+  var html='<div class="section"><div class="section-title">'+s.title+'</div><div class="grid">';
+  s.icons.forEach(function(ic){
+    html+='<div class="icon-btn"><i class="ra ra-'+ic[0].replace('ra-','')+'"></i><span>'+ic[1]+'</span></div>';
+  });
+  html+='</div></div>';
+  container.innerHTML+=html;
+});
+</script>
+</body>
+</html>

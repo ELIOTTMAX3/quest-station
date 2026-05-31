@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/rpg-awesome@0.2.0/css/rpg-awesome.min.css">
 <title>Quest Station — MJ</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#d97706">
@@ -197,11 +198,16 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .mj-etat-btn{font-size:11px;padding:5px 10px;border-radius:6px;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt2);cursor:pointer;}
 .mj-etat-btn.on{background:rgba(220,38,38,.3);color:#fca5a5;border-color:#dc2626;}
 /* ── EMOJI PICKER ── */
-.emoji-picker-grid{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;max-height:180px;overflow-y:auto;}
-.emoji-picker-btn{font-size:20px;padding:3px;border-radius:6px;cursor:pointer;border:1px solid transparent;background:none;transition:background .1s;line-height:1.2;}
-.emoji-picker-btn:hover{background:var(--bg2);border-color:var(--bord2);}
-.emoji-cat-btn{font-family:inherit;font-size:11px;padding:3px 8px;border-radius:6px;cursor:pointer;border:1px solid var(--bord2);background:var(--bg2);color:var(--txt2);}
-.emoji-cat-btn.on{background:var(--rouge);color:white;border-color:var(--rouge);}
+.ra-picker-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;max-height:200px;overflow-y:auto;padding-right:2px;}
+.ra-picker-btn{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 2px;border-radius:7px;cursor:pointer;border:1px solid transparent;background:none;transition:background .1s,border-color .1s;font-family:inherit;}
+.ra-picker-btn i{font-size:18px;color:var(--or);}
+.ra-picker-btn span{font-size:8px;color:var(--txt3);text-align:center;line-height:1.2;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.ra-picker-btn:hover{background:var(--bg2);border-color:var(--bord2);}
+.ra-picker-btn.on{background:rgba(201,162,39,.15);border-color:rgba(201,162,39,.4);}
+.ra-cat-btn{font-family:inherit;font-size:10px;padding:3px 8px;border-radius:6px;cursor:pointer;border:1px solid var(--bord2);background:var(--bg2);color:var(--txt2);white-space:nowrap;}
+.ra-cat-btn.on{background:var(--rouge);color:white;border-color:var(--rouge);}
+.item-icon-preview{width:38px;height:38px;display:flex;align-items:center;justify-content:center;background:var(--bg3);border:1px solid var(--bord2);border-radius:7px;cursor:pointer;flex-shrink:0;}
+.item-icon-preview i,.item-icon-preview .em{font-size:22px;color:var(--or);line-height:1;}
 /* ── OBJETS MJ ── */
 .obj-pill{font-family:inherit;font-size:12px;font-weight:600;padding:5px 13px;border-radius:999px;cursor:pointer;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt2);transition:all .12s;white-space:nowrap;}
 .obj-pill:hover{border-color:var(--rouge);color:var(--txt);}
@@ -784,9 +790,12 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:.75rem;">
               <div>
                 <label>Icône</label>
-                <div style="display:flex;gap:5px;align-items:center;">
-                  <input type="text" id="equip-mj-icone" placeholder="🗡️ ou URL" style="flex:1;">
-                  <button type="button" class="btn" style="font-size:11px;padding:4px 7px;flex-shrink:0;" onclick="equip_mj_toggleEmojiPicker()">😀</button>
+                <div style="display:flex;gap:6px;align-items:center;">
+                  <button type="button" id="equip-mj-icon-btn" class="item-icon-preview" onclick="equip_mj_toggleIconPicker()" title="Choisir une icône">
+                    <i class="ra ra-gem"></i>
+                  </button>
+                  <input type="hidden" id="equip-mj-icone" value="ra-gem">
+                  <span style="font-size:10px;color:var(--txt3);">Clic pour changer</span>
                 </div>
               </div>
               <div><label>Rareté</label>
@@ -799,9 +808,9 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
                 </select>
               </div>
             </div>
-            <div id="equip-mj-emoji-picker" style="display:none;background:var(--bg3);border:1px solid var(--bord2);border-radius:10px;padding:10px;margin-bottom:.75rem;">
-              <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;" id="equip-mj-emoji-cats"></div>
-              <div class="emoji-picker-grid" id="equip-mj-emoji-grid"></div>
+            <div id="equip-mj-icon-picker" style="display:none;background:var(--bg3);border:1px solid var(--bord2);border-radius:10px;padding:10px;margin-bottom:.75rem;">
+              <div style="display:flex;gap:4px;flex-wrap:wrap;margin-bottom:8px;overflow-x:auto;" id="equip-mj-ra-cats"></div>
+              <div class="ra-picker-grid" id="equip-mj-ra-grid"></div>
             </div>
             <div style="margin-bottom:1rem;"><label>Description</label><textarea id="equip-mj-desc" rows="3" placeholder="Description de l'objet…"></textarea></div>
             <!-- ── Mécanique ── -->
@@ -3049,6 +3058,114 @@ function rendreModalFiche(jid,mir,f){
 window._equip_mj_items = [];
 window._equip_mj_itemsUnsub = null;
 
+// ── Helper icône item (ra- / fa- / emoji rétro-compat) ──
+function _item_iconHtml(icone,sz){
+  sz=sz||22;
+  if(!icone||icone==='📦')return '<i class="ra ra-gem" style="font-size:'+sz+'px;color:var(--or);"></i>';
+  if(icone.indexOf('ra-')===0)return '<i class="ra '+icone+'" style="font-size:'+sz+'px;color:var(--or);"></i>';
+  if(icone.indexOf('fa-')===0)return '<i class="'+icone+'" style="font-size:'+sz+'px;color:var(--or);"></i>';
+  if(icone.startsWith('http'))return '<img src="'+icone+'" style="width:'+sz+'px;height:'+sz+'px;object-fit:cover;border-radius:4px;">';
+  return '<span style="font-size:'+sz+'px;line-height:1;">'+icone+'</span>';
+}
+
+var _RA_CATS=[
+  {label:'⚔ Armes', icons:[
+    ['ra-sword','Épée'],['ra-crossed-swords','Épées'],['ra-broadsword','Espadon'],
+    ['ra-dervish-swords','Sabres'],['ra-spinning-sword','Tournante'],['ra-relic-blade','Relique'],
+    ['ra-bat-sword','Courbe'],['ra-lightning-sword','Éclairs'],['ra-fireball-sword','Feu'],
+    ['ra-dripping-sword','Poison'],['ra-daggers','Dagues'],['ra-plain-dagger','Dague'],
+    ['ra-bowie-knife','Couteau'],['ra-axe','Hache'],['ra-crossed-axes','Haches'],
+    ['ra-hammer','Marteau'],['ra-large-hammer','Masse'],['ra-halberd','Hallebarde'],
+    ['ra-scythe','Faux'],['ra-sickle','Faucille'],['ra-trident','Trident'],
+    ['ra-harpoon-trident','Harpon'],['ra-flaming-trident','Trident feu'],['ra-spear-head','Lance'],
+    ['ra-crossbow','Arbalète'],['ra-broadhead-arrow','Flèche'],['ra-flaming-arrow','Fl. enflammée'],
+    ['ra-shuriken','Shuriken'],['ra-kunai','Kunai'],['ra-spiked-mace','Masse épines'],
+  ]},
+  {label:'🛡 Armures', icons:[
+    ['ra-shield','Bouclier'],['ra-round-shield','Écu'],['ra-heavy-shield','Lourd'],
+    ['ra-circular-shield','Rond'],['ra-bolt-shield','Éclair'],['ra-fire-shield','Feu'],
+    ['ra-eye-shield','Œil'],['ra-broken-shield','Brisé'],['ra-helmet','Casque'],
+    ['ra-knight-helmet','Heaume'],['ra-cracked-helm','Fissuré'],['ra-hood','Capuche'],
+    ['ra-vest','Gilet'],['ra-chain','Mailles'],['ra-boot-stomp','Bottes'],
+    ['ra-boot-kick','Botte'],['ra-gauntlet','Gantelet'],
+  ]},
+  {label:'💍 Bijoux', icons:[
+    ['ra-gem','Gemme'],['ra-gems','Gemmes'],['ra-gem-pendant','Pendentif'],
+    ['ra-emerald','Émeraude'],['ra-sapphire','Saphir'],['ra-diamond','Diamant'],
+    ['ra-crown','Couronne'],['ra-queen-crown','Reine'],['ra-crown-of-thorns','Épines'],
+    ['ra-trophy','Trophée'],['ra-skull-trophy','Crâne'],['ra-amulet','Amulette'],
+    ['ra-ankh','Ankh'],['ra-angel-wings','Ailes'],['ra-omega','Omega'],
+  ]},
+  {label:'🔮 Magie', icons:[
+    ['ra-fairy-wand','Baguette'],['ra-crystal-wand','Cryst.'],['ra-crystal-ball','Boule'],
+    ['ra-crystal-cluster','Cristaux'],['ra-rune-stone','Rune'],['ra-scroll-unfurled','Parchemin'],
+    ['ra-book','Livre'],['ra-burning-book','Grimoire'],['ra-bottle-vapors','Potion'],
+    ['ra-bubbling-potion','Bouillonnante'],['ra-potion','Fiole'],['ra-flask','Flacon'],
+    ['ra-health-increase','Soin'],['ra-regeneration','Regen'],['ra-aura','Aura'],
+    ['ra-arcane-mask','Masque'],['ra-lightning','Éclair'],['ra-lightning-bolt','Foudre'],
+    ['ra-fire-symbol','Feu'],['ra-frost-emblem','Givre'],['ra-explosion','Explosion'],
+    ['ra-acid','Acide'],['ra-poison-cloud','Toxique'],['ra-fire-ring','Anneau feu'],
+  ]},
+  {label:'🏰 Divers', icons:[
+    ['ra-key','Clé'],['ra-three-keys','3 clés'],['ra-locked-fortress','Forteresse'],
+    ['ra-castle-flag','Château'],['ra-tower','Tour'],['ra-torch','Torche'],
+    ['ra-lantern-flame','Lanterne'],['ra-campfire','Feu camp'],['ra-candle','Bougie'],
+    ['ra-quill-ink','Plume'],['ra-hourglass','Sablier'],['ra-compass','Boussole'],
+    ['ra-telescope','Lunette'],['ra-dice-six','Dé'],['ra-dragon','Dragon'],
+    ['ra-dragon-wing','Aile'],['ra-wolf-head','Loup'],['ra-skull','Crâne'],
+    ['ra-coins','Pièces'],['ra-gold-bar','Lingot'],['ra-anchor','Ancre'],
+    ['ra-anvil','Enclume'],['ra-player-king','Roi'],['ra-player','Perso'],
+  ]},
+];
+var _RA_CAT_IDX=0;
+
+function _item_iconHtmlFromClass(cls){
+  if(cls.indexOf('ra-')===0)return '<i class="ra '+cls+'"></i>';
+  if(cls.indexOf('fa-')===0)return '<i class="'+cls+'"></i>';
+  return '<span>'+cls+'</span>';
+}
+
+function equip_mj_toggleIconPicker(){
+  var ep=el("equip-mj-icon-picker");if(!ep)return;
+  var open=ep.style.display==="none"||ep.style.display==="";
+  ep.style.display=open?"":"none";
+  if(open)equip_mj_buildIconPicker();
+}
+function equip_mj_buildIconPicker(){
+  var cats=el("equip-mj-ra-cats");if(!cats)return;
+  if(!cats.dataset.built){
+    cats.dataset.built="1";
+    cats.innerHTML=_RA_CATS.map(function(c,i){
+      return '<button type="button" class="ra-cat-btn'+(i===0?" on":"")+'" onclick="equip_mj_showRaCat('+i+',this)">'+c.label+'</button>';
+    }).join("");
+  }
+  equip_mj_renderRaGrid(_RA_CAT_IDX);
+}
+function equip_mj_showRaCat(idx,btn){
+  _RA_CAT_IDX=idx;
+  document.querySelectorAll(".ra-cat-btn").forEach(function(b){b.classList.remove("on");});
+  btn.classList.add("on");
+  equip_mj_renderRaGrid(idx);
+}
+function equip_mj_renderRaGrid(idx){
+  var grid=el("equip-mj-ra-grid");if(!grid)return;
+  var cat=_RA_CATS[idx];if(!cat)return;
+  var cur=(el("equip-mj-icone")||{}).value||"";
+  grid.innerHTML=cat.icons.map(function(ic){
+    var cls=ic[0],lbl=ic[1];
+    var isOn=cur===cls;
+    return '<button type="button" class="ra-picker-btn'+(isOn?" on":"")+'" onclick="equip_mj_selectIcon(\''+cls+'\')" title="'+lbl+'">'
+      +'<i class="ra '+cls+'"></i><span>'+lbl+'</span>'
+      +'</button>';
+  }).join("");
+}
+function equip_mj_selectIcon(cls){
+  var inp=el("equip-mj-icone");if(inp)inp.value=cls;
+  var btn=el("equip-mj-icon-btn");
+  if(btn)btn.innerHTML='<i class="ra '+cls+'" style="font-size:22px;color:var(--or);"></i>';
+  var ep=el("equip-mj-icon-picker");if(ep)ep.style.display="none";
+}
+
 var _RARETE_COLORS = {
   "commun": "#9ca3af",
   "peu commun": "#4ade80",
@@ -3074,7 +3191,7 @@ function equip_mj_init(){
 function _equip_mj_rendreItemCard(item,_pjJid){
   var rarColor=_RARETE_COLORS[item.rarete]||"#9ca3af";
   var slotLbl=_SLOT_LABELS[item.slot]||item.slot||"Inventaire";
-  var icone=item.icone&&!item.icone.startsWith("http")?item.icone:"📦";
+  var icone=item.icone||"ra-gem";
 
   // Qui possède / équipe cet item ?
   var possesseurs=[];
@@ -3107,7 +3224,7 @@ function _equip_mj_rendreItemCard(item,_pjJid){
   return '<div class="obj-card">'
     // En-tête : icône + nom + rareté
     +'<div style="display:flex;align-items:flex-start;gap:8px;">'
-    +'<span style="font-size:26px;flex-shrink:0;line-height:1.1;">'+icone+'</span>'
+    +'<span style="flex-shrink:0;line-height:1;width:28px;text-align:center;">'+_item_iconHtml(icone,26)+'</span>'
     +'<div style="flex:1;min-width:0;">'
     +'<div style="font-size:13px;font-weight:700;color:var(--txt);line-height:1.3;">'+item.nom+'</div>'
     +'<div style="font-size:10px;color:var(--txt3);margin-top:2px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;">'
@@ -3359,7 +3476,11 @@ function equip_mj_ouvrirForm(id){
   el("equip-mj-desc").value=item?item.description:"";
   el("equip-mj-rarete").value=item?item.rarete:"commun";
   el("equip-mj-slot").value=item?item.slot:"inventaire";
-  el("equip-mj-icone").value=item?item.icone:"";
+  var iconeVal=item?(item.icone||"ra-gem"):"ra-gem";
+  el("equip-mj-icone").value=iconeVal;
+  var iconBtn=el("equip-mj-icon-btn");
+  if(iconBtn)iconBtn.innerHTML=_item_iconHtml(iconeVal,22);
+  var ep=el("equip-mj-icon-picker");if(ep)ep.style.display="none";
   equip_mj_setGroupe(item?(item.tagMain||''):'');
   el("equip-mj-boutique").checked=item?!!item.enBoutique:false;
   el("equip-mj-prix").value=item?item.prix||0:0;
@@ -3394,18 +3515,6 @@ function equip_mj_fermerForm(){
 }
 
 // ── Emoji Picker ──────────────────────────────────────
-var _EMOJI_CATS = [
-  {label:"🪖 Pièces",   emojis:["🪖","⛑️","📿","🛡","🧥","💍","🪢","👢","🎩","🧤","🧦","👑","🦺","🩴"]},
-  {label:"⚔ Armes",    emojis:["⚔️","🗡️","🏹","🪃","🔱","🪓","🪝","🏴‍☠️","⚡","🔥","❄️","💥","🩸","🎯"]},
-  {label:"✨ Magie",    emojis:["✨","💫","⭐","🌟","🔮","🪄","💎","🌀","🔯","☄️","🌙","☀️","⚗️","📜"]},
-  {label:"🧪 Potions",  emojis:["🧪","🍶","🫙","🧴","💊","🩹","🌿","🍄","🌺","🌸","🍯","🫗","🧿","🫀"]},
-  {label:"💰 Trésors",  emojis:["💰","💎","🪙","👑","🏺","🗝️","🔑","📦","🎁","🏆","🎖️","🪬","📿","💠"]},
-  {label:"🌿 Nature",   emojis:["🌿","🍃","🍂","🌲","🌳","🌾","🌻","🍀","🐉","🦅","🐺","🦴","🦷","🐻"]},
-  {label:"🔧 Outils",   emojis:["🔧","⚙️","🪛","🔩","⛏️","🪝","🧲","🔗","🎻","🥁","🎺","🎸","🧭","🗺️"]},
-  {label:"🎭 Divers",   emojis:["🎭","🃏","🎲","📖","🏺","🪆","🧸","🔭","🎪","🎱","🗿","🪬","🪩","🧨"]}
-];
-var _EMOJI_CAT_IDX = 0;
-
 // ── Bonus mécaniques ──────────────────────────────────
 var _equip_mj_bonus=[];
 
@@ -3440,45 +3549,6 @@ function equip_mj_toggleCharges(on){
   if(w){w.style.display=on?"grid":"none";}
 }
 
-function equip_mj_toggleEmojiPicker(){
-  var ep=el("equip-mj-emoji-picker");if(!ep)return;
-  var open=ep.style.display==="none";
-  ep.style.display=open?"":"none";
-  if(open)equip_mj_buildEmojiPicker();
-}
-
-function equip_mj_buildEmojiPicker(){
-  var cats=el("equip-mj-emoji-cats");
-  var grid=el("equip-mj-emoji-grid");
-  if(!cats||!grid)return;
-  // Catégories
-  if(!cats.innerHTML){
-    cats.innerHTML=_EMOJI_CATS.map(function(c,i){
-      return '<button type="button" class="emoji-cat-btn'+(i===0?" on":"")+'\" onclick="equip_mj_showEmojiCat('+i+',this)">'+c.label+'</button>';
-    }).join("");
-  }
-  equip_mj_renderEmojiGrid(_EMOJI_CAT_IDX);
-}
-
-function equip_mj_showEmojiCat(idx,btn){
-  _EMOJI_CAT_IDX=idx;
-  document.querySelectorAll(".emoji-cat-btn").forEach(function(b){b.classList.remove("on");});
-  btn.classList.add("on");
-  equip_mj_renderEmojiGrid(idx);
-}
-
-function equip_mj_renderEmojiGrid(idx){
-  var grid=el("equip-mj-emoji-grid");if(!grid)return;
-  var cat=_EMOJI_CATS[idx];if(!cat)return;
-  grid.innerHTML=cat.emojis.map(function(e){
-    return '<button type="button" class="emoji-picker-btn" onclick="equip_mj_selectEmoji(\''+e+'\')" title="'+e+'">'+e+'</button>';
-  }).join("");
-}
-
-function equip_mj_selectEmoji(emoji){
-  var inp=el("equip-mj-icone");if(inp)inp.value=emoji;
-  var ep=el("equip-mj-emoji-picker");if(ep)ep.style.display="none";
-}
 
 function equip_mj_sauvegarder(){
   var id=el("equip-mj-edit-id").value;

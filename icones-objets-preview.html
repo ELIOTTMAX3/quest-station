@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Icônes Objets — Aperçu</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0f0f12;font-family:system-ui,sans-serif;color:#e0e0e0;padding:28px;}
+h1{font-size:13px;font-weight:700;color:#aaa;letter-spacing:.1em;text-transform:uppercase;margin-bottom:20px;text-align:center;}
+.section{margin-bottom:24px;}
+.section-title{font-size:10px;font-weight:700;color:#c9a227;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid rgba(201,162,39,.2);}
+.grid{display:flex;flex-wrap:wrap;gap:8px;}
+.icon-btn{
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  background:#16213e;border:1px solid rgba(255,255,255,.1);border-radius:9px;
+  padding:10px 8px;width:80px;cursor:default;transition:border-color .15s;
+}
+.icon-btn:hover{border-color:rgba(201,162,39,.5);background:#1c2a4a;}
+.icon-btn i{font-size:22px;color:#c9a227;}
+.icon-btn span{font-size:9px;color:#6a6a8a;text-align:center;line-height:1.3;}
+
+/* Comparaison côte à côte */
+.compare{display:flex;gap:24px;flex-wrap:wrap;margin-top:30px;border-top:1px solid #1e2d45;padding-top:24px;}
+.compare-col{flex:1;min-width:260px;}
+.compare-col h2{font-size:10px;font-weight:700;color:#aaa;letter-spacing:.1em;text-transform:uppercase;margin-bottom:12px;}
+.fake-card{background:#16213e;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:11px 12px;display:flex;flex-direction:column;gap:6px;margin-bottom:8px;}
+.fake-card-top{display:flex;align-items:flex-start;gap:8px;}
+.fake-card-icon{font-size:24px;line-height:1;flex-shrink:0;width:28px;text-align:center;}
+.fake-card-icon i{font-size:22px;color:#c9a227;}
+.fake-card-name{font-size:12px;font-weight:700;color:#e0e0e0;}
+.fake-card-meta{font-size:9px;color:#6a6a8a;display:flex;gap:4px;align-items:center;flex-wrap:wrap;margin-top:2px;}
+.badge{font-size:9px;font-weight:700;padding:1px 7px;border-radius:999px;background:rgba(0,0,0,.4);}
+.tr{color:#c084fc;}.r{color:#60a5fa;}.unc{color:#4ade80;}.leg{color:#c9a227;}
+.fake-actions{display:flex;gap:3px;}
+.fake-btn{font-size:9px;padding:3px 7px;border-radius:5px;background:#0f3460;border:1px solid rgba(255,255,255,.14);color:#a0a0b0;}
+.fake-btn.ok{background:#d97706;color:#fff;border-color:#d97706;}
+.fake-btn.danger{background:rgba(185,28,28,.25);color:#fca5a5;border-color:rgba(185,28,28,.4);}
+</style>
+</head>
+<body>
+<h1>Icônes Font Awesome — Objets Magiques</h1>
+
+<div class="section">
+  <div class="section-title">⚔ Armes</div>
+  <div class="grid" id="g-armes"></div>
+</div>
+<div class="section">
+  <div class="section-title">🛡 Armures & Protection</div>
+  <div class="grid" id="g-armures"></div>
+</div>
+<div class="section">
+  <div class="section-title">💍 Accessoires</div>
+  <div class="grid" id="g-access"></div>
+</div>
+<div class="section">
+  <div class="section-title">🔮 Magie & Consommables</div>
+  <div class="grid" id="g-magie"></div>
+</div>
+<div class="section">
+  <div class="section-title">👜 Divers</div>
+  <div class="grid" id="g-divers"></div>
+</div>
+
+<div class="compare">
+  <div class="compare-col">
+    <h2>Avant — Emoji</h2>
+    <div class="fake-card">
+      <div class="fake-card-top">
+        <div class="fake-card-icon">💍</div>
+        <div><div class="fake-card-name">Anneau de protection</div><div class="fake-card-meta"><span class="badge tr">très rare</span><span>Anneau</span></div></div>
+      </div>
+      <div class="fake-actions"><span class="fake-btn">📤 Récup.</span><span class="fake-btn ok">Donner</span><span class="fake-btn">📋</span><span class="fake-btn">✏️</span><span class="fake-btn danger">🗑️</span></div>
+    </div>
+    <div class="fake-card">
+      <div class="fake-card-top">
+        <div class="fake-card-icon">🥾</div>
+        <div><div class="fake-card-name">Bottes du Foudroyant</div><div class="fake-card-meta"><span class="badge r">rare</span><span>Bottes</span></div></div>
+      </div>
+      <div class="fake-actions"><span class="fake-btn">📤 Récup.</span><span class="fake-btn ok">Donner</span><span class="fake-btn">📋</span><span class="fake-btn">✏️</span><span class="fake-btn danger">🗑️</span></div>
+    </div>
+    <div class="fake-card">
+      <div class="fake-card-top">
+        <div class="fake-card-icon">⚗️</div>
+        <div><div class="fake-card-name">Potion de soins</div><div class="fake-card-meta"><span class="badge unc">peu commun</span><span>Inventaire</span></div></div>
+      </div>
+      <div class="fake-actions"><span class="fake-btn">📤 Récup.</span><span class="fake-btn ok">Donner</span><span class="fake-btn">📋</span><span class="fake-btn">✏️</span><span class="fake-btn danger">🗑️</span></div>
+    </div>
+  </div>
+
+  <div class="compare-col">
+    <h2>Après — Font Awesome</h2>
+    <div class="fake-card">
+      <div class="fake-card-top">
+        <div class="fake-card-icon"><i class="fa-solid fa-ring"></i></div>
+        <div><div class="fake-card-name">Anneau de protection</div><div class="fake-card-meta"><span class="badge tr">très rare</span><span>Anneau</span></div></div>
+      </div>
+      <div class="fake-actions"><span class="fake-btn">📤 Récup.</span><span class="fake-btn ok">Donner</span><span class="fake-btn">📋</span><span class="fake-btn">✏️</span><span class="fake-btn danger">🗑️</span></div>
+    </div>
+    <div class="fake-card">
+      <div class="fake-card-top">
+        <div class="fake-card-icon"><i class="fa-solid fa-boot"></i></div>
+        <div><div class="fake-card-name">Bottes du Foudroyant</div><div class="fake-card-meta"><span class="badge r">rare</span><span>Bottes</span></div></div>
+      </div>
+      <div class="fake-actions"><span class="fake-btn">📤 Récup.</span><span class="fake-btn ok">Donner</span><span class="fake-btn">📋</span><span class="fake-btn">✏️</span><span class="fake-btn danger">🗑️</span></div>
+    </div>
+    <div class="fake-card">
+      <div class="fake-card-top">
+        <div class="fake-card-icon"><i class="fa-solid fa-flask-round-potion fa-solid fa-flask"></i></div>
+        <div><div class="fake-card-name">Potion de soins</div><div class="fake-card-meta"><span class="badge unc">peu commun</span><span>Inventaire</span></div></div>
+      </div>
+      <div class="fake-actions"><span class="fake-btn">📤 Récup.</span><span class="fake-btn ok">Donner</span><span class="fake-btn">📋</span><span class="fake-btn">✏️</span><span class="fake-btn danger">🗑️</span></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var categories={
+  'g-armes':[
+    ['fa-solid fa-khanda',       'Épée'],
+    ['fa-solid fa-shield-halved','Bouclier'],
+    ['fa-solid fa-hand-fist',    'Combat nu'],
+    ['fa-solid fa-bolt',         'Foudre'],
+    ['fa-solid fa-fire',         'Feu'],
+    ['fa-solid fa-skull-crossbones','Poison'],
+    ['fa-solid fa-crosshairs',   'Précision'],
+    ['fa-solid fa-bomb',         'Explosif'],
+  ],
+  'g-armures':[
+    ['fa-solid fa-helmet-safety',     'Casque'],
+    ['fa-solid fa-vest',              'Gilet'],
+    ['fa-solid fa-shirt',             'Armure légère'],
+    ['fa-solid fa-shield',            'Bouclier'],
+    ['fa-solid fa-hand',              'Gants'],
+    ['fa-solid fa-boot',              'Bottes'],
+    ['fa-solid fa-person-dress',      'Cape'],
+    ['fa-solid fa-circle-half-stroke','Cuir'],
+  ],
+  'g-access':[
+    ['fa-solid fa-ring',         'Anneau'],
+    ['fa-solid fa-gem',          'Gemme'],
+    ['fa-solid fa-link',         'Chaîne'],
+    ['fa-solid fa-tag',          'Pendentif'],
+    ['fa-solid fa-crown',        'Couronne'],
+    ['fa-solid fa-glasses',      'Lunettes'],
+    ['fa-solid fa-hat-cowboy',   'Chapeau'],
+    ['fa-solid fa-hat-wizard',   'Chapeau mag.'],
+    ['fa-solid fa-ribbon',       'Ruban'],
+    ['fa-solid fa-compass',      'Compas'],
+  ],
+  'g-magie':[
+    ['fa-solid fa-flask',              'Potion'],
+    ['fa-solid fa-vial',               'Fiole'],
+    ['fa-solid fa-wand-magic-sparkles','Baguette'],
+    ['fa-solid fa-scroll',             'Parchemin'],
+    ['fa-solid fa-book-skull',         'Grimoire'],
+    ['fa-solid fa-crystal-ball','Boule cryst.'],
+    ['fa-solid fa-eye',                'Œil magique'],
+    ['fa-solid fa-star',               'Étoile'],
+    ['fa-solid fa-moon',               'Lune'],
+    ['fa-solid fa-circle-radiation',   'Maudit'],
+    ['fa-solid fa-hand-sparkles',      'Enchant.'],
+    ['fa-solid fa-dice-d20',           'Dé magique'],
+  ],
+  'g-divers':[
+    ['fa-solid fa-bag-shopping',  'Sac'],
+    ['fa-solid fa-coins',         'Pièces'],
+    ['fa-solid fa-key',           'Clé'],
+    ['fa-solid fa-lock',          'Cadenas'],
+    ['fa-solid fa-map',           'Carte'],
+    ['fa-solid fa-anchor',        'Ancre'],
+    ['fa-solid fa-feather',       'Plume'],
+    ['fa-solid fa-music',         'Instrument'],
+    ['fa-solid fa-hourglass',     'Sablier'],
+    ['fa-solid fa-chess-rook',    'Tour'],
+    ['fa-solid fa-paw',           'Familier'],
+    ['fa-solid fa-fish',          'Animal'],
+  ]
+};
+
+Object.keys(categories).forEach(function(id){
+  var el=document.getElementById(id);
+  categories[id].forEach(function(pair){
+    var cls=pair[0],lbl=pair[1];
+    var btn=document.createElement('div');
+    btn.className='icon-btn';
+    btn.innerHTML='<i class="'+cls+'"></i><span>'+lbl+'</span>';
+    el.appendChild(btn);
+  });
+});
+</script>
+</body>
+</html>
