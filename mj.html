@@ -481,8 +481,9 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .ecran-tokico.ally{background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.35);color:#4ade80;}
 .ecran-tokico.npc{background:rgba(201,162,39,.15);border:1px solid rgba(201,162,39,.35);color:#c9a227;}
 .ecran-toknom{flex:1;min-width:0;font-size:11px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ecran-map{position:relative;overflow:hidden;background:#05080f;border:1px solid var(--bord2);border-radius:10px;height:calc(100vh - 290px);min-height:340px;}
-.ecran-mapbg{position:absolute;inset:0;}
+.ecran-map{position:relative;overflow:hidden;background:#05080f;border:1px solid var(--bord2);border-radius:10px;width:100%;aspect-ratio:16/9;max-height:calc(100vh - 250px);}
+.ecran-mapbg{position:absolute;inset:0;background-size:cover!important;background-position:center!important;}
+.ecran-grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:4.1667% 7.4074%;}
 .ecran-token{position:absolute;width:48px;height:48px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;user-select:none;z-index:10;}
 .ecran-token:active{cursor:grabbing;z-index:20;}
 .ecran-token.enemy{background:radial-gradient(circle,rgba(239,68,68,.35),rgba(185,28,28,.5));border:2px solid #ef4444;box-shadow:0 0 10px rgba(239,68,68,.4);}
@@ -984,8 +985,10 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
             <div class="ecran-side-sec">
               <div class="ecran-side-title">Carte de fond</div>
               <div class="ecran-maps" id="ecran-maps"></div>
-              <input type="text" id="ecran-map-url" placeholder="URL d'image…" style="width:100%;margin-top:7px;font-size:11px;padding:5px 7px;">
-              <button class="btn" style="width:100%;font-size:11px;margin-top:5px;" onclick="ecran_setMapUrl()">Appliquer l'image</button>
+              <input type="file" id="ecran-map-file" accept="image/*" style="display:none;" onchange="ecran_pickMapFile(this)">
+              <button class="btn ok" style="width:100%;font-size:11px;margin-top:7px;" onclick="document.getElementById('ecran-map-file').click()">📁 Importer une image</button>
+              <input type="text" id="ecran-map-url" placeholder="…ou coller une URL" style="width:100%;margin-top:6px;font-size:11px;padding:5px 7px;">
+              <button class="btn" style="width:100%;font-size:11px;margin-top:5px;" onclick="ecran_setMapUrl()">Appliquer l'URL</button>
             </div>
             <div class="ecran-side-sec">
               <div class="ecran-side-title">Tokens — clic pour placer</div>
@@ -995,6 +998,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           </div>
           <div class="ecran-map" id="ecran-map">
             <div class="ecran-mapbg" id="ecran-mapbg"></div>
+            <div class="ecran-grid" id="ecran-grid"></div>
             <div id="ecran-tokens-layer"></div>
           </div>
         </div>
@@ -1006,9 +1010,11 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           <div class="ecran-side">
             <div class="ecran-side-sec">
               <div class="ecran-side-title">Ajouter un visuel</div>
-              <input type="text" id="ecran-vis-url" placeholder="URL d'image…" style="width:100%;font-size:11px;padding:5px 7px;margin-bottom:5px;">
+              <input type="file" id="ecran-vis-file" accept="image/*" style="display:none;" onchange="ecran_pickVisFile(this)">
+              <button class="btn ok" style="width:100%;font-size:11px;margin-bottom:8px;" onclick="document.getElementById('ecran-vis-file').click()">📁 Importer une image</button>
+              <input type="text" id="ecran-vis-url" placeholder="…ou coller une URL" style="width:100%;font-size:11px;padding:5px 7px;margin-bottom:5px;">
               <input type="text" id="ecran-vis-label" placeholder="Nom (ex : Château)…" style="width:100%;font-size:11px;padding:5px 7px;margin-bottom:5px;">
-              <button class="btn ok" style="width:100%;font-size:11px;" onclick="ecran_addVisuel()">＋ Ajouter à la bibliothèque</button>
+              <button class="btn" style="width:100%;font-size:11px;" onclick="ecran_addVisuel()">＋ Ajouter l'URL</button>
             </div>
             <div class="ecran-side-sec">
               <div class="ecran-side-title">Diffusion en cours</div>
@@ -3981,6 +3987,7 @@ var _fbTimeout=setTimeout(function(){
 
 chargerScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js")
   .then(function(){return chargerScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js");})
+  .then(function(){return chargerScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-storage-compat.js");})
   .then(function(){
     clearTimeout(_fbTimeout);
     firebase.initializeApp({
@@ -3992,6 +3999,7 @@ chargerScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"
       appId:"1:382512497035:web:cfc3de3255e885a1adaf8e"
     });
     db=firebase.firestore();
+    try{ecranStorage=firebase.storage();}catch(e){}
     console.log("Firebase MJ prêt");
     // Vérifier la session MJ
     mjId=localStorage.getItem("mj_id");
@@ -5692,6 +5700,19 @@ function son_rendreDrawer(){
 // ÉCRAN / DIFFUSION
 // ══════════════════════════════════════════
 var _ecran={sub:'battlemap',state:null,win:null,screenDetails:null,_saveTimer:null};
+var ecranStorage=null;
+function ecran_uploadFile(file,kind,cb){
+  if(!file)return;
+  if(!ecranStorage){toast('Stockage non disponible. Active Firebase Storage.');return;}
+  toast('⏳ Import en cours…',4000);
+  var safe=file.name.replace(/[^a-zA-Z0-9._-]/g,'_');
+  var ref=ecranStorage.ref().child('ecran/'+(mjId||'mj')+'/'+kind+'/'+Date.now()+'_'+safe);
+  ref.put(file).then(function(snap){return snap.ref.getDownloadURL();})
+    .then(function(url){cb(url,file.name);toast('✅ Image importée');})
+    .catch(function(e){toast('Erreur import : '+e.message);});
+}
+function ecran_pickMapFile(inp){var f=inp.files&&inp.files[0];inp.value='';ecran_uploadFile(f,'maps',function(url){ecran_state().map=url;ecran_renderMaps();ecran_renderMapArea();_ecran_save();});}
+function ecran_pickVisFile(inp){var f=inp.files&&inp.files[0];inp.value='';ecran_uploadFile(f,'visuels',function(url,nom){var st=ecran_state();st.visuelLib.push({url:url,label:nom.replace(/\.[^.]+$/,'')});ecran_renderVisuel();_ecran_save();});}
 var _ECRAN_MAPS=[
   {id:'dungeon',label:'Donjon',icon:'ra-dungeon',grad:'radial-gradient(ellipse at 30% 40%,#1a1200,#080600 60%,#030200)'},
   {id:'forest', label:'Forêt', icon:'ra-tree',   grad:'radial-gradient(ellipse at 60% 20%,#071a04,#030d02 60%,#020801)'},
@@ -5742,9 +5763,10 @@ function ecran_setMapUrl(){
 }
 function _ecran_mapBgCss(map){
   var p=_ECRAN_MAPS.find(function(m){return m.id===map;});
-  if(p)return 'background:'+p.grad+';background-image:'+_ECRAN_GRID+';';
+  if(p)return 'background:'+p.grad+';';
   return 'background:#05080f center/cover no-repeat url("'+map+'");';
 }
+function ecran_gridVisible(show){var g=el('ecran-grid');if(g)g.style.display=show===false?'none':'';}
 function ecran_renderMapArea(){
   var bg=el('ecran-mapbg');if(!bg)return;
   bg.style.cssText=_ecran_mapBgCss(ecran_state().map);
