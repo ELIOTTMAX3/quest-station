@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Silhouette Knight — Aperçu</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/rpg-awesome@0.2.0/css/rpg-awesome.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0c0e1a;font-family:system-ui,sans-serif;padding:32px;display:flex;flex-wrap:wrap;gap:40px;justify-content:center;align-items:flex-start;}
+h1{width:100%;text-align:center;color:#5a6a8a;font-size:11px;letter-spacing:.14em;text-transform:uppercase;margin-bottom:4px;}
+.col{display:flex;flex-direction:column;align-items:center;gap:10px;}
+.col-label{font-size:11px;font-weight:700;color:#c9a227;letter-spacing:.1em;text-transform:uppercase;}
+.col-sub{font-size:9px;color:#5a6a8a;text-align:center;}
+
+.sil-wrap{position:relative;width:200px;height:380px;background:#0e1525;border:1px solid #1a2840;border-radius:12px;overflow:hidden;}
+.sil-img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:contain;pointer-events:none;}
+
+/* Variantes de filtre */
+.f1{filter:invert(1) sepia(1) saturate(2) hue-rotate(5deg);mix-blend-mode:screen;opacity:.35;}
+.f2{filter:invert(1) sepia(1) saturate(3) hue-rotate(5deg);mix-blend-mode:screen;opacity:.5;}
+.f3{filter:invert(1) opacity(.2);}
+.f4{filter:invert(1) sepia(.8) saturate(4) hue-rotate(350deg);mix-blend-mode:screen;opacity:.4;}
+
+/* Slots */
+.slot{position:absolute;width:50px;height:50px;border-radius:9px;border:1.5px dashed #2a3d5a;background:rgba(14,21,37,.9);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
+.slot.occ{border:1.5px solid #c9a227;background:rgba(201,162,39,.14);}
+.slot i{font-size:18px;color:#c9a227;}
+.slot .lbl{font-size:7px;font-weight:700;color:#2a3d5a;text-transform:uppercase;letter-spacing:.04em;text-align:center;max-width:46px;}
+.slot.occ .lbl{color:#e8dcc8;}
+</style>
+</head>
+<body>
+<h1>Ta silhouette — 4 variations de rendu</h1>
+
+<script>
+function slots(){
+  var s=[
+    {cls:'occ',top:'4px',left:'50%',tx:'-50%',lbl:'Casque',icon:'ra-helmet'},
+    {cls:'',top:'19%',left:'50%',tx:'-50%',lbl:'Amulette',icon:''},
+    {cls:'occ',top:'35%',left:'50%',tx:'-50%',lbl:'Armure',icon:'ra-vest'},
+    {cls:'',top:'22%',left:'4px',tx:'0',lbl:'Cape',icon:''},
+    {cls:'occ',top:'50%',left:'4px',tx:'0',lbl:'Anneau',icon:'ra-fire-ring'},
+    {cls:'',top:'57%',left:'50%',tx:'-50%',lbl:'Ceinture',icon:''},
+    {cls:'occ',top:'80%',left:'50%',tx:'-50%',lbl:'Bottes',icon:'ra-boot-stomp'},
+  ];
+  return s.map(function(x){
+    return '<div class="slot '+x.cls+'" style="top:'+x.top+';left:'+x.left+';transform:translate('+x.tx+',0);">'
+      +(x.icon?'<i class="ra '+x.icon+'"></i>':'')
+      +'<span class="lbl">'+x.lbl+'</span>'
+    +'</div>';
+  }).join('');
+}
+
+var variants=[
+  {label:'Doré discret',  sub:'Opacity 35% — recommandé',        cls:'f1'},
+  {label:'Doré fort',     sub:'Opacity 50% — plus visible',       cls:'f2'},
+  {label:'Blanc fantôme', sub:'Silhouette blanche, très subtile', cls:'f3'},
+  {label:'Ambré chaud',   sub:'Teinte plus orange/ambre',         cls:'f4'},
+];
+
+variants.forEach(function(v){
+  document.write(
+    '<div class="col">'
+    +'<div class="col-label">'+v.label+'</div>'
+    +'<div class="col-sub">'+v.sub+'</div>'
+    +'<div class="sil-wrap">'
+      +'<img class="sil-img '+v.cls+'" src="silhouette-knight.png">'
+      +slots()
+    +'</div>'
+    +'</div>'
+  );
+});
+</script>
+</body>
+</html>
