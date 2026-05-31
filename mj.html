@@ -4987,7 +4987,7 @@ function son_init(){
   if(!db||!mjId)return;
   if(_son.sonsUnsub){_son.sonsUnsub();_son.sonsUnsub=null;}
   _son.sonsUnsub=db.collection('sons').where('mjId','==',mjId)
-    .orderBy('creeLe').onSnapshot(function(qs){
+    .onSnapshot(function(qs){
       _son.sons=[];
       qs.forEach(function(d){_son.sons.push(Object.assign({id:d.id},d.data()));});
       son_rendreDrawer();
