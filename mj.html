@@ -5721,6 +5721,19 @@ var _ECRAN_MAPS=[
 ];
 var _ECRAN_GRID='repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 60px),repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 60px)';
 
+function _ecran_fixUrl(url){
+  url=(url||'').trim();
+  if(!url)return url;
+  // Dropbox : forcer le rendu brut de l'image (dl=0 → raw=1)
+  if(/dropbox\.com/i.test(url)){
+    if(/[?&]dl=0/.test(url))url=url.replace(/([?&])dl=0/,'$1raw=1');
+    else if(!/[?&]raw=1/.test(url)&&!/[?&]dl=1/.test(url))url+=(url.indexOf('?')>=0?'&':'?')+'raw=1';
+  }
+  // Google Drive : lien de partage → lien direct
+  var gd=url.match(/drive\.google\.com\/file\/d\/([^/]+)/);
+  if(gd)url='https://drive.google.com/uc?export=view&id='+gd[1];
+  return url;
+}
 function _ecran_default(){return {mode:'battlemap',map:'dungeon',tokens:{},visuel:null,visuelLabel:'',visuelLib:[]};}
 function ecran_state(){
   if(!_ecran.state)_ecran.state=(campagneActive&&campagneActive.ecran)?Object.assign(_ecran_default(),campagneActive.ecran):_ecran_default();
@@ -5758,7 +5771,7 @@ function ecran_renderMaps(){
 }
 function ecran_setMap(id){ecran_state().map=id;ecran_renderMaps();ecran_renderMapArea();_ecran_save();}
 function ecran_setMapUrl(){
-  var u=(el('ecran-map-url').value||'').trim();if(!u)return;
+  var u=_ecran_fixUrl(el('ecran-map-url').value);if(!u)return;
   ecran_state().map=u;el('ecran-map-url').value='';ecran_renderMaps();ecran_renderMapArea();_ecran_save();
 }
 function _ecran_mapBgCss(map){
@@ -5872,7 +5885,7 @@ function ecran_renderVisuel(){
   if(cur)cur.innerHTML=st.visuel?('<b style="color:#4ade80;">'+besti_esc(st.visuelLabel||'Image')+'</b> en diffusion'):'Rien de diffusé.';
 }
 function ecran_addVisuel(){
-  var url=(el('ecran-vis-url').value||'').trim();
+  var url=_ecran_fixUrl(el('ecran-vis-url').value);
   var label=(el('ecran-vis-label').value||'').trim();
   if(!url){toast('URL requise.');return;}
   var st=ecran_state();st.visuelLib.push({url:url,label:label||'Visuel'});
