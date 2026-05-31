@@ -776,7 +776,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
       <!-- Modal création/édition -->
       <div id="equip-mj-modal-bg" style="display:none;position:fixed;inset:0;z-index:500;background:rgba(0,0,0,.72);overflow-y:auto;padding:16px 12px;" onclick="if(event.target===this)equip_mj_fermerForm()">
-        <div style="background:var(--bg2);border:1px solid var(--bord2);border-radius:14px;max-width:440px;margin:0 auto;overflow:hidden;">
+        <div style="background:var(--bg2);border:1px solid var(--bord2);border-radius:14px;max-width:680px;margin:0 auto;overflow:hidden;">
           <!-- En-tête modal -->
           <div style="display:flex;align-items:center;justify-content:space-between;padding:13px 16px;background:rgba(217,119,6,.1);border-bottom:1px solid var(--bord);">
             <h3 id="equip-mj-form-titre" style="font-size:14px;font-weight:700;color:var(--rouge);">Créer un objet</h3>
@@ -3088,14 +3088,16 @@ var _RA_CATS=[
     ['ra-shield','Bouclier'],['ra-round-shield','Écu'],['ra-bolt-shield','Bouclier éclair'],
     ['ra-fire-shield','Bouclier feu'],['ra-eye-shield','Bouclier œil'],
     ['ra-broken-shield','Bouclier brisé'],['ra-cracked-shield','Bouclier fissuré'],
-    ['ra-zebra-shield','Bouclier strié'],['ra-guarded-tower','Tour gardée'],
+    ['ra-zebra-shield','Bouclier strié'],
     ['ra-helmet','Casque'],['ra-knight-helmet','Heaume'],['ra-cracked-helm','Casque fissuré'],
     ['ra-hood','Capuche'],['ra-vest','Gilet'],['ra-chain','Cotte mailles'],
-    ['ra-boot-stomp','Bottes'],['ra-boot-kick','Botte coup'],['ra-metal-gate','Grille métal'],
+    ['ra-boot-stomp','Bottes'],['ra-hand','Gantelet'],
+    ['ra-cloak-and-dagger','Cape'],['ra-feather-wing','Manteau'],
+    ['ra-chain','Ceinture mailles'],['ra-horseshoe','Ceinture'],
   ]},
   {label:'💍 Bijoux', icons:[
     ['ra-fire-ring','Anneau'],['ra-gem-pendant','Anneau gemme'],['ra-amulet','Amulette'],
-    ['ra-necklace-pendant','Collier'],['ra-gem','Gemme'],['ra-gems','Gemmes'],
+    ['ra-gem','Gemme'],['ra-gems','Gemmes'],
     ['ra-emerald','Émeraude'],['ra-sapphire','Saphir'],['ra-diamond','Diamant'],
     ['ra-crystal-cluster','Cristaux'],['ra-crown','Couronne'],['ra-queen-crown','Couronne reine'],
     ['ra-crown-of-thorns','Couronne épines'],['ra-crowned-heart','Cœur couronné'],
@@ -3110,7 +3112,7 @@ var _RA_CATS=[
     ['ra-bubbling-potion','Potion bouill.'],['ra-potion','Potion'],['ra-flask','Fiole'],
     ['ra-round-bottom-flask','Fiole ronde'],['ra-vial','Ampoule'],['ra-corked-tube','Tube bouchon'],
     ['ra-health-increase','Soin'],['ra-health-decrease','Malédiction'],['ra-regeneration','Régénération'],
-    ['ra-aura','Aura'],['ra-magic-swirl','Tourbillon'],['ra-arcane-mask','Masque arcane'],
+    ['ra-aura','Aura'],['ra-fluffy-swirl','Tourbillon'],['ra-arcane-mask','Masque arcane'],
     ['ra-lightning','Éclair'],['ra-lightning-bolt','Foudre'],['ra-focused-lightning','Éclair ciblé'],
     ['ra-fire-symbol','Feu'],['ra-flame-symbol','Flamme'],['ra-frost-emblem','Givre'],
     ['ra-explosion','Explosion'],['ra-acid','Acide'],['ra-poison-cloud','Toxique'],
