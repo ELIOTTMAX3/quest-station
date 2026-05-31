@@ -502,7 +502,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .eqs-warn{position:absolute;top:1px;left:3px;font-size:10px;line-height:1;display:none;}
 .boutique-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:8px;align-items:start;}
 .boutique-card{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:11px;display:flex;flex-direction:column;gap:3px;min-width:0;overflow:hidden;}
-.boutique-card-ico{font-size:26px;text-align:center;margin-bottom:3px;}
+.boutique-card-ico{font-size:32px;text-align:center;margin-bottom:3px;color:var(--or);line-height:1.2;}
 .boutique-card-nom{font-size:12px;font-weight:700;color:var(--txt);word-break:break-word;overflow-wrap:break-word;white-space:normal;}
 .boutique-card-rar{font-size:10px;font-weight:700;padding:2px 6px;border-radius:999px;background:rgba(0,0,0,.35);display:inline-block;width:fit-content;max-width:100%;}
 .boutique-card-slot{font-size:10px;color:var(--txt3);word-break:break-word;overflow-wrap:break-word;}
@@ -1140,32 +1140,37 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
   <!-- ONGLET COMPÉTENCES (lecture seule) -->
   <div id="rt-comps" class="tc">
-    <!-- Maîtrises de classe -->
+    <!-- Ligne du haut : Maîtrises + Jets (pleine largeur) -->
     <div class="card" id="r-maitrise-card" style="display:none;margin-bottom:10px;">
       <p style="font-size:10px;font-weight:800;letter-spacing:2px;text-transform:uppercase;color:var(--txt3);margin-bottom:8px;">Maîtrises</p>
       <div id="r-maitrise-body" style="font-size:12px;line-height:1.9;color:var(--txt2);"></div>
     </div>
-    <div class="card">
-      <!-- Jets de sauvegarde — pills -->
+    <div class="card" style="margin-bottom:10px;">
       <p class="st" style="margin-bottom:8px;">Jets de sauvegarde</p>
-      <div id="r-jlist" style="display:flex;gap:5px;margin-bottom:14px;"></div>
-      <!-- Compétences — liste barres -->
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
-        <p class="st" style="margin:0;border:none;padding:0;">Compétences</p>
-        <span id="r-comp-count" style="font-size:11px;color:var(--txt3);"></span>
+      <div id="r-jlist" style="display:flex;gap:5px;"></div>
+    </div>
+    <!-- Ligne du bas : 2 colonnes -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:start;">
+      <!-- Colonne gauche : toutes les compétences -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+          <p class="st" style="margin:0;border:none;padding:0;">Compétences</p>
+          <span id="r-comp-count" style="font-size:11px;color:var(--txt3);"></span>
+        </div>
+        <div id="r-clist"></div>
       </div>
-      <div id="r-clist"></div>
-    </div>
-    <div class="card">
-      <p class="st">Capacités disponibles — Niveau <span id="r-cap-niv">1</span></p>
-      <p style="font-size:11px;color:var(--txt3);margin-bottom:10px;">
-        Les capacités vertes sont débloquées à ton niveau actuel.
-      </p>
-      <div id="r-caps-list"></div>
-    </div>
-    <div class="card" id="r-dons-card" style="display:none;margin-top:10px;">
-      <p class="st" style="margin-bottom:10px;">🏅 Dons maîtrisés</p>
-      <div id="r-dons-list"></div>
+      <!-- Colonne droite : capacités + dons -->
+      <div style="display:flex;flex-direction:column;gap:10px;">
+        <div class="card">
+          <p class="st">Capacités disponibles — Niveau <span id="r-cap-niv">1</span></p>
+          <p style="font-size:11px;color:var(--txt3);margin-bottom:10px;">Les capacités vertes sont débloquées à ton niveau actuel.</p>
+          <div id="r-caps-list"></div>
+        </div>
+        <div class="card" id="r-dons-card" style="display:none;">
+          <p class="st" style="margin-bottom:10px;">🏅 Dons maîtrisés</p>
+          <div id="r-dons-list"></div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -12710,7 +12715,7 @@ function equip_rendreBoutique(items){
   cont.innerHTML=items.map(function(item){
     var rarColor=_EQUIP_RARETE_COLORS[item.rarete]||"#9ca3af";
     var slotLbl=_EQUIP_SLOT_LABELS[item.slot]||item.slot||"Inventaire";
-    var icone=item.icone&&!item.icone.startsWith("http")?item.icone:"📦";
+    var icone=_item_iconHtml(item.icone,32);
     var effetsHtml="";
     if(Array.isArray(item.bonus)&&item.bonus.length>0){
       effetsHtml='<div style="display:flex;flex-wrap:wrap;gap:3px;margin-top:4px;">'

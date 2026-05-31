@@ -5304,26 +5304,48 @@ function son_supprimerSon(){
 }
 
 // ── Réordonnancement ──
+var _son_dragId=null;
+
 function _son_peers(sonId){
   var s=_son.sons.find(function(x){return x.id===sonId;});if(!s)return[];
   return _son.sons.filter(function(x){return x.categorie===s.categorie&&(x.groupe||'')===(s.groupe||'');})
     .sort(function(a,b){return (a.ordre||0)-(b.ordre||0);});
 }
+function _son_saveOrdre(peers){
+  // Réassigne des ordres séquentiels propres (évite les égalités)
+  peers.forEach(function(s,idx){
+    if((s.ordre||0)!==idx)db.collection('sons').doc(s.id).update({ordre:idx});
+  });
+}
 function son_monterSon(sonId){
   var peers=_son_peers(sonId);
   var i=peers.findIndex(function(x){return x.id===sonId;});
   if(i<=0)return;
-  var a=peers[i],b=peers[i-1],oa=a.ordre||0,ob=b.ordre||0;
-  db.collection('sons').doc(a.id).update({ordre:ob});
-  db.collection('sons').doc(b.id).update({ordre:oa});
+  var tmp=peers[i];peers[i]=peers[i-1];peers[i-1]=tmp;
+  _son_saveOrdre(peers);
 }
 function son_descendreSon(sonId){
   var peers=_son_peers(sonId);
   var i=peers.findIndex(function(x){return x.id===sonId;});
   if(i<0||i>=peers.length-1)return;
-  var a=peers[i],b=peers[i+1],oa=a.ordre||0,ob=b.ordre||0;
-  db.collection('sons').doc(a.id).update({ordre:ob});
-  db.collection('sons').doc(b.id).update({ordre:oa});
+  var tmp=peers[i];peers[i]=peers[i+1];peers[i+1]=tmp;
+  _son_saveOrdre(peers);
+}
+function son_dndStart(sonId){_son_dragId=sonId;}
+function son_dndOver(e){e.preventDefault();}
+function son_dndDrop(targetId){
+  if(!_son_dragId||_son_dragId===targetId)return;
+  var drag=_son.sons.find(function(x){return x.id===_son_dragId;});
+  var target=_son.sons.find(function(x){return x.id===targetId;});
+  if(!drag||!target)return;
+  if(drag.categorie!==target.categorie||(drag.groupe||'')!==(target.groupe||''))return;
+  var peers=_son_peers(_son_dragId);
+  var fi=peers.findIndex(function(x){return x.id===_son_dragId;});
+  var ti=peers.findIndex(function(x){return x.id===targetId;});
+  peers.splice(fi,1);
+  peers.splice(ti,0,drag);
+  _son_saveOrdre(peers);
+  _son_dragId=null;
 }
 
 // ── Render helpers ──
@@ -5341,12 +5363,15 @@ function _son_devSelect(){
 function _son_mkCard(s,peers,emoji){
   var isP=!!_son.playing[s.id];
   var idx=peers.findIndex(function(x){return x.id===s.id;});
-  var ordBtns='<div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;">'
-    +'<button class="son-ord-btn" onclick="son_monterSon(\''+s.id+'\')" '+(idx===0?'disabled style="opacity:.25;"':'')+'>▲</button>'
-    +'<button class="son-ord-btn" onclick="son_descendreSon(\''+s.id+'\')" '+(idx===peers.length-1?'disabled style="opacity:.25;"':'')+'>▼</button>'
-    +'</div>';
-  return '<div class="son-card'+(isP?' playing':'')+'" style="display:flex;align-items:center;gap:8px;">'
-    +ordBtns
+  return '<div class="son-card'+(isP?' playing':'')+'" draggable="true"'
+    +' ondragstart="son_dndStart(\''+s.id+'\')"'
+    +' ondragover="son_dndOver(event)"'
+    +' ondrop="son_dndDrop(\''+s.id+'\')"'
+    +' ondragenter="this.style.outline=\'2px solid #c9a227\'"'
+    +' ondragleave="this.style.outline=\'\'"'
+    +' ondragend="this.style.outline=\'\'"'
+    +' style="display:flex;align-items:center;gap:8px;cursor:grab;">'
+    +'<span style="flex-shrink:0;color:#5a6a8a;font-size:12px;cursor:grab;padding:0 2px;" title="Glisser pour réordonner">⠿</span>'
     +'<span style="flex-shrink:0;color:#c9a227;">'+_son_iconHtml(s.icone||emoji,22)+'</span>'
     +'<div style="flex:1;min-width:0;">'
       +'<div style="font-size:13px;font-weight:700;color:#e8dcc8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+besti_esc(s.nom)+'</div>'
