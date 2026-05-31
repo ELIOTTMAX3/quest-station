@@ -3,57 +3,106 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/rpg-awesome@0.2.0/css/rpg-awesome.min.css">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
-body{background:#0c0e1a;display:flex;align-items:center;justify-content:center;min-height:100vh;gap:40px;}
-.wrap{position:relative;width:300px;height:340px;border:1px solid #1a2840;border-radius:12px;overflow:hidden;}
+body{background:#0c0e1a;font-family:system-ui,sans-serif;display:flex;align-items:flex-start;justify-content:center;padding:32px;gap:32px;min-height:100vh;}
+.wrap{position:relative;width:300px;height:340px;border:1px solid #1a2840;border-radius:12px;overflow:hidden;flex-shrink:0;cursor:crosshair;}
 .wrap img{position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center top;pointer-events:none;filter:invert(1) sepia(1) saturate(2) hue-rotate(5deg);mix-blend-mode:screen;opacity:.35;}
-.slot{position:absolute;width:54px;height:54px;border-radius:10px;border:1.5px dashed #3d5a8a;background:rgba(14,21,37,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;}
-.slot.occ{border-color:#c9a227;background:rgba(201,162,39,.14);}
-.slot i{font-size:20px;color:#c9a227;}
-.slot .lbl{font-size:7px;font-weight:700;color:#5a6a8a;text-transform:uppercase;text-align:center;max-width:50px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.slot.occ .lbl{color:#e8dcc8;}
-.gl{position:absolute;left:0;right:0;border-top:1px dashed rgba(255,100,100,.2);font-size:8px;color:rgba(255,100,100,.4);padding-left:2px;z-index:10;}
+.slot{position:absolute;width:54px;height:54px;border-radius:10px;border:1.5px solid #c9a227;background:rgba(201,162,39,.18);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:grab;user-select:none;z-index:10;transition:box-shadow .1s;}
+.slot:active{cursor:grabbing;box-shadow:0 0 0 2px #c9a227;z-index:20;}
+.slot i{font-size:18px;color:#c9a227;pointer-events:none;}
+.slot .lbl{font-size:7px;font-weight:700;color:#e8dcc8;text-transform:uppercase;text-align:center;max-width:50px;pointer-events:none;}
+/* Panneau résultats */
+.panel{background:#111827;border:1px solid #1e2d45;border-radius:12px;padding:16px;min-width:260px;display:flex;flex-direction:column;gap:6px;}
+.panel h2{font-size:11px;font-weight:700;color:#c9a227;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;}
+.row{display:flex;align-items:center;gap:8px;font-size:11px;font-family:monospace;}
+.row .name{color:#c9a227;width:68px;}
+.row .val{color:#e8dcc8;background:#0e1525;border:1px solid #1e2d45;padding:2px 8px;border-radius:4px;min-width:90px;}
+.hint{font-size:9px;color:#5a6a8a;margin-top:8px;border-top:1px solid #1e2d45;padding-top:8px;}
+.copy-btn{margin-top:10px;padding:8px;border-radius:7px;border:1px solid rgba(201,162,39,.4);background:rgba(201,162,39,.12);color:#c9a227;font-size:11px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;}
+.copy-btn:hover{background:rgba(201,162,39,.25);}
 </style>
-</head><body>
+</head>
+<body>
 
-<div class="wrap" id="w">
-  <img src="silhouette-knight.png">
-  <script>for(var p=10;p<100;p+=10)document.write('<div class="gl" style="top:'+p+'%">'+p+'%</div>')</script>
-  <div class="slot occ" id="s-chapeau"  style="top:3px;  left:50%;transform:translateX(-50%)"><i class="ra ra-helmet"></i><span class="lbl">Casque</span></div>
-  <div class="slot"     id="s-cape"     style="top:21%;  left:2px"><span class="lbl">Cape</span></div>
-  <div class="slot"     id="s-amulette" style="top:21%;  right:2px"><span class="lbl">Amulette</span></div>
-  <div class="slot occ" id="s-armure"   style="top:37%;  left:50%;transform:translateX(-50%)"><i class="ra ra-vest"></i><span class="lbl">Armure</span></div>
-  <div class="slot occ" id="s-anneau"   style="top:53%;  left:2px"><i class="ra ra-fire-ring"></i><span class="lbl">Anneau</span></div>
-  <div class="slot"     id="s-ceinture" style="top:55%;  left:50%;transform:translateX(-50%)"><span class="lbl">Ceinture</span></div>
-  <div class="slot occ" id="s-bottes"   style="top:80%;  left:50%;transform:translateX(-50%)"><i class="ra ra-boot-stomp"></i><span class="lbl">Bottes</span></div>
+<div>
+  <div style="font-size:10px;color:#5a6a8a;text-align:center;margin-bottom:8px;">⟵ Glisse les slots sur la silhouette</div>
+  <div class="wrap" id="wrap">
+    <img src="silhouette-knight.png" draggable="false">
+    <div class="slot" id="sl-chapeau"  data-id="chapeau"  style="top:4px;  left:37%"><i class="ra ra-helmet"></i><span class="lbl">Casque</span></div>
+    <div class="slot" id="sl-cape"     data-id="cape"     style="top:19%;  left:4%"><span class="lbl">Cape</span></div>
+    <div class="slot" id="sl-amulette" data-id="amulette" style="top:19%;  left:64%"><span class="lbl">Amulette</span></div>
+    <div class="slot" id="sl-armure"   data-id="armure"   style="top:36%;  left:37%"><i class="ra ra-vest"></i><span class="lbl">Armure</span></div>
+    <div class="slot" id="sl-anneau"   data-id="anneau"   style="top:50%;  left:64%"><i class="ra ra-fire-ring"></i><span class="lbl">Anneau</span></div>
+    <div class="slot" id="sl-ceinture" data-id="ceinture" style="top:52%;  left:4%"><span class="lbl">Ceinture</span></div>
+    <div class="slot" id="sl-bottes"   data-id="bottes"   style="top:76%;  left:37%"><i class="ra ra-boot-stomp"></i><span class="lbl">Bottes</span></div>
+  </div>
 </div>
 
-<div style="background:#111;padding:16px;border-radius:10px;color:#ccc;font-size:11px;font-family:monospace;display:flex;flex-direction:column;gap:8px;min-width:260px;">
-  <div style="color:#c9a227;font-weight:700;margin-bottom:4px;">Ajustement live</div>
-  <script>
-  var defs={chapeau:{top:3,left:50},cape:{top:21,left:0},amulette:{top:21,left:60},armure:{top:37,left:50},anneau:{top:53,left:0},ceinture:{top:55,left:50},bottes:{top:80,left:50}};
-  Object.keys(defs).forEach(function(id){
-    var d=defs[id];
-    document.write('<div style="display:flex;align-items:center;gap:6px;">'
-      +'<span style="width:62px;color:#c9a227;">'+id+'</span>'
-      +'<label style="color:#888;font-size:10px;">top%</label>'
-      +'<input id="inp-t-'+id+'" type="number" value="'+d.top+'" step="1" style="width:48px;background:#222;border:1px solid #333;color:#fff;padding:2px 4px;border-radius:4px;" oninput="upd(\''+id+'\')">'
-      +'<label style="color:#888;font-size:10px;">left%</label>'
-      +'<input id="inp-l-'+id+'" type="number" value="'+d.left+'" step="1" style="width:48px;background:#222;border:1px solid #333;color:#fff;padding:2px 4px;border-radius:4px;" oninput="upd(\''+id+'\')">'
-      +'</div>');
+<div class="panel">
+  <h2>Positions (% du container)</h2>
+  <div id="results"></div>
+  <div class="hint">300×340px · Glisse un slot pour mettre à jour</div>
+  <button class="copy-btn" onclick="copyValues()">📋 Copier les valeurs</button>
+</div>
+
+<script>
+var WRAP=document.getElementById('wrap');
+var slots=document.querySelectorAll('.slot');
+var dragging=null,ox=0,oy=0;
+
+function getPct(el){
+  var r=WRAP.getBoundingClientRect();
+  var top=Math.round((el.offsetTop/r.height)*100);
+  var left=Math.round((el.offsetLeft/r.width)*100);
+  return {top:top,left:left};
+}
+
+function updateResults(){
+  var html='';
+  slots.forEach(function(sl){
+    var p=getPct(sl);
+    html+='<div class="row"><span class="name">'+sl.dataset.id+'</span>'
+      +'<span class="val">top:'+p.top+'%  left:'+p.left+'%</span></div>';
   });
-  </script>
-  <script>
-  function upd(id){
-    var el=document.getElementById('s-'+id);
-    var t=document.getElementById('inp-t-'+id).value;
-    var l=document.getElementById('inp-l-'+id).value;
-    el.style.top=t+'%';
-    if(l==50){el.style.left='50%';el.style.right='';el.style.transform='translateX(-50%)';}
-    else if(l>=60){el.style.right=(100-l)+'%';el.style.left='';el.style.transform='';}
-    else{el.style.left=l+'%';el.style.right='';el.style.transform='';}
-  }
-  </script>
-  <div style="margin-top:8px;color:#555;font-size:10px;">left=0 → bord gauche · left=50 → centré · left=60+ → bord droit</div>
-</div>
+  document.getElementById('results').innerHTML=html;
+}
 
+slots.forEach(function(sl){
+  sl.addEventListener('mousedown',function(e){
+    e.preventDefault();
+    dragging=sl;
+    var r=WRAP.getBoundingClientRect();
+    ox=e.clientX-sl.getBoundingClientRect().left;
+    oy=e.clientY-sl.getBoundingClientRect().top;
+  });
+});
+
+document.addEventListener('mousemove',function(e){
+  if(!dragging)return;
+  var r=WRAP.getBoundingClientRect();
+  var x=e.clientX-r.left-ox;
+  var y=e.clientY-r.top-oy;
+  x=Math.max(0,Math.min(r.width-54,x));
+  y=Math.max(0,Math.min(r.height-54,y));
+  dragging.style.left=x+'px';
+  dragging.style.top=y+'px';
+  updateResults();
+});
+
+document.addEventListener('mouseup',function(){dragging=null;});
+
+function copyValues(){
+  var lines=[];
+  slots.forEach(function(sl){
+    var p=getPct(sl);
+    lines.push(sl.dataset.id+': top:'+p.top+'%  left:'+p.left+'%');
+  });
+  navigator.clipboard.writeText(lines.join('\n')).then(function(){
+    var b=document.querySelector('.copy-btn');
+    b.textContent='✅ Copié !';
+    setTimeout(function(){b.textContent='📋 Copier les valeurs';},2000);
+  });
+}
+
+updateResults();
+</script>
 </body></html>

@@ -465,7 +465,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .equip-view-btn{flex:1;font-family:inherit;font-size:12px;font-weight:600;padding:8px 6px;cursor:pointer;border:none;border-radius:7px;background:none;color:var(--txt3);}
 .equip-view-btn.on{background:linear-gradient(135deg,#1a2e4a,#0f3460);color:var(--or);}
 .equip-view-btn:hover:not(.on){background:rgba(255,255,255,.05);}
-.equip-two-col{display:grid;grid-template-columns:180px 1fr;gap:10px;align-items:start;}
+.equip-two-col{display:grid;grid-template-columns:300px 1fr;gap:16px;align-items:start;}
 @media(max-width:500px){.equip-two-col{grid-template-columns:1fr;}}
 .equip-sil-wrap{position:relative;width:300px;height:340px;margin:0 auto;flex-shrink:0;overflow:hidden;border-radius:12px;}
 .equip-slot{position:absolute;width:54px;height:54px;border-radius:10px;border:1.5px dashed #3d5a8a;background:#1e2d45;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-family:inherit;transition:all .15s;padding:2px;line-height:1;}
@@ -6398,37 +6398,37 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <div class="equip-sil-wrap">
           <img src="silhouette-knight.png" aria-hidden="true" style="position:absolute;top:0;left:0;width:100%;height:100%;object-fit:cover;object-position:center top;pointer-events:none;filter:invert(1) sepia(1) saturate(2) hue-rotate(5deg);mix-blend-mode:screen;opacity:.35;">
           <!-- chapeau -->
-          <button class="equip-slot" id="esl-chapeau" onclick="equip_clickSlot('chapeau')" style="top:7%;left:37%;">
+          <button class="equip-slot" id="esl-chapeau" onclick="equip_clickSlot('chapeau')" style="top:4px;left:37%;">
             <span class="equip-slot-ico" id="esl-chapeau-ico"></span>
             <span class="equip-slot-lbl" id="esl-chapeau-lbl">Casque</span>
           </button>
           <!-- cape -->
-          <button class="equip-slot" id="esl-cape" onclick="equip_clickSlot('cape')" style="top:21%;left:12%;">
+          <button class="equip-slot" id="esl-cape" onclick="equip_clickSlot('cape')" style="top:19%;left:4%;">
             <span class="equip-slot-ico" id="esl-cape-ico"></span>
             <span class="equip-slot-lbl" id="esl-cape-lbl">Cape</span>
           </button>
           <!-- amulette -->
-          <button class="equip-slot" id="esl-amulette" onclick="equip_clickSlot('amulette')" style="top:21%;right:2px;">
+          <button class="equip-slot" id="esl-amulette" onclick="equip_clickSlot('amulette')" style="top:19%;left:64%;">
             <span class="equip-slot-ico" id="esl-amulette-ico"></span>
             <span class="equip-slot-lbl" id="esl-amulette-lbl">Amulette</span>
           </button>
           <!-- armure -->
-          <button class="equip-slot" id="esl-armure" onclick="equip_clickSlot('armure')" style="top:34%;left:37%;">
+          <button class="equip-slot" id="esl-armure" onclick="equip_clickSlot('armure')" style="top:36%;left:37%;">
             <span class="equip-slot-ico" id="esl-armure-ico"></span>
             <span class="equip-slot-lbl" id="esl-armure-lbl">Armure</span>
           </button>
           <!-- anneau -->
-          <button class="equip-slot" id="esl-anneau" onclick="equip_clickSlot('anneau')" style="top:45%;right:2px;">
+          <button class="equip-slot" id="esl-anneau" onclick="equip_clickSlot('anneau')" style="top:50%;left:64%;">
             <span class="equip-slot-ico" id="esl-anneau-ico"></span>
             <span class="equip-slot-lbl" id="esl-anneau-lbl">Anneau</span>
           </button>
           <!-- ceinture -->
-          <button class="equip-slot" id="esl-ceinture" onclick="equip_clickSlot('ceinture')" style="top:51%;left:18%;">
+          <button class="equip-slot" id="esl-ceinture" onclick="equip_clickSlot('ceinture')" style="top:52%;left:4%;">
             <span class="equip-slot-ico" id="esl-ceinture-ico"></span>
             <span class="equip-slot-lbl" id="esl-ceinture-lbl">Ceinture</span>
           </button>
           <!-- bottes -->
-          <button class="equip-slot" id="esl-bottes" onclick="equip_clickSlot('bottes')" style="top:76%;left:39%;">
+          <button class="equip-slot" id="esl-bottes" onclick="equip_clickSlot('bottes')" style="top:76%;left:37%;">
             <span class="equip-slot-ico" id="esl-bottes-ico"></span>
             <span class="equip-slot-lbl" id="esl-bottes-lbl">Bottes</span>
           </button>
