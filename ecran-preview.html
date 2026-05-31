@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Page Écran — Concept</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/rpg-awesome@0.2.0/css/rpg-awesome.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0a0c12;font-family:system-ui,sans-serif;color:#e0e0e0;}
+
+/* HEADER de page MJ */
+.mj-header{background:#060810;border-bottom:1px solid #1a2840;padding:9px 14px;display:flex;align-items:center;gap:10px;}
+.mj-header .title{font-size:13px;font-weight:700;color:#c9a227;}
+.mj-tabs{display:flex;gap:4px;margin-left:8px;}
+.mj-tab{font-size:11px;font-weight:600;padding:5px 12px;border-radius:7px;border:none;background:transparent;color:#5a6a8a;cursor:pointer;font-family:inherit;}
+.mj-tab.on{background:#111e33;color:#c9a227;}
+
+/* Bandeau diffusion */
+.broadcast-bar{background:#0e1929;border-bottom:1px solid #1a2840;padding:8px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.broadcast-label{font-size:10px;font-weight:700;color:#5a6a8a;text-transform:uppercase;letter-spacing:.08em;}
+.screen-select{display:flex;align-items:center;gap:6px;background:#111e33;border:1px solid #1e2d45;border-radius:7px;padding:4px 6px;}
+.screen-select select{background:transparent;border:none;color:#e0e0e0;font-size:11px;font-family:inherit;outline:none;cursor:pointer;}
+.broadcast-btn{font-family:inherit;font-size:11px;font-weight:700;padding:6px 14px;border-radius:7px;cursor:pointer;border:1px solid rgba(74,222,128,.4);background:rgba(74,222,128,.12);color:#4ade80;}
+.broadcast-btn:hover{background:rgba(74,222,128,.22);}
+.broadcast-btn.live{background:#ef4444;border-color:#ef4444;color:#fff;animation:livePulse 2s ease-in-out infinite;}
+@keyframes livePulse{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.4);}50%{box-shadow:0 0 0 4px rgba(239,68,68,0);}}
+.live-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;margin-right:5px;}
+
+/* SOUS-ONGLETS écran */
+.sub-tabs{display:flex;gap:5px;background:#080e1a;padding:8px 14px;border-bottom:1px solid #1a2840;}
+.sub-tab{font-size:12px;font-weight:600;padding:7px 16px;border-radius:8px;border:1px solid #1e2d45;background:#0e1929;color:#5a6a8a;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;}
+.sub-tab.on{background:rgba(201,162,39,.15);border-color:#c9a227;color:#c9a227;}
+
+/* LAYOUT */
+.layout{display:grid;grid-template-columns:270px 1fr;height:calc(100vh - 130px);}
+.mj-panel{background:#080e1a;border-right:1px solid #1a2840;display:flex;flex-direction:column;overflow:hidden;}
+.mj-section{padding:10px 12px;border-bottom:1px solid #1a2840;}
+.mj-section-title{font-size:9px;font-weight:700;color:#5a6a8a;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+.btn-sm{font-family:inherit;font-size:11px;font-weight:600;padding:5px 10px;border-radius:7px;cursor:pointer;border:1px solid #1e2d45;background:#111e33;color:#e0e0e0;transition:all .12s;}
+.btn-sm:hover{border-color:#c9a227;color:#c9a227;}
+.btn-sm.active{background:rgba(201,162,39,.15);border-color:#c9a227;color:#c9a227;}
+
+.map-thumb{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.map-item{border-radius:7px;border:2px solid transparent;cursor:pointer;overflow:hidden;aspect-ratio:16/9;position:relative;background:#0f1e36;display:flex;align-items:center;justify-content:center;}
+.map-item.selected{border-color:#c9a227;}
+.map-item i{font-size:20px;opacity:.4;}
+.map-item .map-label{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.7);font-size:9px;font-weight:600;padding:2px 5px;text-transform:uppercase;}
+
+.token-list{flex:1;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:5px;}
+.token-row{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;border:1px solid #1a2840;background:#0e1929;cursor:pointer;}
+.token-row:hover{border-color:#3a4a6a;}
+.token-row.on-map{border-color:rgba(201,162,39,.4);background:rgba(201,162,39,.06);}
+.token-ico{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.token-ico.enemy{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);color:#fca5a5;}
+.token-ico.ally{background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.35);color:#4ade80;}
+.token-ico.npc{background:rgba(201,162,39,.15);border:1px solid rgba(201,162,39,.35);color:#c9a227;}
+.token-info{flex:1;min-width:0;}
+.token-name{font-size:11px;font-weight:700;}
+.token-sub{font-size:9px;color:#5a6a8a;}
+.token-hp{font-size:10px;font-weight:700;color:#4ade80;}
+.token-hp.low{color:#fca5a5;}
+
+/* MAP AREA */
+.map-area{position:relative;overflow:hidden;background:#05080f;}
+.map-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 40%, #1a1200 0%, #080600 60%, #030200 100%);background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0px,rgba(255,255,255,.04) 1px,transparent 1px,transparent 60px),repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0px,rgba(255,255,255,.04) 1px,transparent 1px,transparent 60px);}
+.map-token{position:absolute;width:50px;height:50px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;user-select:none;z-index:10;}
+.map-token.enemy{background:radial-gradient(circle,rgba(239,68,68,.35),rgba(185,28,28,.5));border:2px solid #ef4444;box-shadow:0 0 12px rgba(239,68,68,.4);}
+.map-token.ally{background:radial-gradient(circle,rgba(74,222,128,.3),rgba(22,101,52,.5));border:2px solid #4ade80;box-shadow:0 0 12px rgba(74,222,128,.3);}
+.map-token.npc{background:radial-gradient(circle,rgba(201,162,39,.3),rgba(120,80,10,.5));border:2px solid #c9a227;}
+.map-token i{font-size:21px;pointer-events:none;}
+.map-token.enemy i{color:#fca5a5;}.map-token.ally i{color:#86efac;}.map-token.npc i{color:#fde68a;}
+.map-token .tok-label{font-size:8px;font-weight:700;color:#fff;text-shadow:0 1px 3px #000;margin-top:1px;pointer-events:none;white-space:nowrap;}
+.map-token .hp-bar{position:absolute;bottom:-7px;left:4px;right:4px;height:4px;background:#333;border-radius:2px;}
+.map-token .hp-fill{height:100%;border-radius:2px;}
+.mj-only-tag{position:absolute;top:-6px;right:-6px;font-size:8px;background:#c9a227;color:#000;border-radius:4px;padding:0 3px;font-weight:700;}
+
+.init-bar{position:absolute;top:0;left:0;right:0;background:linear-gradient(180deg,rgba(0,0,0,.8),transparent);padding:8px 12px;display:flex;align-items:center;gap:6px;z-index:30;}
+.init-chip{padding:4px 10px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap;}
+.init-chip.active{background:#c9a227;color:#000;}
+.init-chip.enemy{background:rgba(239,68,68,.3);border:1px solid rgba(239,68,68,.5);color:#fca5a5;}
+.init-chip.ally{background:rgba(74,222,128,.2);border:1px solid rgba(74,222,128,.4);color:#4ade80;}
+
+/* VISUEL sub-page */
+.visuel-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px;overflow-y:auto;}
+.visuel-card{border-radius:10px;border:2px solid #1a2840;overflow:hidden;cursor:pointer;aspect-ratio:16/10;position:relative;transition:all .15s;}
+.visuel-card:hover{border-color:#3a4a6a;}
+.visuel-card.live{border-color:#4ade80;box-shadow:0 0 14px rgba(74,222,128,.3);}
+.visuel-card .vc-img{width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:40px;opacity:.5;}
+.visuel-card .vc-label{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.75);padding:5px 8px;font-size:11px;font-weight:700;}
+.visuel-card .vc-live-badge{position:absolute;top:6px;right:6px;font-size:8px;font-weight:700;background:#4ade80;color:#000;padding:2px 7px;border-radius:999px;}
+
+/* Vue joueurs simulée */
+.pv-frame{position:absolute;bottom:14px;right:14px;width:200px;border:2px solid #4ade80;border-radius:8px;overflow:hidden;z-index:40;box-shadow:0 6px 24px rgba(0,0,0,.6);}
+.pv-frame-hd{background:#060810;font-size:8px;font-weight:700;color:#4ade80;padding:3px 8px;display:flex;align-items:center;gap:4px;}
+.pv-frame-body{position:relative;height:112px;background:radial-gradient(ellipse at 30% 40%, #1a1200, #030200);overflow:hidden;}
+.pv-tok{position:absolute;width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;}
+.pv-tok.enemy{background:rgba(239,68,68,.4);border:1px solid #ef4444;}
+.pv-tok.ally{background:rgba(74,222,128,.35);border:1px solid #4ade80;}
+</style>
+</head>
+<body>
+
+<!-- HEADER MJ -->
+<div class="mj-header">
+  <span class="title">⚔ Quest Station — MJ</span>
+  <div class="mj-tabs">
+    <button class="mj-tab">Joueurs</button>
+    <button class="mj-tab">Combat</button>
+    <button class="mj-tab">Objets</button>
+    <button class="mj-tab on">📺 Écran</button>
+    <button class="mj-tab">Son</button>
+  </div>
+</div>
+
+<!-- BANDEAU DIFFUSION -->
+<div class="broadcast-bar">
+  <span class="broadcast-label">🖥 Diffusion</span>
+  <div class="screen-select">
+    <i class="ra ra-cog" style="color:#5a6a8a;font-size:12px;"></i>
+    <select id="screen-sel">
+      <option>Écran 2 — TV Table (1920×1080)</option>
+      <option>Écran 3 — Projecteur (1280×720)</option>
+      <option>Cet écran (test)</option>
+    </select>
+  </div>
+  <button class="broadcast-btn" id="bc-btn" onclick="toggleBroadcast()">▶ Lancer la diffusion</button>
+  <div style="flex:1;"></div>
+  <span style="font-size:10px;color:#5a6a8a;" id="bc-status">Aucune diffusion active</span>
+</div>
+
+<!-- SOUS-ONGLETS -->
+<div class="sub-tabs">
+  <button class="sub-tab on" id="st-battlemap" onclick="switchSub('battlemap')"><i class="ra ra-crossed-swords"></i> Battlemap <span style="opacity:.6;font-weight:400;">— combats</span></button>
+  <button class="sub-tab" id="st-visuel" onclick="switchSub('visuel')"><i class="ra ra-scroll"></i> Visuel <span style="opacity:.6;font-weight:400;">— hors combat</span></button>
+</div>
+
+<!-- ════ BATTLEMAP ════ -->
+<div id="page-battlemap">
+  <div class="layout">
+    <div class="mj-panel">
+      <div class="mj-section">
+        <div class="mj-section-title">Carte de combat</div>
+        <div class="map-thumb">
+          <div class="map-item selected"><i class="ra ra-dungeon"></i><div class="map-label">Donjon</div></div>
+          <div class="map-item"><i class="ra ra-tree"></i><div class="map-label">Forêt</div></div>
+          <div class="map-item"><i class="ra ra-beer"></i><div class="map-label">Taverne</div></div>
+          <div class="map-item"><i class="ra ra-skull"></i><div class="map-label">Crypte</div></div>
+        </div>
+        <button class="btn-sm" style="width:100%;margin-top:8px;">📁 Importer une carte</button>
+      </div>
+      <div class="mj-section"><div class="mj-section-title">Tokens — clic pour placer</div></div>
+      <div class="token-list" id="token-list"></div>
+    </div>
+
+    <div class="map-area" id="map-area">
+      <div class="map-bg"></div>
+      <div id="tokens-layer"></div>
+      <div class="init-bar">
+        <span style="font-size:9px;font-weight:700;color:#5a6a8a;margin-right:4px;">INITIATIVE</span>
+        <div class="init-chip active">⚔ Gobelins (22)</div>
+        <div class="init-chip ally">🗡 Kamash (18)</div>
+        <div class="init-chip enemy">💀 Araignée (15)</div>
+        <div class="init-chip ally">🌿 Ulrich (12)</div>
+      </div>
+
+      <!-- Mini vue joueurs -->
+      <div class="pv-frame">
+        <div class="pv-frame-hd"><span class="live-dot"></span> CE QUE VOIENT LES JOUEURS</div>
+        <div class="pv-frame-body" id="pv-mini"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════ VISUEL ════ -->
+<div id="page-visuel" style="display:none;">
+  <div style="display:grid;grid-template-columns:270px 1fr;height:calc(100vh - 130px);">
+    <div class="mj-panel">
+      <div class="mj-section">
+        <div class="mj-section-title">Bibliothèque visuelle</div>
+        <button class="btn-sm" style="width:100%;margin-bottom:6px;">📁 Importer une image</button>
+        <button class="btn-sm" style="width:100%;">🌐 Depuis une URL</button>
+      </div>
+      <div class="mj-section">
+        <div class="mj-section-title">Catégories</div>
+        <div style="display:flex;flex-direction:column;gap:4px;">
+          <button class="btn-sm active" style="text-align:left;">🏰 Lieux</button>
+          <button class="btn-sm" style="text-align:left;">👤 Personnages / PNJ</button>
+          <button class="btn-sm" style="text-align:left;">📜 Documents / Cartes</button>
+          <button class="btn-sm" style="text-align:left;">🎬 Transitions</button>
+        </div>
+      </div>
+      <div class="mj-section" style="flex:1;">
+        <div class="mj-section-title">Diffusion en cours</div>
+        <div style="background:#0e1929;border:1px solid rgba(74,222,128,.3);border-radius:8px;padding:10px;text-align:center;">
+          <div style="font-size:30px;opacity:.5;"><i class="ra ra-tower"></i></div>
+          <div style="font-size:11px;font-weight:700;color:#4ade80;margin-top:4px;">Château de Ravenloft</div>
+          <button class="btn-sm" style="margin-top:8px;border-color:rgba(239,68,68,.4);color:#fca5a5;">⏹ Arrêter</button>
+        </div>
+      </div>
+    </div>
+    <div class="visuel-grid">
+      <div class="visuel-card live"><div class="vc-img"><i class="ra ra-tower"></i></div><div class="vc-label">Château de Ravenloft</div><div class="vc-live-badge">● LIVE</div></div>
+      <div class="visuel-card"><div class="vc-img"><i class="ra ra-beer"></i></div><div class="vc-label">Taverne du Sanglier</div></div>
+      <div class="visuel-card"><div class="vc-img"><i class="ra ra-player-king"></i></div><div class="vc-label">Roi Hargrave</div></div>
+      <div class="visuel-card"><div class="vc-img"><i class="ra ra-scroll"></i></div><div class="vc-label">Carte du royaume</div></div>
+      <div class="visuel-card"><div class="vc-img"><i class="ra ra-dragon"></i></div><div class="vc-label">Dragon ancien</div></div>
+      <div class="visuel-card"><div class="vc-img"><i class="ra ra-campfire"></i></div><div class="vc-label">Campement nocturne</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var tokenDefs=[
+  {id:'gob1',name:'Gobelin #1',type:'enemy',icon:'ra-skull',hp:7,maxHp:7,placed:false},
+  {id:'gob2',name:'Gobelin #2',type:'enemy',icon:'ra-skull',hp:5,maxHp:7,placed:false},
+  {id:'arai',name:'Araignée géante',type:'enemy',icon:'ra-spider-face',hp:26,maxHp:26,placed:false},
+  {id:'kam',name:'Kamash',type:'ally',icon:'ra-sword',hp:45,maxHp:45,placed:false},
+  {id:'ulr',name:'Ulrich',type:'ally',icon:'ra-scroll',hp:38,maxHp:38,placed:false},
+];
+
+function renderTokenList(){
+  document.getElementById('token-list').innerHTML=tokenDefs.map(function(t){
+    var pct=Math.round(t.hp/t.maxHp*100);
+    return '<div class="token-row'+(t.placed?' on-map':'')+'" onclick="placeToken(\''+t.id+'\')">'
+      +'<div class="token-ico '+t.type+'"><i class="ra '+t.icon+'"></i></div>'
+      +'<div class="token-info"><div class="token-name">'+t.name+'</div>'
+      +'<div class="token-sub">'+(t.type==='enemy'?'Ennemi — infos cachées':t.type==='ally'?'Allié':'PNJ')+'</div></div>'
+      +'<span class="token-hp'+(pct<40?' low':'')+'">'+t.hp+'/'+t.maxHp+'</span>'
+      +'<span style="font-size:11px;color:'+(t.placed?'#c9a227':'#5a6a8a')+';">'+(t.placed?'✓':'＋')+'</span>'
+    +'</div>';
+  }).join('');
+}
+
+function placeToken(id){
+  var t=tokenDefs.find(function(x){return x.id===id;});
+  if(!t)return;
+  var map=document.getElementById('map-area');var r=map.getBoundingClientRect();
+  if(!t.placed){
+    t.placed=true;t.x=80+Math.random()*(r.width-260);t.y=80+Math.random()*(r.height-200);
+    createMapToken(t);
+  }else{t.placed=false;var e=document.getElementById('mt-'+t.id);if(e)e.remove();}
+  renderTokenList();updateMiniPV();
+}
+
+function createMapToken(t){
+  var el=document.createElement('div');
+  el.id='mt-'+t.id;el.className='map-token '+t.type;
+  el.style.left=t.x+'px';el.style.top=t.y+'px';
+  var pct=Math.round(t.hp/t.maxHp*100);
+  var col=pct>50?'#4ade80':pct>25?'#fbbf24':'#ef4444';
+  // Côté MJ : on voit tout (HP + tag "MJ only" pour les ennemis)
+  el.innerHTML='<i class="ra '+t.icon+'"></i>'
+    +'<span class="tok-label">'+t.name.split(' ')[0]+'</span>'
+    +'<div class="hp-bar"><div class="hp-fill" style="width:'+pct+'%;background:'+col+'"></div></div>'
+    +(t.type==='enemy'?'<span class="mj-only-tag">MJ</span>':'');
+  makeDraggable(el,t);
+  document.getElementById('tokens-layer').appendChild(el);
+}
+
+function makeDraggable(el,t){
+  var mx=0,my=0;
+  el.addEventListener('mousedown',function(e){
+    e.preventDefault();mx=e.clientX-el.offsetLeft;my=e.clientY-el.offsetTop;
+    document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
+  });
+  function mv(e){
+    var r=document.getElementById('map-area').getBoundingClientRect();
+    var nx=Math.max(0,Math.min(r.width-50,e.clientX-r.left-mx));
+    var ny=Math.max(0,Math.min(r.height-50,e.clientY-r.top-my));
+    el.style.left=nx+'px';el.style.top=ny+'px';t.x=nx;t.y=ny;updateMiniPV();
+  }
+  function up(){document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);}
+}
+
+// Mini vue joueurs : SANS HP ni infos ennemis, juste pastille + nom
+function updateMiniPV(){
+  var mini=document.getElementById('pv-mini');
+  var map=document.getElementById('map-area');var r=map.getBoundingClientRect();
+  var sx=200/r.width, sy=112/r.height;
+  mini.innerHTML=tokenDefs.filter(function(t){return t.placed;}).map(function(t){
+    return '<div class="pv-tok '+t.type+'" style="left:'+(t.x*sx)+'px;top:'+(t.y*sy)+'px;" title="'+t.name+'">'
+      +'<i class="ra '+t.icon+'" style="font-size:9px;"></i></div>';
+  }).join('');
+}
+
+function switchSub(p){
+  document.getElementById('st-battlemap').classList.toggle('on',p==='battlemap');
+  document.getElementById('st-visuel').classList.toggle('on',p==='visuel');
+  document.getElementById('page-battlemap').style.display=p==='battlemap'?'':'none';
+  document.getElementById('page-visuel').style.display=p==='visuel'?'':'none';
+}
+
+var broadcasting=false;
+function toggleBroadcast(){
+  broadcasting=!broadcasting;
+  var btn=document.getElementById('bc-btn');
+  var status=document.getElementById('bc-status');
+  if(broadcasting){
+    btn.textContent='⏹ Arrêter la diffusion';btn.classList.add('live');
+    var sel=document.getElementById('screen-sel');
+    status.innerHTML='<span class="live-dot"></span> Diffusion active sur '+sel.value.split('—')[0];
+  }else{
+    btn.textContent='▶ Lancer la diffusion';btn.classList.remove('live');
+    status.textContent='Aucune diffusion active';
+  }
+}
+
+renderTokenList();
+setTimeout(function(){['gob1','gob2','arai','kam','ulr'].forEach(placeToken);},100);
+</script>
+</body>
+</html>

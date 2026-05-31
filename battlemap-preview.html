@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Battlemap — Aperçu Concept</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/rpg-awesome@0.2.0/css/rpg-awesome.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#0a0c12;font-family:system-ui,sans-serif;color:#e0e0e0;overflow-x:hidden;}
+
+/* ── HEADER ── */
+.header{background:#060810;border-bottom:1px solid #1a2840;padding:10px 16px;display:flex;align-items:center;gap:12px;}
+.header-title{font-size:13px;font-weight:700;color:#c9a227;}
+.header-badge{font-size:9px;font-weight:700;padding:3px 8px;border-radius:999px;background:rgba(74,222,128,.15);color:#4ade80;border:1px solid rgba(74,222,128,.3);}
+.header-badge.orange{background:rgba(201,162,39,.15);color:#c9a227;border-color:rgba(201,162,39,.3);}
+
+/* ── LAYOUT ── */
+.layout{display:grid;grid-template-columns:280px 1fr;height:calc(100vh - 43px);}
+
+/* ── PANEL MJ ── */
+.mj-panel{background:#080e1a;border-right:1px solid #1a2840;display:flex;flex-direction:column;overflow:hidden;}
+.mj-section{padding:10px 12px;border-bottom:1px solid #1a2840;}
+.mj-section-title{font-size:9px;font-weight:700;color:#5a6a8a;text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+.btn-sm{font-family:inherit;font-size:11px;font-weight:600;padding:5px 10px;border-radius:7px;cursor:pointer;border:1px solid #1e2d45;background:#111e33;color:#e0e0e0;transition:all .12s;}
+.btn-sm:hover{border-color:#c9a227;color:#c9a227;}
+.btn-sm.active{background:rgba(201,162,39,.15);border-color:#c9a227;color:#c9a227;}
+.btn-sm.green{border-color:rgba(74,222,128,.4);color:#4ade80;background:rgba(74,222,128,.08);}
+
+/* Map selector */
+.map-thumb{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.map-item{border-radius:7px;border:2px solid transparent;cursor:pointer;overflow:hidden;aspect-ratio:16/9;position:relative;background:#0f1e36;}
+.map-item.selected{border-color:#c9a227;}
+.map-item .map-label{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.7);font-size:9px;font-weight:600;color:#e0e0e0;padding:3px 6px;text-transform:uppercase;letter-spacing:.05em;}
+.map-dungeon{background:radial-gradient(circle at 30% 40%, #1a1200 30%, #0a0800 100%);background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0px,rgba(255,255,255,.03) 1px,transparent 1px,transparent 40px),repeating-linear-gradient(90deg,rgba(255,255,255,.03) 0px,rgba(255,255,255,.03) 1px,transparent 1px,transparent 40px);}
+.map-forest{background:radial-gradient(circle at 60% 30%, #0a1a08 20%, #050d03 100%);background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.02) 0px,rgba(255,255,255,.02) 1px,transparent 1px,transparent 40px),repeating-linear-gradient(90deg,rgba(255,255,255,.02) 0px,rgba(255,255,255,.02) 1px,transparent 1px,transparent 40px);}
+.map-taverne{background:radial-gradient(circle at 50% 70%, #1a0f00 30%, #0d0800 100%);background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.03) 0px,rgba(255,255,255,.03) 1px,transparent 1px,transparent 40px),repeating-linear-gradient(90deg,rgba(255,255,255,.03) 0px,rgba(255,255,255,.03) 1px,transparent 1px,transparent 40px);}
+.map-crypte{background:radial-gradient(circle at 20% 80%, #0a0015 30%, #050008 100%);background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.02) 0px,rgba(255,255,255,.02) 1px,transparent 1px,transparent 40px),repeating-linear-gradient(90deg,rgba(255,255,255,.02) 0px,rgba(255,255,255,.02) 1px,transparent 1px,transparent 40px);}
+
+/* Token list */
+.token-list{flex:1;overflow-y:auto;padding:8px 12px;display:flex;flex-direction:column;gap:5px;}
+.token-row{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:8px;border:1px solid #1a2840;background:#0e1929;cursor:pointer;transition:all .12s;}
+.token-row:hover{border-color:#3a4a6a;}
+.token-row.on-map{border-color:rgba(201,162,39,.4);background:rgba(201,162,39,.06);}
+.token-ico{width:32px;height:32px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.token-ico.enemy{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);color:#fca5a5;}
+.token-ico.ally{background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.35);color:#4ade80;}
+.token-ico.npc{background:rgba(201,162,39,.15);border:1px solid rgba(201,162,39,.35);color:#c9a227;}
+.token-info{flex:1;min-width:0;}
+.token-name{font-size:11px;font-weight:700;color:#e0e0e0;}
+.token-sub{font-size:9px;color:#5a6a8a;}
+.token-hp{font-size:10px;font-weight:700;color:#4ade80;}
+.token-hp.low{color:#fca5a5;}
+.token-add-btn{font-size:11px;padding:3px 8px;border-radius:5px;border:1px solid #1e2d45;background:transparent;color:#5a6a8a;cursor:pointer;font-family:inherit;}
+.token-add-btn:hover,.token-add-btn.placed{border-color:#c9a227;color:#c9a227;}
+
+/* ── BATTLEMAP ── */
+.map-area{position:relative;overflow:hidden;background:#05080f;cursor:crosshair;}
+.map-bg{position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0px,rgba(255,255,255,.04) 1px,transparent 1px,transparent 60px),repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0px,rgba(255,255,255,.04) 1px,transparent 1px,transparent 60px);}
+/* Dungeon rooms décoratives */
+.room{position:absolute;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);border-radius:4px;}
+/* Token sur la map */
+.map-token{position:absolute;width:52px;height:52px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;user-select:none;transition:box-shadow .15s;z-index:10;}
+.map-token:active{cursor:grabbing;z-index:20;}
+.map-token.enemy{background:radial-gradient(circle,rgba(239,68,68,.35),rgba(185,28,28,.5));border:2px solid #ef4444;box-shadow:0 0 12px rgba(239,68,68,.4);}
+.map-token.ally{background:radial-gradient(circle,rgba(74,222,128,.3),rgba(22,101,52,.5));border:2px solid #4ade80;box-shadow:0 0 12px rgba(74,222,128,.3);}
+.map-token.npc{background:radial-gradient(circle,rgba(201,162,39,.3),rgba(120,80,10,.5));border:2px solid #c9a227;box-shadow:0 0 12px rgba(201,162,39,.3);}
+.map-token i{font-size:22px;pointer-events:none;}
+.map-token.enemy i{color:#fca5a5;}
+.map-token.ally i{color:#86efac;}
+.map-token.npc i{color:#fde68a;}
+.map-token .tok-label{font-size:8px;font-weight:700;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.8);margin-top:1px;pointer-events:none;white-space:nowrap;}
+.map-token .hp-bar{position:absolute;bottom:-8px;left:4px;right:4px;height:4px;background:#333;border-radius:2px;}
+.map-token .hp-fill{height:100%;border-radius:2px;}
+/* Initiative overlay */
+.initiative-bar{position:absolute;top:0;left:0;right:0;background:linear-gradient(180deg,rgba(0,0,0,.8),transparent);padding:8px 12px;display:flex;align-items:center;gap:6px;z-index:30;}
+.init-chip{padding:4px 10px;border-radius:999px;font-size:10px;font-weight:700;white-space:nowrap;}
+.init-chip.active{background:#c9a227;color:#000;}
+.init-chip.enemy{background:rgba(239,68,68,.3);border:1px solid rgba(239,68,68,.5);color:#fca5a5;}
+.init-chip.ally{background:rgba(74,222,128,.2);border:1px solid rgba(74,222,128,.4);color:#4ade80;}
+/* Musique overlay */
+.music-bar{position:absolute;bottom:0;left:0;right:0;background:linear-gradient(0deg,rgba(0,0,0,.85),transparent);padding:10px 16px;display:flex;align-items:center;gap:10px;z-index:30;}
+.music-dot{width:8px;height:8px;border-radius:50%;background:#c9a227;animation:pulse 1.5s ease-in-out infinite;flex-shrink:0;}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1);}50%{opacity:.4;transform:scale(.8);}}
+.music-waves{display:flex;align-items:flex-end;gap:2px;height:18px;}
+.music-waves span{width:3px;background:#c9a227;border-radius:2px;animation:wave 1s ease-in-out infinite;}
+.music-waves span:nth-child(1){animation-delay:0s;}
+.music-waves span:nth-child(2){animation-delay:.1s;}
+.music-waves span:nth-child(3){animation-delay:.2s;}
+.music-waves span:nth-child(4){animation-delay:.3s;}
+.music-waves span:nth-child(5){animation-delay:.4s;}
+@keyframes wave{0%,100%{height:4px;}50%{height:16px;}}
+.music-info .music-title{font-size:12px;font-weight:700;color:#c9a227;}
+.music-info .music-type{font-size:10px;color:#5a6a8a;}
+/* Map controls */
+.map-controls{position:absolute;top:50%;right:12px;transform:translateY(-50%);display:flex;flex-direction:column;gap:5px;z-index:30;}
+.map-ctrl-btn{width:32px;height:32px;border-radius:7px;border:1px solid #1e2d45;background:rgba(8,14,26,.85);color:#5a6a8a;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .12s;}
+.map-ctrl-btn:hover{border-color:#c9a227;color:#c9a227;}
+/* Fog toggle */
+.fog-overlay{position:absolute;inset:0;pointer-events:none;z-index:5;}
+.fog-cell{position:absolute;background:rgba(0,0,0,.75);transition:opacity .4s;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <span class="header-title">⚔ Quest Station — Battlemap</span>
+  <span class="header-badge orange">MJ — Vue contrôle</span>
+  <div style="flex:1;"></div>
+  <span style="font-size:10px;color:#5a6a8a;">← Panneau MJ &nbsp;|&nbsp; Carte interactive →</span>
+  <button onclick="toggleFog()" class="btn-sm" id="fog-btn" style="margin-left:8px;">🌫 Brouillard ON</button>
+  <button onclick="showPlayerView()" class="btn-sm green" style="margin-left:4px;">📺 Vue joueurs</button>
+</div>
+
+<div class="layout">
+  <!-- ── PANEL MJ ── -->
+  <div class="mj-panel">
+    <!-- Maps -->
+    <div class="mj-section">
+      <div class="mj-section-title">Sélection de carte</div>
+      <div class="map-thumb">
+        <div class="map-item map-dungeon selected" onclick="selectMap(this,'dungeon')">
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;opacity:.4;"><i class="ra ra-dungeon"></i></div>
+          <div class="map-label">Donjon</div>
+        </div>
+        <div class="map-item map-forest" onclick="selectMap(this,'forest')">
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;opacity:.4;"><i class="ra ra-tree"></i></div>
+          <div class="map-label">Forêt</div>
+        </div>
+        <div class="map-item map-taverne" onclick="selectMap(this,'taverne')">
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;opacity:.4;"><i class="ra ra-beer"></i></div>
+          <div class="map-label">Taverne</div>
+        </div>
+        <div class="map-item map-crypte" onclick="selectMap(this,'crypte')">
+          <div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:22px;opacity:.4;"><i class="ra ra-skull"></i></div>
+          <div class="map-label">Crypte</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:5px;margin-top:8px;">
+        <button class="btn-sm" style="flex:1;">📁 Importer une image</button>
+        <button class="btn-sm active">⬡ Grille</button>
+      </div>
+    </div>
+    <!-- Tokens -->
+    <div class="mj-section">
+      <div class="mj-section-title">Tokens — clic pour placer</div>
+    </div>
+    <div class="token-list" id="token-list"></div>
+  </div>
+
+  <!-- ── BATTLEMAP ── -->
+  <div class="map-area" id="map-area">
+    <div class="map-bg" id="map-bg"></div>
+
+    <!-- Décor donjon -->
+    <div id="map-decor"></div>
+
+    <!-- Tokens -->
+    <div id="tokens-layer"></div>
+
+    <!-- Brouillard -->
+    <div class="fog-overlay" id="fog-layer"></div>
+
+    <!-- Initiative bar -->
+    <div class="initiative-bar">
+      <span style="font-size:9px;font-weight:700;color:#5a6a8a;letter-spacing:.08em;margin-right:4px;">INITIATIVE</span>
+      <div class="init-chip active">⚔ Gobelins (22)</div>
+      <div class="init-chip ally">🗡 Kamash (18)</div>
+      <div class="init-chip enemy">💀 Araignée (15)</div>
+      <div class="init-chip ally">🌿 Ulrich (12)</div>
+      <div class="init-chip ally">🎭 Hadaraï (9)</div>
+    </div>
+
+    <!-- Musique -->
+    <div class="music-bar">
+      <div class="music-dot"></div>
+      <div class="music-waves">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="music-info">
+        <div class="music-title">Bataille épique</div>
+        <div class="music-type">🎵 Musique · En boucle</div>
+      </div>
+    </div>
+
+    <!-- Contrôles carte -->
+    <div class="map-controls">
+      <button class="map-ctrl-btn" title="Zoom +" onclick="zoom(1.15)">+</button>
+      <button class="map-ctrl-btn" title="Zoom -" onclick="zoom(0.87)">−</button>
+      <button class="map-ctrl-btn" title="Centrer" onclick="resetView()">⊙</button>
+      <button class="map-ctrl-btn" title="Plein écran">⛶</button>
+    </div>
+  </div>
+</div>
+
+<!-- VUE JOUEURS (popup) -->
+<div id="player-view" style="display:none;position:fixed;inset:0;z-index:100;background:#000;flex-direction:column;">
+  <div style="background:#060810;border-bottom:1px solid #1a2840;padding:8px 16px;display:flex;align-items:center;gap:8px;">
+    <span style="font-size:11px;font-weight:700;color:#4ade80;">📺 Vue joueurs — Écran de table (plein écran)</span>
+    <div style="flex:1;"></div>
+    <button onclick="closePlayerView()" style="font-family:inherit;font-size:11px;padding:4px 12px;border-radius:6px;border:1px solid #1e2d45;background:transparent;color:#e0e0e0;cursor:pointer;">✕ Fermer</button>
+  </div>
+  <div style="flex:1;position:relative;overflow:hidden;" id="pv-map">
+    <div id="pv-bg" style="position:absolute;inset:0;"></div>
+    <div id="pv-tokens"></div>
+    <div style="position:absolute;top:0;left:0;right:0;background:linear-gradient(180deg,rgba(0,0,0,.85),transparent);padding:10px 16px;display:flex;align-items:center;gap:6px;">
+      <span style="font-size:9px;font-weight:700;color:#5a6a8a;letter-spacing:.08em;margin-right:4px;">INITIATIVE</span>
+      <div class="init-chip active">⚔ Gobelins (22)</div>
+      <div class="init-chip ally">🗡 Kamash (18)</div>
+      <div class="init-chip enemy">💀 Araignée (15)</div>
+    </div>
+    <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(0deg,rgba(0,0,0,.9),transparent);padding:12px 20px;display:flex;align-items:center;gap:10px;">
+      <div class="music-dot"></div>
+      <div class="music-waves"><span></span><span></span><span></span><span></span><span></span></div>
+      <div class="music-info"><div class="music-title">Bataille épique</div><div class="music-type">🎵 Musique</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var scale=1, offsetX=0, offsetY=0;
+var currentMap='dungeon';
+var fogOn=false;
+
+var tokenDefs=[
+  {id:'gobelin1', name:'Gobelin #1', type:'enemy', icon:'ra-skull', hp:7, maxHp:7, x:0, y:0, placed:false},
+  {id:'gobelin2', name:'Gobelin #2', type:'enemy', icon:'ra-skull', hp:5, maxHp:7, x:0, y:0, placed:false},
+  {id:'araignee', name:'Araignée géante', type:'enemy', icon:'ra-spider-face', hp:26, maxHp:26, x:0, y:0, placed:false},
+  {id:'orc',      name:'Orc guerrier', type:'enemy', icon:'ra-axe', hp:15, maxHp:15, x:0, y:0, placed:false},
+  {id:'kamash',   name:'Kamash', type:'ally', icon:'ra-sword', hp:45, maxHp:45, x:0, y:0, placed:false},
+  {id:'ulrich',   name:'Ulrich', type:'ally', icon:'ra-scroll', hp:38, maxHp:38, x:0, y:0, placed:false},
+  {id:'hadarai',  name:'Hadaraï', type:'ally', icon:'ra-fairy-wand', hp:52, maxHp:52, x:0, y:0, placed:false},
+  {id:'pnj_marchand', name:'Marchand', type:'npc', icon:'ra-coins', hp:10, maxHp:10, x:0, y:0, placed:false},
+];
+
+function renderTokenList(){
+  var el=document.getElementById('token-list');
+  el.innerHTML=tokenDefs.map(function(t){
+    var hpPct=Math.round(t.hp/t.maxHp*100);
+    var hpColor=hpPct>50?'#4ade80':hpPct>25?'#fbbf24':'#fca5a5';
+    return '<div class="token-row'+(t.placed?' on-map':'')+'" onclick="placeToken(\''+t.id+'\')">'
+      +'<div class="token-ico '+t.type+'"><i class="ra '+t.icon+'"></i></div>'
+      +'<div class="token-info">'
+        +'<div class="token-name">'+t.name+'</div>'
+        +'<div class="token-sub">'+(t.type==='enemy'?'Ennemi':t.type==='ally'?'Allié':'PNJ')+'</div>'
+      +'</div>'
+      +'<span class="token-hp'+(hpPct<40?' low':'')+'">'+t.hp+'/'+t.maxHp+'</span>'
+      +'<button class="token-add-btn'+(t.placed?' placed':'')+'">'+( t.placed?'✓':'＋')+'</button>'
+    +'</div>';
+  }).join('');
+}
+
+function placeToken(id){
+  var t=tokenDefs.find(function(x){return x.id===id;});
+  if(!t)return;
+  var map=document.getElementById('map-area');
+  var r=map.getBoundingClientRect();
+  if(!t.placed){
+    t.placed=true;
+    t.x=80+Math.random()*(r.width-200);
+    t.y=80+Math.random()*(r.height-200);
+    createMapToken(t);
+  } else {
+    t.placed=false;
+    var el=document.getElementById('mt-'+t.id);
+    if(el)el.remove();
+  }
+  renderTokenList();
+}
+
+function createMapToken(t){
+  var layer=document.getElementById('tokens-layer');
+  var el=document.createElement('div');
+  el.id='mt-'+t.id;
+  el.className='map-token '+t.type;
+  el.style.left=t.x+'px';
+  el.style.top=t.y+'px';
+  var hpPct=Math.round(t.hp/t.maxHp*100);
+  var hpColor=hpPct>50?'#4ade80':hpPct>25?'#fbbf24':'#ef4444';
+  el.innerHTML='<i class="ra '+t.icon+'"></i>'
+    +'<span class="tok-label">'+t.name.split(' ')[0]+'</span>'
+    +'<div class="hp-bar"><div class="hp-fill" style="width:'+hpPct+'%;background:'+hpColor+'"></div></div>';
+  makeDraggable(el, t);
+  layer.appendChild(el);
+}
+
+function makeDraggable(el, t){
+  var dx=0,dy=0,mx=0,my=0;
+  el.addEventListener('mousedown',function(e){
+    e.preventDefault();
+    mx=e.clientX-el.offsetLeft;
+    my=e.clientY-el.offsetTop;
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  });
+  function onMove(e){
+    var map=document.getElementById('map-area');
+    var r=map.getBoundingClientRect();
+    var x=Math.max(0,Math.min(r.width-54,e.clientX-r.left-mx+el.offsetLeft-(e.clientX-el.getBoundingClientRect().left-mx)));
+    var nx=e.clientX-r.left-mx;
+    var ny=e.clientY-r.top-my;
+    nx=Math.max(0,Math.min(r.width-54,nx));
+    ny=Math.max(0,Math.min(r.height-54,ny));
+    el.style.left=nx+'px';
+    el.style.top=ny+'px';
+    t.x=nx; t.y=ny;
+  }
+  function onUp(){
+    document.removeEventListener('mousemove',onMove);
+    document.removeEventListener('mouseup',onUp);
+  }
+}
+
+function selectMap(el, type){
+  document.querySelectorAll('.map-item').forEach(function(m){m.classList.remove('selected');});
+  el.classList.add('selected');
+  currentMap=type;
+  var bg=document.getElementById('map-bg');
+  var maps={
+    dungeon:'radial-gradient(ellipse at 30% 40%, #1a1200 0%, #080600 60%, #030200 100%)',
+    forest:'radial-gradient(ellipse at 60% 20%, #071a04 0%, #030d02 60%, #020801 100%)',
+    taverne:'radial-gradient(ellipse at 50% 80%, #1a0e00 0%, #0d0700 60%, #060300 100%)',
+    crypte:'radial-gradient(ellipse at 20% 80%, #0d0018 0%, #060010 60%, #030008 100%)',
+  };
+  bg.style.background=maps[type]||maps.dungeon;
+  bg.style.backgroundImage='repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0px,rgba(255,255,255,.04) 1px,transparent 1px,transparent 60px),repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0px,rgba(255,255,255,.04) 1px,transparent 1px,transparent 60px)';
+}
+
+function toggleFog(){
+  fogOn=!fogOn;
+  document.getElementById('fog-btn').textContent=fogOn?'🌫 Brouillard OFF':'🌫 Brouillard ON';
+  var fl=document.getElementById('fog-layer');
+  if(fogOn){
+    fl.innerHTML='';
+    var areas=[[0,0,40,40],[40,0,60,30],[0,40,35,60],[65,35,35,65],[30,65,40,35]];
+    areas.forEach(function(a){
+      var d=document.createElement('div');
+      d.className='fog-cell';
+      d.style.cssText='left:'+a[0]+'%;top:'+a[1]+'%;width:'+a[2]+'%;height:'+a[3]+'%';
+      fl.appendChild(d);
+    });
+  } else {
+    fl.innerHTML='';
+  }
+}
+
+function zoom(f){scale*=f;document.getElementById('tokens-layer').style.transform='scale('+scale+')';}
+function resetView(){scale=1;document.getElementById('tokens-layer').style.transform='scale(1)';}
+
+function showPlayerView(){
+  var pv=document.getElementById('player-view');
+  pv.style.display='flex';
+  var pvbg=document.getElementById('pv-bg');
+  var mbg=document.getElementById('map-bg');
+  pvbg.style.cssText=mbg.style.cssText||'';
+  pvbg.style.background=mbg.style.background;
+  pvbg.style.backgroundImage=mbg.style.backgroundImage;
+  // Clone tokens
+  var pvt=document.getElementById('pv-tokens');
+  pvt.innerHTML=document.getElementById('tokens-layer').innerHTML;
+}
+function closePlayerView(){document.getElementById('player-view').style.display='none';}
+
+// Init
+selectMap(document.querySelector('.map-item.selected'),'dungeon');
+renderTokenList();
+
+// Auto-place quelques tokens pour la démo
+setTimeout(function(){
+  placeToken('gobelin1');
+  placeToken('gobelin2');
+  placeToken('araignee');
+  placeToken('kamash');
+  placeToken('ulrich');
+},100);
+</script>
+</body>
+</html>

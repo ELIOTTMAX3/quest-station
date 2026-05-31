@@ -452,6 +452,59 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .son-groupe-hd .son-groupe-pill{background:#1a2840;border-radius:5px;padding:2px 7px;font-size:10px;color:#c9a227;border:1px solid rgba(201,162,39,.25);}
 .son-ord-btn{background:none;border:1px solid #1e2d45;border-radius:5px;color:#5a6a8a;font-size:11px;cursor:pointer;padding:3px 6px;line-height:1;font-family:inherit;}
 .son-ord-btn:hover{border-color:#3a4a6a;color:#e8dcc8;}
+/* ══ ÉCRAN / DIFFUSION ══ */
+.ecran-bcbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;background:var(--bg3);border:1px solid var(--bord2);border-radius:10px;padding:9px 12px;margin-bottom:10px;}
+.ecran-bclbl{font-size:10px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.08em;}
+.ecran-screen-sel{background:var(--bg);border:1px solid var(--bord2);border-radius:7px;padding:5px 8px;color:var(--txt);font-size:12px;font-family:inherit;min-width:180px;}
+.ecran-bcbtn{font-family:inherit;font-size:12px;font-weight:700;padding:7px 16px;border-radius:8px;cursor:pointer;border:1px solid rgba(74,222,128,.4);background:rgba(74,222,128,.12);color:#4ade80;}
+.ecran-bcbtn:hover{background:rgba(74,222,128,.22);}
+.ecran-bcbtn.live{background:#ef4444;border-color:#ef4444;color:#fff;}
+.ecran-livedot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;margin-right:5px;animation:sonpulse 1.5s ease-in-out infinite;}
+.ecran-subtabs{display:flex;gap:6px;margin-bottom:10px;}
+.ecran-subtab{font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt3);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;}
+.ecran-subtab.on{background:rgba(201,162,39,.15);border-color:var(--or);color:var(--or);}
+.ecran-two{display:grid;grid-template-columns:240px 1fr;gap:12px;align-items:start;}
+@media(max-width:700px){.ecran-two{grid-template-columns:1fr;}}
+.ecran-side{display:flex;flex-direction:column;gap:10px;}
+.ecran-side-sec{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:10px 11px;}
+.ecran-side-title{font-size:9px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+.ecran-maps{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
+.ecran-mapitem{border-radius:7px;border:2px solid transparent;cursor:pointer;aspect-ratio:16/9;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
+.ecran-mapitem.sel{border-color:var(--or);}
+.ecran-mapitem i{font-size:18px;opacity:.45;color:#fff;}
+.ecran-mapitem .lbl{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.7);font-size:8px;font-weight:600;color:#fff;padding:2px 4px;text-transform:uppercase;letter-spacing:.04em;}
+.ecran-tokrow{display:flex;align-items:center;gap:7px;padding:6px 7px;border-radius:7px;border:1px solid var(--bord);background:var(--bg3);cursor:pointer;margin-bottom:4px;}
+.ecran-tokrow:hover{border-color:var(--bord2);}
+.ecran-tokrow.placed{border-color:rgba(201,162,39,.4);background:rgba(201,162,39,.06);}
+.ecran-tokico{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.ecran-tokico.enemy{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);color:#fca5a5;}
+.ecran-tokico.ally{background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.35);color:#4ade80;}
+.ecran-tokico.npc{background:rgba(201,162,39,.15);border:1px solid rgba(201,162,39,.35);color:#c9a227;}
+.ecran-toknom{flex:1;min-width:0;font-size:11px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.ecran-map{position:relative;overflow:hidden;background:#05080f;border:1px solid var(--bord2);border-radius:10px;height:calc(100vh - 290px);min-height:340px;}
+.ecran-mapbg{position:absolute;inset:0;}
+.ecran-token{position:absolute;width:48px;height:48px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;user-select:none;z-index:10;}
+.ecran-token:active{cursor:grabbing;z-index:20;}
+.ecran-token.enemy{background:radial-gradient(circle,rgba(239,68,68,.35),rgba(185,28,28,.5));border:2px solid #ef4444;box-shadow:0 0 10px rgba(239,68,68,.4);}
+.ecran-token.ally{background:radial-gradient(circle,rgba(74,222,128,.3),rgba(22,101,52,.5));border:2px solid #4ade80;box-shadow:0 0 10px rgba(74,222,128,.3);}
+.ecran-token.npc{background:radial-gradient(circle,rgba(201,162,39,.3),rgba(120,80,10,.5));border:2px solid #c9a227;}
+.ecran-token i{font-size:20px;pointer-events:none;}
+.ecran-token.enemy i{color:#fca5a5;}.ecran-token.ally i{color:#86efac;}.ecran-token.npc i{color:#fde68a;}
+.ecran-token .tl{font-size:8px;font-weight:700;color:#fff;text-shadow:0 1px 3px #000;pointer-events:none;white-space:nowrap;margin-top:1px;}
+.ecran-token .hpb{position:absolute;bottom:-7px;left:4px;right:4px;height:4px;background:#333;border-radius:2px;}
+.ecran-token .hpf{height:100%;border-radius:2px;}
+.ecran-token .hidetag{position:absolute;top:-7px;right:-7px;font-size:9px;background:#1e2d45;border-radius:5px;padding:0 3px;color:#8a9aba;cursor:pointer;}
+.ecran-token.hidden{opacity:.5;}
+.ecran-token.hidden .hidetag{background:var(--rouge);color:#fff;}
+.ecran-vis-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;}
+.ecran-vis-card{border-radius:10px;border:2px solid var(--bord);overflow:hidden;cursor:pointer;aspect-ratio:16/10;position:relative;background:var(--bg3);}
+.ecran-vis-card:hover{border-color:var(--bord2);}
+.ecran-vis-card.live{border-color:#4ade80;box-shadow:0 0 12px rgba(74,222,128,.3);}
+.ecran-vis-card img{width:100%;height:100%;object-fit:cover;}
+.ecran-vis-card .vlbl{position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,.75);padding:4px 7px;font-size:10px;font-weight:700;color:#fff;}
+.ecran-vis-card .vlive{position:absolute;top:5px;right:5px;font-size:8px;font-weight:700;background:#4ade80;color:#000;padding:2px 6px;border-radius:999px;}
+.ecran-vis-card .vdel{position:absolute;top:5px;left:5px;font-size:10px;background:rgba(0,0,0,.6);color:#fca5a5;width:18px;height:18px;border-radius:5px;display:none;align-items:center;justify-content:center;}
+.ecran-vis-card:hover .vdel{display:flex;}
 </style>
 </head>
 <body>
@@ -533,6 +586,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <button class="tbtn" onclick="panelTab('outils',this)">Outils</button>
       <button class="tbtn" onclick="panelTab('combat',this)">Combat</button>
       <button class="tbtn" onclick="panelTab('objets',this)">Objets</button>
+      <button class="tbtn" onclick="panelTab('ecran',this)">📺 Écran</button>
       <button class="tbtn" onclick="panelTab('regles',this)">Règles</button>
       <button id="mj-tbtn-campagne" class="tbtn" onclick="panelTab('campagne',this)">Campagne</button>
     </div>
@@ -904,6 +958,71 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       </div>
     </div>
 
+    <!-- Onglet Écran -->
+    <div id="pt-ecran" style="display:none;">
+      <!-- Bandeau diffusion -->
+      <div class="ecran-bcbar">
+        <span class="ecran-bclbl">🖥 Diffusion</span>
+        <select class="ecran-screen-sel" id="ecran-screen-sel">
+          <option value="">Nouvelle fenêtre…</option>
+        </select>
+        <button class="ecran-bcbtn" id="ecran-bcbtn" onclick="ecran_toggleDiffusion()">▶ Lancer la diffusion</button>
+        <span style="font-size:11px;color:var(--txt3);" id="ecran-bcstatus">Aucune diffusion active</span>
+        <div style="flex:1;"></div>
+        <button class="btn" style="font-size:11px;padding:6px 11px;" onclick="ecran_refreshScreens()" title="Détecter les écrans">🔄 Écrans</button>
+      </div>
+      <!-- Sous-onglets -->
+      <div class="ecran-subtabs">
+        <button class="ecran-subtab on" id="ecran-st-battlemap" onclick="ecran_setSub('battlemap')"><i class="ra ra-crossed-swords"></i> Battlemap <span style="opacity:.6;font-weight:400;">— combats</span></button>
+        <button class="ecran-subtab" id="ecran-st-visuel" onclick="ecran_setSub('visuel')"><i class="ra ra-scroll"></i> Visuel <span style="opacity:.6;font-weight:400;">— hors combat</span></button>
+      </div>
+
+      <!-- BATTLEMAP -->
+      <div id="ecran-page-battlemap">
+        <div class="ecran-two">
+          <div class="ecran-side">
+            <div class="ecran-side-sec">
+              <div class="ecran-side-title">Carte de fond</div>
+              <div class="ecran-maps" id="ecran-maps"></div>
+              <input type="text" id="ecran-map-url" placeholder="URL d'image…" style="width:100%;margin-top:7px;font-size:11px;padding:5px 7px;">
+              <button class="btn" style="width:100%;font-size:11px;margin-top:5px;" onclick="ecran_setMapUrl()">Appliquer l'image</button>
+            </div>
+            <div class="ecran-side-sec">
+              <div class="ecran-side-title">Tokens — clic pour placer</div>
+              <div id="ecran-tok-palette"></div>
+              <button class="btn" style="width:100%;font-size:11px;margin-top:6px;" onclick="ecran_addMonstreToken()">＋ Token monstre</button>
+            </div>
+          </div>
+          <div class="ecran-map" id="ecran-map">
+            <div class="ecran-mapbg" id="ecran-mapbg"></div>
+            <div id="ecran-tokens-layer"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- VISUEL -->
+      <div id="ecran-page-visuel" style="display:none;">
+        <div class="ecran-two">
+          <div class="ecran-side">
+            <div class="ecran-side-sec">
+              <div class="ecran-side-title">Ajouter un visuel</div>
+              <input type="text" id="ecran-vis-url" placeholder="URL d'image…" style="width:100%;font-size:11px;padding:5px 7px;margin-bottom:5px;">
+              <input type="text" id="ecran-vis-label" placeholder="Nom (ex : Château)…" style="width:100%;font-size:11px;padding:5px 7px;margin-bottom:5px;">
+              <button class="btn ok" style="width:100%;font-size:11px;" onclick="ecran_addVisuel()">＋ Ajouter à la bibliothèque</button>
+            </div>
+            <div class="ecran-side-sec">
+              <div class="ecran-side-title">Diffusion en cours</div>
+              <div id="ecran-vis-current" style="font-size:11px;color:var(--txt3);">Rien de diffusé.</div>
+              <button class="btn" style="width:100%;font-size:11px;margin-top:7px;border-color:rgba(239,68,68,.4);color:#fca5a5;" onclick="ecran_clearVisuel()">⏹ Arrêter le visuel</button>
+            </div>
+          </div>
+          <div>
+            <div class="ecran-vis-grid" id="ecran-vis-grid"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Onglet Campagne -->
     <div id="pt-campagne" style="display:none;">
       <div class="card">
@@ -1171,12 +1290,13 @@ function seDeconnecter(){
   window.location.href="index.html";
 }
 function panelTab(name,btn){
-  ["joueurs","monstres","outils","combat","regles","notes","objets","campagne"].forEach(function(n){var e=el("pt-"+n);if(e)e.style.display="none";});
+  ["joueurs","monstres","outils","combat","regles","notes","objets","ecran","campagne"].forEach(function(n){var e=el("pt-"+n);if(e)e.style.display="none";});
   document.querySelectorAll("#s-panel .tbar .tbtn").forEach(function(b){b.classList.remove("on");});
   var t=el("pt-"+name);if(t)t.style.display="";
   btn.classList.add("on");
   if(btn)btn.scrollIntoView({inline:'nearest',block:'nearest'});
   if(name==="combat")ouvrirOngletCombat();
+  if(name==="ecran")ecran_init();
   if(name==="campagne")mjMsgMajSelecteur();
   if(name==="regles"){
     var iframe=el("mj-regles-iframe");
@@ -5566,6 +5686,223 @@ function son_rendreDrawer(){
   var sonsFiltrés=filtre===null?sonsDuTab:sonsDuTab.filter(function(s){return (s.groupe||'').trim()===filtre;});
   if(tab==='sfx'){body.innerHTML=_son_rendreSFX(sonsFiltrés,filtre);}
   else{body.innerHTML=_son_rendreChannel(tab,sonsFiltrés,filtre);}
+}
+
+// ══════════════════════════════════════════
+// ÉCRAN / DIFFUSION
+// ══════════════════════════════════════════
+var _ecran={sub:'battlemap',state:null,win:null,screenDetails:null,_saveTimer:null};
+var _ECRAN_MAPS=[
+  {id:'dungeon',label:'Donjon',icon:'ra-dungeon',grad:'radial-gradient(ellipse at 30% 40%,#1a1200,#080600 60%,#030200)'},
+  {id:'forest', label:'Forêt', icon:'ra-tree',   grad:'radial-gradient(ellipse at 60% 20%,#071a04,#030d02 60%,#020801)'},
+  {id:'taverne',label:'Taverne',icon:'ra-beer',  grad:'radial-gradient(ellipse at 50% 80%,#1a0e00,#0d0700 60%,#060300)'},
+  {id:'crypte', label:'Crypte',icon:'ra-skull',  grad:'radial-gradient(ellipse at 20% 80%,#0d0018,#060010 60%,#030008)'},
+];
+var _ECRAN_GRID='repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 60px),repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 60px)';
+
+function _ecran_default(){return {mode:'battlemap',map:'dungeon',tokens:{},visuel:null,visuelLabel:'',visuelLib:[]};}
+function ecran_state(){
+  if(!_ecran.state)_ecran.state=(campagneActive&&campagneActive.ecran)?Object.assign(_ecran_default(),campagneActive.ecran):_ecran_default();
+  if(!_ecran.state.tokens)_ecran.state.tokens={};
+  if(!_ecran.state.visuelLib)_ecran.state.visuelLib=[];
+  return _ecran.state;
+}
+function _ecran_save(){
+  if(!db||!campagneActive)return;
+  clearTimeout(_ecran._saveTimer);
+  _ecran._saveTimer=setTimeout(function(){
+    db.collection("parties").doc(campagneActive.id).set({ecran:_ecran.state},{merge:true}).catch(function(){});
+  },120);
+}
+function ecran_init(){
+  ecran_state();
+  ecran_renderMaps();ecran_renderPalette();ecran_renderMapArea();ecran_renderVisuel();
+  ecran_setSub(_ecran.sub);
+  ecran_refreshScreens();
+}
+function ecran_setSub(s){
+  _ecran.sub=s;
+  el('ecran-st-battlemap').classList.toggle('on',s==='battlemap');
+  el('ecran-st-visuel').classList.toggle('on',s==='visuel');
+  el('ecran-page-battlemap').style.display=s==='battlemap'?'':'none';
+  el('ecran-page-visuel').style.display=s==='visuel'?'':'none';
+  ecran_state().mode=s;_ecran_save();
+}
+// ── Carte ──
+function ecran_renderMaps(){
+  var st=ecran_state();
+  el('ecran-maps').innerHTML=_ECRAN_MAPS.map(function(m){
+    return '<div class="ecran-mapitem'+(st.map===m.id?' sel':'')+'" style="background:'+m.grad+'" onclick="ecran_setMap(\''+m.id+'\')"><i class="ra '+m.icon+'"></i><div class="lbl">'+m.label+'</div></div>';
+  }).join('');
+}
+function ecran_setMap(id){ecran_state().map=id;ecran_renderMaps();ecran_renderMapArea();_ecran_save();}
+function ecran_setMapUrl(){
+  var u=(el('ecran-map-url').value||'').trim();if(!u)return;
+  ecran_state().map=u;el('ecran-map-url').value='';ecran_renderMaps();ecran_renderMapArea();_ecran_save();
+}
+function _ecran_mapBgCss(map){
+  var p=_ECRAN_MAPS.find(function(m){return m.id===map;});
+  if(p)return 'background:'+p.grad+';background-image:'+_ECRAN_GRID+';';
+  return 'background:#05080f center/cover no-repeat url("'+map+'");';
+}
+function ecran_renderMapArea(){
+  var bg=el('ecran-mapbg');if(!bg)return;
+  bg.style.cssText=_ecran_mapBgCss(ecran_state().map);
+  ecran_renderTokens();
+}
+// ── Palette de tokens ──
+function _ecran_palette(){
+  var list=[];
+  Object.keys(joueursData||{}).forEach(function(jid){
+    var d=joueursData[jid];if(!d||!d._nom)return;
+    list.push({id:'pj-'+jid,nom:d._nom,type:'ally',icon:'ra-sword',hp:null,maxHp:null});
+  });
+  (combatants||[]).forEach(function(c){
+    if(c.type==='monstre')list.push({id:c.id,nom:c.nom,type:'enemy',icon:'ra-skull',hp:c.pvact,maxHp:c.pvmax});
+  });
+  return list;
+}
+function ecran_renderPalette(){
+  var st=ecran_state();
+  var html=_ecran_palette().map(function(t){
+    var placed=!!st.tokens[t.id];
+    return '<div class="ecran-tokrow'+(placed?' placed':'')+'" onclick="ecran_togglePlace(\''+t.id+'\')">'
+      +'<div class="ecran-tokico '+t.type+'"><i class="ra '+t.icon+'"></i></div>'
+      +'<span class="ecran-toknom">'+besti_esc(t.nom)+'</span>'
+      +'<span style="font-size:11px;color:'+(placed?'#c9a227':'#5a6a8a')+';">'+(placed?'✓':'＋')+'</span>'
+    +'</div>';
+  }).join('');
+  el('ecran-tok-palette').innerHTML=html||'<p style="font-size:11px;color:var(--txt3);">Aucun PJ ni monstre en combat. Ajoute un token ci-dessous.</p>';
+}
+function ecran_togglePlace(id){
+  var st=ecran_state();
+  if(st.tokens[id]){delete st.tokens[id];}
+  else{
+    var src=_ecran_palette().find(function(t){return t.id===id;});if(!src)return;
+    st.tokens[id]={nom:src.nom,type:src.type,icon:src.icon,hp:src.hp,maxHp:src.maxHp,
+      xPct:Math.round(15+Math.random()*60),yPct:Math.round(15+Math.random()*60),
+      hidden:src.type==='enemy'};
+  }
+  ecran_renderPalette();ecran_renderTokens();_ecran_save();
+}
+function ecran_addMonstreToken(){
+  var nom=prompt('Nom du token :','Monstre');if(!nom)return;
+  ecran_state().tokens['mon-'+Date.now()]={nom:nom,type:'enemy',icon:'ra-skull',hp:null,maxHp:null,
+    xPct:50,yPct:50,hidden:false};
+  ecran_renderTokens();_ecran_save();
+}
+function ecran_renderTokens(){
+  var layer=el('ecran-tokens-layer');if(!layer)return;
+  var st=ecran_state();layer.innerHTML='';
+  Object.keys(st.tokens).forEach(function(id){
+    var t=st.tokens[id];
+    var d=document.createElement('div');
+    d.className='ecran-token '+t.type+(t.hidden?' hidden':'');
+    var mr=el('ecran-map').getBoundingClientRect();
+    d.style.left=((t.xPct||0)/100*mr.width)+'px';d.style.top=((t.yPct||0)/100*mr.height)+'px';
+    var hp='';
+    if(t.hp!=null&&t.maxHp){
+      var pct=Math.max(0,Math.round(t.hp/t.maxHp*100));
+      var c=pct>50?'#4ade80':pct>25?'#fbbf24':'#ef4444';
+      hp='<div class="hpb"><div class="hpf" style="width:'+pct+'%;background:'+c+'"></div></div>';
+    }
+    d.innerHTML='<i class="ra '+t.icon+'"></i><span class="tl">'+besti_esc((t.nom||'').split(' ')[0])+'</span>'+hp
+      +'<span class="hidetag" title="Masquer/montrer aux joueurs" onclick="event.stopPropagation();ecran_toggleHidden(\''+id+'\')">'+(t.hidden?'🙈':'👁')+'</span>';
+    _ecran_drag(d,id);
+    layer.appendChild(d);
+  });
+}
+function _ecran_drag(d,id){
+  var mx=0,my=0;
+  d.addEventListener('mousedown',function(e){
+    if(e.target.classList.contains('hidetag'))return;
+    e.preventDefault();
+    var tr=d.getBoundingClientRect();mx=e.clientX-tr.left;my=e.clientY-tr.top;
+    document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
+  });
+  function mv(e){
+    var r=el('ecran-map').getBoundingClientRect();
+    var nx=Math.max(0,Math.min(r.width-48,e.clientX-r.left-mx));
+    var ny=Math.max(0,Math.min(r.height-48,e.clientY-r.top-my));
+    d.style.left=nx+'px';d.style.top=ny+'px';
+    var t=ecran_state().tokens[id];if(t){t.xPct=Math.round(nx/r.width*1000)/10;t.yPct=Math.round(ny/r.height*1000)/10;}
+  }
+  function up(){document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);_ecran_save();}
+}
+function ecran_toggleHidden(id){
+  var t=ecran_state().tokens[id];if(!t)return;
+  t.hidden=!t.hidden;ecran_renderTokens();_ecran_save();
+}
+// ── Visuel ──
+function ecran_renderVisuel(){
+  var st=ecran_state();var grid=el('ecran-vis-grid');if(!grid)return;
+  var lib=st.visuelLib||[];
+  grid.innerHTML=lib.length?lib.map(function(v,i){
+    var live=st.visuel===v.url;
+    return '<div class="ecran-vis-card'+(live?' live':'')+'" onclick="ecran_broadcastVisuel('+i+')">'
+      +'<img src="'+v.url+'" onerror="this.style.opacity=.2">'
+      +(live?'<span class="vlive">● LIVE</span>':'')
+      +'<span class="vdel" onclick="event.stopPropagation();ecran_delVisuel('+i+')">✕</span>'
+      +'<span class="vlbl">'+besti_esc(v.label||'Sans nom')+'</span>'
+    +'</div>';
+  }).join(''):'<p style="font-size:12px;color:var(--txt3);">Bibliothèque vide. Ajoute une image via le panneau de gauche.</p>';
+  var cur=el('ecran-vis-current');
+  if(cur)cur.innerHTML=st.visuel?('<b style="color:#4ade80;">'+besti_esc(st.visuelLabel||'Image')+'</b> en diffusion'):'Rien de diffusé.';
+}
+function ecran_addVisuel(){
+  var url=(el('ecran-vis-url').value||'').trim();
+  var label=(el('ecran-vis-label').value||'').trim();
+  if(!url){toast('URL requise.');return;}
+  var st=ecran_state();st.visuelLib.push({url:url,label:label||'Visuel'});
+  el('ecran-vis-url').value='';el('ecran-vis-label').value='';
+  ecran_renderVisuel();_ecran_save();
+}
+function ecran_broadcastVisuel(i){
+  var st=ecran_state();var v=st.visuelLib[i];if(!v)return;
+  st.visuel=v.url;st.visuelLabel=v.label;st.mode='visuel';
+  ecran_renderVisuel();_ecran_save();
+  toast('📺 Visuel diffusé : '+v.label);
+}
+function ecran_clearVisuel(){
+  var st=ecran_state();st.visuel=null;st.visuelLabel='';ecran_renderVisuel();_ecran_save();
+}
+function ecran_delVisuel(i){
+  var st=ecran_state();if(!st.visuelLib[i])return;
+  if(st.visuel===st.visuelLib[i].url){st.visuel=null;st.visuelLabel='';}
+  st.visuelLib.splice(i,1);ecran_renderVisuel();_ecran_save();
+}
+// ── Diffusion / écrans ──
+function ecran_refreshScreens(){
+  var sel=el('ecran-screen-sel');if(!sel)return;
+  if(window.getScreenDetails){
+    window.getScreenDetails().then(function(sd){
+      _ecran.screenDetails=sd;
+      sel.innerHTML='<option value="">Cette fenêtre</option>'+sd.screens.map(function(s,i){
+        var lbl=(s.label||('Écran '+(i+1)))+' ('+s.width+'×'+s.height+')'+(s.isPrimary?' — principal':'');
+        return '<option value="'+i+'">'+lbl+'</option>';
+      }).join('');
+      var second=sd.screens.findIndex(function(s){return !s.isPrimary;});
+      if(second>=0)sel.value=String(second);
+    }).catch(function(){toast("Autorise l'accès aux écrans pour choisir le moniteur.");});
+  }
+}
+function ecran_toggleDiffusion(){
+  if(_ecran.win&&!_ecran.win.closed){_ecran.win.close();_ecran.win=null;ecran_bcUI(false);return;}
+  if(!campagneActive){toast('Aucune campagne active.');return;}
+  var url='ecran.html?code='+encodeURIComponent(campagneActive.id);
+  var sel=el('ecran-screen-sel');var idx=sel?sel.value:'';
+  var feat='width=1280,height=720';
+  if(idx!==''&&_ecran.screenDetails){
+    var sc=_ecran.screenDetails.screens[parseInt(idx)];
+    if(sc)feat='left='+sc.availLeft+',top='+sc.availTop+',width='+sc.availWidth+',height='+sc.availHeight;
+  }
+  _ecran.win=window.open(url,'questEcran',feat);
+  ecran_bcUI(true);
+}
+function ecran_bcUI(live){
+  var btn=el('ecran-bcbtn'),st=el('ecran-bcstatus');
+  if(live){btn.textContent='⏹ Arrêter';btn.classList.add('live');st.innerHTML='<span class="ecran-livedot"></span> Diffusion active';}
+  else{btn.textContent='▶ Lancer la diffusion';btn.classList.remove('live');st.textContent='Aucune diffusion active';}
 }
 </script>
 </body>
