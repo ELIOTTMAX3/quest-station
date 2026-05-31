@@ -439,6 +439,10 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .son-finp::placeholder{color:#5a6a8a;}
 .son-dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:#4ade80;animation:sonpulse 1.5s ease-in-out infinite;flex-shrink:0;}
 @keyframes sonpulse{0%,100%{opacity:1;}50%{opacity:.2;}}
+.son-groupe-hd{font-size:10px;font-weight:700;color:#8a9aba;text-transform:uppercase;letter-spacing:.08em;padding:10px 2px 5px;border-top:1px solid #1a2840;margin-top:4px;display:flex;align-items:center;gap:6px;}
+.son-groupe-hd .son-groupe-pill{background:#1a2840;border-radius:5px;padding:2px 7px;font-size:10px;color:#c9a227;border:1px solid rgba(201,162,39,.25);}
+.son-ord-btn{background:none;border:1px solid #1e2d45;border-radius:5px;color:#5a6a8a;font-size:11px;cursor:pointer;padding:3px 6px;line-height:1;font-family:inherit;}
+.son-ord-btn:hover{border-color:#3a4a6a;color:#e8dcc8;}
 </style>
 </head>
 <body>
@@ -1033,6 +1037,9 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <option value="ambiance">🌿 Ambiance</option>
       <option value="sfx">⚡ SFX</option>
     </select>
+    <label style="font-size:10px;color:#5a6a8a;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;">Groupe (optionnel)</label>
+    <input class="son-finp" id="son-form-groupe" list="son-groupes-list" placeholder="ex : Combat, Taverne…" style="margin-bottom:10px;" autocomplete="off">
+    <datalist id="son-groupes-list"></datalist>
     <label style="font-size:10px;color:#5a6a8a;display:block;margin-bottom:4px;text-transform:uppercase;letter-spacing:.05em;">URL directe MP3 / WAV</label>
     <input class="son-finp" id="son-form-url" placeholder="https://…" style="margin-bottom:10px;">
     <label style="display:flex;align-items:center;gap:8px;font-size:12px;color:#c0c8dc;cursor:pointer;margin-bottom:16px;">
@@ -4959,11 +4966,7 @@ function besti_supprimerImage(id){
 // SON & AMBIANCE DRAWER v2
 // ══════════════════════════════════════════
 var _son={
-  ch:{musique:null,ambiance:null},
-  chanSonId:{musique:null,ambiance:null},
-  paused:{musique:false,ambiance:false},
-  sfxPlaying:{},
-  vols:{musique:0.7,ambiance:0.5},
+  playing:{}, // sonId → {audio, vol, paused}
   deviceId:'',_devices:[],
   sons:[],sonsUnsub:null,
   tab:'musique',
@@ -5020,11 +5023,8 @@ function son_chargerDevices(){
 }
 function son_setDevice(id){
   _son.deviceId=id;
-  ['musique','ambiance'].forEach(function(c){
-    if(_son.ch[c]&&_son.ch[c].setSinkId)_son.ch[c].setSinkId(id).catch(function(){});
-  });
-  Object.keys(_son.sfxPlaying).forEach(function(k){
-    var a=_son.sfxPlaying[k];
+  Object.keys(_son.playing).forEach(function(sid){
+    var a=_son.playing[sid]&&_son.playing[sid].audio;
     if(a&&a.setSinkId)a.setSinkId(id).catch(function(){});
   });
 }
@@ -5044,72 +5044,42 @@ function _son_kill(audio){
   try{audio.src='';}catch(e){}
 }
 
-// ── Canaux musique / ambiance ──
-function son_playChannel(chan,sonId){
+// ── Lecture unifiée (toutes catégories) ──
+function son_toggleSound(sonId){
+  if(_son.playing[sonId]){son_stopSound(sonId);return;}
   var s=_son.sons.find(function(x){return x.id===sonId;});
   if(!s)return;
-  // Tuer l'ancien audio immédiatement
-  _son_kill(_son.ch[chan]);
-  _son.ch[chan]=null;_son.chanSonId[chan]=null;_son.paused[chan]=false;
-  var a=_son_mkAudio(s.url,s.loop!==false,_son.vols[chan]);
-  // Assigner AVANT play() pour éviter la race condition
-  _son.ch[chan]=a;_son.chanSonId[chan]=sonId;
+  var vol=0.7;
+  var a=_son_mkAudio(s.url,s.loop!==false,vol);
+  _son.playing[sonId]={audio:a,vol:vol,paused:false};
   a.onended=function(){
-    if(_son.ch[chan]===a){_son.ch[chan]=null;_son.chanSonId[chan]=null;_son.paused[chan]=false;}
+    if(_son.playing[sonId]&&_son.playing[sonId].audio===a)delete _son.playing[sonId];
     son_rendreDrawer();son_rendreNowPlaying();
   };
   a.onerror=function(){
-    if(_son.ch[chan]===a){_son.ch[chan]=null;_son.chanSonId[chan]=null;_son.paused[chan]=false;}
+    if(_son.playing[sonId]&&_son.playing[sonId].audio===a)delete _son.playing[sonId];
     son_rendreDrawer();son_rendreNowPlaying();
   };
   son_rendreDrawer();son_rendreNowPlaying();
   a.play().catch(function(e){
-    if(_son.ch[chan]===a){_son.ch[chan]=null;_son.chanSonId[chan]=null;}
+    if(_son.playing[sonId]&&_son.playing[sonId].audio===a)delete _son.playing[sonId];
     toast('Erreur lecture : '+e.message);
     son_rendreDrawer();son_rendreNowPlaying();
   });
 }
-function son_stopChannel(chan){
-  var a=_son.ch[chan];
-  _son.ch[chan]=null;_son.chanSonId[chan]=null;_son.paused[chan]=false;
-  _son_kill(a);
+function son_stopSound(sonId){
+  var p=_son.playing[sonId];
+  if(!p)return;
+  delete _son.playing[sonId];
+  _son_kill(p.audio);
   son_rendreDrawer();son_rendreNowPlaying();
 }
-function son_setVol(chan,v){
-  _son.vols[chan]=parseFloat(v);
-  if(_son.ch[chan])_son.ch[chan].volume=_son.vols[chan];
-  var el=document.getElementById('son-np-vol-'+chan);
-  if(el)el.textContent=Math.round(_son.vols[chan]*100)+'%';
-}
-
-// ── SFX ──
-function son_playSFX(sonId){
-  if(_son.sfxPlaying[sonId]){son_stopSFX(sonId);return;}
-  var s=_son.sons.find(function(x){return x.id===sonId;});
-  if(!s)return;
-  var a=_son_mkAudio(s.url,!!s.loop,1.0);
-  _son.sfxPlaying[sonId]=a;
-  a.onended=function(){
-    if(_son.sfxPlaying[sonId]===a)delete _son.sfxPlaying[sonId];
-    son_rendreDrawer();son_rendreNowPlaying();
-  };
-  a.onerror=function(){
-    if(_son.sfxPlaying[sonId]===a)delete _son.sfxPlaying[sonId];
-    son_rendreDrawer();son_rendreNowPlaying();
-  };
-  son_rendreDrawer();son_rendreNowPlaying();
-  a.play().catch(function(e){
-    if(_son.sfxPlaying[sonId]===a)delete _son.sfxPlaying[sonId];
-    toast('Erreur SFX : '+e.message);
-    son_rendreDrawer();son_rendreNowPlaying();
-  });
-}
-function son_stopSFX(sonId){
-  var a=_son.sfxPlaying[sonId];
-  if(!a)return;
-  delete _son.sfxPlaying[sonId];
-  _son_kill(a);
-  son_rendreDrawer();son_rendreNowPlaying();
+function son_setVolSound(sonId,v){
+  var p=_son.playing[sonId];if(!p)return;
+  p.vol=parseFloat(v);
+  if(p.audio)p.audio.volume=p.vol;
+  var el=document.getElementById('son-np-vol-'+sonId);
+  if(el)el.textContent=Math.round(p.vol*100)+'%';
 }
 
 // ── Emoji picker ──
@@ -5153,10 +5123,17 @@ function son_ouvrirForm(sonId){
   var emojiBtn=document.getElementById('son-emoji-btn');if(emojiBtn)emojiBtn.textContent=iconeVal;
   document.getElementById('son-form-nom').value=s?(s.nom||''):'';
   document.getElementById('son-form-cat').value=s?(s.categorie||_son.tab):_son.tab;
+  document.getElementById('son-form-groupe').value=s?(s.groupe||''):'';
   document.getElementById('son-form-url').value=s?(s.url||''):'';
   document.getElementById('son-form-loop').checked=s?(s.loop!==false):true;
   document.getElementById('son-form-del-row').style.display=s?'':'none';
   var ep=document.getElementById('son-emoji-panel');if(ep)ep.style.display='none';
+  // Remplir la datalist avec les groupes existants
+  var dl=document.getElementById('son-groupes-list');
+  if(dl){
+    var groupes=[...new Set(_son.sons.map(function(x){return x.groupe||'';}).filter(Boolean))].sort();
+    dl.innerHTML=groupes.map(function(g){return '<option value="'+besti_esc(g)+'">'+besti_esc(g)+'</option>';}).join('');
+  }
   m.style.display='flex';
 }
 function son_fermerForm(){
@@ -5171,19 +5148,22 @@ function son_sauvegarderSon(){
   var icone=(document.getElementById('son-form-icone').value||'').trim()||'🎵';
   var nom=(document.getElementById('son-form-nom').value||'').trim();
   var cat=document.getElementById('son-form-cat').value||'musique';
+  var groupe=(document.getElementById('son-form-groupe').value||'').trim();
   var url=_son_fixUrl((document.getElementById('son-form-url').value||'').trim());
   var loop=document.getElementById('son-form-loop').checked;
   if(!nom){toast('Donne un nom au son.');return;}
   if(!url){toast('URL requise.');return;}
   if(!db){toast('Erreur : base de données non connectée.');return;}
   if(!mjId){toast('Erreur : session MJ introuvable.');return;}
-  var data={mjId:mjId,nom:nom,icone:icone,categorie:cat,url:url,loop:loop};
+  var data={mjId:mjId,nom:nom,icone:icone,categorie:cat,groupe:groupe,url:url,loop:loop};
   if(id){
     db.collection('sons').doc(id).update(data)
       .then(function(){son_fermerForm();toast('✅ Son modifié !');})
       .catch(function(e){toast('Erreur sauvegarde : '+e.message);});
   }else{
     data.creeLe=new Date().toISOString();
+    var peers=_son.sons.filter(function(x){return x.categorie===cat&&(x.groupe||'')===(groupe||'');});
+    data.ordre=peers.length?Math.max.apply(null,peers.map(function(x){return x.ordre||0;}))+1:0;
     db.collection('sons').add(data)
       .then(function(){son_fermerForm();toast('✅ Son ajouté !');})
       .catch(function(e){toast('Erreur sauvegarde : '+e.message);});
@@ -5195,6 +5175,29 @@ function son_supprimerSon(){
   db.collection('sons').doc(id).delete()
     .then(function(){son_fermerForm();toast('🗑 Son supprimé.');})
     .catch(function(e){toast('Erreur : '+e.message);});
+}
+
+// ── Réordonnancement ──
+function _son_peers(sonId){
+  var s=_son.sons.find(function(x){return x.id===sonId;});if(!s)return[];
+  return _son.sons.filter(function(x){return x.categorie===s.categorie&&(x.groupe||'')===(s.groupe||'');})
+    .sort(function(a,b){return (a.ordre||0)-(b.ordre||0);});
+}
+function son_monterSon(sonId){
+  var peers=_son_peers(sonId);
+  var i=peers.findIndex(function(x){return x.id===sonId;});
+  if(i<=0)return;
+  var a=peers[i],b=peers[i-1],oa=a.ordre||0,ob=b.ordre||0;
+  db.collection('sons').doc(a.id).update({ordre:ob});
+  db.collection('sons').doc(b.id).update({ordre:oa});
+}
+function son_descendreSon(sonId){
+  var peers=_son_peers(sonId);
+  var i=peers.findIndex(function(x){return x.id===sonId;});
+  if(i<0||i>=peers.length-1)return;
+  var a=peers[i],b=peers[i+1],oa=a.ordre||0,ob=b.ordre||0;
+  db.collection('sons').doc(a.id).update({ordre:ob});
+  db.collection('sons').doc(b.id).update({ordre:oa});
 }
 
 // ── Render helpers ──
@@ -5209,77 +5212,109 @@ function _son_devSelect(){
     }).join('')+'</select></div>';
 }
 
+function _son_mkCard(s,peers,emoji){
+  var isP=!!_son.playing[s.id];
+  var idx=peers.findIndex(function(x){return x.id===s.id;});
+  var ordBtns='<div style="display:flex;flex-direction:column;gap:2px;flex-shrink:0;">'
+    +'<button class="son-ord-btn" onclick="son_monterSon(\''+s.id+'\')" '+(idx===0?'disabled style="opacity:.25;"':'')+'>▲</button>'
+    +'<button class="son-ord-btn" onclick="son_descendreSon(\''+s.id+'\')" '+(idx===peers.length-1?'disabled style="opacity:.25;"':'')+'>▼</button>'
+    +'</div>';
+  return '<div class="son-card'+(isP?' playing':'')+'" style="display:flex;align-items:center;gap:8px;">'
+    +ordBtns
+    +'<span style="font-size:22px;line-height:1;flex-shrink:0;">'+(s.icone||emoji)+'</span>'
+    +'<div style="flex:1;min-width:0;">'
+      +'<div style="font-size:13px;font-weight:700;color:#e8dcc8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+besti_esc(s.nom)+'</div>'
+      +'<div style="font-size:10px;color:#5a6a8a;margin-top:2px;">'+(s.loop!==false?'🔁 Boucle':'▶ Une fois')+'</div>'
+    +'</div>'
+    +(isP
+      ?'<button onclick="son_stopSound(\''+s.id+'\')" style="padding:5px 10px;border-radius:7px;border:1px solid rgba(201,162,39,.4);background:rgba(201,162,39,.1);color:#c9a227;font-size:13px;cursor:pointer;font-family:inherit;">⏹</button>'
+      :'<button onclick="son_toggleSound(\''+s.id+'\')" style="padding:5px 10px;border-radius:7px;border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.08);color:#4ade80;font-size:13px;cursor:pointer;font-family:inherit;">▶</button>'
+    )
+    +'<button onclick="son_ouvrirForm(\''+s.id+'\')" title="Modifier" style="padding:5px 7px;border-radius:7px;border:1px solid #1e2d45;background:transparent;color:#5a6a8a;font-size:12px;cursor:pointer;font-family:inherit;">✏️</button>'
+    +'</div>';
+}
+
+function _son_rendreGroupes(sons,emoji){
+  if(!sons.length)return '<p style="font-size:12px;color:#5a6a8a;margin:8px 0;">Aucun son. Clique « ＋ » pour commencer.</p>';
+  sons=sons.slice().sort(function(a,b){return (a.ordre||0)-(b.ordre||0);});
+  var sansGroupe=sons.filter(function(s){return !(s.groupe||'').trim();});
+  var groupNames=[...new Set(sons.filter(function(s){return (s.groupe||'').trim();}).map(function(s){return s.groupe.trim();}))];
+  groupNames.sort(function(a,b){
+    var minA=Math.min.apply(null,sons.filter(function(s){return (s.groupe||'').trim()===a;}).map(function(s){return s.ordre||0;}));
+    var minB=Math.min.apply(null,sons.filter(function(s){return (s.groupe||'').trim()===b;}).map(function(s){return s.ordre||0;}));
+    return minA-minB;
+  });
+  var html='';
+  sansGroupe.forEach(function(s){html+=_son_mkCard(s,sansGroupe,emoji);});
+  groupNames.forEach(function(g){
+    var membres=sons.filter(function(s){return (s.groupe||'').trim()===g;});
+    html+='<div class="son-groupe-hd"><span class="son-groupe-pill">'+besti_esc(g)+'</span></div>';
+    membres.forEach(function(s){html+=_son_mkCard(s,membres,emoji);});
+  });
+  return html;
+}
+
 function _son_rendreChannel(chan){
   var emoji=chan==='musique'?'🎵':'🌿';
-  var sons=_son.sons.filter(function(s){return s.categorie===chan;});
-  var playingId=_son.chanSonId[chan];
-  var vol=_son.vols[chan];
-  var volHtml=_son.ch[chan]
-    ?('<div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:8px 10px;background:#111e33;border:1px solid rgba(201,162,39,.25);border-radius:8px;">'
-      +'<span style="font-size:10px;color:#5a6a8a;flex-shrink:0;">Volume</span>'
-      +'<input type="range" min="0" max="1" step="0.01" value="'+vol+'" oninput="son_setVol(\''+chan+'\',this.value)" style="flex:1;accent-color:#c9a227;">'
-      +'<span style="font-size:10px;color:#c9a227;width:30px;text-align:right;flex-shrink:0;">'+Math.round(vol*100)+'%</span>'
-      +'</div>')
-    :'';
-  var listHtml=sons.length
-    ?sons.map(function(s){
-        var isP=s.id===playingId&&!!_son.ch[chan];
-        return '<div class="son-card'+(isP?' playing':'')+'" style="display:flex;align-items:center;gap:10px;">'
-          +'<span style="font-size:24px;line-height:1;flex-shrink:0;">'+(s.icone||emoji)+'</span>'
-          +'<div style="flex:1;min-width:0;">'
-          +'<div style="font-size:13px;font-weight:700;color:#e8dcc8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">'+besti_esc(s.nom)+'</div>'
-          +'<div style="font-size:10px;color:#5a6a8a;margin-top:2px;">'+(s.loop!==false?'🔁 Boucle':'▶ Lecture unique')+'</div>'
-          +'</div>'
-          +(isP
-            ?'<button onclick="son_stopChannel(\''+chan+'\')" style="padding:5px 11px;border-radius:7px;border:1px solid rgba(201,162,39,.4);background:rgba(201,162,39,.1);color:#c9a227;font-size:13px;cursor:pointer;font-family:inherit;">⏹</button>'
-            :'<button onclick="son_playChannel(\''+chan+'\',\''+s.id+'\')" style="padding:5px 11px;border-radius:7px;border:1px solid rgba(74,222,128,.35);background:rgba(74,222,128,.08);color:#4ade80;font-size:13px;cursor:pointer;font-family:inherit;">▶</button>'
-          )
-          +'<button onclick="son_ouvrirForm(\''+s.id+'\')" title="Modifier" style="padding:5px 8px;border-radius:7px;border:1px solid #1e2d45;background:transparent;color:#5a6a8a;font-size:12px;cursor:pointer;font-family:inherit;">✏️</button>'
-          +'</div>';
-      }).join('')
-    :'<p style="font-size:12px;color:#5a6a8a;margin:8px 0 12px;">Aucun son. Clique « + Ajouter » pour commencer.</p>';
-  return _son_devSelect()+volHtml+listHtml;
+  return _son_devSelect()+_son_rendreGroupes(_son.sons.filter(function(s){return s.categorie===chan;}),emoji);
 }
 
 function _son_rendreSFX(){
   var sfxs=_son.sons.filter(function(s){return s.categorie==='sfx';});
-  var btns=sfxs.map(function(s){
-    var isP=!!_son.sfxPlaying[s.id];
-    return '<button class="son-sfx-btn'+(isP?' playing':'')+'" onclick="son_playSFX(\''+s.id+'\')" title="'+(isP?'Stop ':'Jouer ')+besti_esc(s.nom)+'">'
-      +'<div style="font-size:26px;margin-bottom:4px;line-height:1;">'+(s.icone||'⚡')+'</div>'
-      +'<div style="font-size:11px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">'+besti_esc(s.nom)+'</div>'
-      +(s.loop!==false?'<div style="font-size:9px;margin-top:3px;opacity:.55;">🔁 boucle</div>':'')
-      +'</button>';
-  }).join('');
-  var editRows=sfxs.length?('<div style="margin-top:8px;margin-bottom:4px;">'
-    +sfxs.map(function(s){
-      return '<div style="display:flex;align-items:center;gap:6px;padding:3px 6px;">'
+  if(!sfxs.length)return '<p style="font-size:12px;color:#5a6a8a;margin:8px 0;">Aucun SFX. Clique « ＋ » en haut pour commencer.</p>';
+  sfxs=sfxs.slice().sort(function(a,b){return (a.ordre||0)-(b.ordre||0);});
+  var sansGroupe=sfxs.filter(function(s){return !(s.groupe||'').trim();});
+  var groupNames=[...new Set(sfxs.filter(function(s){return (s.groupe||'').trim();}).map(function(s){return s.groupe.trim();}))];
+  groupNames.sort(function(a,b){
+    var minA=Math.min.apply(null,sfxs.filter(function(s){return (s.groupe||'').trim()===a;}).map(function(s){return s.ordre||0;}));
+    var minB=Math.min.apply(null,sfxs.filter(function(s){return (s.groupe||'').trim()===b;}).map(function(s){return s.ordre||0;}));
+    return minA-minB;
+  });
+  function sfxGroupe(membres){
+    var btns=membres.map(function(s){
+      var isP=!!_son.playing[s.id];
+      return '<button class="son-sfx-btn'+(isP?' playing':'')+'" onclick="son_toggleSound(\''+s.id+'\')">'
+        +'<div style="font-size:26px;margin-bottom:4px;line-height:1;">'+(s.icone||'⚡')+'</div>'
+        +'<div style="font-size:11px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;">'+besti_esc(s.nom)+'</div>'
+        +(s.loop!==false?'<div style="font-size:9px;margin-top:3px;opacity:.55;">🔁</div>':'')
+        +'</button>';
+    }).join('');
+    var rows=membres.map(function(s,i){
+      return '<div style="display:flex;align-items:center;gap:4px;padding:2px 4px;">'
+        +'<button class="son-ord-btn" onclick="son_monterSon(\''+s.id+'\')" '+(i===0?'disabled style="opacity:.25;"':'')+'>▲</button>'
+        +'<button class="son-ord-btn" onclick="son_descendreSon(\''+s.id+'\')" '+(i===membres.length-1?'disabled style="opacity:.25;"':'')+'>▼</button>'
         +'<span style="font-size:13px;">'+(s.icone||'⚡')+'</span>'
         +'<span style="flex:1;font-size:11px;color:#5a6a8a;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+besti_esc(s.nom)+'</span>'
         +'<button onclick="son_ouvrirForm(\''+s.id+'\')" style="background:none;border:none;color:#5a6a8a;cursor:pointer;font-size:12px;padding:2px 4px;line-height:1;font-family:inherit;">✏️</button>'
         +'</div>';
-    }).join('')+'</div>'):'';
-  return (sfxs.length
-    ?'<div class="son-sfx-grid">'+btns+'</div>'+editRows
-    :'<p style="font-size:12px;color:#5a6a8a;margin:8px 0 12px;">Aucun SFX. Clique « ＋ » en haut pour commencer.</p>');
+    }).join('');
+    return '<div class="son-sfx-grid">'+btns+'</div><div style="margin-bottom:6px;">'+rows+'</div>';
+  }
+  var html='';
+  if(sansGroupe.length)html+=sfxGroupe(sansGroupe);
+  groupNames.forEach(function(g){
+    var membres=sfxs.filter(function(s){return (s.groupe||'').trim()===g;});
+    html+='<div class="son-groupe-hd"><span class="son-groupe-pill">'+besti_esc(g)+'</span></div>'+sfxGroupe(membres);
+  });
+  return html;
 }
 
 // ── Now Playing Controls ──
-function son_togglePause(chan){
-  var a=_son.ch[chan];if(!a)return;
-  if(_son.paused[chan]){a.play();_son.paused[chan]=false;}
-  else{a.pause();_son.paused[chan]=true;}
+function son_togglePause(sonId){
+  var p=_son.playing[sonId];if(!p)return;
+  if(p.paused){p.audio.play();p.paused=false;}
+  else{p.audio.pause();p.paused=true;}
   son_rendreNowPlaying();
 }
-function son_toggleLoopChan(chan){
-  var a=_son.ch[chan];if(!a)return;
-  a.loop=!a.loop;
+function son_toggleLoopSound(sonId){
+  var p=_son.playing[sonId];if(!p)return;
+  p.audio.loop=!p.audio.loop;
   son_rendreNowPlaying();
 }
-function son_seekChan(chan,val){
-  var a=_son.ch[chan];if(!a)return;
+function son_seekSound(sonId,val){
+  var p=_son.playing[sonId];if(!p)return;
   var t=parseFloat(val);
-  if(isFinite(a.duration)&&t<=a.duration)a.currentTime=t;
+  if(isFinite(p.audio.duration)&&t<=p.audio.duration)p.audio.currentTime=t;
 }
 function _son_fmt(sec){
   if(!isFinite(sec)||isNaN(sec))return '--:--';
@@ -5287,10 +5322,11 @@ function _son_fmt(sec){
   return m+':'+(s<10?'0':'')+s;
 }
 function _son_npUpdateSeek(){
-  ['musique','ambiance'].forEach(function(c){
-    var a=_son.ch[c];if(!a)return;
-    var seek=document.getElementById('son-np-seek-'+c);
-    var timeEl=document.getElementById('son-np-time-'+c);
+  Object.keys(_son.playing).forEach(function(sid){
+    var p=_son.playing[sid];if(!p)return;
+    var a=p.audio;
+    var seek=document.getElementById('son-np-seek-'+sid);
+    var timeEl=document.getElementById('son-np-time-'+sid);
     if(seek&&isFinite(a.duration)){seek.value=a.currentTime;seek.max=a.duration;}
     if(timeEl)timeEl.textContent=_son_fmt(a.currentTime)+(isFinite(a.duration)?(' / '+_son_fmt(a.duration)):'');
   });
@@ -5306,54 +5342,41 @@ function _son_stopNpTick(){
 // ── Now Playing Bar ──
 function son_rendreNowPlaying(){
   var bar=document.getElementById('son-now-playing');if(!bar)return;
-  var cards=[];
-  ['musique','ambiance'].forEach(function(c){
-    if(!_son.ch[c])return;
-    var sid=_son.chanSonId[c];
-    var s=sid?_son.sons.find(function(x){return x.id===sid;}):null;
-    var icone=s?(s.icone||(c==='musique'?'🎵':'🌿')):(c==='musique'?'🎵':'🌿');
-    var nom=s?besti_esc(s.nom):(c==='musique'?'Musique':'Ambiance');
-    var isPaused=!!_son.paused[c];
-    var a=_son.ch[c];
-    var seekMax=isFinite(a&&a.duration)&&a.duration>0?a.duration:100;
-    var seekHtml='<input type="range" id="son-np-seek-'+c+'" class="son-np-seek" min="0" max="'+seekMax+'" step="0.5" value="'+(a?a.currentTime||0:0)+'" oninput="son_seekChan(\''+c+'\',this.value)">';
-    var colorDot=c==='musique'?'#c9a227':'#4ade80';
-    cards.push('<div class="son-np-card">'
-      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
-        +'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+colorDot+';animation:sonpulse 1.5s ease-in-out infinite;flex-shrink:0;"></span>'
-        +'<span style="font-size:18px;line-height:1;">'+icone+'</span>'
-        +'<span style="flex:1;font-size:13px;font-weight:700;color:#e8dcc8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+nom+'</span>'
-        +'<span id="son-np-time-'+c+'" style="font-size:10px;color:#5a6a8a;white-space:nowrap;">'+_son_fmt(a?a.currentTime:0)+'</span>'
-      +'</div>'
-      +seekHtml
-      +'<div style="display:flex;align-items:center;gap:6px;margin-top:8px;">'
-        +'<button onclick="son_togglePause(\''+c+'\')" title="'+(isPaused?'Reprendre':'Pause')+'" style="padding:5px 10px;border-radius:7px;border:1px solid #2a3d5a;background:#111e33;color:#e8dcc8;font-size:14px;cursor:pointer;font-family:inherit;line-height:1;">'+(isPaused?'▶':'⏸')+'</button>'
-        +'<button onclick="son_toggleLoopChan(\''+c+'\')" title="Boucle" style="padding:5px 9px;border-radius:7px;border:1px solid '+(a&&a.loop?'rgba(201,162,39,.5)':'#2a3d5a')+';background:'+(a&&a.loop?'rgba(201,162,39,.12)':'#111e33')+';color:'+(a&&a.loop?'#c9a227':'#5a6a8a')+';font-size:13px;cursor:pointer;font-family:inherit;line-height:1;">🔁</button>'
-        +'<span style="font-size:10px;color:#5a6a8a;flex-shrink:0;">Vol</span>'
-        +'<input type="range" min="0" max="1" step="0.01" value="'+_son.vols[c]+'" oninput="son_setVol(\''+c+'\',this.value)" style="flex:1;accent-color:'+(c==='musique'?'#c9a227':'#4ade80')+';cursor:pointer;">'
-        +'<span id="son-np-vol-'+c+'" style="font-size:10px;color:'+(c==='musique'?'#c9a227':'#4ade80')+';width:28px;text-align:right;flex-shrink:0;">'+Math.round(_son.vols[c]*100)+'%</span>'
-        +'<button onclick="son_stopChannel(\''+c+'\')" title="Arrêter" style="padding:5px 9px;border-radius:7px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#fca5a5;font-size:13px;cursor:pointer;font-family:inherit;line-height:1;">⏹</button>'
-      +'</div>'
-    +'</div>');
-  });
-  Object.keys(_son.sfxPlaying).forEach(function(sid){
+  var ids=Object.keys(_son.playing);
+  if(!ids.length){bar.style.display='none';bar.innerHTML='';_son_stopNpTick();return;}
+  var cards=ids.map(function(sid){
+    var p=_son.playing[sid];if(!p)return '';
     var s=_son.sons.find(function(x){return x.id===sid;});
-    var lbl=s?((s.icone||'⚡')+' '+besti_esc(s.nom)):'⚡ SFX';
-    cards.push('<div class="son-np-card sfx" style="display:flex;align-items:center;gap:8px;">'
-      +'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;animation:sonpulse 1.5s ease-in-out infinite;flex-shrink:0;"></span>'
-      +'<span style="flex:1;font-size:12px;font-weight:700;color:#4ade80;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+lbl+'</span>'
-      +'<button onclick="son_stopSFX(\''+sid+'\')" title="Arrêter" style="padding:4px 8px;border-radius:7px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#fca5a5;font-size:12px;cursor:pointer;font-family:inherit;line-height:1;">⏹</button>'
-    +'</div>');
+    var cat=s?s.categorie:'sfx';
+    var icone=s?(s.icone||(cat==='musique'?'🎵':cat==='ambiance'?'🌿':'⚡')):'🎵';
+    var nom=s?besti_esc(s.nom):sid;
+    var a=p.audio;
+    var isSFX=cat==='sfx';
+    var dotColor=isSFX?'#4ade80':cat==='ambiance'?'#4ade80':'#c9a227';
+    var accentColor=isSFX?'#4ade80':cat==='ambiance'?'#4ade80':'#c9a227';
+    var seekMax=isFinite(a.duration)&&a.duration>0?a.duration:100;
+    return '<div class="son-np-card'+(isSFX?' sfx':'')+'">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
+        +'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+dotColor+';animation:sonpulse 1.5s ease-in-out infinite;flex-shrink:0;"></span>'
+        +'<span style="font-size:16px;line-height:1;">'+icone+'</span>'
+        +'<span style="flex:1;font-size:12px;font-weight:700;color:#e8dcc8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+nom+'</span>'
+        +'<span style="font-size:9px;color:#5a6a8a;padding:1px 5px;border:1px solid #1e2d45;border-radius:4px;">'+cat+'</span>'
+        +'<span id="son-np-time-'+sid+'" style="font-size:10px;color:#5a6a8a;white-space:nowrap;margin-left:4px;">'+_son_fmt(a.currentTime)+'</span>'
+      +'</div>'
+      +'<input type="range" id="son-np-seek-'+sid+'" class="son-np-seek" min="0" max="'+seekMax+'" step="0.5" value="'+(a.currentTime||0)+'" oninput="son_seekSound(\''+sid+'\',this.value)">'
+      +'<div style="display:flex;align-items:center;gap:6px;margin-top:8px;">'
+        +'<button onclick="son_togglePause(\''+sid+'\')" style="padding:5px 10px;border-radius:7px;border:1px solid #2a3d5a;background:#111e33;color:#e8dcc8;font-size:14px;cursor:pointer;font-family:inherit;line-height:1;">'+(p.paused?'▶':'⏸')+'</button>'
+        +'<button onclick="son_toggleLoopSound(\''+sid+'\')" title="Boucle" style="padding:5px 9px;border-radius:7px;border:1px solid '+(a.loop?'rgba(201,162,39,.5)':'#2a3d5a')+';background:'+(a.loop?'rgba(201,162,39,.12)':'#111e33')+';color:'+(a.loop?'#c9a227':'#5a6a8a')+';font-size:13px;cursor:pointer;font-family:inherit;line-height:1;">🔁</button>'
+        +'<span style="font-size:10px;color:#5a6a8a;flex-shrink:0;">Vol</span>'
+        +'<input type="range" min="0" max="1" step="0.01" value="'+p.vol+'" oninput="son_setVolSound(\''+sid+'\',this.value)" style="flex:1;accent-color:'+accentColor+';cursor:pointer;">'
+        +'<span id="son-np-vol-'+sid+'" style="font-size:10px;color:'+accentColor+';width:28px;text-align:right;flex-shrink:0;">'+Math.round(p.vol*100)+'%</span>'
+        +'<button onclick="son_stopSound(\''+sid+'\')" title="Arrêter" style="padding:5px 9px;border-radius:7px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#fca5a5;font-size:13px;cursor:pointer;font-family:inherit;line-height:1;">⏹</button>'
+      +'</div>'
+    +'</div>';
   });
-  var hasAny=cards.length>0;
-  if(hasAny){
-    bar.style.display='';
-    bar.innerHTML='<div style="font-size:9px;font-weight:700;color:#5a6a8a;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">▶ En cours</div>'+cards.join('');
-    _son_startNpTick();
-  }else{
-    bar.style.display='none';bar.innerHTML='';
-    _son_stopNpTick();
-  }
+  bar.style.display='';
+  bar.innerHTML='<div style="font-size:9px;font-weight:700;color:#5a6a8a;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">▶ En cours</div>'+cards.join('');
+  _son_startNpTick();
 }
 
 // ── Rendu du drawer ──
