@@ -429,9 +429,11 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .son-sfx-btn{font-family:inherit;font-size:12px;font-weight:600;padding:10px 10px;border-radius:9px;cursor:pointer;border:1px solid #1e2d45;background:#111e33;color:#e8dcc8;transition:all .14s;text-align:left;display:flex;align-items:center;gap:7px;min-height:52px;}
 .son-sfx-btn:hover{background:#1a2840;border-color:#3a4a6a;}
 .son-sfx-btn.playing{border-color:rgba(74,222,128,.45);background:rgba(74,222,128,.09);color:#4ade80;}
-.son-np-bar{flex-shrink:0;background:#050d1a;border-top:1px solid #1e2d45;padding:8px 12px;}
-.son-np-chip{display:inline-flex;align-items:center;gap:5px;padding:4px 8px 4px 7px;background:#111e33;border:1px solid rgba(201,162,39,.3);border-radius:999px;font-size:11px;color:#c9a227;white-space:nowrap;}
-.son-np-chip.sfx{border-color:rgba(74,222,128,.3);color:#4ade80;}
+.son-np-bar{flex-shrink:0;background:#050d1a;border-top:2px solid #1e2d45;padding:10px 12px;max-height:55vh;overflow-y:auto;}
+.son-np-card{background:#0e1929;border:1px solid rgba(201,162,39,.25);border-radius:10px;padding:10px 12px;margin-bottom:8px;}
+.son-np-card.sfx{border-color:rgba(74,222,128,.25);}
+.son-np-seek{width:100%;accent-color:#c9a227;cursor:pointer;height:4px;margin:4px 0;}
+.son-np-seek.sfx{accent-color:#4ade80;}
 .son-finp{width:100%;background:#0a1220;border:1px solid #1e2d45;border-radius:7px;padding:7px 9px;color:#e8dcc8;font-size:13px;font-family:inherit;}
 .son-finp:focus{outline:none;border-color:#c9a227;}
 .son-finp::placeholder{color:#5a6a8a;}
@@ -4959,11 +4961,13 @@ function besti_supprimerImage(id){
 var _son={
   ch:{musique:null,ambiance:null},
   chanSonId:{musique:null,ambiance:null},
+  paused:{musique:false,ambiance:false},
   sfxPlaying:{},
   vols:{musique:0.7,ambiance:0.5},
   deviceId:'',_devices:[],
   sons:[],sonsUnsub:null,
-  tab:'musique'
+  tab:'musique',
+  _npTick:null
 };
 
 function son_ouvrir(){
@@ -5033,36 +5037,42 @@ function _son_mkAudio(url,loop,vol){
   if(_son.deviceId&&a.setSinkId)a.setSinkId(_son.deviceId).catch(function(){});
   return a;
 }
-function son_fadeOut(audio,dur,cb){
-  if(!audio){if(cb)cb();return;}
-  var steps=25,dt=Math.max(Math.round(dur/steps),16),dv=audio.volume/steps;
-  var iv=setInterval(function(){
-    audio.volume=Math.max(0,audio.volume-dv);
-    if(audio.volume<=0){clearInterval(iv);audio.pause();audio.src='';if(cb)cb();}
-  },dt);
+function _son_kill(audio){
+  if(!audio)return;
+  try{audio.pause();}catch(e){}
+  audio.onended=null;audio.onerror=null;
+  try{audio.src='';}catch(e){}
 }
 
 // ── Canaux musique / ambiance ──
 function son_playChannel(chan,sonId){
   var s=_son.sons.find(function(x){return x.id===sonId;});
   if(!s)return;
-  var old=_son.ch[chan];
-  if(old)son_fadeOut(old,600,function(){});
-  _son.ch[chan]=null;_son.chanSonId[chan]=null;
+  // Tuer l'ancien audio immédiatement
+  _son_kill(_son.ch[chan]);
+  _son.ch[chan]=null;_son.chanSonId[chan]=null;_son.paused[chan]=false;
   var a=_son_mkAudio(s.url,s.loop!==false,_son.vols[chan]);
-  a.play().then(function(){
-    _son.ch[chan]=a;_son.chanSonId[chan]=sonId;
-    a.onended=function(){
-      if(_son.ch[chan]===a){_son.ch[chan]=null;_son.chanSonId[chan]=null;}
-      son_rendreDrawer();son_rendreNowPlaying();
-    };
+  // Assigner AVANT play() pour éviter la race condition
+  _son.ch[chan]=a;_son.chanSonId[chan]=sonId;
+  a.onended=function(){
+    if(_son.ch[chan]===a){_son.ch[chan]=null;_son.chanSonId[chan]=null;_son.paused[chan]=false;}
     son_rendreDrawer();son_rendreNowPlaying();
-  }).catch(function(e){toast('Erreur lecture : '+e.message);});
+  };
+  a.onerror=function(){
+    if(_son.ch[chan]===a){_son.ch[chan]=null;_son.chanSonId[chan]=null;_son.paused[chan]=false;}
+    son_rendreDrawer();son_rendreNowPlaying();
+  };
+  son_rendreDrawer();son_rendreNowPlaying();
+  a.play().catch(function(e){
+    if(_son.ch[chan]===a){_son.ch[chan]=null;_son.chanSonId[chan]=null;}
+    toast('Erreur lecture : '+e.message);
+    son_rendreDrawer();son_rendreNowPlaying();
+  });
 }
 function son_stopChannel(chan){
   var a=_son.ch[chan];
-  _son.ch[chan]=null;_son.chanSonId[chan]=null;
-  son_fadeOut(a,800,function(){});
+  _son.ch[chan]=null;_son.chanSonId[chan]=null;_son.paused[chan]=false;
+  _son_kill(a);
   son_rendreDrawer();son_rendreNowPlaying();
 }
 function son_setVol(chan,v){
@@ -5076,20 +5086,27 @@ function son_playSFX(sonId){
   var s=_son.sons.find(function(x){return x.id===sonId;});
   if(!s)return;
   var a=_son_mkAudio(s.url,!!s.loop,1.0);
-  a.play().then(function(){
-    _son.sfxPlaying[sonId]=a;
-    a.onended=function(){
-      if(_son.sfxPlaying[sonId]===a)delete _son.sfxPlaying[sonId];
-      son_rendreDrawer();son_rendreNowPlaying();
-    };
+  _son.sfxPlaying[sonId]=a;
+  a.onended=function(){
+    if(_son.sfxPlaying[sonId]===a)delete _son.sfxPlaying[sonId];
     son_rendreDrawer();son_rendreNowPlaying();
-  }).catch(function(e){toast('Erreur SFX : '+e.message);});
+  };
+  a.onerror=function(){
+    if(_son.sfxPlaying[sonId]===a)delete _son.sfxPlaying[sonId];
+    son_rendreDrawer();son_rendreNowPlaying();
+  };
+  son_rendreDrawer();son_rendreNowPlaying();
+  a.play().catch(function(e){
+    if(_son.sfxPlaying[sonId]===a)delete _son.sfxPlaying[sonId];
+    toast('Erreur SFX : '+e.message);
+    son_rendreDrawer();son_rendreNowPlaying();
+  });
 }
 function son_stopSFX(sonId){
   var a=_son.sfxPlaying[sonId];
   if(!a)return;
   delete _son.sfxPlaying[sonId];
-  son_fadeOut(a,600,function(){});
+  _son_kill(a);
   son_rendreDrawer();son_rendreNowPlaying();
 }
 
@@ -5245,35 +5262,96 @@ function _son_rendreSFX(){
     :'<p style="font-size:12px;color:#5a6a8a;margin:8px 0 12px;">Aucun SFX. Clique « ＋ » en haut pour commencer.</p>');
 }
 
+// ── Now Playing Controls ──
+function son_togglePause(chan){
+  var a=_son.ch[chan];if(!a)return;
+  if(_son.paused[chan]){a.play();_son.paused[chan]=false;}
+  else{a.pause();_son.paused[chan]=true;}
+  son_rendreNowPlaying();
+}
+function son_toggleLoopChan(chan){
+  var a=_son.ch[chan];if(!a)return;
+  a.loop=!a.loop;
+  son_rendreNowPlaying();
+}
+function son_seekChan(chan,val){
+  var a=_son.ch[chan];if(!a||!isFinite(a.duration))return;
+  a.currentTime=parseFloat(val);
+}
+function _son_fmt(sec){
+  if(!isFinite(sec)||isNaN(sec))return '--:--';
+  var m=Math.floor(sec/60),s=Math.floor(sec%60);
+  return m+':'+(s<10?'0':'')+s;
+}
+function _son_npUpdateSeek(){
+  ['musique','ambiance'].forEach(function(c){
+    var a=_son.ch[c];if(!a)return;
+    var seek=document.getElementById('son-np-seek-'+c);
+    var timeEl=document.getElementById('son-np-time-'+c);
+    if(seek&&isFinite(a.duration)){seek.value=a.currentTime;seek.max=a.duration;}
+    if(timeEl)timeEl.textContent=_son_fmt(a.currentTime)+(isFinite(a.duration)?(' / '+_son_fmt(a.duration)):'');
+  });
+}
+function _son_startNpTick(){
+  if(_son._npTick)return;
+  _son._npTick=setInterval(_son_npUpdateSeek,500);
+}
+function _son_stopNpTick(){
+  if(_son._npTick){clearInterval(_son._npTick);_son._npTick=null;}
+}
+
 // ── Now Playing Bar ──
 function son_rendreNowPlaying(){
   var bar=document.getElementById('son-now-playing');if(!bar)return;
-  var chips=[];
+  var cards=[];
   ['musique','ambiance'].forEach(function(c){
-    if(_son.ch[c]){
-      var sid=_son.chanSonId[c];
-      var s=sid?_son.sons.find(function(x){return x.id===sid;}):null;
-      var lbl=s?((s.icone||'')+(s.nom||c)):(c==='musique'?'🎵 Musique':'🌿 Ambiance');
-      chips.push('<span class="son-np-chip">'
-        +'<span class="son-dot"></span>'+besti_esc(lbl)
-        +'<button onclick="son_stopChannel(\''+c+'\')" style="background:none;border:none;color:#5a6a8a;cursor:pointer;font-size:11px;padding:0;line-height:1;margin-left:3px;font-family:inherit;">✕</button>'
-        +'</span>');
-    }
+    if(!_son.ch[c])return;
+    var sid=_son.chanSonId[c];
+    var s=sid?_son.sons.find(function(x){return x.id===sid;}):null;
+    var icone=s?(s.icone||(c==='musique'?'🎵':'🌿')):(c==='musique'?'🎵':'🌿');
+    var nom=s?besti_esc(s.nom):(c==='musique'?'Musique':'Ambiance');
+    var isPaused=!!_son.paused[c];
+    var a=_son.ch[c];
+    var hasSeek=isFinite(a?a.duration:NaN)&&(a?a.duration:0)>0;
+    var seekHtml=hasSeek
+      ?('<input type="range" id="son-np-seek-'+c+'" class="son-np-seek" min="0" max="'+(a.duration||0)+'" step="0.5" value="'+(a.currentTime||0)+'" oninput="son_seekChan(\''+c+'\',this.value)">')
+      :('<input type="range" id="son-np-seek-'+c+'" class="son-np-seek" min="0" max="100" step="1" value="0" disabled style="opacity:.3;">');
+    var colorDot=c==='musique'?'#c9a227':'#4ade80';
+    cards.push('<div class="son-np-card">'
+      +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'
+        +'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:'+colorDot+';animation:sonpulse 1.5s ease-in-out infinite;flex-shrink:0;"></span>'
+        +'<span style="font-size:18px;line-height:1;">'+icone+'</span>'
+        +'<span style="flex:1;font-size:13px;font-weight:700;color:#e8dcc8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+nom+'</span>'
+        +'<span id="son-np-time-'+c+'" style="font-size:10px;color:#5a6a8a;white-space:nowrap;">'+_son_fmt(a?a.currentTime:0)+'</span>'
+      +'</div>'
+      +seekHtml
+      +'<div style="display:flex;align-items:center;gap:6px;margin-top:8px;">'
+        +'<button onclick="son_togglePause(\''+c+'\')" title="'+(isPaused?'Reprendre':'Pause')+'" style="padding:5px 10px;border-radius:7px;border:1px solid #2a3d5a;background:#111e33;color:#e8dcc8;font-size:14px;cursor:pointer;font-family:inherit;line-height:1;">'+(isPaused?'▶':'⏸')+'</button>'
+        +'<button onclick="son_toggleLoopChan(\''+c+'\')" title="Boucle" style="padding:5px 9px;border-radius:7px;border:1px solid '+(a&&a.loop?'rgba(201,162,39,.5)':'#2a3d5a')+';background:'+(a&&a.loop?'rgba(201,162,39,.12)':'#111e33')+';color:'+(a&&a.loop?'#c9a227':'#5a6a8a')+';font-size:13px;cursor:pointer;font-family:inherit;line-height:1;">🔁</button>'
+        +'<span style="font-size:10px;color:#5a6a8a;flex-shrink:0;">Vol</span>'
+        +'<input type="range" min="0" max="1" step="0.01" value="'+_son.vols[c]+'" oninput="son_setVol(\''+c+'\',this.value)" style="flex:1;accent-color:'+(c==='musique'?'#c9a227':'#4ade80')+';cursor:pointer;">'
+        +'<span style="font-size:10px;color:'+(c==='musique'?'#c9a227':'#4ade80')+';width:28px;text-align:right;flex-shrink:0;">'+Math.round(_son.vols[c]*100)+'%</span>'
+        +'<button onclick="son_stopChannel(\''+c+'\')" title="Arrêter" style="padding:5px 9px;border-radius:7px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#fca5a5;font-size:13px;cursor:pointer;font-family:inherit;line-height:1;">⏹</button>'
+      +'</div>'
+    +'</div>');
   });
   Object.keys(_son.sfxPlaying).forEach(function(sid){
     var s=_son.sons.find(function(x){return x.id===sid;});
-    var lbl=s?((s.icone||'⚡')+' '+s.nom):'⚡ SFX';
-    chips.push('<span class="son-np-chip sfx">'
-      +'<span class="son-dot" style="background:#4ade80;box-shadow:0 0 4px #4ade80;"></span>'+besti_esc(lbl)
-      +'<button onclick="son_stopSFX(\''+sid+'\')" style="background:none;border:none;color:#5a6a8a;cursor:pointer;font-size:11px;padding:0;line-height:1;margin-left:3px;font-family:inherit;">✕</button>'
-      +'</span>');
+    var lbl=s?((s.icone||'⚡')+' '+besti_esc(s.nom)):'⚡ SFX';
+    cards.push('<div class="son-np-card sfx" style="display:flex;align-items:center;gap:8px;">'
+      +'<span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;animation:sonpulse 1.5s ease-in-out infinite;flex-shrink:0;"></span>'
+      +'<span style="flex:1;font-size:12px;font-weight:700;color:#4ade80;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">'+lbl+'</span>'
+      +'<button onclick="son_stopSFX(\''+sid+'\')" title="Arrêter" style="padding:4px 8px;border-radius:7px;border:1px solid rgba(239,68,68,.3);background:rgba(239,68,68,.08);color:#fca5a5;font-size:12px;cursor:pointer;font-family:inherit;line-height:1;">⏹</button>'
+    +'</div>');
   });
-  if(chips.length){
+  var hasAny=cards.length>0;
+  if(hasAny){
     bar.style.display='';
-    bar.innerHTML='<div style="font-size:9px;font-weight:700;color:#5a6a8a;text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;">▶ En cours</div>'
-      +'<div style="display:flex;flex-wrap:wrap;gap:5px;">'+chips.join('')+'</div>';
+    bar.innerHTML='<div style="font-size:9px;font-weight:700;color:#5a6a8a;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">▶ En cours</div>'+cards.join('');
+    _son_startNpTick();
   }else{
     bar.style.display='none';bar.innerHTML='';
+    _son_stopNpTick();
   }
 }
 
