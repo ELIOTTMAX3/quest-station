@@ -22,7 +22,7 @@ html,body{height:100%;background:#000;font-family:system-ui,sans-serif;color:#e0
 .tok.npc{background:radial-gradient(circle,rgba(201,162,39,.35),rgba(120,80,10,.55));border:3px solid #c9a227;box-shadow:0 0 18px rgba(201,162,39,.4);}
 .tok i{pointer-events:none;}
 .tok.enemy i{color:#fecaca;}.tok.ally i{color:#bbf7d0;}.tok.npc i{color:#fde68a;}
-.tok .tl{font-weight:700;color:#fff;text-shadow:0 2px 5px #000;white-space:nowrap;margin-top:2px;}
+.tok .tl{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:2px;font-weight:700;color:#fff;text-shadow:0 1px 5px #000,0 0 8px #000;white-space:nowrap;z-index:5;}
 .tok .hpb{position:absolute;height:5px;background:rgba(0,0,0,.5);border-radius:3px;}
 .tok .hpf{height:100%;border-radius:3px;}
 
@@ -144,7 +144,7 @@ function render(state, combat){
     var iconHtml=t.img
       ?'<img src="'+t.img+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="">'
       :'<i class="ra '+(t.icon||'ra-skull')+'" style="font-size:'+Math.round(size*0.42)+'px;"></i>';
-    return '<div class="tok '+t.type+'" style="left:'+(t.xPct||0)+'%;top:'+(t.yPct||0)+'%;width:'+size+'px;height:'+size+'px;position:absolute;overflow:hidden;">'
+    return '<div class="tok '+t.type+'" style="left:'+(t.xPct||0)+'%;top:'+(t.yPct||0)+'%;width:'+size+'px;height:'+size+'px;">'
       +iconHtml
       +'<span class="tl" style="font-size:'+Math.round(size*0.2)+'px;position:relative;z-index:2;">'+esc((t.nom||'').split(' ')[0])+'</span>'
       +hp
