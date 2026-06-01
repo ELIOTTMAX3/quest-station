@@ -5811,14 +5811,24 @@ function _ecran_fixUrl(url){
   if(gd)url='https://drive.google.com/uc?export=view&id='+gd[1];
   return url;
 }
-function _ecran_default(){return {mode:'battlemap',map:'dungeon',tokens:{},tokenImgs:{},mapLib:[],visuel:null,visuelLabel:'',visuelLib:[],grid:true};}
+function _ecran_default(){return {mode:'battlemap',map:'dungeon',tokens:{},tokenImgs:{},mapLib:[],mapTokenSaves:{},visuel:null,visuelLabel:'',visuelLib:[],grid:true};}
 function ecran_state(){
   if(!_ecran.state)_ecran.state=(campagneActive&&campagneActive.ecran)?Object.assign(_ecran_default(),campagneActive.ecran):_ecran_default();
   if(!_ecran.state.tokens)_ecran.state.tokens={};
   if(!_ecran.state.tokenImgs)_ecran.state.tokenImgs={};
   if(!_ecran.state.mapLib)_ecran.state.mapLib=[];
+  if(!_ecran.state.mapTokenSaves)_ecran.state.mapTokenSaves={};
   if(!_ecran.state.visuelLib)_ecran.state.visuelLib=[];
   return _ecran.state;
+}
+// Clé stable par map (id built-in ou 'map:<label>' pour les maps custom)
+function _ecran_mapKey(mapId){
+  if(!mapId)return null;
+  if(_ECRAN_MAPS.find(function(m){return m.id===mapId;}))return mapId;
+  // Chercher dans mapLib par URL exacte
+  var entry=(ecran_state().mapLib||[]).find(function(m){return m.url===mapId;});
+  if(entry)return 'map:'+entry.label;
+  return null;
 }
 // Envoie les data URLs locales directement à la fenêtre ecran (bypass Firestore 1MB)
 function _ecran_pushLocal(){
@@ -5835,15 +5845,25 @@ function _ecran_fsState(){
   var s=JSON.parse(JSON.stringify(st));
   if(s.map   &&s.map.startsWith('data:'))   s.map='__local__';
   if(s.visuel&&s.visuel.startsWith('data:')) s.visuel='__local__';
-  // mapLib/visuelLib : on garde les labels mais pas les data URLs (trop lourdes)
   (s.mapLib||[]).forEach(function(m){if(m.url&&m.url.startsWith('data:'))m.url='__local__';});
   (s.visuelLib||[]).forEach(function(v){if(v.url&&v.url.startsWith('data:'))v.url='__local__';});
+  // Supprimer les img data URL dans les tokens sauvegardés (trop lourds pour Firestore)
+  Object.keys(s.mapTokenSaves||{}).forEach(function(k){
+    Object.keys(s.mapTokenSaves[k]||{}).forEach(function(tid){
+      if(s.mapTokenSaves[k][tid].img&&s.mapTokenSaves[k][tid].img.startsWith('data:'))
+        s.mapTokenSaves[k][tid]=Object.assign({},s.mapTokenSaves[k][tid],{img:null});
+    });
+  });
   return s;
 }
 function _ecran_save(){
   if(!db||!campagneActive)return;
   clearTimeout(_ecran._saveTimer);
   _ecran._saveTimer=setTimeout(function(){
+    // Auto-sauvegarder les tokens de la map active dans mapTokenSaves
+    var st=ecran_state();
+    var key=_ecran_mapKey(st.map);
+    if(key)st.mapTokenSaves[key]=JSON.parse(JSON.stringify(st.tokens));
     _ecran_pushLocal();
     db.collection("parties").doc(campagneActive.id).set({ecran:_ecran_fsState()},{merge:true}).catch(function(){});
   },120);
@@ -5872,23 +5892,41 @@ function ecran_setSub(s){
 // ── Carte ──
 function ecran_renderMaps(){
   var st=ecran_state();
+  function _badge(key){
+    var n=key&&st.mapTokenSaves[key]?Object.keys(st.mapTokenSaves[key]).length:0;
+    return n?'<span style="position:absolute;top:2px;left:2px;font-size:8px;background:rgba(201,162,39,.85);color:#000;border-radius:4px;padding:0 3px;line-height:1.4;font-weight:700;">'+n+'</span>':'';
+  }
   var html=_ECRAN_MAPS.map(function(m){
-    return '<div class="ecran-mapitem'+(st.map===m.id?' sel':'')+'" style="background:'+m.grad+';width:64px;height:36px;" onclick="ecran_setMap(\''+m.id+'\')" title="'+m.label+'"><i class="ra '+m.icon+'"></i><div class="lbl">'+m.label+'</div></div>';
+    return '<div class="ecran-mapitem'+(st.map===m.id?' sel':'')+'" style="background:'+m.grad+';width:64px;height:36px;position:relative;" onclick="ecran_setMap(\''+m.id+'\')" title="'+m.label+'">'
+      +'<i class="ra '+m.icon+'"></i><div class="lbl">'+m.label+'</div>'+_badge(m.id)
+    +'</div>';
   }).join('');
   (_ecran.localMaps||[]).forEach(function(f){
     var path='maps/'+f;var sel=st.map===path;
-    html+='<div class="ecran-mapitem'+(sel?' sel':'')+'" style="background:#05080f center/cover no-repeat url(\''+encodeURI(path)+'\');width:64px;height:36px;" title="'+besti_esc(f)+'" onclick="ecran_setMap(\''+encodeURI(path)+'\')"><div class="lbl">'+besti_esc(f.replace(/\.[^.]+$/,''))+'</div></div>';
+    html+='<div class="ecran-mapitem'+(sel?' sel':'')+'" style="background:#05080f center/cover no-repeat url(\''+encodeURI(path)+'\');width:64px;height:36px;position:relative;" title="'+besti_esc(f)+'" onclick="ecran_setMap(\''+encodeURI(path)+'\')"><div class="lbl">'+besti_esc(f.replace(/\.[^.]+$/,''))+'</div></div>';
   });
   (st.mapLib||[]).forEach(function(v,i){
-    var sel=st.map===v.url;
+    var sel=st.map===v.url;var key='map:'+v.label;
     html+='<div class="ecran-mapitem'+(sel?' sel':'')+'" style="background:#05080f center/cover no-repeat url(\''+v.url+'\');width:64px;height:36px;position:relative;" title="'+besti_esc(v.label)+'" onclick="ecran_setMap(\''+v.url+'\')">'
       +'<div class="lbl">'+besti_esc(v.label)+'</div>'
+      +_badge(key)
       +'<span onclick="event.stopPropagation();ecran_delMap('+i+')" style="position:absolute;top:1px;right:2px;font-size:9px;color:#fca5a5;cursor:pointer;line-height:1;">✕</span>'
     +'</div>';
   });
   el('ecran-maps').innerHTML=html;
 }
-function ecran_setMap(id){ecran_state().map=id;ecran_renderMaps();ecran_renderMapArea();_ecran_save();}
+function ecran_setMap(id){
+  var st=ecran_state();
+  // 1. Sauvegarder les tokens de la map actuelle
+  var curKey=_ecran_mapKey(st.map);
+  if(curKey)st.mapTokenSaves[curKey]=JSON.parse(JSON.stringify(st.tokens));
+  // 2. Charger les tokens sauvegardés pour la nouvelle map
+  st.map=id;
+  var newKey=_ecran_mapKey(id);
+  st.tokens=newKey&&st.mapTokenSaves[newKey]?JSON.parse(JSON.stringify(st.mapTokenSaves[newKey])):{};
+  ecran_renderMaps();ecran_renderMapArea();ecran_renderPalette();_ecran_save();
+  toast('🗺 '+((newKey&&st.mapTokenSaves[newKey]&&Object.keys(st.mapTokenSaves[newKey]).length)?'Combat restauré':'Nouvelle carte'));
+}
 function _ecran_mapBgCss(map){
   var p=_ECRAN_MAPS.find(function(m){return m.id===map;});
   if(p)return 'background:'+p.grad+';';
