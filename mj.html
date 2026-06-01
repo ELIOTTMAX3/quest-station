@@ -463,11 +463,11 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .ecran-subtabs{display:flex;gap:6px;margin-bottom:10px;}
 .ecran-subtab{font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt3);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;}
 .ecran-subtab.on{background:rgba(201,162,39,.15);border-color:var(--or);color:var(--or);}
-.ecran-two{display:grid;grid-template-columns:240px 1fr;gap:12px;align-items:start;}
-@media(max-width:700px){.ecran-two{grid-template-columns:1fr;}}
-.ecran-side{display:flex;flex-direction:column;gap:10px;}
-.ecran-side-sec{background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:10px 11px;}
-.ecran-side-title{font-size:9px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:8px;}
+.ecran-hbar{display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap;margin-bottom:10px;background:var(--bg2);border:1px solid var(--bord);border-radius:10px;padding:10px 12px;}
+.ecran-hbar-sep{width:1px;background:var(--bord);align-self:stretch;margin:0 2px;flex-shrink:0;}
+.ecran-hbar-col{display:flex;flex-direction:column;gap:5px;min-width:0;}
+.ecran-maps-hrow{display:flex;gap:5px;flex-wrap:wrap;align-items:center;margin-bottom:5px;}
+.ecran-side-title{font-size:9px;font-weight:700;color:var(--txt3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:5px;}
 .ecran-maps{display:grid;grid-template-columns:1fr 1fr;gap:6px;}
 .ecran-mapitem{border-radius:7px;border:2px solid transparent;cursor:pointer;aspect-ratio:16/9;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;}
 .ecran-mapitem.sel{border-color:var(--or);}
@@ -481,16 +481,17 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .ecran-tokico.ally{background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.35);color:#4ade80;}
 .ecran-tokico.npc{background:rgba(201,162,39,.15);border:1px solid rgba(201,162,39,.35);color:#c9a227;}
 .ecran-toknom{flex:1;min-width:0;font-size:11px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.ecran-map{position:relative;overflow:hidden;background:#05080f;border:1px solid var(--bord2);border-radius:10px;width:100%;aspect-ratio:16/9;max-height:calc(100vh - 250px);}
+.ecran-map{position:relative;overflow:hidden;background:#05080f;border:1px solid var(--bord2);border-radius:10px;width:100%;aspect-ratio:16/9;max-height:calc(100vh - 340px);}
 .ecran-mapbg{position:absolute;inset:0;background-size:cover!important;background-position:center!important;}
 .ecran-mapimg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;object-fit:cover;}
 .ecran-grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:4.1667% 7.4074%;}
-.ecran-token{position:absolute;width:48px;height:48px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;user-select:none;z-index:10;}
+.ecran-token{position:absolute;width:36px;height:36px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;user-select:none;z-index:10;overflow:hidden;}
 .ecran-token:active{cursor:grabbing;z-index:20;}
-.ecran-token.enemy{background:radial-gradient(circle,rgba(239,68,68,.35),rgba(185,28,28,.5));border:2px solid #ef4444;box-shadow:0 0 10px rgba(239,68,68,.4);}
-.ecran-token.ally{background:radial-gradient(circle,rgba(74,222,128,.3),rgba(22,101,52,.5));border:2px solid #4ade80;box-shadow:0 0 10px rgba(74,222,128,.3);}
+.ecran-token.enemy{background:radial-gradient(circle,rgba(239,68,68,.35),rgba(185,28,28,.5));border:2px solid #ef4444;box-shadow:0 0 8px rgba(239,68,68,.4);}
+.ecran-token.ally{background:radial-gradient(circle,rgba(74,222,128,.3),rgba(22,101,52,.5));border:2px solid #4ade80;box-shadow:0 0 8px rgba(74,222,128,.3);}
 .ecran-token.npc{background:radial-gradient(circle,rgba(201,162,39,.3),rgba(120,80,10,.5));border:2px solid #c9a227;}
-.ecran-token i{font-size:20px;pointer-events:none;}
+.ecran-token i{font-size:15px;pointer-events:none;}
+.ecran-token .tok-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;}
 .ecran-token.enemy i{color:#fca5a5;}.ecran-token.ally i{color:#86efac;}.ecran-token.npc i{color:#fde68a;}
 .ecran-token .tl{font-size:8px;font-weight:700;color:#fff;text-shadow:0 1px 3px #000;pointer-events:none;white-space:nowrap;margin-top:1px;}
 .ecran-token .hpb{position:absolute;bottom:-7px;left:4px;right:4px;height:4px;background:#333;border-radius:2px;}
@@ -981,53 +982,60 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
       <!-- BATTLEMAP -->
       <div id="ecran-page-battlemap">
-        <div class="ecran-two">
-          <div class="ecran-side">
-            <div class="ecran-side-sec">
-              <div class="ecran-side-title">Carte de fond</div>
-              <div class="ecran-maps" id="ecran-maps"></div>
-              <button class="btn ok" style="width:100%;font-size:11px;margin-top:7px;" onclick="ecran_refreshLocal()">🔄 Relire le dossier maps/</button>
-              <p style="font-size:9px;color:var(--txt3);margin-top:5px;line-height:1.4;">Dépose tes cartes dans le dossier <b>maps/</b> de l'app — elles apparaissent ici.</p>
-              <input type="text" id="ecran-map-url" placeholder="…ou coller une URL" style="width:100%;margin-top:6px;font-size:11px;padding:5px 7px;">
-              <button class="btn" style="width:100%;font-size:11px;margin-top:5px;" onclick="ecran_setMapUrl()">Appliquer l'URL</button>
-            </div>
-            <div class="ecran-side-sec">
-              <div class="ecran-side-title">Tokens — clic pour placer</div>
-              <div id="ecran-tok-palette"></div>
-              <button class="btn" style="width:100%;font-size:11px;margin-top:6px;" onclick="ecran_addMonstreToken()">＋ Token monstre</button>
+        <!-- Barre horizontale : cartes + tokens + groupes -->
+        <div class="ecran-hbar">
+          <!-- Colonne Cartes -->
+          <div class="ecran-hbar-col">
+            <div class="ecran-side-title">Carte de fond</div>
+            <div class="ecran-maps-hrow" id="ecran-maps"></div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;">
+              <label class="btn" style="font-size:11px;padding:5px 9px;cursor:pointer;white-space:nowrap;">📁 Importer<input type="file" accept="image/*" style="display:none;" onchange="ecran_pickMapFile(this)"></label>
+              <button class="btn" style="font-size:11px;padding:5px 9px;" onclick="ecran_refreshLocal()" title="Relire dossier maps/">🔄</button>
             </div>
           </div>
-          <div class="ecran-map" id="ecran-map">
-            <div class="ecran-mapbg" id="ecran-mapbg"></div>
-            <img class="ecran-mapimg" id="ecran-mapimg" alt="">
-            <div class="ecran-grid" id="ecran-grid"></div>
-            <div id="ecran-tokens-layer"></div>
+          <div class="ecran-hbar-sep"></div>
+          <!-- Colonne Tokens -->
+          <div class="ecran-hbar-col" style="flex:1;min-width:180px;">
+            <div class="ecran-side-title">Tokens — clic pour placer</div>
+            <div id="ecran-tok-palette" style="display:flex;flex-direction:column;gap:3px;max-height:130px;overflow-y:auto;"></div>
+            <button class="btn" style="font-size:11px;padding:4px 9px;margin-top:4px;align-self:flex-start;" onclick="ecran_addMonstreToken()">＋ Monstre libre</button>
           </div>
+          <div class="ecran-hbar-sep"></div>
+          <!-- Colonne Groupes -->
+          <div class="ecran-hbar-col" style="min-width:140px;">
+            <div class="ecran-side-title">Groupes de monstres</div>
+            <div id="ecran-grp-palette" style="display:flex;flex-direction:column;gap:3px;max-height:130px;overflow-y:auto;"></div>
+          </div>
+        </div>
+        <!-- Prévisualisation pleine largeur -->
+        <div class="ecran-map" id="ecran-map">
+          <div class="ecran-mapbg" id="ecran-mapbg"></div>
+          <img class="ecran-mapimg" id="ecran-mapimg" alt="">
+          <div class="ecran-grid" id="ecran-grid"></div>
+          <div id="ecran-tokens-layer"></div>
         </div>
       </div>
 
       <!-- VISUEL -->
       <div id="ecran-page-visuel" style="display:none;">
-        <div class="ecran-two">
-          <div class="ecran-side">
-            <div class="ecran-side-sec">
-              <div class="ecran-side-title">Visuels</div>
-              <button class="btn ok" style="width:100%;font-size:11px;margin-bottom:6px;" onclick="ecran_refreshLocal()">🔄 Relire le dossier visuels/</button>
-              <p style="font-size:9px;color:var(--txt3);margin-bottom:8px;line-height:1.4;">Dépose tes images dans le dossier <b>visuels/</b> de l'app — clique une vignette pour la diffuser.</p>
-              <input type="text" id="ecran-vis-url" placeholder="…ou coller une URL" style="width:100%;font-size:11px;padding:5px 7px;margin-bottom:5px;">
-              <input type="text" id="ecran-vis-label" placeholder="Nom (ex : Château)…" style="width:100%;font-size:11px;padding:5px 7px;margin-bottom:5px;">
-              <button class="btn" style="width:100%;font-size:11px;" onclick="ecran_addVisuel()">＋ Ajouter l'URL</button>
+        <!-- Barre horizontale : contrôles -->
+        <div class="ecran-hbar">
+          <div class="ecran-hbar-col">
+            <div class="ecran-side-title">Importer un visuel</div>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;">
+              <label class="btn" style="font-size:11px;padding:5px 9px;cursor:pointer;white-space:nowrap;">📁 Importer<input type="file" accept="image/*" style="display:none;" onchange="ecran_pickVisFile(this)"></label>
+              <button class="btn" style="font-size:11px;padding:5px 9px;" onclick="ecran_refreshLocal()" title="Relire dossier visuels/">🔄</button>
             </div>
-            <div class="ecran-side-sec">
-              <div class="ecran-side-title">Diffusion en cours</div>
-              <div id="ecran-vis-current" style="font-size:11px;color:var(--txt3);">Rien de diffusé.</div>
-              <button class="btn" style="width:100%;font-size:11px;margin-top:7px;border-color:rgba(239,68,68,.4);color:#fca5a5;" onclick="ecran_clearVisuel()">⏹ Arrêter le visuel</button>
-            </div>
+            <p style="font-size:9px;color:var(--txt3);line-height:1.4;max-width:200px;">Ou dépose dans le dossier <b>visuels/</b></p>
           </div>
-          <div>
-            <div class="ecran-vis-grid" id="ecran-vis-grid"></div>
+          <div class="ecran-hbar-sep"></div>
+          <div class="ecran-hbar-col">
+            <div class="ecran-side-title">Diffusion en cours</div>
+            <div id="ecran-vis-current" style="font-size:11px;color:var(--txt3);">Rien de diffusé.</div>
+            <button class="btn" style="font-size:11px;padding:5px 9px;margin-top:4px;border-color:rgba(239,68,68,.4);color:#fca5a5;align-self:flex-start;" onclick="ecran_clearVisuel()">⏹ Arrêter</button>
           </div>
         </div>
+        <div class="ecran-vis-grid" id="ecran-vis-grid"></div>
       </div>
     </div>
 
@@ -4592,7 +4600,8 @@ function besti_initGroupes(){
     _besti_groupes=[];
     qs.forEach(function(d){_besti_groupes.push(Object.assign({},d.data(),{id:d.id}));});
     if(_besti_tab==='groupes')besti_renderBody();
-    rendreGroupes(); // Sync le panneau combat
+    rendreGroupes();
+    ecran_renderGroupePalette(); // Sync le panneau combat
     // Notifier l'iframe outils_rapides si chargé
     try{
       var _ifr=el('mj-outils-iframe');
@@ -5733,8 +5742,30 @@ function ecran_uploadFile(file,kind,cb){
     .then(function(url){cb(url,file.name);toast('✅ Image importée');})
     .catch(function(e){toast('Erreur import : '+e.message);});
 }
-function ecran_pickMapFile(inp){var f=inp.files&&inp.files[0];inp.value='';ecran_uploadFile(f,'maps',function(url){ecran_state().map=url;ecran_renderMaps();ecran_renderMapArea();_ecran_save();});}
-function ecran_pickVisFile(inp){var f=inp.files&&inp.files[0];inp.value='';ecran_uploadFile(f,'visuels',function(url,nom){var st=ecran_state();st.visuelLib.push({url:url,label:nom.replace(/\.[^.]+$/,'')});ecran_renderVisuel();_ecran_save();});}
+function ecran_pickMapFile(inp){
+  var f=inp.files&&inp.files[0];inp.value='';if(!f)return;
+  var defNom=f.name.replace(/\.[^.]+$/,'');
+  var nom=prompt('Nom de la carte :',defNom)||defNom;
+  ecran_uploadFile(f,'maps',function(url){
+    var st=ecran_state();
+    st.mapLib.push({url:url,label:nom});
+    st.map=url;ecran_renderMaps();ecran_renderMapArea();_ecran_save();
+  });
+}
+function ecran_pickVisFile(inp){
+  var f=inp.files&&inp.files[0];inp.value='';if(!f)return;
+  var defNom=f.name.replace(/\.[^.]+$/,'');
+  var nom=prompt('Nom du visuel :',defNom)||defNom;
+  ecran_uploadFile(f,'visuels',function(url){
+    var st=ecran_state();st.visuelLib.push({url:url,label:nom});
+    ecran_renderVisuel();_ecran_save();
+  });
+}
+function ecran_delMap(i){
+  var st=ecran_state();if(!st.mapLib[i])return;
+  if(st.map===st.mapLib[i].url){st.map='dungeon';}
+  st.mapLib.splice(i,1);ecran_renderMaps();ecran_renderMapArea();_ecran_save();
+}
 var _ECRAN_MAPS=[
   {id:'dungeon',label:'Donjon',icon:'ra-dungeon',grad:'radial-gradient(ellipse at 30% 40%,#1a1200,#080600 60%,#030200)'},
   {id:'forest', label:'Forêt', icon:'ra-tree',   grad:'radial-gradient(ellipse at 60% 20%,#071a04,#030d02 60%,#020801)'},
@@ -5756,10 +5787,12 @@ function _ecran_fixUrl(url){
   if(gd)url='https://drive.google.com/uc?export=view&id='+gd[1];
   return url;
 }
-function _ecran_default(){return {mode:'battlemap',map:'dungeon',tokens:{},visuel:null,visuelLabel:'',visuelLib:[]};}
+function _ecran_default(){return {mode:'battlemap',map:'dungeon',tokens:{},tokenImgs:{},mapLib:[],visuel:null,visuelLabel:'',visuelLib:[]};}
 function ecran_state(){
   if(!_ecran.state)_ecran.state=(campagneActive&&campagneActive.ecran)?Object.assign(_ecran_default(),campagneActive.ecran):_ecran_default();
   if(!_ecran.state.tokens)_ecran.state.tokens={};
+  if(!_ecran.state.tokenImgs)_ecran.state.tokenImgs={};
+  if(!_ecran.state.mapLib)_ecran.state.mapLib=[];
   if(!_ecran.state.visuelLib)_ecran.state.visuelLib=[];
   return _ecran.state;
 }
@@ -5772,7 +5805,7 @@ function _ecran_save(){
 }
 function ecran_init(){
   ecran_state();
-  ecran_renderMaps();ecran_renderPalette();ecran_renderMapArea();ecran_renderVisuel();
+  ecran_renderMaps();ecran_renderPalette();ecran_renderGroupePalette();ecran_renderMapArea();ecran_renderVisuel();
   ecran_setSub(_ecran.sub);
   ecran_refreshScreens();
   ecran_loadLocalMaps();ecran_loadLocalVisuels();
@@ -5789,19 +5822,22 @@ function ecran_setSub(s){
 function ecran_renderMaps(){
   var st=ecran_state();
   var html=_ECRAN_MAPS.map(function(m){
-    return '<div class="ecran-mapitem'+(st.map===m.id?' sel':'')+'" style="background:'+m.grad+'" onclick="ecran_setMap(\''+m.id+'\')"><i class="ra '+m.icon+'"></i><div class="lbl">'+m.label+'</div></div>';
+    return '<div class="ecran-mapitem'+(st.map===m.id?' sel':'')+'" style="background:'+m.grad+';width:64px;height:36px;" onclick="ecran_setMap(\''+m.id+'\')" title="'+m.label+'"><i class="ra '+m.icon+'"></i><div class="lbl">'+m.label+'</div></div>';
   }).join('');
   (_ecran.localMaps||[]).forEach(function(f){
     var path='maps/'+f;var sel=st.map===path;
-    html+='<div class="ecran-mapitem'+(sel?' sel':'')+'" style="background:#05080f center/cover no-repeat url(\''+encodeURI(path)+'\')" title="'+besti_esc(f)+'" onclick="ecran_setMap(\''+encodeURI(path)+'\')"><div class="lbl">'+besti_esc(f.replace(/\.[^.]+$/,''))+'</div></div>';
+    html+='<div class="ecran-mapitem'+(sel?' sel':'')+'" style="background:#05080f center/cover no-repeat url(\''+encodeURI(path)+'\');width:64px;height:36px;" title="'+besti_esc(f)+'" onclick="ecran_setMap(\''+encodeURI(path)+'\')"><div class="lbl">'+besti_esc(f.replace(/\.[^.]+$/,''))+'</div></div>';
+  });
+  (st.mapLib||[]).forEach(function(v,i){
+    var sel=st.map===v.url;
+    html+='<div class="ecran-mapitem'+(sel?' sel':'')+'" style="background:#05080f center/cover no-repeat url(\''+v.url+'\');width:64px;height:36px;position:relative;" title="'+besti_esc(v.label)+'" onclick="ecran_setMap(\''+v.url+'\')">'
+      +'<div class="lbl">'+besti_esc(v.label)+'</div>'
+      +'<span onclick="event.stopPropagation();ecran_delMap('+i+')" style="position:absolute;top:1px;right:2px;font-size:9px;color:#fca5a5;cursor:pointer;line-height:1;">✕</span>'
+    +'</div>';
   });
   el('ecran-maps').innerHTML=html;
 }
 function ecran_setMap(id){ecran_state().map=id;ecran_renderMaps();ecran_renderMapArea();_ecran_save();}
-function ecran_setMapUrl(){
-  var u=_ecran_fixUrl(el('ecran-map-url').value);if(!u)return;
-  ecran_state().map=u;el('ecran-map-url').value='';ecran_renderMaps();ecran_renderMapArea();_ecran_save();
-}
 function _ecran_mapBgCss(map){
   var p=_ECRAN_MAPS.find(function(m){return m.id===map;});
   if(p)return 'background:'+p.grad+';';
@@ -5842,20 +5878,77 @@ function ecran_renderPalette(){
   var st=ecran_state();
   var html=_ecran_palette().map(function(t){
     var placed=!!st.tokens[t.id];
+    var img=st.tokenImgs&&st.tokenImgs[t.id];
+    var icoHtml=img
+      ?'<img src="'+img+'" style="width:24px;height:24px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
+      :'<div class="ecran-tokico '+t.type+'"><i class="ra '+t.icon+'"></i></div>';
+    var imgBtn=t.type==='enemy'
+      ?'<label style="font-size:10px;cursor:pointer;color:var(--txt3);flex-shrink:0;padding:2px;" title="Choisir un PNG">🖼<input type="file" accept="image/*" style="display:none;" onchange="ecran_setTokenImg(\''+t.id+'\',this)"></label>'
+      :'';
     return '<div class="ecran-tokrow'+(placed?' placed':'')+'" onclick="ecran_togglePlace(\''+t.id+'\')">'
-      +'<div class="ecran-tokico '+t.type+'"><i class="ra '+t.icon+'"></i></div>'
+      +icoHtml
       +'<span class="ecran-toknom">'+besti_esc(t.nom)+'</span>'
+      +imgBtn
       +'<span style="font-size:11px;color:'+(placed?'#c9a227':'#5a6a8a')+';">'+(placed?'✓':'＋')+'</span>'
     +'</div>';
   }).join('');
-  el('ecran-tok-palette').innerHTML=html||'<p style="font-size:11px;color:var(--txt3);">Aucun PJ ni monstre en combat. Ajoute un token ci-dessous.</p>';
+  el('ecran-tok-palette').innerHTML=html||'<p style="font-size:11px;color:var(--txt3);">Aucun PJ ni monstre en combat.</p>';
+  ecran_renderGroupePalette();
+}
+function ecran_setTokenImg(id,inp){
+  var f=inp.files&&inp.files[0];inp.value='';if(!f)return;
+  function _apply(url){
+    var st=ecran_state();
+    st.tokenImgs[id]=url;
+    if(st.tokens[id])st.tokens[id].img=url;
+    ecran_renderPalette();ecran_renderTokens();_ecran_save();
+  }
+  if(ecranStorage){
+    ecran_uploadFile(f,'tokens',function(url){_apply(url);});
+  } else {
+    var reader=new FileReader();
+    reader.onload=function(e){_apply(e.target.result);};
+    reader.readAsDataURL(f);
+  }
+}
+function ecran_renderGroupePalette(){
+  var cont=el('ecran-grp-palette');if(!cont)return;
+  var html=(_besti_groupes||[]).map(function(g){
+    var total=(g.membres||[]).reduce(function(s,mb){return s+(mb.quantite||1);},0);
+    return '<div class="ecran-tokrow" onclick="ecran_placeGroupe(\''+besti_esc(g.id)+'\')" title="'+besti_esc(g.nom)+' ('+total+' combattants)">'
+      +'<div class="ecran-tokico enemy"><i class="ra ra-skull"></i></div>'
+      +'<span class="ecran-toknom">'+besti_esc(g.nom||'Groupe')+'</span>'
+      +'<span style="font-size:10px;color:#5a6a8a;">'+total+'</span>'
+    +'</div>';
+  }).join('');
+  cont.innerHTML=html||'<p style="font-size:11px;color:var(--txt3);">Aucun groupe créé.</p>';
+}
+function ecran_placeGroupe(gid){
+  var g=(_besti_groupes||[]).find(function(x){return x.id===gid;});if(!g)return;
+  var st=ecran_state();
+  (g.membres||[]).forEach(function(mb){
+    var m=besti_getMonstre(mb.monstruId,mb.source||'srd');
+    var nom=mb.surnom||(m?m.nom:mb.monstruId)||'Monstre';
+    var q=mb.quantite||1;
+    for(var k=0;k<q;k++){
+      var tid='grp-'+Date.now()+'-'+Math.random().toString(36).slice(2,6);
+      st.tokens[tid]={nom:nom+(q>1?' '+(k+1):''),type:'enemy',icon:'ra-skull',
+        img:mb.tokenImg||(st.tokenImgs&&st.tokenImgs['m-'+mb.monstruId])||null,
+        hp:mb.pvmax||null,maxHp:mb.pvmax||null,
+        xPct:Math.round(10+Math.random()*80),yPct:Math.round(10+Math.random()*80),
+        hidden:false};
+    }
+  });
+  ecran_renderPalette();ecran_renderTokens();_ecran_save();
+  toast('⚔ Groupe "'+g.nom+'" placé');
 }
 function ecran_togglePlace(id){
   var st=ecran_state();
   if(st.tokens[id]){delete st.tokens[id];}
   else{
     var src=_ecran_palette().find(function(t){return t.id===id;});if(!src)return;
-    st.tokens[id]={nom:src.nom,type:src.type,icon:src.icon,hp:src.hp,maxHp:src.maxHp,
+    var img=(st.tokenImgs&&st.tokenImgs[id])||null;
+    st.tokens[id]={nom:src.nom,type:src.type,icon:src.icon,img:img,hp:src.hp,maxHp:src.maxHp,
       xPct:Math.round(15+Math.random()*60),yPct:Math.round(15+Math.random()*60),
       hidden:src.type==='enemy'};
   }
@@ -5882,7 +5975,11 @@ function ecran_renderTokens(){
       var c=pct>50?'#4ade80':pct>25?'#fbbf24':'#ef4444';
       hp='<div class="hpb"><div class="hpf" style="width:'+pct+'%;background:'+c+'"></div></div>';
     }
-    d.innerHTML='<i class="ra '+t.icon+'"></i><span class="tl">'+besti_esc((t.nom||'').split(' ')[0])+'</span>'+hp
+    var iconHtml=t.img
+      ?'<img class="tok-img" src="'+t.img+'" onerror="this.style.display=\'none\'">'
+      :'<i class="ra '+(t.icon||'ra-skull')+'"></i>';
+    d.innerHTML=iconHtml
+      +'<span class="tl" style="position:relative;z-index:2;">'+besti_esc((t.nom||'').split(' ')[0])+'</span>'+hp
       +'<span class="hidetag" title="Masquer/montrer aux joueurs" onclick="event.stopPropagation();ecran_toggleHidden(\''+id+'\')">'+(t.hidden?'🙈':'👁')+'</span>';
     _ecran_drag(d,id);
     layer.appendChild(d);
@@ -5898,12 +5995,13 @@ function _ecran_drag(d,id){
   });
   function mv(e){
     var r=el('ecran-map').getBoundingClientRect();
-    var nx=Math.max(0,Math.min(r.width-48,e.clientX-r.left-mx));
-    var ny=Math.max(0,Math.min(r.height-48,e.clientY-r.top-my));
+    var nx=Math.max(0,Math.min(r.width-36,e.clientX-r.left-mx));
+    var ny=Math.max(0,Math.min(r.height-36,e.clientY-r.top-my));
     d.style.left=nx+'px';d.style.top=ny+'px';
     var t=ecran_state().tokens[id];if(t){t.xPct=Math.round(nx/r.width*1000)/10;t.yPct=Math.round(ny/r.height*1000)/10;}
+    _ecran_save();
   }
-  function up(){document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);_ecran_save();}
+  function up(){document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);}
 }
 function ecran_toggleHidden(id){
   var t=ecran_state().tokens[id];if(!t)return;
@@ -5978,7 +6076,7 @@ function ecran_refreshScreens(){
   }
 }
 function ecran_toggleDiffusion(){
-  if(_ecran.win&&!_ecran.win.closed){_ecran.win.close();_ecran.win=null;ecran_bcUI(false);return;}
+  if(_ecran.win&&!_ecran.win.closed){_ecran.win.close();_ecran.win=null;clearInterval(_ecran._winCheck);ecran_bcUI(false);return;}
   if(!campagneActive){toast('Aucune campagne active.');return;}
   var url='ecran.html?code='+encodeURIComponent(campagneActive.id);
   var sel=el('ecran-screen-sel');var idx=sel?sel.value:'';
@@ -5989,6 +6087,10 @@ function ecran_toggleDiffusion(){
   }
   _ecran.win=window.open(url,'questEcran',feat);
   ecran_bcUI(true);
+  clearInterval(_ecran._winCheck);
+  _ecran._winCheck=setInterval(function(){
+    if(_ecran.win&&_ecran.win.closed){_ecran.win=null;clearInterval(_ecran._winCheck);ecran_bcUI(false);}
+  },1000);
 }
 function ecran_bcUI(live){
   var btn=el('ecran-bcbtn'),st=el('ecran-bcstatus');
