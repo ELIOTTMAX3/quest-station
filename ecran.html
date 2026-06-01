@@ -13,6 +13,7 @@ html,body{height:100%;background:#000;font-family:system-ui,sans-serif;color:#e0
 /* Stage 16:9 letterboxé — taille fixe relative, grille & tokens verrouillés */
 #stage{position:relative;aspect-ratio:16/9;width:min(100vw,177.78vh);max-height:100vh;background:#05080f;overflow:hidden;}
 #mapbg{position:absolute;inset:0;background-size:cover;background-position:center;}
+#mapimg{position:absolute;top:50%;left:50%;width:100%;height:100%;object-fit:cover;transform:translate(-50%,-50%);display:none;}
 #grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:4.1667% 7.4074%;}
 
 .tok{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:50%;transform:translate(-50%,-50%);transition:left .5s ease,top .5s ease;}
@@ -49,6 +50,7 @@ html,body{height:100%;background:#000;font-family:system-ui,sans-serif;color:#e0
 <div id="root">
   <div id="stage">
     <div id="mapbg"></div>
+    <img id="mapimg" alt="">
     <div id="grid"></div>
     <div id="tokens"></div>
     <div id="initbar" style="display:none;"></div>
@@ -76,6 +78,18 @@ function mapBgCss(map){
   if(MAPS[map])return MAPS[map];
   return '#05080f center/cover no-repeat url("'+map+'")';
 }
+// Portrait → paysage automatique (bas à droite = rotation -90°)
+function orientImg(img,cw,ch,fit){
+  var portrait=img.naturalHeight>img.naturalWidth;
+  img.style.objectFit=fit;
+  if(portrait){
+    img.style.width=ch+'px';img.style.height=cw+'px';
+    img.style.transform='translate(-50%,-50%) rotate(-90deg)';
+  }else{
+    img.style.width=cw+'px';img.style.height=ch+'px';
+    img.style.transform='translate(-50%,-50%)';
+  }
+}
 
 function render(state, combat){
   var wait=document.getElementById('wait');
@@ -88,17 +102,33 @@ function render(state, combat){
   document.getElementById('stage').style.display=showVisuel?'none':'block';
 
   if(showVisuel){
-    document.getElementById('visuel-img').src=state.visuel;
+    var vimg=document.getElementById('visuel-img');
+    vimg.onload=function(){
+      if(vimg.naturalHeight>vimg.naturalWidth){ // portrait → paysage, bas à droite
+        vimg.style.transform='rotate(-90deg)';
+        vimg.style.maxWidth=window.innerHeight+'px';vimg.style.maxHeight=window.innerWidth+'px';
+      }else{vimg.style.transform='';vimg.style.maxWidth='100%';vimg.style.maxHeight='100%';}
+    };
+    vimg.src=state.visuel;
     document.getElementById('visuel-title').textContent=state.visuelLabel||'';
     return;
   }
 
   // Battlemap — tout est positionné en % du stage 16:9 (verrouillé à toute résolution)
-  document.getElementById('mapbg').style.background=mapBgCss(state.map||'dungeon');
-  document.getElementById('grid').style.display = (MAPS[state.map] || !state.map) ? 'block' : 'block';
-
   var stage=document.getElementById('stage');
   var SW=stage.clientWidth, SH=stage.clientHeight;
+  var mapVal=state.map||'dungeon';
+  var mapbg=document.getElementById('mapbg'), mapimg=document.getElementById('mapimg');
+  if(MAPS[mapVal]){
+    mapbg.style.background=MAPS[mapVal];mapbg.style.display='block';mapimg.style.display='none';
+  }else{
+    mapbg.style.display='none';mapimg.style.display='block';
+    if(mapimg.getAttribute('data-src')!==mapVal){
+      mapimg.setAttribute('data-src',mapVal);
+      mapimg.onload=function(){orientImg(mapimg,SW,SH,'cover');};
+      mapimg.src=mapVal;
+    }else if(mapimg.naturalWidth){orientImg(mapimg,SW,SH,'cover');}
+  }
   var size=Math.round(SW*0.055); // token ≈ 1.3 cellule
   var tokens=state.tokens||{};
   document.getElementById('tokens').innerHTML=Object.keys(tokens).map(function(id){

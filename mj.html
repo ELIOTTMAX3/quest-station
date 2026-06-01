@@ -483,6 +483,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .ecran-toknom{flex:1;min-width:0;font-size:11px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .ecran-map{position:relative;overflow:hidden;background:#05080f;border:1px solid var(--bord2);border-radius:10px;width:100%;aspect-ratio:16/9;max-height:calc(100vh - 250px);}
 .ecran-mapbg{position:absolute;inset:0;background-size:cover!important;background-position:center!important;}
+.ecran-mapimg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;object-fit:cover;}
 .ecran-grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:4.1667% 7.4074%;}
 .ecran-token{position:absolute;width:48px;height:48px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;user-select:none;z-index:10;}
 .ecran-token:active{cursor:grabbing;z-index:20;}
@@ -998,6 +999,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           </div>
           <div class="ecran-map" id="ecran-map">
             <div class="ecran-mapbg" id="ecran-mapbg"></div>
+            <img class="ecran-mapimg" id="ecran-mapimg" alt="">
             <div class="ecran-grid" id="ecran-grid"></div>
             <div id="ecran-tokens-layer"></div>
           </div>
@@ -5780,9 +5782,22 @@ function _ecran_mapBgCss(map){
   return 'background:#05080f center/cover no-repeat url("'+map+'");';
 }
 function ecran_gridVisible(show){var g=el('ecran-grid');if(g)g.style.display=show===false?'none':'';}
+function _ecran_orient(img,cw,ch){
+  var portrait=img.naturalHeight>img.naturalWidth;
+  if(portrait){img.style.width=ch+'px';img.style.height=cw+'px';img.style.transform='translate(-50%,-50%) rotate(-90deg)';}
+  else{img.style.width=cw+'px';img.style.height=ch+'px';img.style.transform='translate(-50%,-50%)';}
+}
 function ecran_renderMapArea(){
-  var bg=el('ecran-mapbg');if(!bg)return;
-  bg.style.cssText=_ecran_mapBgCss(ecran_state().map);
+  var bg=el('ecran-mapbg'),img=el('ecran-mapimg'),map=el('ecran-map');if(!bg)return;
+  var mapVal=ecran_state().map;
+  var p=_ECRAN_MAPS.find(function(m){return m.id===mapVal;});
+  if(p){bg.style.cssText='position:absolute;inset:0;background:'+p.grad+';';bg.style.display='block';if(img)img.style.display='none';}
+  else if(img){
+    bg.style.display='none';img.style.display='block';
+    var cw=map.clientWidth,ch=map.clientHeight;
+    if(img.getAttribute('data-src')!==mapVal){img.setAttribute('data-src',mapVal);img.onload=function(){_ecran_orient(img,cw,ch);};img.src=mapVal;}
+    else if(img.naturalWidth){_ecran_orient(img,cw,ch);}
+  }
   ecran_renderTokens();
 }
 // ── Palette de tokens ──
