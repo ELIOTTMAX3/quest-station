@@ -493,6 +493,9 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .ecran-tok-chip .tc-nom{font-size:8px;font-weight:700;color:var(--txt);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;}
 .ecran-tok-chip .tc-png{position:absolute;top:1px;right:1px;width:13px;height:13px;font-size:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.6;}
 .ecran-tok-chip .tc-png:hover{opacity:1;}
+.ecran-tok-chip .tc-del{position:absolute;bottom:1px;right:1px;width:13px;height:13px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.4;color:#fca5a5;background:rgba(0,0,0,.3);border-radius:0 0 7px 0;line-height:1;}
+.ecran-tok-chip .tc-del:hover{opacity:1;background:rgba(239,68,68,.5);color:#fff;}
+.ecran-token.sel{outline:2px solid #c9a227;outline-offset:3px;box-shadow:0 0 0 6px rgba(201,162,39,.25)!important;z-index:25;}
 .ecran-map{position:relative;overflow:hidden;background:#05080f;border:1px solid var(--bord2);border-radius:10px;width:100%;aspect-ratio:16/9;max-height:calc(100vh - 340px);}
 .ecran-mapbg{position:absolute;inset:0;background-size:cover!important;background-position:center!important;}
 .ecran-mapimg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;object-fit:cover;}
@@ -5719,7 +5722,7 @@ function son_rendreDrawer(){
 // ══════════════════════════════════════════
 // ÉCRAN / DIFFUSION
 // ══════════════════════════════════════════
-var _ecran={sub:'battlemap',state:null,win:null,screenDetails:null,_saveTimer:null,localMaps:[],localVisuels:[]};
+var _ecran={sub:'battlemap',state:null,win:null,screenDetails:null,_saveTimer:null,localMaps:[],localVisuels:[],selectedId:null};
 // Lecture des dossiers locaux maps/ et visuels/ (listing du serveur local)
 function _ecran_parseDir(html){
   var doc=new DOMParser().parseFromString(html,'text/html');var out=[];
@@ -5880,6 +5883,37 @@ function ecran_init(){
   ecran_setSub(_ecran.sub);
   ecran_refreshScreens();
   ecran_loadLocalMaps();ecran_loadLocalVisuels();
+  // Désélection au clic sur la carte (fond, grille ou image)
+  var mapEl=el('ecran-map');
+  if(mapEl&&!mapEl._clickBound){
+    mapEl._clickBound=true;
+    mapEl.addEventListener('click',function(e){
+      if(e.target===mapEl||e.target.id==='ecran-grid'||e.target.id==='ecran-mapbg'||e.target.id==='ecran-mapimg'){
+        _ecran.selectedId=null;ecran_renderTokens();ecran_renderPalette();
+      }
+    });
+  }
+  // Touches fléchées : déplacer le token sélectionné case par case
+  if(!ecran_init._keyBound){
+    ecran_init._keyBound=true;
+    var GX=4.1667,GY=7.4074;
+    document.addEventListener('keydown',function(e){
+      if(!_ecran.selectedId)return;
+      if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].indexOf(e.key)<0)return;
+      var ae=document.activeElement;
+      if(ae&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'||ae.tagName==='SELECT'))return;
+      e.preventDefault();
+      var st=ecran_state();var t=st.tokens[_ecran.selectedId];if(!t)return;
+      var dx={ArrowLeft:-GX,ArrowRight:GX,ArrowUp:0,ArrowDown:0};
+      var dy={ArrowLeft:0,ArrowRight:0,ArrowUp:-GY,ArrowDown:GY};
+      var cx=t.xPct+(dx[e.key]||0);var cy=t.yPct+(dy[e.key]||0);
+      // Snap centre de cellule
+      cx=(Math.floor(cx/GX)+0.5)*GX; cy=(Math.floor(cy/GY)+0.5)*GY;
+      t.xPct=Math.max(GX/2,Math.min(100-GX/2,cx));
+      t.yPct=Math.max(GY/2,Math.min(100-GY/2,cy));
+      ecran_renderTokens();_ecran_save();
+    });
+  }
 }
 function ecran_setSub(s){
   _ecran.sub=s;
@@ -5981,22 +6015,41 @@ function _ecran_palette(){
 }
 function ecran_renderPalette(){
   var st=ecran_state();
-  var html=_ecran_palette().map(function(t){
+  // Tokens de palette (PJs + monstres en combat)
+  var palList=_ecran_palette();
+  var palIds=palList.map(function(t){return t.id;});
+  // Tokens libres déjà placés sur la map (mon-xxx, grp-xxx) non issus de la palette
+  var freeList=Object.keys(st.tokens).filter(function(id){return palIds.indexOf(id)<0;}).map(function(id){
+    var t=st.tokens[id];
+    return {id:id,nom:t.nom,type:t.type||'enemy',icon:t.icon||'ra-skull',hp:t.hp,maxHp:t.maxHp,free:true};
+  });
+  var allList=palList.concat(freeList);
+  var html=allList.map(function(t){
     var placed=!!st.tokens[t.id];
+    var isSel=_ecran.selectedId===t.id;
     var img=st.tokenImgs&&st.tokenImgs[t.id];
     var icoInner=img?'<img src="'+img+'" onerror="this.style.display=\'none\'">':'<i class="ra '+t.icon+'"></i>';
     var imgBtn=t.type==='enemy'
       ?'<label class="tc-png" title="PNG" onclick="event.stopPropagation()">🖼<input type="file" accept="image/*" style="display:none;" onchange="ecran_setTokenImg(\''+t.id+'\',this)"></label>'
       :'';
+    var delTip=t.id.startsWith('pj-')?'Retirer de la carte':'Supprimer le token';
+    var delBtn='<span class="tc-del" title="'+delTip+'" onclick="event.stopPropagation();ecran_removeToken(\''+t.id+'\')">×</span>';
     var shortNom=besti_esc(t.nom||'').substring(0,9);
-    return '<div class="ecran-tok-chip'+(placed?' placed':'')+'" onclick="ecran_togglePlace(\''+t.id+'\')" title="'+besti_esc(t.nom)+'">'
-      +imgBtn
+    var selStyle=isSel?'outline:2px solid #c9a227;outline-offset:2px;':'';
+    return '<div class="ecran-tok-chip'+(placed?' placed':'')+'" style="'+selStyle+'" onclick="ecran_togglePlace(\''+t.id+'\')" title="'+besti_esc(t.nom)+'">'
+      +imgBtn+delBtn
       +'<div class="tc-ico '+t.type+'">'+icoInner+'</div>'
       +'<span class="tc-nom">'+shortNom+'</span>'
     +'</div>';
   }).join('');
   el('ecran-tok-palette').innerHTML=html||'<span style="font-size:10px;color:var(--txt3);">Aucun token — ajoute des joueurs ou monstres en combat.</span>';
   ecran_renderGroupePalette();
+}
+function ecran_removeToken(id){
+  var st=ecran_state();
+  delete st.tokens[id];
+  if(_ecran.selectedId===id)_ecran.selectedId=null;
+  ecran_renderPalette();ecran_renderTokens();_ecran_save();
 }
 function ecran_setTokenImg(id,inp){
   var f=inp.files&&inp.files[0];inp.value='';if(!f)return;
@@ -6069,7 +6122,7 @@ function ecran_renderTokens(){
   Object.keys(st.tokens).forEach(function(id){
     var t=st.tokens[id];
     var d=document.createElement('div');
-    d.className='ecran-token '+t.type+(t.hidden?' hidden':'');
+    d.className='ecran-token '+t.type+(t.hidden?' hidden':'')+(id===_ecran.selectedId?' sel':'');
     var mr=el('ecran-map').getBoundingClientRect();
     // Positionner depuis le centre (cohérent avec ecran.html qui utilise translate(-50%,-50%))
     d.style.left=((t.xPct||0)/100*mr.width-18)+'px';d.style.top=((t.yPct||0)/100*mr.height-18)+'px';
@@ -6094,6 +6147,8 @@ function _ecran_drag(d,id){
   d.addEventListener('mousedown',function(e){
     if(e.target.classList.contains('hidetag'))return;
     e.preventDefault();
+    // Sélectionner ce token (anneau doré + touches fléchées)
+    _ecran.selectedId=id;ecran_renderTokens();ecran_renderPalette();
     var tr=d.getBoundingClientRect();mx=e.clientX-tr.left;my=e.clientY-tr.top;
     document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
   });
