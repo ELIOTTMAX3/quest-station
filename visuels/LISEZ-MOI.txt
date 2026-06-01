@@ -1,0 +1,15 @@
+DOSSIER DES VISUELS (hors combat)
+==================================
+
+Dépose ici tes images d'ambiance, lieux, PNJ, cartes, documents
+(.jpg, .png, .gif, .webp).
+
+Elles apparaîtront automatiquement en vignettes dans :
+  Panel MJ → onglet 📺 Écran → Visuel
+
+Un clic les diffuse en plein écran sur l'écran des joueurs.
+
+Astuce : prépare tes visuels à l'avance avant ta session.
+
+Note : ce système fonctionne quand tu lances l'app en local
+(serveur sur ton PC). Les images restent sur ta machine.

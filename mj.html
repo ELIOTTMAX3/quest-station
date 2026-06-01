@@ -986,8 +986,8 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
             <div class="ecran-side-sec">
               <div class="ecran-side-title">Carte de fond</div>
               <div class="ecran-maps" id="ecran-maps"></div>
-              <input type="file" id="ecran-map-file" accept="image/*" style="display:none;" onchange="ecran_pickMapFile(this)">
-              <button class="btn ok" style="width:100%;font-size:11px;margin-top:7px;" onclick="document.getElementById('ecran-map-file').click()">📁 Importer une image</button>
+              <button class="btn ok" style="width:100%;font-size:11px;margin-top:7px;" onclick="ecran_refreshLocal()">🔄 Relire le dossier maps/</button>
+              <p style="font-size:9px;color:var(--txt3);margin-top:5px;line-height:1.4;">Dépose tes cartes dans le dossier <b>maps/</b> de l'app — elles apparaissent ici.</p>
               <input type="text" id="ecran-map-url" placeholder="…ou coller une URL" style="width:100%;margin-top:6px;font-size:11px;padding:5px 7px;">
               <button class="btn" style="width:100%;font-size:11px;margin-top:5px;" onclick="ecran_setMapUrl()">Appliquer l'URL</button>
             </div>
@@ -1011,9 +1011,9 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <div class="ecran-two">
           <div class="ecran-side">
             <div class="ecran-side-sec">
-              <div class="ecran-side-title">Ajouter un visuel</div>
-              <input type="file" id="ecran-vis-file" accept="image/*" style="display:none;" onchange="ecran_pickVisFile(this)">
-              <button class="btn ok" style="width:100%;font-size:11px;margin-bottom:8px;" onclick="document.getElementById('ecran-vis-file').click()">📁 Importer une image</button>
+              <div class="ecran-side-title">Visuels</div>
+              <button class="btn ok" style="width:100%;font-size:11px;margin-bottom:6px;" onclick="ecran_refreshLocal()">🔄 Relire le dossier visuels/</button>
+              <p style="font-size:9px;color:var(--txt3);margin-bottom:8px;line-height:1.4;">Dépose tes images dans le dossier <b>visuels/</b> de l'app — clique une vignette pour la diffuser.</p>
               <input type="text" id="ecran-vis-url" placeholder="…ou coller une URL" style="width:100%;font-size:11px;padding:5px 7px;margin-bottom:5px;">
               <input type="text" id="ecran-vis-label" placeholder="Nom (ex : Château)…" style="width:100%;font-size:11px;padding:5px 7px;margin-bottom:5px;">
               <button class="btn" style="width:100%;font-size:11px;" onclick="ecran_addVisuel()">＋ Ajouter l'URL</button>
@@ -5701,7 +5701,27 @@ function son_rendreDrawer(){
 // ══════════════════════════════════════════
 // ÉCRAN / DIFFUSION
 // ══════════════════════════════════════════
-var _ecran={sub:'battlemap',state:null,win:null,screenDetails:null,_saveTimer:null};
+var _ecran={sub:'battlemap',state:null,win:null,screenDetails:null,_saveTimer:null,localMaps:[],localVisuels:[]};
+// Lecture des dossiers locaux maps/ et visuels/ (listing du serveur local)
+function _ecran_parseDir(html){
+  var doc=new DOMParser().parseFromString(html,'text/html');var out=[];
+  doc.querySelectorAll('a').forEach(function(a){
+    var h=a.getAttribute('href')||'';
+    if(/\.(jpe?g|png|gif|webp|avif|bmp)$/i.test(h))out.push(decodeURIComponent(h.split('/').pop()));
+  });
+  return out;
+}
+function ecran_loadLocalMaps(){
+  fetch('maps/').then(function(r){return r.ok?r.text():'';}).then(function(h){
+    _ecran.localMaps=_ecran_parseDir(h);ecran_renderMaps();
+  }).catch(function(){});
+}
+function ecran_loadLocalVisuels(){
+  fetch('visuels/').then(function(r){return r.ok?r.text():'';}).then(function(h){
+    _ecran.localVisuels=_ecran_parseDir(h);ecran_renderVisuel();
+  }).catch(function(){});
+}
+function ecran_refreshLocal(){ecran_loadLocalMaps();ecran_loadLocalVisuels();toast('🔄 Dossiers relus');}
 var ecranStorage=null;
 function ecran_uploadFile(file,kind,cb){
   if(!file)return;
@@ -5755,6 +5775,7 @@ function ecran_init(){
   ecran_renderMaps();ecran_renderPalette();ecran_renderMapArea();ecran_renderVisuel();
   ecran_setSub(_ecran.sub);
   ecran_refreshScreens();
+  ecran_loadLocalMaps();ecran_loadLocalVisuels();
 }
 function ecran_setSub(s){
   _ecran.sub=s;
@@ -5767,9 +5788,14 @@ function ecran_setSub(s){
 // ── Carte ──
 function ecran_renderMaps(){
   var st=ecran_state();
-  el('ecran-maps').innerHTML=_ECRAN_MAPS.map(function(m){
+  var html=_ECRAN_MAPS.map(function(m){
     return '<div class="ecran-mapitem'+(st.map===m.id?' sel':'')+'" style="background:'+m.grad+'" onclick="ecran_setMap(\''+m.id+'\')"><i class="ra '+m.icon+'"></i><div class="lbl">'+m.label+'</div></div>';
   }).join('');
+  (_ecran.localMaps||[]).forEach(function(f){
+    var path='maps/'+f;var sel=st.map===path;
+    html+='<div class="ecran-mapitem'+(sel?' sel':'')+'" style="background:#05080f center/cover no-repeat url(\''+encodeURI(path)+'\')" title="'+besti_esc(f)+'" onclick="ecran_setMap(\''+encodeURI(path)+'\')"><div class="lbl">'+besti_esc(f.replace(/\.[^.]+$/,''))+'</div></div>';
+  });
+  el('ecran-maps').innerHTML=html;
 }
 function ecran_setMap(id){ecran_state().map=id;ecran_renderMaps();ecran_renderMapArea();_ecran_save();}
 function ecran_setMapUrl(){
@@ -5884,18 +5910,33 @@ function ecran_toggleHidden(id){
   t.hidden=!t.hidden;ecran_renderTokens();_ecran_save();
 }
 // ── Visuel ──
+function ecran_broadcastVisuelUrl(url,label){
+  var st=ecran_state();st.visuel=url;st.visuelLabel=label;st.mode='visuel';
+  ecran_renderVisuel();_ecran_save();toast('📺 '+label);
+}
 function ecran_renderVisuel(){
   var st=ecran_state();var grid=el('ecran-vis-grid');if(!grid)return;
-  var lib=st.visuelLib||[];
-  grid.innerHTML=lib.length?lib.map(function(v,i){
+  var html='';
+  // Visuels du dossier local visuels/
+  (_ecran.localVisuels||[]).forEach(function(f){
+    var path='visuels/'+f;var label=f.replace(/\.[^.]+$/,'');var live=st.visuel===path;
+    html+='<div class="ecran-vis-card'+(live?' live':'')+'" onclick="ecran_broadcastVisuelUrl(\''+encodeURI(path)+'\',\''+besti_esc(label).replace(/'/g,"\\'")+'\')">'
+      +'<img src="'+encodeURI(path)+'" onerror="this.style.opacity=.2">'
+      +(live?'<span class="vlive">● LIVE</span>':'')
+      +'<span class="vlbl">📁 '+besti_esc(label)+'</span>'
+    +'</div>';
+  });
+  // Bibliothèque manuelle (URL)
+  (st.visuelLib||[]).forEach(function(v,i){
     var live=st.visuel===v.url;
-    return '<div class="ecran-vis-card'+(live?' live':'')+'" onclick="ecran_broadcastVisuel('+i+')">'
+    html+='<div class="ecran-vis-card'+(live?' live':'')+'" onclick="ecran_broadcastVisuel('+i+')">'
       +'<img src="'+v.url+'" onerror="this.style.opacity=.2">'
       +(live?'<span class="vlive">● LIVE</span>':'')
       +'<span class="vdel" onclick="event.stopPropagation();ecran_delVisuel('+i+')">✕</span>'
       +'<span class="vlbl">'+besti_esc(v.label||'Sans nom')+'</span>'
     +'</div>';
-  }).join(''):'<p style="font-size:12px;color:var(--txt3);">Bibliothèque vide. Ajoute une image via le panneau de gauche.</p>';
+  });
+  grid.innerHTML=html||'<p style="font-size:12px;color:var(--txt3);">Aucun visuel. Dépose des images dans le dossier <b>visuels/</b> ou ajoute une URL.</p>';
   var cur=el('ecran-vis-current');
   if(cur)cur.innerHTML=st.visuel?('<b style="color:#4ade80;">'+besti_esc(st.visuelLabel||'Image')+'</b> en diffusion'):'Rien de diffusé.';
 }

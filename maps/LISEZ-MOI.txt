@@ -1,0 +1,13 @@
+DOSSIER DES CARTES DE COMBAT (battlemaps)
+==========================================
+
+Dépose ici tes images de cartes de combat (.jpg, .png, .gif, .webp).
+
+Elles apparaîtront automatiquement en vignettes dans :
+  Panel MJ → onglet 📺 Écran → Battlemap → "Carte de fond"
+
+Astuce : prépare toutes tes cartes à l'avance avant ta session,
+elles seront prêtes à diffuser d'un seul clic.
+
+Note : ce système fonctionne quand tu lances l'app en local
+(serveur sur ton PC). Les images restent sur ta machine.
