@@ -5742,50 +5742,51 @@ function ecran_uploadFile(file,kind,cb){
     .then(function(url){cb(url,file.name);toast('✅ Image importée');})
     .catch(function(e){toast('Erreur import : '+e.message);});
 }
-// Compresse une image en base64 JPEG (max 900px, qualité 0.72 ≈ 60-120 Ko)
-function _ecran_imgToBase64(file,cb){
+// Charge un fichier image → compresse via canvas → renvoie une data URL JPEG
+// Jamais de Firebase Storage : fonctionne toujours en local
+function _ecran_compressImage(file, cb){
+  toast('⏳ Chargement…');
   var reader=new FileReader();
   reader.onerror=function(){toast('❌ Erreur lecture fichier.');};
-  reader.onload=function(evt){
+  reader.onload=function(e){
     var img=new Image();
-    img.onerror=function(){toast('❌ Image invalide.');};
+    img.onerror=function(){toast('❌ Format non supporté.');};
     img.onload=function(){
-      var MAX=900,scale=Math.min(MAX/img.width,MAX/img.height,1);
-      var cw=Math.round(img.width*scale),ch=Math.round(img.height*scale);
-      var cv=document.createElement('canvas');cv.width=cw;cv.height=ch;
-      cv.getContext('2d').drawImage(img,0,0,cw,ch);
-      cb(cv.toDataURL('image/jpeg',0.72));
+      var MAX=1024, s=Math.min(MAX/img.width,MAX/img.height,1);
+      var cv=document.createElement('canvas');
+      cv.width=Math.round(img.width*s); cv.height=Math.round(img.height*s);
+      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
+      cb(cv.toDataURL('image/jpeg',0.75));
     };
-    img.src=evt.target.result;
+    img.src=e.target.result;
   };
   reader.readAsDataURL(file);
 }
 function ecran_pickMapFile(inp){
   var f=inp.files&&inp.files[0];inp.value='';if(!f)return;
   var defNom=f.name.replace(/\.[^.]+$/,'');
-  var nom=prompt('Nom de la carte :',defNom)||defNom;
-  toast('⏳ Import…');
-  function _done(url){
+  var nom=prompt('Nom de la carte :',defNom);
+  if(nom===null)return; // annulé
+  nom=nom.trim()||defNom;
+  _ecran_compressImage(f,function(url){
     var st=ecran_state();
     st.mapLib.push({url:url,label:nom});
     st.map=url;ecran_renderMaps();ecran_renderMapArea();_ecran_save();
     toast('✅ Carte "'+nom+'" chargée');
-  }
-  if(ecranStorage){ecran_uploadFile(f,'maps',function(url){_done(url);});}
-  else{_ecran_imgToBase64(f,function(url){_done(url);});}
+  });
 }
 function ecran_pickVisFile(inp){
   var f=inp.files&&inp.files[0];inp.value='';if(!f)return;
   var defNom=f.name.replace(/\.[^.]+$/,'');
-  var nom=prompt('Nom du visuel :',defNom)||defNom;
-  toast('⏳ Import…');
-  function _done(url){
-    var st=ecran_state();st.visuelLib.push({url:url,label:nom});
+  var nom=prompt('Nom du visuel :',defNom);
+  if(nom===null)return;
+  nom=nom.trim()||defNom;
+  _ecran_compressImage(f,function(url){
+    var st=ecran_state();
+    st.visuelLib.push({url:url,label:nom});
     ecran_renderVisuel();_ecran_save();
     toast('✅ Visuel "'+nom+'" chargé');
-  }
-  if(ecranStorage){ecran_uploadFile(f,'visuels',function(url){_done(url);});}
-  else{_ecran_imgToBase64(f,function(url){_done(url);});}
+  });
 }
 function ecran_delMap(i){
   var st=ecran_state();if(!st.mapLib[i])return;
