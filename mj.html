@@ -5811,13 +5811,38 @@ function ecran_state(){
   if(!_ecran.state.visuelLib)_ecran.state.visuelLib=[];
   return _ecran.state;
 }
+// Envoie les data URLs locales directement à la fenêtre ecran (bypass Firestore 1MB)
+function _ecran_pushLocal(){
+  if(!_ecran.win||_ecran.win.closed)return;
+  var st=ecran_state();
+  _ecran.win.postMessage({type:'qs_local',
+    map:  (st.map   &&st.map.startsWith('data:'))   ? st.map   : null,
+    visuel:(st.visuel&&st.visuel.startsWith('data:')) ? st.visuel: null
+  },'*');
+}
+// Construit l'état Firestore sans data URLs (remplacées par marqueur)
+function _ecran_fsState(){
+  var st=ecran_state();
+  var s=JSON.parse(JSON.stringify(st));
+  if(s.map   &&s.map.startsWith('data:'))   s.map='__local__';
+  if(s.visuel&&s.visuel.startsWith('data:')) s.visuel='__local__';
+  // mapLib/visuelLib : on garde les labels mais pas les data URLs (trop lourdes)
+  (s.mapLib||[]).forEach(function(m){if(m.url&&m.url.startsWith('data:'))m.url='__local__';});
+  (s.visuelLib||[]).forEach(function(v){if(v.url&&v.url.startsWith('data:'))v.url='__local__';});
+  return s;
+}
 function _ecran_save(){
   if(!db||!campagneActive)return;
   clearTimeout(_ecran._saveTimer);
   _ecran._saveTimer=setTimeout(function(){
-    db.collection("parties").doc(campagneActive.id).set({ecran:_ecran.state},{merge:true}).catch(function(){});
+    _ecran_pushLocal();
+    db.collection("parties").doc(campagneActive.id).set({ecran:_ecran_fsState()},{merge:true}).catch(function(){});
   },120);
 }
+// Répondre aux demandes de resync de la fenêtre ecran
+window.addEventListener('message',function(e){
+  if(e.data&&e.data.type==='qs_reqLocal') _ecran_pushLocal();
+});
 function ecran_init(){
   ecran_state();
   besti_initGroupes();
@@ -6013,7 +6038,7 @@ function ecran_renderTokens(){
       ?'<img class="tok-img" src="'+t.img+'" onerror="this.style.display=\'none\'">'
       :'<i class="ra '+(t.icon||'ra-skull')+'"></i>';
     d.innerHTML=iconHtml
-      +'<span class="tl" style="position:relative;z-index:2;">'+besti_esc((t.nom||'').split(' ')[0])+'</span>'+hp
+      +'<span class="tl">'+besti_esc(t.nom||'')+'</span>'+hp
       +'<span class="hidetag" title="Masquer/montrer aux joueurs" onclick="event.stopPropagation();ecran_toggleHidden(\''+id+'\')">'+(t.hidden?'🙈':'👁')+'</span>';
     _ecran_drag(d,id);
     layer.appendChild(d);
@@ -6031,9 +6056,16 @@ function _ecran_drag(d,id){
     var r=el('ecran-map').getBoundingClientRect();
     var nx=Math.max(0,Math.min(r.width-36,e.clientX-r.left-mx));
     var ny=Math.max(0,Math.min(r.height-36,e.clientY-r.top-my));
+    // Centre en %
+    var cx=(nx+18)/r.width*100, cy=(ny+18)/r.height*100;
+    // Snap grille : 24 colonnes × 13.5 lignes sur 16:9
+    if(ecran_state().grid!==false){
+      var GX=4.1667,GY=7.4074;
+      cx=Math.round(cx/GX)*GX; cy=Math.round(cy/GY)*GY;
+      nx=cx/100*r.width-18; ny=cy/100*r.height-18;
+    }
     d.style.left=nx+'px';d.style.top=ny+'px';
-    // Sauvegarder le CENTRE du token pour aligner avec ecran.html (transform:-50%,-50%)
-    var t=ecran_state().tokens[id];if(t){t.xPct=Math.round((nx+18)/r.width*1000)/10;t.yPct=Math.round((ny+18)/r.height*1000)/10;}
+    var t=ecran_state().tokens[id];if(t){t.xPct=Math.round(cx*10)/10;t.yPct=Math.round(cy*10)/10;}
     _ecran_save();
   }
   function up(){document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);}

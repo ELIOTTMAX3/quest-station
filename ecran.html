@@ -96,7 +96,7 @@ function render(state, combat){
   if(!state){wait.style.display='flex';document.getElementById('wait-msg').textContent='En attente du MJ…';return;}
   wait.style.display='none';
 
-  var showVisuel = state.mode==='visuel' && state.visuel;
+  var showVisuel = state.mode==='visuel' && showVisuelUrl;
   document.getElementById('visuel').style.display=showVisuel?'flex':'none';
   document.getElementById('root').style.background='#000';
   document.getElementById('stage').style.display=showVisuel?'none':'block';
@@ -104,12 +104,12 @@ function render(state, combat){
   if(showVisuel){
     var vimg=document.getElementById('visuel-img');
     vimg.onload=function(){
-      if(vimg.naturalHeight>vimg.naturalWidth){ // portrait → paysage, bas à droite
+      if(vimg.naturalHeight>vimg.naturalWidth){
         vimg.style.transform='rotate(-90deg)';
         vimg.style.maxWidth=window.innerHeight+'px';vimg.style.maxHeight=window.innerWidth+'px';
       }else{vimg.style.transform='';vimg.style.maxWidth='100%';vimg.style.maxHeight='100%';}
     };
-    vimg.src=state.visuel;
+    vimg.src=showVisuelUrl;
     document.getElementById('visuel-title').textContent=state.visuelLabel||'';
     return;
   }
@@ -120,7 +120,14 @@ function render(state, combat){
   // Battlemap — tout est positionné en % du stage 16:9 (verrouillé à toute résolution)
   var stage=document.getElementById('stage');
   var SW=stage.clientWidth, SH=stage.clientHeight;
+  // Résoudre les marqueurs locaux → demander resync si besoin
   var mapVal=state.map||'dungeon';
+  if(mapVal==='__local__'){
+    mapVal=_localData.map||'dungeon';
+    if(!_localData.map&&window.opener)window.opener.postMessage({type:'qs_reqLocal'},'*');
+  }
+  var showVisuelUrl=state.visuel==='__local__'?(_localData.visuel||null):state.visuel;
+
   var mapbg=document.getElementById('mapbg'), mapimg=document.getElementById('mapimg');
   if(MAPS[mapVal]){
     mapbg.style.background=MAPS[mapVal];mapbg.style.display='block';mapimg.style.display='none';
@@ -149,7 +156,7 @@ function render(state, combat){
       :'<i class="ra '+(t.icon||'ra-skull')+'" style="font-size:'+Math.round(size*0.42)+'px;"></i>';
     return '<div class="tok '+t.type+'" style="left:'+(t.xPct||0)+'%;top:'+(t.yPct||0)+'%;width:'+size+'px;height:'+size+'px;">'
       +iconHtml
-      +'<span class="tl" style="font-size:'+Math.round(size*0.2)+'px;position:relative;z-index:2;">'+esc((t.nom||'').split(' ')[0])+'</span>'
+      +'<span class="tl" style="font-size:'+Math.round(size*0.2)+'px;">'+esc(t.nom||'')+'</span>'
       +hp
     +'</div>';
   }).join('');
@@ -166,7 +173,15 @@ function render(state, combat){
 }
 
 var _last=null;
+var _localData={map:null,visuel:null}; // data URLs reçues via postMessage
 window.addEventListener('resize',function(){ if(_last) render(_last.ecran,_last.combat); });
+// Réception des images locales depuis la fenêtre MJ
+window.addEventListener('message',function(e){
+  if(!e.data||e.data.type!=='qs_local')return;
+  if(e.data.map)   _localData.map=e.data.map;
+  if(e.data.visuel)_localData.visuel=e.data.visuel;
+  if(_last)render(_last.ecran,_last.combat);
+});
 
 function loadScript(src){return new Promise(function(res,rej){var s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
 loadScript("https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js")
