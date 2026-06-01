@@ -185,7 +185,7 @@ function _doRender(renderState, combat){
       hp='<div class="hpb" style="bottom:-'+Math.round(size*0.18)+'px;left:4px;right:4px;"><div class="hpf" style="width:'+pct+'%;background:'+c+'"></div></div>';
     }
     var iconHtml=t.img
-      ?'<img src="'+t.img+'" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="">'
+      ?'<div style="position:absolute;inset:0;border-radius:50%;overflow:hidden;"><img src="'+t.img+'" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.style.display=\'none\'"></div>'
       :'<i class="ra '+(t.icon||'ra-skull')+'" style="font-size:'+Math.round(size*0.42)+'px;"></i>';
     return '<div class="tok '+t.type+'" style="left:'+(t.xPct||0)+'%;top:'+(t.yPct||0)+'%;width:'+size+'px;height:'+size+'px;">'
       +iconHtml

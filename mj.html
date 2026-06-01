@@ -5932,27 +5932,6 @@ function ecran_init(){
       }
     });
   }
-  // Touches fléchées : déplacer le token sélectionné case par case
-  if(!ecran_init._keyBound){
-    ecran_init._keyBound=true;
-    var GX=4.1667,GY=7.4074;
-    document.addEventListener('keydown',function(e){
-      if(!_ecran.selectedId)return;
-      if(['ArrowLeft','ArrowRight','ArrowUp','ArrowDown'].indexOf(e.key)<0)return;
-      var ae=document.activeElement;
-      if(ae&&(ae.tagName==='INPUT'||ae.tagName==='TEXTAREA'||ae.tagName==='SELECT'))return;
-      e.preventDefault();
-      var st=ecran_state();var t=st.tokens[_ecran.selectedId];if(!t)return;
-      var dx={ArrowLeft:-GX,ArrowRight:GX,ArrowUp:0,ArrowDown:0};
-      var dy={ArrowLeft:0,ArrowRight:0,ArrowUp:-GY,ArrowDown:GY};
-      var cx=t.xPct+(dx[e.key]||0);var cy=t.yPct+(dy[e.key]||0);
-      // Snap centre de cellule
-      cx=(Math.floor(cx/GX)+0.5)*GX; cy=(Math.floor(cy/GY)+0.5)*GY;
-      t.xPct=Math.max(GX/2,Math.min(100-GX/2,cx));
-      t.yPct=Math.max(GY/2,Math.min(100-GY/2,cy));
-      ecran_renderTokens();_ecran_save();
-    });
-  }
 }
 function ecran_setSub(s){
   _ecran.sub=s;
@@ -6092,19 +6071,17 @@ function ecran_removeToken(id){
 }
 function ecran_setTokenImg(id,inp){
   var f=inp.files&&inp.files[0];inp.value='';if(!f)return;
-  function _apply(url){
+  // Toujours utiliser FileReader (Firebase Storage peut échouer silencieusement)
+  var reader=new FileReader();
+  reader.onload=function(e){
     var st=ecran_state();
-    st.tokenImgs[id]=url;
-    if(st.tokens[id])st.tokens[id].img=url;
+    st.tokenImgs[id]=e.target.result;
+    if(st.tokens[id])st.tokens[id].img=e.target.result;
     ecran_renderPalette();ecran_renderTokens();_ecran_save();
-  }
-  if(ecranStorage){
-    ecran_uploadFile(f,'tokens',function(url){_apply(url);});
-  } else {
-    var reader=new FileReader();
-    reader.onload=function(e){_apply(e.target.result);};
-    reader.readAsDataURL(f);
-  }
+    toast('✅ Image token mise à jour');
+  };
+  reader.onerror=function(){toast('❌ Erreur lecture image.');};
+  reader.readAsDataURL(f);
 }
 function ecran_renderGroupePalette(){
   var cont=el('ecran-grp-palette');if(!cont)return;
@@ -6172,7 +6149,7 @@ function ecran_renderTokens(){
       hp='<div class="hpb"><div class="hpf" style="width:'+pct+'%;background:'+c+'"></div></div>';
     }
     var iconHtml=t.img
-      ?'<img class="tok-img" src="'+t.img+'" onerror="this.style.display=\'none\'">'
+      ?'<div style="position:absolute;inset:0;border-radius:50%;overflow:hidden;"><img src="'+t.img+'" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.style.display=\'none\'"></div>'
       :'<i class="ra '+(t.icon||'ra-skull')+'"></i>';
     d.innerHTML=iconHtml
       +'<span class="tl">'+besti_esc(t.nom||'')+'</span>'+hp
