@@ -481,6 +481,18 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .ecran-tokico.ally{background:rgba(74,222,128,.15);border:1px solid rgba(74,222,128,.35);color:#4ade80;}
 .ecran-tokico.npc{background:rgba(201,162,39,.15);border:1px solid rgba(201,162,39,.35);color:#c9a227;}
 .ecran-toknom{flex:1;min-width:0;font-size:11px;font-weight:700;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+/* Chips horizontaux */
+.ecran-tok-chip{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 5px 5px;border-radius:9px;border:2px solid var(--bord);background:var(--bg3);cursor:pointer;width:56px;flex-shrink:0;transition:border-color .15s;}
+.ecran-tok-chip:hover{border-color:var(--bord2);}
+.ecran-tok-chip.placed{border-color:rgba(201,162,39,.6);background:rgba(201,162,39,.08);}
+.ecran-tok-chip .tc-ico{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;}
+.ecran-tok-chip .tc-ico img{width:100%;height:100%;border-radius:50%;object-fit:cover;}
+.ecran-tok-chip .tc-ico.ally{background:rgba(74,222,128,.2);border:1px solid rgba(74,222,128,.4);color:#4ade80;}
+.ecran-tok-chip .tc-ico.enemy{background:rgba(239,68,68,.2);border:1px solid rgba(239,68,68,.4);color:#fca5a5;}
+.ecran-tok-chip .tc-ico.npc{background:rgba(201,162,39,.2);border:1px solid rgba(201,162,39,.4);color:#c9a227;}
+.ecran-tok-chip .tc-nom{font-size:8px;font-weight:700;color:var(--txt);text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;}
+.ecran-tok-chip .tc-png{position:absolute;top:1px;right:1px;width:13px;height:13px;font-size:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;opacity:.6;}
+.ecran-tok-chip .tc-png:hover{opacity:1;}
 .ecran-map{position:relative;overflow:hidden;background:#05080f;border:1px solid var(--bord2);border-radius:10px;width:100%;aspect-ratio:16/9;max-height:calc(100vh - 340px);}
 .ecran-mapbg{position:absolute;inset:0;background-size:cover!important;background-position:center!important;}
 .ecran-mapimg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;object-fit:cover;}
@@ -982,30 +994,27 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 
       <!-- BATTLEMAP -->
       <div id="ecran-page-battlemap">
-        <!-- Barre horizontale : cartes + tokens + groupes -->
+        <!-- Barre 1 : Cartes + Groupes -->
         <div class="ecran-hbar">
-          <!-- Colonne Cartes -->
           <div class="ecran-hbar-col">
             <div class="ecran-side-title">Carte de fond</div>
             <div class="ecran-maps-hrow" id="ecran-maps"></div>
-            <div style="display:flex;gap:5px;flex-wrap:wrap;">
+            <div style="display:flex;gap:5px;flex-wrap:wrap;margin-top:4px;">
               <label class="btn" style="font-size:11px;padding:5px 9px;cursor:pointer;white-space:nowrap;">📁 Importer<input type="file" accept="image/*" style="display:none;" onchange="ecran_pickMapFile(this)"></label>
               <button class="btn on" id="ecran-grid-btn" style="font-size:11px;padding:5px 9px;white-space:nowrap;" onclick="ecran_toggleGrid()">⊞ Grille ON</button>
             </div>
           </div>
           <div class="ecran-hbar-sep"></div>
-          <!-- Colonne Tokens -->
-          <div class="ecran-hbar-col" style="flex:1;min-width:180px;">
-            <div class="ecran-side-title">Tokens — clic pour placer</div>
-            <div id="ecran-tok-palette" style="display:flex;flex-direction:column;gap:3px;max-height:130px;overflow-y:auto;"></div>
-            <button class="btn" style="font-size:11px;padding:4px 9px;margin-top:4px;align-self:flex-start;" onclick="ecran_addMonstreToken()">＋ Monstre libre</button>
-          </div>
-          <div class="ecran-hbar-sep"></div>
-          <!-- Colonne Groupes -->
-          <div class="ecran-hbar-col" style="min-width:140px;">
+          <div class="ecran-hbar-col" style="min-width:130px;">
             <div class="ecran-side-title">Groupes de monstres</div>
-            <div id="ecran-grp-palette" style="display:flex;flex-direction:column;gap:3px;max-height:130px;overflow-y:auto;"></div>
+            <div id="ecran-grp-palette" style="display:flex;flex-direction:column;gap:3px;max-height:100px;overflow-y:auto;"></div>
           </div>
+        </div>
+        <!-- Barre 2 : Tokens horizontal pleine largeur -->
+        <div class="ecran-hbar" style="margin-bottom:6px;align-items:center;">
+          <div class="ecran-side-title" style="margin-bottom:0;flex-shrink:0;">Tokens</div>
+          <div id="ecran-tok-palette" style="display:flex;gap:5px;flex-wrap:wrap;flex:1;"></div>
+          <button class="btn" style="font-size:11px;padding:5px 9px;white-space:nowrap;flex-shrink:0;" onclick="ecran_addMonstreToken()">＋</button>
         </div>
         <!-- Prévisualisation pleine largeur -->
         <div class="ecran-map" id="ecran-map">
@@ -5937,20 +5946,18 @@ function ecran_renderPalette(){
   var html=_ecran_palette().map(function(t){
     var placed=!!st.tokens[t.id];
     var img=st.tokenImgs&&st.tokenImgs[t.id];
-    var icoHtml=img
-      ?'<img src="'+img+'" style="width:24px;height:24px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
-      :'<div class="ecran-tokico '+t.type+'"><i class="ra '+t.icon+'"></i></div>';
+    var icoInner=img?'<img src="'+img+'" onerror="this.style.display=\'none\'">':'<i class="ra '+t.icon+'"></i>';
     var imgBtn=t.type==='enemy'
-      ?'<label style="font-size:10px;cursor:pointer;color:var(--txt3);flex-shrink:0;padding:2px;" title="Choisir un PNG">🖼<input type="file" accept="image/*" style="display:none;" onchange="ecran_setTokenImg(\''+t.id+'\',this)"></label>'
+      ?'<label class="tc-png" title="PNG" onclick="event.stopPropagation()">🖼<input type="file" accept="image/*" style="display:none;" onchange="ecran_setTokenImg(\''+t.id+'\',this)"></label>'
       :'';
-    return '<div class="ecran-tokrow'+(placed?' placed':'')+'" onclick="ecran_togglePlace(\''+t.id+'\')">'
-      +icoHtml
-      +'<span class="ecran-toknom">'+besti_esc(t.nom)+'</span>'
+    var shortNom=besti_esc(t.nom||'').substring(0,9);
+    return '<div class="ecran-tok-chip'+(placed?' placed':'')+'" onclick="ecran_togglePlace(\''+t.id+'\')" title="'+besti_esc(t.nom)+'">'
       +imgBtn
-      +'<span style="font-size:11px;color:'+(placed?'#c9a227':'#5a6a8a')+';">'+(placed?'✓':'＋')+'</span>'
+      +'<div class="tc-ico '+t.type+'">'+icoInner+'</div>'
+      +'<span class="tc-nom">'+shortNom+'</span>'
     +'</div>';
   }).join('');
-  el('ecran-tok-palette').innerHTML=html||'<p style="font-size:11px;color:var(--txt3);">Aucun PJ ni monstre en combat.</p>';
+  el('ecran-tok-palette').innerHTML=html||'<span style="font-size:10px;color:var(--txt3);">Aucun token — ajoute des joueurs ou monstres en combat.</span>';
   ecran_renderGroupePalette();
 }
 function ecran_setTokenImg(id,inp){
@@ -6058,10 +6065,10 @@ function _ecran_drag(d,id){
     var ny=Math.max(0,Math.min(r.height-36,e.clientY-r.top-my));
     // Centre en %
     var cx=(nx+18)/r.width*100, cy=(ny+18)/r.height*100;
-    // Snap grille : 24 colonnes × 13.5 lignes sur 16:9
+    // Snap au CENTRE des cellules (pas aux intersections)
     if(ecran_state().grid!==false){
       var GX=4.1667,GY=7.4074;
-      cx=Math.round(cx/GX)*GX; cy=Math.round(cy/GY)*GY;
+      cx=(Math.floor(cx/GX)+0.5)*GX; cy=(Math.floor(cy/GY)+0.5)*GY;
       nx=cx/100*r.width-18; ny=cy/100*r.height-18;
     }
     d.style.left=nx+'px';d.style.top=ny+'px';
@@ -6158,6 +6165,8 @@ function ecran_toggleDiffusion(){
   _ecran._winCheck=setInterval(function(){
     if(_ecran.win&&_ecran.win.closed){_ecran.win=null;clearInterval(_ecran._winCheck);ecran_bcUI(false);}
   },1000);
+  // Push des images locales après chargement de la page ecran (~1.5s)
+  setTimeout(function(){_ecran_pushLocal();},1500);
 }
 function ecran_bcUI(live){
   var btn=el('ecran-bcbtn'),st=el('ecran-bcstatus');
