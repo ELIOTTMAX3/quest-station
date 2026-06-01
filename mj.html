@@ -5742,27 +5742,34 @@ function ecran_uploadFile(file,kind,cb){
     .then(function(url){cb(url,file.name);toast('✅ Image importée');})
     .catch(function(e){toast('Erreur import : '+e.message);});
 }
+// Compresse une image en base64 JPEG (max 900px, qualité 0.72 ≈ 60-120 Ko)
 function _ecran_imgToBase64(file,cb){
-  var img=new Image(),url=URL.createObjectURL(file);
-  img.onload=function(){
-    var MAX=1280,scale=Math.min(MAX/img.width,MAX/img.height,1);
-    var cw=Math.round(img.width*scale),ch=Math.round(img.height*scale);
-    var cv=document.createElement('canvas');cv.width=cw;cv.height=ch;
-    cv.getContext('2d').drawImage(img,0,0,cw,ch);
-    URL.revokeObjectURL(url);
-    cb(cv.toDataURL('image/jpeg',0.85));
+  var reader=new FileReader();
+  reader.onerror=function(){toast('❌ Erreur lecture fichier.');};
+  reader.onload=function(evt){
+    var img=new Image();
+    img.onerror=function(){toast('❌ Image invalide.');};
+    img.onload=function(){
+      var MAX=900,scale=Math.min(MAX/img.width,MAX/img.height,1);
+      var cw=Math.round(img.width*scale),ch=Math.round(img.height*scale);
+      var cv=document.createElement('canvas');cv.width=cw;cv.height=ch;
+      cv.getContext('2d').drawImage(img,0,0,cw,ch);
+      cb(cv.toDataURL('image/jpeg',0.72));
+    };
+    img.src=evt.target.result;
   };
-  img.src=url;
+  reader.readAsDataURL(file);
 }
 function ecran_pickMapFile(inp){
   var f=inp.files&&inp.files[0];inp.value='';if(!f)return;
   var defNom=f.name.replace(/\.[^.]+$/,'');
   var nom=prompt('Nom de la carte :',defNom)||defNom;
+  toast('⏳ Import…');
   function _done(url){
     var st=ecran_state();
     st.mapLib.push({url:url,label:nom});
     st.map=url;ecran_renderMaps();ecran_renderMapArea();_ecran_save();
-    toast('✅ Carte "'+nom+'" ajoutée');
+    toast('✅ Carte "'+nom+'" chargée');
   }
   if(ecranStorage){ecran_uploadFile(f,'maps',function(url){_done(url);});}
   else{_ecran_imgToBase64(f,function(url){_done(url);});}
@@ -5771,10 +5778,11 @@ function ecran_pickVisFile(inp){
   var f=inp.files&&inp.files[0];inp.value='';if(!f)return;
   var defNom=f.name.replace(/\.[^.]+$/,'');
   var nom=prompt('Nom du visuel :',defNom)||defNom;
+  toast('⏳ Import…');
   function _done(url){
     var st=ecran_state();st.visuelLib.push({url:url,label:nom});
     ecran_renderVisuel();_ecran_save();
-    toast('✅ Visuel "'+nom+'" ajouté');
+    toast('✅ Visuel "'+nom+'" chargé');
   }
   if(ecranStorage){ecran_uploadFile(f,'visuels',function(url){_done(url);});}
   else{_ecran_imgToBase64(f,function(url){_done(url);});}
@@ -5876,8 +5884,14 @@ function ecran_renderMapArea(){
   else if(img){
     bg.style.display='none';img.style.display='block';
     var cw=map.clientWidth,ch=map.clientHeight;
-    if(img.getAttribute('data-src')!==mapVal){img.setAttribute('data-src',mapVal);img.onload=function(){_ecran_orient(img,cw,ch);};img.src=mapVal;}
-    else if(img.naturalWidth){_ecran_orient(img,cw,ch);}
+    // Comparer seulement les 80 premiers chars pour éviter de stocker un base64 complet en attribut
+    var key=mapVal.substring(0,80);
+    if(img.getAttribute('data-key')!==key){
+      img.setAttribute('data-key',key);
+      img.onload=function(){_ecran_orient(img,cw,ch);};
+      img.onerror=function(){toast('❌ Impossible de charger la carte.');};
+      img.src=mapVal;
+    } else if(img.naturalWidth){_ecran_orient(img,cw,ch);}
   }
   ecran_renderTokens();
 }
