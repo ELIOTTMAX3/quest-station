@@ -459,6 +459,10 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .ecran-bcbtn{font-family:inherit;font-size:12px;font-weight:700;padding:7px 16px;border-radius:8px;cursor:pointer;border:1px solid rgba(74,222,128,.4);background:rgba(74,222,128,.12);color:#4ade80;}
 .ecran-bcbtn:hover{background:rgba(74,222,128,.22);}
 .ecran-bcbtn.live{background:#ef4444;border-color:#ef4444;color:#fff;}
+.ecran-curtainbtn{font-family:inherit;font-size:12px;font-weight:700;padding:7px 14px;border-radius:8px;cursor:pointer;border:1px solid rgba(201,162,39,.35);background:rgba(201,162,39,.08);color:#c9a227;display:none;}
+.ecran-curtainbtn:hover{background:rgba(201,162,39,.2);}
+.ecran-curtainbtn.down{background:rgba(201,162,39,.25);border-color:#c9a227;animation:curtainpulse 2s ease-in-out infinite;}
+@keyframes curtainpulse{0%,100%{box-shadow:0 0 0 0 rgba(201,162,39,.4);}50%{box-shadow:0 0 0 6px rgba(201,162,39,0);}}
 .ecran-livedot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#4ade80;margin-right:5px;animation:sonpulse 1.5s ease-in-out infinite;}
 .ecran-subtabs{display:flex;gap:6px;margin-bottom:10px;}
 .ecran-subtab{font-size:12px;font-weight:600;padding:8px 16px;border-radius:8px;border:1px solid var(--bord2);background:var(--bg3);color:var(--txt3);cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:6px;}
@@ -987,6 +991,14 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <button class="ecran-bcbtn" id="ecran-bcbtn" onclick="ecran_toggleDiffusion()">▶ Lancer la diffusion</button>
         <span style="font-size:11px;color:var(--txt3);" id="ecran-bcstatus">Aucune diffusion active</span>
         <div style="flex:1;"></div>
+        <select id="ecran-fade-sel" style="display:none;font-family:inherit;font-size:11px;padding:5px 7px;border-radius:7px;border:1px solid var(--bord2);background:var(--bg);color:var(--txt);cursor:pointer;" title="Durée du fondu" onchange="ecran_setFade(this.value)">
+          <option value="0">Fondu : instantané</option>
+          <option value="500">Fondu : 0.5s</option>
+          <option value="1000" selected>Fondu : 1s</option>
+          <option value="2000">Fondu : 2s</option>
+          <option value="3000">Fondu : 3s</option>
+        </select>
+        <button class="ecran-curtainbtn" id="ecran-curtainbtn" onclick="ecran_toggleCurtain()">🎭 Rideau</button>
         <button class="btn" style="font-size:11px;padding:6px 11px;" onclick="ecran_refreshScreens()" title="Détecter les écrans">🔄 Écrans</button>
       </div>
       <!-- Sous-onglets -->
@@ -5814,7 +5826,7 @@ function _ecran_fixUrl(url){
   if(gd)url='https://drive.google.com/uc?export=view&id='+gd[1];
   return url;
 }
-function _ecran_default(){return {mode:'battlemap',map:'dungeon',tokens:{},tokenImgs:{},mapLib:[],mapTokenSaves:{},visuel:null,visuelLabel:'',visuelLib:[],grid:true};}
+function _ecran_default(){return {mode:'battlemap',map:'dungeon',tokens:{},tokenImgs:{},mapLib:[],mapTokenSaves:{},visuel:null,visuelLabel:'',visuelLib:[],grid:true,curtain:false,frozen:null,fadeMs:1000};}
 function ecran_state(){
   if(!_ecran.state)_ecran.state=(campagneActive&&campagneActive.ecran)?Object.assign(_ecran_default(),campagneActive.ecran):_ecran_default();
   if(!_ecran.state.tokens)_ecran.state.tokens={};
@@ -5846,11 +5858,13 @@ function _ecran_pushLocal(){
 function _ecran_fsState(){
   var st=ecran_state();
   var s=JSON.parse(JSON.stringify(st));
-  if(s.map   &&s.map.startsWith('data:'))   s.map='__local__';
-  if(s.visuel&&s.visuel.startsWith('data:')) s.visuel='__local__';
-  (s.mapLib||[]).forEach(function(m){if(m.url&&m.url.startsWith('data:'))m.url='__local__';});
-  (s.visuelLib||[]).forEach(function(v){if(v.url&&v.url.startsWith('data:'))v.url='__local__';});
-  // Supprimer les img data URL dans les tokens sauvegardés (trop lourds pour Firestore)
+  function _stripData(obj,field){if(obj&&obj[field]&&obj[field].startsWith('data:'))obj[field]='__local__';}
+  _stripData(s,'map');_stripData(s,'visuel');
+  (s.mapLib||[]).forEach(function(m){_stripData(m,'url');});
+  (s.visuelLib||[]).forEach(function(v){_stripData(v,'url');});
+  // Snapshot frozen : strip data URLs
+  if(s.frozen){_stripData(s.frozen,'map');_stripData(s.frozen,'visuel');}
+  // Tokens sauvegardés : strip img data URLs
   Object.keys(s.mapTokenSaves||{}).forEach(function(k){
     Object.keys(s.mapTokenSaves[k]||{}).forEach(function(tid){
       if(s.mapTokenSaves[k][tid].img&&s.mapTokenSaves[k][tid].img.startsWith('data:'))
@@ -5859,6 +5873,31 @@ function _ecran_fsState(){
   });
   return s;
 }
+// ── Rideau ──
+function ecran_toggleCurtain(){
+  var st=ecran_state();
+  if(!st.curtain){
+    // Baisser : prendre un snapshot de la scène actuelle
+    st.frozen={
+      mode:st.mode, map:st.map, tokens:JSON.parse(JSON.stringify(st.tokens)),
+      visuel:st.visuel, visuelLabel:st.visuelLabel, grid:st.grid
+    };
+    st.curtain=true;
+    toast('🎭 Rideau baissé — scène figée pour les joueurs');
+  } else {
+    // Lever : les joueurs voient la scène actuelle (avec fondu)
+    st.curtain=false; st.frozen=null;
+    toast('🎭 Rideau levé');
+  }
+  _ecran_curtainUI();_ecran_save();
+}
+function _ecran_curtainUI(){
+  var st=ecran_state();var live=(_ecran.win&&!_ecran.win.closed);
+  var btn=el('ecran-curtainbtn'),sel=el('ecran-fade-sel');
+  if(btn){btn.style.display=live?'':'none';btn.textContent=st.curtain?'🎭 Lever le rideau':'🎭 Rideau';btn.classList.toggle('down',!!st.curtain);}
+  if(sel)sel.style.display=live?'':'none';
+}
+function ecran_setFade(v){ecran_state().fadeMs=parseInt(v)||0;_ecran_save();}
 function _ecran_save(){
   if(!db||!campagneActive)return;
   clearTimeout(_ecran._saveTimer);
@@ -6264,7 +6303,12 @@ function ecran_toggleDiffusion(){
 function ecran_bcUI(live){
   var btn=el('ecran-bcbtn'),st=el('ecran-bcstatus');
   if(live){btn.textContent='⏹ Arrêter';btn.classList.add('live');st.innerHTML='<span class="ecran-livedot"></span> Diffusion active';}
-  else{btn.textContent='▶ Lancer la diffusion';btn.classList.remove('live');st.textContent='Aucune diffusion active';}
+  else{
+    btn.textContent='▶ Lancer la diffusion';btn.classList.remove('live');st.textContent='Aucune diffusion active';
+    // Lever le rideau si actif quand on coupe la diffusion
+    var ec=ecran_state();if(ec.curtain){ec.curtain=false;ec.frozen=null;}
+  }
+  _ecran_curtainUI();
 }
 </script>
 </body>
