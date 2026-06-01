@@ -484,7 +484,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .ecran-map{position:relative;overflow:hidden;background:#05080f;border:1px solid var(--bord2);border-radius:10px;width:100%;aspect-ratio:16/9;max-height:calc(100vh - 340px);}
 .ecran-mapbg{position:absolute;inset:0;background-size:cover!important;background-position:center!important;}
 .ecran-mapimg{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);display:none;object-fit:cover;}
-.ecran-grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:4.1667% 7.4074%;}
+.ecran-grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,0,0,.45) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.45) 1px,transparent 1px);background-size:4.1667% 7.4074%;transition:opacity .2s;}
 .ecran-token{position:absolute;width:36px;height:36px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:grab;user-select:none;z-index:10;}
 .ecran-token:active{cursor:grabbing;z-index:20;}
 .ecran-token.enemy{background:radial-gradient(circle,rgba(239,68,68,.35),rgba(185,28,28,.5));border:2px solid #ef4444;box-shadow:0 0 8px rgba(239,68,68,.4);}
@@ -990,7 +990,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
             <div class="ecran-maps-hrow" id="ecran-maps"></div>
             <div style="display:flex;gap:5px;flex-wrap:wrap;">
               <label class="btn" style="font-size:11px;padding:5px 9px;cursor:pointer;white-space:nowrap;">📁 Importer<input type="file" accept="image/*" style="display:none;" onchange="ecran_pickMapFile(this)"></label>
-              <button class="btn" style="font-size:11px;padding:5px 9px;" onclick="ecran_refreshLocal()" title="Relire dossier maps/">🔄</button>
+              <button class="btn on" id="ecran-grid-btn" style="font-size:11px;padding:5px 9px;white-space:nowrap;" onclick="ecran_toggleGrid()">⊞ Grille ON</button>
             </div>
           </div>
           <div class="ecran-hbar-sep"></div>
@@ -5742,24 +5742,12 @@ function ecran_uploadFile(file,kind,cb){
     .then(function(url){cb(url,file.name);toast('✅ Image importée');})
     .catch(function(e){toast('Erreur import : '+e.message);});
 }
-// Charge un fichier image → compresse via canvas → renvoie une data URL JPEG
-// Jamais de Firebase Storage : fonctionne toujours en local
+// Charge un fichier image en qualité originale (data URL brute, pas de compression)
 function _ecran_compressImage(file, cb){
   toast('⏳ Chargement…');
   var reader=new FileReader();
   reader.onerror=function(){toast('❌ Erreur lecture fichier.');};
-  reader.onload=function(e){
-    var img=new Image();
-    img.onerror=function(){toast('❌ Format non supporté.');};
-    img.onload=function(){
-      var MAX=1024, s=Math.min(MAX/img.width,MAX/img.height,1);
-      var cv=document.createElement('canvas');
-      cv.width=Math.round(img.width*s); cv.height=Math.round(img.height*s);
-      cv.getContext('2d').drawImage(img,0,0,cv.width,cv.height);
-      cb(cv.toDataURL('image/jpeg',0.75));
-    };
-    img.src=e.target.result;
-  };
+  reader.onload=function(e){ cb(e.target.result); };
   reader.readAsDataURL(file);
 }
 function ecran_pickMapFile(inp){
@@ -5814,7 +5802,7 @@ function _ecran_fixUrl(url){
   if(gd)url='https://drive.google.com/uc?export=view&id='+gd[1];
   return url;
 }
-function _ecran_default(){return {mode:'battlemap',map:'dungeon',tokens:{},tokenImgs:{},mapLib:[],visuel:null,visuelLabel:'',visuelLib:[]};}
+function _ecran_default(){return {mode:'battlemap',map:'dungeon',tokens:{},tokenImgs:{},mapLib:[],visuel:null,visuelLabel:'',visuelLib:[],grid:true};}
 function ecran_state(){
   if(!_ecran.state)_ecran.state=(campagneActive&&campagneActive.ecran)?Object.assign(_ecran_default(),campagneActive.ecran):_ecran_default();
   if(!_ecran.state.tokens)_ecran.state.tokens={};
@@ -5832,8 +5820,9 @@ function _ecran_save(){
 }
 function ecran_init(){
   ecran_state();
-  besti_initGroupes(); // Charger les groupes Firestore sans avoir à ouvrir le Bestiaire
+  besti_initGroupes();
   ecran_renderMaps();ecran_renderPalette();ecran_renderGroupePalette();ecran_renderMapArea();ecran_renderVisuel();
+  _ecran_applyGrid();
   ecran_setSub(_ecran.sub);
   ecran_refreshScreens();
   ecran_loadLocalMaps();ecran_loadLocalVisuels();
@@ -5871,7 +5860,17 @@ function _ecran_mapBgCss(map){
   if(p)return 'background:'+p.grad+';';
   return 'background:#05080f center/cover no-repeat url("'+map+'");';
 }
-function ecran_gridVisible(show){var g=el('ecran-grid');if(g)g.style.display=show===false?'none':'';}
+function ecran_toggleGrid(){
+  var st=ecran_state();st.grid=!st.grid;
+  var g=el('ecran-grid');if(g)g.style.opacity=st.grid?'1':'0';
+  var btn=el('ecran-grid-btn');if(btn){btn.textContent=st.grid?'⊞ Grille ON':'⊟ Grille OFF';btn.classList.toggle('on',st.grid);}
+  _ecran_save();
+}
+function _ecran_applyGrid(){
+  var st=ecran_state();
+  var g=el('ecran-grid');if(g)g.style.opacity=(st.grid!==false)?'1':'0';
+  var btn=el('ecran-grid-btn');if(btn){var on=st.grid!==false;btn.textContent=on?'⊞ Grille ON':'⊟ Grille OFF';btn.classList.toggle('on',on);}
+}
 function _ecran_orient(img,cw,ch){
   var portrait=img.naturalHeight>img.naturalWidth;
   if(portrait){img.style.width=ch+'px';img.style.height=cw+'px';img.style.transform='translate(-50%,-50%) rotate(-90deg)';}

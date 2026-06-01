@@ -14,7 +14,7 @@ html,body{height:100%;background:#000;font-family:system-ui,sans-serif;color:#e0
 #stage{position:relative;aspect-ratio:16/9;width:min(100vw,177.78vh);max-height:100vh;background:#05080f;overflow:hidden;}
 #mapbg{position:absolute;inset:0;background-size:cover;background-position:center;}
 #mapimg{position:absolute;top:50%;left:50%;width:100%;height:100%;object-fit:cover;transform:translate(-50%,-50%);display:none;}
-#grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:4.1667% 7.4074%;}
+#grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(0,0,0,.45) 1px,transparent 1px),linear-gradient(90deg,rgba(0,0,0,.45) 1px,transparent 1px);background-size:4.1667% 7.4074%;transition:opacity .2s;}
 
 .tok{position:absolute;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:50%;transform:translate(-50%,-50%);transition:left .15s linear,top .15s linear;}
 .tok.enemy{background:radial-gradient(circle,rgba(239,68,68,.4),rgba(185,28,28,.55));border:3px solid #ef4444;box-shadow:0 0 18px rgba(239,68,68,.5);}
@@ -113,6 +113,9 @@ function render(state, combat){
     document.getElementById('visuel-title').textContent=state.visuelLabel||'';
     return;
   }
+
+  // Grille activable/désactivable
+  document.getElementById('grid').style.opacity=(state.grid===false)?'0':'1';
 
   // Battlemap — tout est positionné en % du stage 16:9 (verrouillé à toute résolution)
   var stage=document.getElementById('stage');
