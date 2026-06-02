@@ -150,7 +150,7 @@ function _doRender(renderState, combat){
       }else{vimg.style.transform='';vimg.style.maxWidth='100%';vimg.style.maxHeight='100%';}
     };
     vimg.src=visuelUrl;
-    document.getElementById('visuel-title').textContent=rs.visuelLabel||'';
+    document.getElementById('visuel-title').textContent=''; // titre masqué intentionnellement
     return;
   }
 

@@ -5908,38 +5908,52 @@ window.addEventListener('message',function(e){
 });
 
 // ── Crop 16:9 ──
-var _ecranCrop={img:null,cb:null,ox:0,oy:0,scale:1,drag:false,lx:0,ly:0};
+// Modèle cx/cy = centre de l'image dans l'espace canvas, rot = rotation en degrés
+var _ecranCrop={img:null,cb:null,cx:0,cy:0,scale:1,rot:0,drag:false,lx:0,ly:0};
+var _CROP_W=1920,_CROP_H=1080; // Résolution d'export native → pas de pixelisation
+
 function _ecran_showCrop(file,title,cb){
-  _ecranCrop.cb=cb;_ecranCrop.ox=0;_ecranCrop.oy=0;_ecranCrop.scale=1;
   var m=el('ecran-crop-modal');if(!m)return;
   var t=el('ecran-crop-title');if(t)t.textContent=title||'Recadrage 16∶9';
+  _ecranCrop.cb=cb;_ecranCrop.rot=0;
   var url=URL.createObjectURL(file);
   var img=new Image();
   img.onload=function(){
     _ecranCrop.img=img;URL.revokeObjectURL(url);
     var cv=el('ecran-crop-cv');
-    cv.width=560;cv.height=315;
-    var s=Math.max(560/img.width,315/img.height);
-    _ecranCrop.scale=s;
-    _ecranCrop.ox=(560-img.width*s)/2;
-    _ecranCrop.oy=(315-img.height*s)/2;
-    el('ecran-crop-zoom').value=100;
+    cv.width=_CROP_W;cv.height=_CROP_H;
+    // Scale cover : remplir le 16:9 avec l'image
+    var s=Math.max(_CROP_W/img.width,_CROP_H/img.height);
+    _ecranCrop.scale=s;_ecranCrop.cx=_CROP_W/2;_ecranCrop.cy=_CROP_H/2;
     _ecran_drawCrop();
   };
-  img.src=url;
-  m.style.display='flex';
+  img.src=url;m.style.display='flex';
 }
 function _ecran_drawCrop(){
   var cv=el('ecran-crop-cv'),d=_ecranCrop;if(!cv||!d.img)return;
   var ctx=cv.getContext('2d');
   ctx.fillStyle='#000';ctx.fillRect(0,0,cv.width,cv.height);
-  ctx.drawImage(d.img,d.ox,d.oy,d.img.width*d.scale,d.img.height*d.scale);
+  ctx.save();
+  ctx.translate(d.cx,d.cy);
+  ctx.rotate(d.rot*Math.PI/180);
+  ctx.drawImage(d.img,-d.img.width*d.scale/2,-d.img.height*d.scale/2,d.img.width*d.scale,d.img.height*d.scale);
+  ctx.restore();
 }
-function _ecran_cropZoom(v){
-  var d=_ecranCrop,ns=v/100;
-  d.ox=280-(280-d.ox)*(ns/d.scale);
-  d.oy=157.5-(157.5-d.oy)*(ns/d.scale);
-  d.scale=ns;_ecran_drawCrop();
+function _ecran_cropZoom(factor){
+  var d=_ecranCrop;
+  d.scale=Math.max(0.1,d.scale*factor);
+  _ecran_drawCrop();
+}
+function _ecran_rotate90(){
+  var d=_ecranCrop;
+  d.rot=(d.rot+90)%360;
+  // Recalculer scale pour remplir le canvas dans la nouvelle orientation
+  if(d.img){
+    var r=d.rot%180===0;
+    d.scale=Math.max(r?_CROP_W/d.img.width:_CROP_W/d.img.height, r?_CROP_H/d.img.height:_CROP_H/d.img.width);
+  }
+  d.cx=_CROP_W/2;d.cy=_CROP_H/2;
+  _ecran_drawCrop();
 }
 function _ecran_confirmCrop(){
   var cv=el('ecran-crop-cv');
@@ -5950,17 +5964,26 @@ function _ecran_confirmCrop(){
 (function(){
   function _bind(){
     var cv=el('ecran-crop-cv');if(!cv||cv._b)return;cv._b=true;
-    cv.addEventListener('mousedown',function(e){_ecranCrop.drag=true;_ecranCrop.lx=e.clientX;_ecranCrop.ly=e.clientY;cv.style.cursor='grabbing';e.preventDefault();});
+    cv.addEventListener('mousedown',function(e){
+      _ecranCrop.drag=true;_ecranCrop.lx=e.clientX;_ecranCrop.ly=e.clientY;
+      cv.style.cursor='grabbing';e.preventDefault();
+    });
     document.addEventListener('mousemove',function(e){
       if(!_ecranCrop.drag)return;
-      _ecranCrop.ox+=e.clientX-_ecranCrop.lx;_ecranCrop.oy+=e.clientY-_ecranCrop.ly;
-      _ecranCrop.lx=e.clientX;_ecranCrop.ly=e.clientY;_ecran_drawCrop();
+      // Ratio px souris → px canvas (canvas affiché en petit via CSS)
+      var r=cv.getBoundingClientRect();
+      var ratio=_CROP_W/r.width;
+      _ecranCrop.cx+=(e.clientX-_ecranCrop.lx)*ratio;
+      _ecranCrop.cy+=(e.clientY-_ecranCrop.ly)*ratio;
+      _ecranCrop.lx=e.clientX;_ecranCrop.ly=e.clientY;
+      _ecran_drawCrop();
     });
-    document.addEventListener('mouseup',function(){_ecranCrop.drag=false;var cv2=el('ecran-crop-cv');if(cv2)cv2.style.cursor='grab';});
+    document.addEventListener('mouseup',function(){
+      _ecranCrop.drag=false;var cv2=el('ecran-crop-cv');if(cv2)cv2.style.cursor='grab';
+    });
     cv.addEventListener('wheel',function(e){
       e.preventDefault();
-      var nv=Math.min(400,Math.max(10,_ecranCrop.scale*(e.deltaY>0?0.9:1.1)*100));
-      _ecran_cropZoom(nv);el('ecran-crop-zoom').value=Math.round(nv);
+      _ecran_cropZoom(e.deltaY>0?0.9:1.1);
     },{passive:false});
   }
   setTimeout(_bind,300);
@@ -6368,13 +6391,16 @@ function ecran_bcUI(live){
 </script>
 <!-- Modal recadrage 16:9 -->
 <div id="ecran-crop-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1400;align-items:center;justify-content:center;padding:20px;">
-  <div class="crop-box" style="width:min(600px,95vw);gap:12px;">
+  <div class="crop-box" style="width:min(680px,95vw);gap:12px;">
     <div class="crop-title" id="ecran-crop-title">Recadrage 16∶9</div>
-    <div class="crop-hint">Glisse pour repositionner · Molette ou curseur pour zoomer</div>
-    <canvas id="ecran-crop-cv" style="display:block;width:100%;aspect-ratio:16/9;border-radius:8px;cursor:grab;background:#000;max-width:560px;align-self:center;"></canvas>
-    <div class="crop-zoom-row">
-      <span>🔍</span>
-      <input type="range" id="ecran-crop-zoom" min="10" max="400" value="100" oninput="_ecran_cropZoom(+this.value)" style="flex:1;accent-color:#c9a227;">
+    <div class="crop-hint">🖱 Glisse pour repositionner · Molette pour zoomer</div>
+    <canvas id="ecran-crop-cv" style="display:block;width:100%;aspect-ratio:16/9;border-radius:8px;cursor:grab;background:#000;"></canvas>
+    <div style="display:flex;gap:8px;align-items:center;justify-content:center;">
+      <button class="btn" style="font-size:18px;padding:6px 14px;font-weight:700;" onclick="_ecran_cropZoom(0.85)" title="Zoom arrière">−</button>
+      <button class="btn" style="font-size:13px;padding:6px 14px;" onclick="_ecran_cropZoom(1);_ecranCrop.cx=_CROP_W/2;_ecranCrop.cy=_CROP_H/2;_ecran_drawCrop();" title="Recentrer">⌖ Centrer</button>
+      <button class="btn" style="font-size:18px;padding:6px 14px;font-weight:700;" onclick="_ecran_cropZoom(1.18)" title="Zoom avant">＋</button>
+      <span style="width:1px;background:var(--bord);align-self:stretch;margin:0 4px;"></span>
+      <button class="btn" style="font-size:13px;padding:6px 14px;" onclick="_ecran_rotate90()" title="Pivoter 90°">↻ 90°</button>
     </div>
     <div class="crop-btns">
       <button class="btn ok" style="flex:1;" onclick="_ecran_confirmCrop()">✅ Confirmer le cadrage</button>
