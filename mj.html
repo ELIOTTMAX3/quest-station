@@ -5766,37 +5766,29 @@ function ecran_uploadFile(file,kind,cb){
     .then(function(url){cb(url,file.name);toast('✅ Image importée');})
     .catch(function(e){toast('Erreur import : '+e.message);});
 }
-// Charge un fichier image en qualité originale (data URL brute, pas de compression)
-function _ecran_compressImage(file, cb){
-  toast('⏳ Chargement…');
-  var reader=new FileReader();
-  reader.onerror=function(){toast('❌ Erreur lecture fichier.');};
-  reader.onload=function(e){ cb(e.target.result); };
-  reader.readAsDataURL(file);
-}
 function ecran_pickMapFile(inp){
   var f=inp.files&&inp.files[0];inp.value='';if(!f)return;
   var defNom=f.name.replace(/\.[^.]+$/,'');
-  var nom=prompt('Nom de la carte :',defNom);
-  if(nom===null)return; // annulé
+  var nom=prompt('Nom de la carte :',defNom);if(nom===null)return;
   nom=nom.trim()||defNom;
-  _ecran_compressImage(f,function(url){
+  _ecran_showCrop(f,'Carte — '+nom,function(url){
     var st=ecran_state();
     st.mapLib.push({url:url,label:nom});
-    st.map=url;ecran_renderMaps();ecran_renderMapArea();_ecran_save();
+    st.map=url;ecran_renderMaps();ecran_renderMapArea();
+    _ecran_saveLibLocal();_ecran_save();
     toast('✅ Carte "'+nom+'" chargée');
   });
 }
 function ecran_pickVisFile(inp){
   var f=inp.files&&inp.files[0];inp.value='';if(!f)return;
   var defNom=f.name.replace(/\.[^.]+$/,'');
-  var nom=prompt('Nom du visuel :',defNom);
-  if(nom===null)return;
+  var nom=prompt('Nom du visuel :',defNom);if(nom===null)return;
   nom=nom.trim()||defNom;
-  _ecran_compressImage(f,function(url){
+  _ecran_showCrop(f,'Visuel — '+nom,function(url){
     var st=ecran_state();
     st.visuelLib.push({url:url,label:nom});
-    ecran_renderVisuel();_ecran_save();
+    ecran_renderVisuel();
+    _ecran_saveLibLocal();_ecran_save();
     toast('✅ Visuel "'+nom+'" chargé');
   });
 }
@@ -5894,8 +5886,8 @@ function ecran_toggleCurtain(){
 function _ecran_curtainUI(){
   var st=ecran_state();var live=(_ecran.win&&!_ecran.win.closed);
   var btn=el('ecran-curtainbtn'),sel=el('ecran-fade-sel');
-  if(btn){btn.style.display=live?'':'none';btn.textContent=st.curtain?'🎭 Lever le rideau':'🎭 Rideau';btn.classList.toggle('down',!!st.curtain);}
-  if(sel)sel.style.display=live?'':'none';
+  if(btn){btn.style.display=live?'inline-flex':'none';btn.textContent=st.curtain?'🎭 Lever le rideau':'🎭 Rideau';btn.classList.toggle('down',!!st.curtain);}
+  if(sel)sel.style.display=live?'inline-block':'none';
 }
 function ecran_setFade(v){ecran_state().fadeMs=parseInt(v)||0;_ecran_save();}
 function _ecran_save(){
@@ -5914,8 +5906,94 @@ function _ecran_save(){
 window.addEventListener('message',function(e){
   if(e.data&&e.data.type==='qs_reqLocal') _ecran_pushLocal();
 });
+
+// ── Crop 16:9 ──
+var _ecranCrop={img:null,cb:null,ox:0,oy:0,scale:1,drag:false,lx:0,ly:0};
+function _ecran_showCrop(file,title,cb){
+  _ecranCrop.cb=cb;_ecranCrop.ox=0;_ecranCrop.oy=0;_ecranCrop.scale=1;
+  var m=el('ecran-crop-modal');if(!m)return;
+  var t=el('ecran-crop-title');if(t)t.textContent=title||'Recadrage 16∶9';
+  var url=URL.createObjectURL(file);
+  var img=new Image();
+  img.onload=function(){
+    _ecranCrop.img=img;URL.revokeObjectURL(url);
+    var cv=el('ecran-crop-cv');
+    cv.width=560;cv.height=315;
+    var s=Math.max(560/img.width,315/img.height);
+    _ecranCrop.scale=s;
+    _ecranCrop.ox=(560-img.width*s)/2;
+    _ecranCrop.oy=(315-img.height*s)/2;
+    el('ecran-crop-zoom').value=100;
+    _ecran_drawCrop();
+  };
+  img.src=url;
+  m.style.display='flex';
+}
+function _ecran_drawCrop(){
+  var cv=el('ecran-crop-cv'),d=_ecranCrop;if(!cv||!d.img)return;
+  var ctx=cv.getContext('2d');
+  ctx.fillStyle='#000';ctx.fillRect(0,0,cv.width,cv.height);
+  ctx.drawImage(d.img,d.ox,d.oy,d.img.width*d.scale,d.img.height*d.scale);
+}
+function _ecran_cropZoom(v){
+  var d=_ecranCrop,ns=v/100;
+  d.ox=280-(280-d.ox)*(ns/d.scale);
+  d.oy=157.5-(157.5-d.oy)*(ns/d.scale);
+  d.scale=ns;_ecran_drawCrop();
+}
+function _ecran_confirmCrop(){
+  var cv=el('ecran-crop-cv');
+  var result=cv.toDataURL('image/jpeg',0.92);
+  el('ecran-crop-modal').style.display='none';
+  if(_ecranCrop.cb)_ecranCrop.cb(result);
+}
+(function(){
+  function _bind(){
+    var cv=el('ecran-crop-cv');if(!cv||cv._b)return;cv._b=true;
+    cv.addEventListener('mousedown',function(e){_ecranCrop.drag=true;_ecranCrop.lx=e.clientX;_ecranCrop.ly=e.clientY;cv.style.cursor='grabbing';e.preventDefault();});
+    document.addEventListener('mousemove',function(e){
+      if(!_ecranCrop.drag)return;
+      _ecranCrop.ox+=e.clientX-_ecranCrop.lx;_ecranCrop.oy+=e.clientY-_ecranCrop.ly;
+      _ecranCrop.lx=e.clientX;_ecranCrop.ly=e.clientY;_ecran_drawCrop();
+    });
+    document.addEventListener('mouseup',function(){_ecranCrop.drag=false;var cv2=el('ecran-crop-cv');if(cv2)cv2.style.cursor='grab';});
+    cv.addEventListener('wheel',function(e){
+      e.preventDefault();
+      var nv=Math.min(400,Math.max(10,_ecranCrop.scale*(e.deltaY>0?0.9:1.1)*100));
+      _ecran_cropZoom(nv);el('ecran-crop-zoom').value=Math.round(nv);
+    },{passive:false});
+  }
+  setTimeout(_bind,300);
+})();
+function _ecran_saveLibLocal(){
+  try{
+    var st=ecran_state();
+    localStorage.setItem('qs_mapLib',JSON.stringify((st.mapLib||[]).filter(function(m){return m.url&&!m.url.startsWith('__');})));
+    localStorage.setItem('qs_visuelLib',JSON.stringify((st.visuelLib||[]).filter(function(v){return v.url&&!v.url.startsWith('__');})));
+  }catch(e){}
+}
+function _ecran_restoreLibLocal(){
+  try{
+    var st=ecran_state();
+    var maps=JSON.parse(localStorage.getItem('qs_mapLib')||'[]');
+    var visuels=JSON.parse(localStorage.getItem('qs_visuelLib')||'[]');
+    (st.mapLib||[]).forEach(function(m){
+      if(!m.url||m.url==='__local__'){var f=maps.find(function(s){return s.label===m.label;});if(f)m.url=f.url;}
+    });
+    if(st.map==='__local__'){
+      var e=(st.mapLib||[]).find(function(m){return m.url&&m.url!=='__local__';});if(e)st.map=e.url;
+    }
+    (st.visuelLib||[]).forEach(function(v){
+      if(!v.url||v.url==='__local__'){var f=visuels.find(function(s){return s.label===v.label;});if(f)v.url=f.url;}
+    });
+    if(st.visuel==='__local__'){
+      var ev=(st.visuelLib||[]).find(function(v){return v.url&&v.url!=='__local__';});if(ev)st.visuel=ev.url;
+    }
+  }catch(e){}
+}
 function ecran_init(){
   ecran_state();
+  _ecran_restoreLibLocal();
   besti_initGroupes();
   ecran_renderMaps();ecran_renderPalette();ecran_renderGroupePalette();ecran_renderMapArea();ecran_renderVisuel();
   _ecran_applyGrid();
@@ -6288,5 +6366,21 @@ function ecran_bcUI(live){
   _ecran_curtainUI();
 }
 </script>
+<!-- Modal recadrage 16:9 -->
+<div id="ecran-crop-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:1400;align-items:center;justify-content:center;padding:20px;">
+  <div class="crop-box" style="width:min(600px,95vw);gap:12px;">
+    <div class="crop-title" id="ecran-crop-title">Recadrage 16∶9</div>
+    <div class="crop-hint">Glisse pour repositionner · Molette ou curseur pour zoomer</div>
+    <canvas id="ecran-crop-cv" style="display:block;width:100%;aspect-ratio:16/9;border-radius:8px;cursor:grab;background:#000;max-width:560px;align-self:center;"></canvas>
+    <div class="crop-zoom-row">
+      <span>🔍</span>
+      <input type="range" id="ecran-crop-zoom" min="10" max="400" value="100" oninput="_ecran_cropZoom(+this.value)" style="flex:1;accent-color:#c9a227;">
+    </div>
+    <div class="crop-btns">
+      <button class="btn ok" style="flex:1;" onclick="_ecran_confirmCrop()">✅ Confirmer le cadrage</button>
+      <button class="btn" onclick="el('ecran-crop-modal').style.display='none'">Annuler</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
