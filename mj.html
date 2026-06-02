@@ -5797,12 +5797,7 @@ function ecran_delMap(i){
   if(st.map===st.mapLib[i].url){st.map='dungeon';}
   st.mapLib.splice(i,1);ecran_renderMaps();ecran_renderMapArea();_ecran_save();
 }
-var _ECRAN_MAPS=[
-  {id:'dungeon',label:'Donjon',icon:'ra-dungeon',grad:'radial-gradient(ellipse at 30% 40%,#1a1200,#080600 60%,#030200)'},
-  {id:'forest', label:'Forêt', icon:'ra-tree',   grad:'radial-gradient(ellipse at 60% 20%,#071a04,#030d02 60%,#020801)'},
-  {id:'taverne',label:'Taverne',icon:'ra-beer',  grad:'radial-gradient(ellipse at 50% 80%,#1a0e00,#0d0700 60%,#060300)'},
-  {id:'crypte', label:'Crypte',icon:'ra-skull',  grad:'radial-gradient(ellipse at 20% 80%,#0d0018,#060010 60%,#030008)'},
-];
+var _ECRAN_MAPS=[]; // Plus de maps prédéfinies — tout est importé
 var _ECRAN_GRID='repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 60px),repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 60px)';
 
 function _ecran_fixUrl(url){
@@ -5818,7 +5813,7 @@ function _ecran_fixUrl(url){
   if(gd)url='https://drive.google.com/uc?export=view&id='+gd[1];
   return url;
 }
-function _ecran_default(){return {mode:'battlemap',map:'dungeon',tokens:{},tokenImgs:{},mapLib:[],mapTokenSaves:{},visuel:null,visuelLabel:'',visuelLib:[],grid:true,curtain:false,frozen:null,fadeMs:1000};}
+function _ecran_default(){return {mode:'battlemap',map:'',tokens:{},tokenImgs:{},mapLib:[],mapTokenSaves:{},visuel:null,visuelLabel:'',visuelLib:[],grid:true,curtain:false,frozen:null,fadeMs:1000};}
 function ecran_state(){
   if(!_ecran.state)_ecran.state=(campagneActive&&campagneActive.ecran)?Object.assign(_ecran_default(),campagneActive.ecran):_ecran_default();
   if(!_ecran.state.tokens)_ecran.state.tokens={};
@@ -6104,19 +6099,19 @@ function _ecran_orient(img,cw,ch){
 function ecran_renderMapArea(){
   var bg=el('ecran-mapbg'),img=el('ecran-mapimg'),map=el('ecran-map');if(!bg)return;
   var mapVal=ecran_state().map;
-  var p=_ECRAN_MAPS.find(function(m){return m.id===mapVal;});
-  if(p){bg.style.cssText='position:absolute;inset:0;background:'+p.grad+';';bg.style.display='block';if(img)img.style.display='none';}
-  else if(img){
-    bg.style.display='none';img.style.display='block';
-    var cw=map.clientWidth,ch=map.clientHeight;
-    // Comparer seulement les 80 premiers chars pour éviter de stocker un base64 complet en attribut
-    var key=mapVal.substring(0,80);
-    if(img.getAttribute('data-key')!==key){
-      img.setAttribute('data-key',key);
-      img.onload=function(){_ecran_orient(img,cw,ch);};
-      img.onerror=function(){toast('❌ Impossible de charger la carte.');};
-      img.src=mapVal;
-    } else if(img.naturalWidth){_ecran_orient(img,cw,ch);}
+  if(mapVal){
+    bg.style.display='none';
+    if(img){img.style.display='block';
+      var key=mapVal.substring(0,80);
+      if(img.getAttribute('data-key')!==key){
+        img.setAttribute('data-key',key);
+        img.onload=null;img.onerror=function(){toast('❌ Impossible de charger la carte.');};
+        img.src=mapVal;
+      }
+    }
+  } else {
+    bg.style.cssText='position:absolute;inset:0;background:#05080f;';bg.style.display='block';
+    if(img)img.style.display='none';
   }
   ecran_renderTokens();
 }
