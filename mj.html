@@ -509,6 +509,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .ecran-token.enemy{background:radial-gradient(circle,rgba(239,68,68,.35),rgba(185,28,28,.5));border:2px solid #ef4444;box-shadow:0 0 8px rgba(239,68,68,.4);}
 .ecran-token.ally{background:radial-gradient(circle,rgba(74,222,128,.3),rgba(22,101,52,.5));border:2px solid #4ade80;box-shadow:0 0 8px rgba(74,222,128,.3);}
 .ecran-token.npc{background:radial-gradient(circle,rgba(201,162,39,.3),rgba(120,80,10,.5));border:2px solid #c9a227;}
+.ecran-token.has-img{background:none!important;border:none!important;box-shadow:none!important;}
 .ecran-token i{font-size:15px;pointer-events:none;}
 .ecran-token.enemy i{color:#fca5a5;}.ecran-token.ally i{color:#86efac;}.ecran-token.npc i{color:#fde68a;}
 .ecran-token .tl{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:2px;font-size:8px;font-weight:700;color:#fff;text-shadow:0 1px 4px #000,0 0 6px #000;pointer-events:none;white-space:nowrap;z-index:5;}
@@ -6039,12 +6040,29 @@ function _ecran_restoreLibLocal(){
     }
   }catch(e){}
 }
+function _ecran_buildGridLabels(){
+  var g=el('ecran-grid');if(!g||g._lb)return;g._lb=true;
+  var letters='ABCDEFGHIJKLMNOPQRSTUVWX';
+  var frag=document.createDocumentFragment();
+  var base='position:absolute;font-family:monospace;font-weight:700;pointer-events:none;line-height:1;color:rgba(255,255,255,.55);text-shadow:0 1px 3px rgba(0,0,0,.95);font-size:.62vw;';
+  for(var i=0;i<24;i++){
+    var s=document.createElement('span');s.textContent=letters[i];
+    s.style.cssText=base+'left:'+(i*4.1667+2.0833)+'%;top:.5%;transform:translateX(-50%);';
+    frag.appendChild(s);
+  }
+  for(var j=0;j<13;j++){
+    var s=document.createElement('span');s.textContent=j+1;
+    s.style.cssText=base+'left:.5%;top:'+(j*7.4074+3.7037)+'%;transform:translateY(-50%);';
+    frag.appendChild(s);
+  }
+  g.appendChild(frag);
+}
 function ecran_init(){
   ecran_state();
   _ecran_restoreLibLocal();
   besti_initGroupes();
   ecran_renderMaps();ecran_renderPalette();ecran_renderGroupePalette();ecran_renderMapArea();ecran_renderVisuel();
-  _ecran_applyGrid();
+  _ecran_applyGrid();_ecran_buildGridLabels();
   ecran_setSub(_ecran.sub);
   ecran_refreshScreens();
   ecran_loadLocalMaps();ecran_loadLocalVisuels();
@@ -6266,7 +6284,7 @@ function ecran_renderTokens(){
   Object.keys(st.tokens).forEach(function(id){
     var t=st.tokens[id];
     var d=document.createElement('div');
-    d.className='ecran-token '+t.type+(t.hidden?' hidden':'')+(id===_ecran.selectedId?' sel':'');
+    d.className='ecran-token '+(t.img?'has-img':t.type)+(t.hidden?' hidden':'')+(id===_ecran.selectedId?' sel':'');
     var mr=el('ecran-map').getBoundingClientRect();
     // Positionner depuis le centre (cohérent avec ecran.html qui utilise translate(-50%,-50%))
     d.style.left=((t.xPct||0)/100*mr.width-18)+'px';d.style.top=((t.yPct||0)/100*mr.height-18)+'px';
