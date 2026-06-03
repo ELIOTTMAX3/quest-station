@@ -27,12 +27,6 @@ html,body{height:100%;background:#000;font-family:system-ui,sans-serif;color:#e0
 .tok .hpb{position:absolute;height:5px;background:rgba(0,0,0,.5);border-radius:3px;}
 .tok .hpf{height:100%;border-radius:3px;}
 
-#initbar{position:absolute;top:0;left:0;right:0;background:linear-gradient(180deg,rgba(0,0,0,.85),transparent);padding:1.5% 2.5% 3%;display:flex;align-items:center;gap:.7vw;flex-wrap:wrap;z-index:30;}
-#initbar .lbl{font-size:1.2vw;font-weight:800;color:#5a6a8a;letter-spacing:.12em;margin-right:6px;}
-.ichip{padding:.6vw 1.3vw;border-radius:999px;font-size:1.3vw;font-weight:700;white-space:nowrap;}
-.ichip.active{background:#c9a227;color:#000;transform:scale(1.08);box-shadow:0 0 16px rgba(201,162,39,.5);}
-.ichip.enemy{background:rgba(239,68,68,.3);border:1px solid rgba(239,68,68,.55);color:#fca5a5;}
-.ichip.ally{background:rgba(74,222,128,.22);border:1px solid rgba(74,222,128,.45);color:#86efac;}
 
 /* Visuel plein écran — couvre tout sans bandes noires */
 #visuel img{width:100%;height:100%;object-fit:cover;}
@@ -53,7 +47,6 @@ html,body{height:100%;background:#000;font-family:system-ui,sans-serif;color:#e0
     <img id="mapimg" alt="">
     <div id="grid"></div>
     <div id="tokens"></div>
-    <div id="initbar" style="display:none;"></div>
   </div>
   <div id="visuel"><img id="visuel-img" src=""><div class="vtitle" id="visuel-title"></div></div>
   <!-- Overlay de crossfade : capture l'ancienne scène, se dissipe sur la nouvelle -->
@@ -178,15 +171,6 @@ function _doRender(renderState, combat, isFrozen){
     +'</div>';
   }).join('');
 
-  var ib=document.getElementById('initbar');
-  if(combat && combat.combatActif && combat.combatants && combat.combatants.length){
-    ib.style.display='flex';
-    ib.innerHTML='<span class="lbl">⚔ INITIATIVE</span>'+combat.combatants.map(function(c,i){
-      var cls=c.type==='monstre'?'enemy':'ally';
-      var active=i===combat.combatTour?' active':'';
-      return '<span class="ichip '+cls+active+'">'+esc(c.nom)+(c.init!=null?' ('+c.init+')':'')+'</span>';
-    }).join('');
-  } else ib.style.display='none';
 }
 
 var _last=null;
