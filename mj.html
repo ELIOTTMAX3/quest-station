@@ -1003,7 +1003,6 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           <option value="3000">Fondu : 3s</option>
         </select>
         <button class="ecran-curtainbtn" id="ecran-curtainbtn" onclick="ecran_toggleCurtain()">🎭 Rideau</button>
-        <button class="btn" style="font-size:11px;padding:6px 11px;" onclick="ecran_refreshScreens()" title="Détecter les écrans">🔄 Écrans</button>
       </div>
       <!-- Sous-onglets -->
       <div class="ecran-subtabs">
@@ -1033,6 +1032,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
         <div class="ecran-hbar" style="margin-bottom:6px;align-items:center;">
           <div class="ecran-side-title" style="margin-bottom:0;flex-shrink:0;">Tokens</div>
           <div id="ecran-tok-palette" style="display:flex;gap:5px;flex-wrap:wrap;flex:1;"></div>
+          <button class="btn" id="ecran-tok-vis-btn" style="font-size:11px;padding:5px 9px;white-space:nowrap;flex-shrink:0;" onclick="ecran_toggleTokensVisible()" title="Masquer/afficher tous les tokens">👁</button>
           <button class="btn" style="font-size:11px;padding:5px 9px;white-space:nowrap;flex-shrink:0;" onclick="ecran_addMonstreToken()">＋</button>
         </div>
         <!-- Prévisualisation pleine largeur -->
@@ -1060,7 +1060,6 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           <div class="ecran-hbar-col">
             <div class="ecran-side-title">Diffusion en cours</div>
             <div id="ecran-vis-current" style="font-size:11px;color:var(--txt3);">Rien de diffusé.</div>
-            <button class="btn" style="font-size:11px;padding:5px 9px;margin-top:4px;border-color:rgba(239,68,68,.4);color:#fca5a5;align-self:flex-start;" onclick="ecran_clearVisuel()">⏹ Arrêter</button>
           </div>
         </div>
         <div class="ecran-vis-grid" id="ecran-vis-grid"></div>
@@ -5838,7 +5837,7 @@ function _ecran_fixUrl(url){
   if(gd)url='https://drive.google.com/uc?export=view&id='+gd[1];
   return url;
 }
-function _ecran_default(){return {mode:'battlemap',map:'',tokens:{},tokenImgs:{},mapLib:[],mapTokenSaves:{},visuel:null,visuelLabel:'',visuelLib:[],grid:true,curtain:false,frozen:null,fadeMs:1000};}
+function _ecran_default(){return {mode:'battlemap',map:'',tokens:{},tokenImgs:{},mapLib:[],mapTokenSaves:{},visuel:null,visuelLabel:'',visuelLib:[],grid:true,tokensVisible:true,curtain:false,frozen:null,fadeMs:1000};}
 function ecran_state(){
   if(!_ecran.state)_ecran.state=(campagneActive&&campagneActive.ecran)?Object.assign(_ecran_default(),campagneActive.ecran):_ecran_default();
   if(!_ecran.state.tokens)_ecran.state.tokens={};
@@ -6044,7 +6043,7 @@ function _ecran_buildGridLabels(){
   var g=el('ecran-grid');if(!g||g._lb)return;g._lb=true;
   var letters='ABCDEFGHIJKLMNOPQRSTUVWX';
   var frag=document.createDocumentFragment();
-  var base='position:absolute;font-family:monospace;font-weight:700;pointer-events:none;line-height:1;color:rgba(255,255,255,.55);text-shadow:0 1px 3px rgba(0,0,0,.95);font-size:.62vw;';
+  var base='position:absolute;font-family:monospace;font-weight:700;pointer-events:none;line-height:1;color:rgba(255,255,255,.28);text-shadow:0 1px 2px rgba(0,0,0,.9);font-size:.48vw;';
   for(var i=0;i<24;i++){
     var s=document.createElement('span');s.textContent=letters[i];
     s.style.cssText=base+'left:'+(i*4.1667+2.0833)+'%;top:.5%;transform:translateX(-50%);';
@@ -6295,7 +6294,7 @@ function ecran_renderTokens(){
       hp='<div class="hpb"><div class="hpf" style="width:'+pct+'%;background:'+c+'"></div></div>';
     }
     var iconHtml=t.img
-      ?'<div style="position:absolute;inset:0;border-radius:50%;overflow:hidden;"><img src="'+t.img+'" style="width:100%;height:100%;object-fit:cover;" onerror="this.parentNode.style.display=\'none\'"></div>'
+      ?'<img src="'+t.img+'" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:220%;width:auto;object-fit:contain;z-index:15;pointer-events:none;" onerror="this.style.display=\'none\'">'
       :'<i class="ra '+(t.icon||'ra-skull')+'"></i>';
     d.innerHTML=iconHtml
       +'<span class="tl">'+besti_esc(t.nom||'')+'</span>'+hp
@@ -6335,6 +6334,14 @@ function _ecran_drag(d,id){
     _ecran_save();
   }
   function up(){document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);}
+}
+function ecran_toggleTokensVisible(){
+  var st=ecran_state();
+  st.tokensVisible=(st.tokensVisible===false)?true:false;
+  var btn=el('ecran-tok-vis-btn');
+  if(btn)btn.textContent=st.tokensVisible===false?'🙈':'👁';
+  btn&&btn.classList.toggle('live',st.tokensVisible===false);
+  ecran_renderTokens();_ecran_save();
 }
 function ecran_toggleHidden(id){
   var t=ecran_state().tokens[id];if(!t)return;
