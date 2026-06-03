@@ -838,7 +838,10 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
       <!-- Top bar -->
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
         <span style="font-size:14px;font-weight:700;color:var(--txt);">Objets magiques</span>
-        <button class="btn ok" style="font-size:11px;padding:5px 14px;" onclick="equip_mj_ouvrirForm(null)">+ Créer</button>
+        <div style="display:flex;gap:6px;">
+          <button class="btn danger" style="font-size:11px;padding:5px 14px;" onclick="equip_mj_viderBoutique()">🧹 Vider boutique</button>
+          <button class="btn ok" style="font-size:11px;padding:5px 14px;" onclick="equip_mj_ouvrirForm(null)">+ Créer</button>
+        </div>
       </div>
       <!-- Filtres -->
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px;">
@@ -3771,6 +3774,18 @@ function equip_mj_supprimer(id){  // Note: les joueurs qui possèdent cet objet 
 function equip_mj_toggleBoutique(id,val){
   db.collection("items").doc(id).update({enBoutique:!!val}).catch(function(e){toast("Erreur : "+e.message);});
 }
+function equip_mj_viderBoutique(){
+  var boutique=(window._equip_mj_items||[]).filter(function(i){return i.enBoutique;});
+  if(!boutique.length){toast('La boutique est déjà vide.');return;}
+  if(!confirm('Vider la boutique ? '+boutique.length+' objet'+(boutique.length>1?'s':'')+' passeront en Réserve (aucune suppression).'))return;
+  var batch=db.batch();
+  boutique.forEach(function(item){
+    batch.update(db.collection('items').doc(item.id),{enBoutique:false});
+  });
+  batch.commit()
+    .then(function(){toast('🧹 Boutique vidée — '+boutique.length+' objet'+(boutique.length>1?'s':'')+' en Réserve.');})
+    .catch(function(e){toast('Erreur : '+e.message);});
+}
 
 function equip_mj_dupliquer(id){
   var item=window._equip_mj_items.find(function(i){return i.id===id;});
@@ -5773,8 +5788,14 @@ function ecran_pickMapFile(inp){
   nom=nom.trim()||defNom;
   _ecran_showCrop(f,'Carte — '+nom,function(url){
     var st=ecran_state();
+    // Sauvegarder les tokens de la map active avant de changer
+    var curKey=_ecran_mapKey(st.map);
+    if(curKey)st.mapTokenSaves[curKey]=JSON.parse(JSON.stringify(st.tokens));
+    // Nouvelle map : toujours démarrer sans aucun monstre
     st.mapLib.push({url:url,label:nom});
-    st.map=url;ecran_renderMaps();ecran_renderMapArea();
+    st.map=url;
+    st.tokens={};
+    ecran_renderMaps();ecran_renderMapArea();ecran_renderPalette();
     _ecran_saveLibLocal();_ecran_save();
     toast('✅ Carte "'+nom+'" chargée');
   });
@@ -5794,8 +5815,11 @@ function ecran_pickVisFile(inp){
 }
 function ecran_delMap(i){
   var st=ecran_state();if(!st.mapLib[i])return;
-  if(st.map===st.mapLib[i].url){st.map='dungeon';}
-  st.mapLib.splice(i,1);ecran_renderMaps();ecran_renderMapArea();_ecran_save();
+  var m=st.mapLib[i];
+  // Nettoyer les tokens sauvegardés de cette map
+  var key='map:'+m.label;delete st.mapTokenSaves[key];
+  if(st.map===m.url){st.map='';st.tokens={};}
+  st.mapLib.splice(i,1);ecran_renderMaps();ecran_renderMapArea();ecran_renderPalette();_ecran_save();
 }
 var _ECRAN_MAPS=[]; // Plus de maps prédéfinies — tout est importé
 var _ECRAN_GRID='repeating-linear-gradient(0deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 60px),repeating-linear-gradient(90deg,rgba(255,255,255,.04) 0,rgba(255,255,255,.04) 1px,transparent 1px,transparent 60px)';
@@ -5864,12 +5888,18 @@ function _ecran_fsState(){
 function ecran_toggleCurtain(){
   var st=ecran_state();
   if(!st.curtain){
-    // Baisser : prendre un snapshot de la scène actuelle
     st.frozen={
       mode:st.mode, map:st.map, tokens:JSON.parse(JSON.stringify(st.tokens)),
       visuel:st.visuel, visuelLabel:st.visuelLabel, grid:st.grid
     };
     st.curtain=true;
+    // Envoyer le snapshot local figé à ecran.html (data URLs non stockables dans Firestore)
+    if(_ecran.win&&!_ecran.win.closed){
+      _ecran.win.postMessage({type:'qs_frozen_local',
+        map:   (st.map   &&st.map.startsWith('data:'))   ? st.map   : null,
+        visuel:(st.visuel&&st.visuel.startsWith('data:')) ? st.visuel: null
+      },'*');
+    }
     toast('🎭 Rideau baissé — scène figée pour les joueurs');
   } else {
     // Lever : les joueurs voient la scène actuelle (avec fondu)
@@ -6024,7 +6054,9 @@ function ecran_init(){
     mapEl._clickBound=true;
     mapEl.addEventListener('click',function(e){
       if(e.target===mapEl||e.target.id==='ecran-grid'||e.target.id==='ecran-mapbg'||e.target.id==='ecran-mapimg'){
-        _ecran.selectedId=null;ecran_renderTokens();ecran_renderPalette();
+        _ecran.selectedId=null;
+        document.querySelectorAll('#ecran-tokens-layer .ecran-token').forEach(function(el){el.classList.remove('sel');});
+        ecran_renderPalette();
       }
     });
   }
@@ -6102,10 +6134,10 @@ function ecran_renderMapArea(){
   if(mapVal){
     bg.style.display='none';
     if(img){img.style.display='block';
-      var key=mapVal.substring(0,80);
-      if(img.getAttribute('data-key')!==key){
-        img.setAttribute('data-key',key);
-        img.onload=null;img.onerror=function(){toast('❌ Impossible de charger la carte.');};
+      // Comparer avec une propriété JS pour éviter le bug de data URLs similaires sur 80 chars
+      if(img._qsSrc!==mapVal){
+        img._qsSrc=mapVal;
+        img.onerror=function(){toast('❌ Impossible de charger la carte.');};
         img.src=mapVal;
       }
     }
@@ -6260,7 +6292,11 @@ function _ecran_drag(d,id){
     if(e.target.classList.contains('hidetag'))return;
     e.preventDefault();
     // Sélectionner ce token (anneau doré + touches fléchées)
-    _ecran.selectedId=id;ecran_renderTokens();ecran_renderPalette();
+    // Sélection : mise à jour CSS directe pour ne pas détruire l'élément en cours de drag
+    _ecran.selectedId=id;
+    document.querySelectorAll('#ecran-tokens-layer .ecran-token').forEach(function(el){el.classList.remove('sel');});
+    d.classList.add('sel');
+    ecran_renderPalette(); // palette séparée, safe
     var tr=d.getBoundingClientRect();mx=e.clientX-tr.left;my=e.clientY-tr.top;
     document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
   });

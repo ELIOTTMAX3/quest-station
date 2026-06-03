@@ -110,23 +110,28 @@ function render(state, combat){
   wait.style.display='none';
   var curtainLifted=(_prevCurtain===true && !state.curtain);
   _prevCurtain=!!state.curtain;
-  var renderState=(state.curtain && state.frozen) ? state.frozen : state;
+  var isFrozen=(state.curtain && !!state.frozen);
+  var renderState=isFrozen ? state.frozen : state;
   if(curtainLifted){
-    _applyCrossfade(state.fadeMs||0, renderState, combat);
+    // Rideau levé : crossfade vers la scène live
+    _applyCrossfade(state.fadeMs||0, state, combat);
+    _localData.frozenMap=null;_localData.frozenVisuel=null;
     return;
   }
-  _doRender(renderState, combat);
+  _doRender(renderState, combat, isFrozen);
 }
 
-function _doRender(renderState, combat){
+function _doRender(renderState, combat, isFrozen){
   var rs=renderState;
-  // Résoudre les marqueurs locaux
+  // Résoudre les marqueurs locaux — si frozen, utiliser le snapshot figé
+  var mapLocal=isFrozen?(_localData.frozenMap||_localData.map):_localData.map;
+  var visuelLocal=isFrozen?(_localData.frozenVisuel||_localData.visuel):_localData.visuel;
   var mapVal=rs.map||'';
   if(mapVal==='__local__'){
-    mapVal=_localData.map||'';
-    if(!_localData.map&&window.opener)window.opener.postMessage({type:'qs_reqLocal'},'*');
+    mapVal=mapLocal||'';
+    if(!mapLocal&&window.opener)window.opener.postMessage({type:'qs_reqLocal'},'*');
   }
-  var visuelUrl=rs.visuel==='__local__'?(_localData.visuel||null):rs.visuel;
+  var visuelUrl=rs.visuel==='__local__'?(visuelLocal||null):rs.visuel;
 
   var showVisuel=rs.mode==='visuel'&&visuelUrl;
   document.getElementById('visuel').style.display=showVisuel?'flex':'none';
@@ -147,11 +152,7 @@ function _doRender(renderState, combat){
   var mapbg=document.getElementById('mapbg'), mapimg=document.getElementById('mapimg');
   if(mapVal){
     mapbg.style.display='none';mapimg.style.display='block';
-    var key=mapVal.substring(0,80);
-    if(mapimg.getAttribute('data-key')!==key){
-      mapimg.setAttribute('data-key',key);
-      mapimg.src=mapVal;
-    }
+    if(mapimg._qsSrc!==mapVal){mapimg._qsSrc=mapVal;mapimg.src=mapVal;}
   } else {
     mapbg.style.background='#05080f';mapbg.style.display='block';mapimg.style.display='none';
   }
@@ -189,15 +190,20 @@ function _doRender(renderState, combat){
 }
 
 var _last=null;
-var _localData={map:null,visuel:null};
-var _prevCurtain=null; // suivi de l'état rideau précédent
+var _localData={map:null,visuel:null,frozenMap:null,frozenVisuel:null};
+var _prevCurtain=null;
 window.addEventListener('resize',function(){ if(_last) render(_last.ecran,_last.combat); });
-// Réception des images locales depuis la fenêtre MJ
 window.addEventListener('message',function(e){
-  if(!e.data||e.data.type!=='qs_local')return;
-  if(e.data.map)   _localData.map=e.data.map;
-  if(e.data.visuel)_localData.visuel=e.data.visuel;
-  if(_last)render(_last.ecran,_last.combat); // re-render avec les nouvelles images locales
+  if(!e.data)return;
+  if(e.data.type==='qs_local'){
+    if(e.data.map)   _localData.map=e.data.map;
+    if(e.data.visuel)_localData.visuel=e.data.visuel;
+    if(_last)render(_last.ecran,_last.combat);
+  } else if(e.data.type==='qs_frozen_local'){
+    // Snapshot local figé au moment où le rideau s'est baissé
+    if(e.data.map)   _localData.frozenMap=e.data.map;
+    if(e.data.visuel)_localData.frozenVisuel=e.data.visuel;
+  }
 });
 
 function loadScript(src){return new Promise(function(res,rej){var s=document.createElement('script');s.src=src;s.onload=res;s.onerror=rej;document.head.appendChild(s);});}
