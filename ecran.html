@@ -21,6 +21,7 @@ html,body{height:100%;background:#000;font-family:system-ui,sans-serif;color:#e0
 .tok.enemy{background:radial-gradient(circle,rgba(239,68,68,.4),rgba(185,28,28,.55));border:3px solid #ef4444;box-shadow:0 0 18px rgba(239,68,68,.5);}
 .tok.ally{background:radial-gradient(circle,rgba(74,222,128,.35),rgba(22,101,52,.55));border:3px solid #4ade80;box-shadow:0 0 18px rgba(74,222,128,.4);}
 .tok.npc{background:radial-gradient(circle,rgba(201,162,39,.35),rgba(120,80,10,.55));border:3px solid #c9a227;box-shadow:0 0 18px rgba(201,162,39,.4);}
+.tok.has-img{background:transparent!important;border-color:transparent!important;box-shadow:none!important;}
 .tok.has-img .tl{top:165%;margin-top:0;}
 .tok i{pointer-events:none;}
 .tok.enemy i{color:#fecaca;}.tok.ally i{color:#bbf7d0;}.tok.npc i{color:#fde68a;}
@@ -168,10 +169,11 @@ function _doRender(renderState, combat, isFrozen){
       var c=pct>50?'#4ade80':pct>25?'#fbbf24':'#ef4444';
       hp='<div class="hpb" style="bottom:-'+Math.round(size*0.18)+'px;left:4px;right:4px;"><div class="hpf" style="width:'+pct+'%;background:'+c+'"></div></div>';
     }
-    var iconHtml=t.img
-      ?'<img src="'+t.img+'" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:220%;width:auto;object-fit:contain;z-index:15;pointer-events:none;" onerror="this.style.display=\'none\'">'
+    var imgSrc=t.img||_localData.tokenImgs[id]||null;
+    var iconHtml=imgSrc
+      ?'<img src="'+imgSrc+'" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:180%;width:auto;object-fit:contain;z-index:15;pointer-events:none;" onerror="this.style.display=\'none\'">'
       :'<i class="ra '+(t.icon||'ra-skull')+'" style="font-size:'+Math.round(size*0.42)+'px;"></i>';
-    return '<div class="tok '+t.type+(t.img?' has-img':'')+'" style="left:'+(t.xPct||0)+'%;top:'+(t.yPct||0)+'%;width:'+size+'px;height:'+size+'px;">'
+    return '<div class="tok '+t.type+(imgSrc?' has-img':'')+'" style="left:'+(t.xPct||0)+'%;top:'+(t.yPct||0)+'%;width:'+size+'px;height:'+size+'px;">'
       +iconHtml
       +'<span class="tl" style="font-size:'+Math.round(size*0.2)+'px;">'+esc(t.nom||'')+'</span>'
       +hp
@@ -201,7 +203,7 @@ function _buildGridLabels(){
 _buildGridLabels();
 
 var _last=null;
-var _localData={map:null,visuel:null,frozenMap:null,frozenVisuel:null};
+var _localData={map:null,visuel:null,frozenMap:null,frozenVisuel:null,tokenImgs:{}};
 var _prevCurtain=null;
 window.addEventListener('resize',function(){ if(_last) render(_last.ecran,_last.combat); });
 window.addEventListener('message',function(e){
@@ -209,6 +211,7 @@ window.addEventListener('message',function(e){
   if(e.data.type==='qs_local'){
     if(e.data.map)   _localData.map=e.data.map;
     if(e.data.visuel)_localData.visuel=e.data.visuel;
+    if(e.data.tokenImgs)Object.assign(_localData.tokenImgs,e.data.tokenImgs);
     if(_last)render(_last.ecran,_last.combat);
   } else if(e.data.type==='qs_frozen_local'){
     // Snapshot local figé au moment où le rideau s'est baissé
