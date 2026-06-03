@@ -21,7 +21,7 @@ html,body{height:100%;background:#000;font-family:system-ui,sans-serif;color:#e0
 .tok.enemy{background:radial-gradient(circle,rgba(239,68,68,.4),rgba(185,28,28,.55));border:3px solid #ef4444;box-shadow:0 0 18px rgba(239,68,68,.5);}
 .tok.ally{background:radial-gradient(circle,rgba(74,222,128,.35),rgba(22,101,52,.55));border:3px solid #4ade80;box-shadow:0 0 18px rgba(74,222,128,.4);}
 .tok.npc{background:radial-gradient(circle,rgba(201,162,39,.35),rgba(120,80,10,.55));border:3px solid #c9a227;box-shadow:0 0 18px rgba(201,162,39,.4);}
-.tok.has-img{background:none!important;border:none!important;box-shadow:none!important;}
+.tok.has-img .tl{top:165%;margin-top:0;}
 .tok i{pointer-events:none;}
 .tok.enemy i{color:#fecaca;}.tok.ally i{color:#bbf7d0;}.tok.npc i{color:#fde68a;}
 .tok .tl{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:2px;font-weight:700;color:#fff;text-shadow:0 1px 5px #000,0 0 8px #000;white-space:nowrap;z-index:5;}
@@ -65,6 +65,12 @@ html,body{height:100%;background:#000;font-family:system-ui,sans-serif;color:#e0
 function esc(s){return (s||'').replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];});}
 function qs(k){var m=new RegExp('[?&]'+k+'=([^&]+)').exec(location.search);return m?decodeURIComponent(m[1]):null;}
 function toggleFs(){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}
+// Re-enter fullscreen si la fenêtre MJ ouvre un file picker et nous fait perdre le focus
+var _wasFull=false;
+document.addEventListener('fullscreenchange',function(){_wasFull=!!document.fullscreenElement;});
+window.addEventListener('focus',function(){
+  if(_wasFull&&!document.fullscreenElement)document.documentElement.requestFullscreen().catch(function(){});
+});
 
 // ── Crossfade par overlay (pas de fondu au noir) ──
 // L'overlay capture l'ancienne scène (img ou fond), la nouvelle s'affiche dessous, l'overlay disparaît
@@ -87,22 +93,14 @@ function _applyCrossfade(ms, renderState, combat){
   }
   overlay.style.opacity='1';
 
-  // Masquer la grille pendant la transition pour éviter le scintillement
-  var grid=document.getElementById('grid');
-  if(grid&&ms){grid.style.transition='none';grid.style.opacity='0';}
-
-  // Afficher la nouvelle scène immédiatement en dessous
+  // Afficher la nouvelle scène (map + grille + tokens) immédiatement en dessous de l'overlay
   _doRender(renderState, combat);
 
-  // Dissiper l'overlay (= crossfade), puis restaurer la grille
-  if(!ms){overlay.style.opacity='0';if(grid)grid.style.opacity=(renderState.grid===false)?'0':'1';return;}
+  // Dissiper l'overlay — la nouvelle scène complète (y compris grille) se révèle en sync
+  if(!ms){overlay.style.opacity='0';return;}
   requestAnimationFrame(function(){requestAnimationFrame(function(){
     overlay.style.transition='opacity '+(ms/1000).toFixed(2)+'s ease';
     overlay.style.opacity='0';
-    // Restaurer la grille en fin de fondu
-    setTimeout(function(){
-      if(grid){grid.style.transition='opacity .2s';grid.style.opacity=(renderState.grid===false)?'0':'1';}
-    }, ms);
   });});
 }
 
@@ -173,7 +171,7 @@ function _doRender(renderState, combat, isFrozen){
     var iconHtml=t.img
       ?'<img src="'+t.img+'" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:220%;width:auto;object-fit:contain;z-index:15;pointer-events:none;" onerror="this.style.display=\'none\'">'
       :'<i class="ra '+(t.icon||'ra-skull')+'" style="font-size:'+Math.round(size*0.42)+'px;"></i>';
-    return '<div class="tok '+(t.img?'has-img':t.type)+'" style="left:'+(t.xPct||0)+'%;top:'+(t.yPct||0)+'%;width:'+size+'px;height:'+size+'px;">'
+    return '<div class="tok '+t.type+(t.img?' has-img':'')+'" style="left:'+(t.xPct||0)+'%;top:'+(t.yPct||0)+'%;width:'+size+'px;height:'+size+'px;">'
       +iconHtml
       +'<span class="tl" style="font-size:'+Math.round(size*0.2)+'px;">'+esc(t.nom||'')+'</span>'
       +hp
