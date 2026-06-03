@@ -13377,6 +13377,12 @@ function fermerCombatPJ(){
   if(cbtForceCombat)return;
   el('s-combat').style.display='none';
 }
+function cbtQuitterCombat(){
+  if(!db||!campCode||!joueurId)return;
+  if(!confirm('Quitter le combat ? Le MJ sera notifié.'))return;
+  db.collection('parties').doc(campCode).collection('joueurs').doc(joueurId)
+    .set({_quitCombat:true},{merge:true}).catch(function(){});
+}
 
 function cbtConfirmerInit(){
   if(_cbtInitSoumise)return; // idempotent — empêche tout double-envoi
@@ -14289,6 +14295,7 @@ function conn_toggleSec(sid){
     <span id="cbt-round-info" style="font-size:12px;opacity:.85;"></span>
     <button id="cbt-mute" onclick="cbtToggleMute()" style="background:none;border:none;color:white;cursor:pointer;font-size:18px;padding:0 4px;">🔔</button>
     <button onclick="ouvrirFicheCombat()" style="background:rgba(0,0,0,.3);border:1px solid rgba(255,255,255,.3);color:white;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;">📋 Fiche</button>
+    <button onclick="cbtQuitterCombat()" style="background:rgba(220,38,38,.35);border:1px solid rgba(220,38,38,.6);color:white;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:12px;" title="Quitter le combat">🚪 Quitter</button>
     <button id="cbt-retour" class="btn" style="font-size:11px;padding:4px 10px;background:rgba(0,0,0,.3);border-color:rgba(255,255,255,.3);color:white;" onclick="fermerCombatPJ()">Retour</button>
   </div>
   <div class="app" style="padding-top:.75rem;">

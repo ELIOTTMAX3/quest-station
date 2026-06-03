@@ -509,7 +509,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .ecran-token.enemy{background:radial-gradient(circle,rgba(239,68,68,.35),rgba(185,28,28,.5));border:2px solid #ef4444;box-shadow:0 0 8px rgba(239,68,68,.4);}
 .ecran-token.ally{background:radial-gradient(circle,rgba(74,222,128,.3),rgba(22,101,52,.5));border:2px solid #4ade80;box-shadow:0 0 8px rgba(74,222,128,.3);}
 .ecran-token.npc{background:radial-gradient(circle,rgba(201,162,39,.3),rgba(120,80,10,.5));border:2px solid #c9a227;}
-.ecran-token.has-img{background:transparent!important;border-color:transparent!important;box-shadow:none!important;}
+.ecran-token.has-img{background:transparent!important;box-shadow:none!important;border-style:dashed!important;border-width:2px!important;}
 .ecran-token.has-img .tl{top:165%;margin-top:0;}
 .ecran-token i{font-size:15px;pointer-events:none;}
 .ecran-token.enemy i{color:#fca5a5;}.ecran-token.ally i{color:#86efac;}.ecran-token.npc i{color:#fde68a;}
@@ -1533,9 +1533,17 @@ function ouvrirPanel(code){
     qs.docChanges().forEach(function(change){
       if(change.type!=='removed'){
         var d=change.doc;
-        if(d.data()._initScore!==null&&d.data()._initScore!==undefined){
+        var data=d.data();
+        if(data._initScore!==null&&data._initScore!==undefined){
           var c=combatants.find(function(x){return x.jid===d.id;});
-          if(c){c.init=d.data()._initScore;}
+          if(c){c.init=data._initScore;}
+        }
+        // PJ quitte le combat
+        if(data._quitCombat){
+          var idx=combatants.findIndex(function(x){return x.jid===d.id;});
+          if(idx>=0)retirerCombattant(idx);
+          if(campagneActive)db.collection("parties").doc(campagneActive.id).collection("joueurs").doc(d.id)
+            .set({_quitCombat:false,_combatPhase:''},{merge:true}).catch(function(){});
         }
       }
     });
@@ -2658,6 +2666,7 @@ function reprendreCombat(){
 }
 
 function retirerCombattant(idx){
+  var c=combatants[idx];
   var idxActuel=combatTour;
   combatants.splice(idx,1);
   if(_mjMobPanelIdx===idx)mjFermerMobPanel();
@@ -2666,6 +2675,8 @@ function retirerCombattant(idx){
     if(idx<idxActuel)combatTour=Math.max(0,combatTour-1);
     else if(idx===idxActuel)combatTour=combatTour%Math.max(1,combatants.length);
   }
+  // Retirer le token de l'écran PJ si présent
+  if(c){var st=ecran_state();if(st.tokens[c.id]){delete st.tokens[c.id];if(_ecran.selectedId===c.id)_ecran.selectedId=null;ecran_renderPalette();ecran_renderTokens();_ecran_save();}}
   rendreCombat();syncCombatFirestore();sauvegarderCombat();
 }
 
@@ -5936,8 +5947,8 @@ function _ecran_save(){
     var st=ecran_state();
     var key=_ecran_mapKey(st.map);
     if(key)st.mapTokenSaves[key]=JSON.parse(JSON.stringify(st.tokens));
-    _ecran_pushLocal();
-    db.collection("parties").doc(campagneActive.id).set({ecran:_ecran_fsState()},{merge:true}).catch(function(){});
+    try{_ecran_pushLocal();}catch(e){}
+    db.collection("parties").doc(campagneActive.id).set({ecran:_ecran_fsState()},{merge:true}).catch(function(err){console.warn('ecran save error',err);});
   },120);
 }
 // Répondre aux demandes de resync de la fenêtre ecran
@@ -6039,12 +6050,13 @@ function _ecran_restoreLibLocal(){
     var st=ecran_state();
     var maps=JSON.parse(localStorage.getItem('qs_mapLib')||'[]');
     var visuels=JSON.parse(localStorage.getItem('qs_visuelLib')||'[]');
-    var savedTokenImgs=JSON.parse(localStorage.getItem('qs_tokenImgs')||'{}');
-    Object.assign(st.tokenImgs,savedTokenImgs);
-    // Restaurer img sur les tokens actifs
-    Object.keys(st.tokens||{}).forEach(function(id){
-      if(!st.tokens[id].img&&st.tokenImgs[id])st.tokens[id].img=st.tokenImgs[id];
-    });
+    try{
+      var savedTokenImgs=JSON.parse(localStorage.getItem('qs_tokenImgs')||'{}');
+      Object.assign(st.tokenImgs,savedTokenImgs);
+      Object.keys(st.tokens||{}).forEach(function(id){
+        if(!st.tokens[id].img&&st.tokenImgs[id])st.tokens[id].img=st.tokenImgs[id];
+      });
+    }catch(e2){}
     (st.mapLib||[]).forEach(function(m){
       if(!m.url||m.url==='__local__'){var f=maps.find(function(s){return s.label===m.label;});if(f)m.url=f.url;}
     });
