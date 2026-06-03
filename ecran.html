@@ -169,7 +169,7 @@ function _doRender(renderState, combat, isFrozen){
       var c=pct>50?'#4ade80':pct>25?'#fbbf24':'#ef4444';
       hp='<div class="hpb" style="bottom:-'+Math.round(size*0.18)+'px;left:4px;right:4px;"><div class="hpf" style="width:'+pct+'%;background:'+c+'"></div></div>';
     }
-    var imgSrc=t.img||_localData.tokenImgs[id]||null;
+    var imgSrc=t.img||((_localData.tokenImgs||{})[id])||null;
     var iconHtml=imgSrc
       ?'<img src="'+imgSrc+'" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:180%;width:auto;object-fit:contain;z-index:15;pointer-events:none;" onerror="this.style.display=\'none\'">'
       :'<i class="ra '+(t.icon||'ra-skull')+'" style="font-size:'+Math.round(size*0.42)+'px;"></i>';

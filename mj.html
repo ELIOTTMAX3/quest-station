@@ -1538,8 +1538,8 @@ function ouvrirPanel(code){
           var c=combatants.find(function(x){return x.jid===d.id;});
           if(c){c.init=data._initScore;}
         }
-        // PJ quitte le combat
-        if(data._quitCombat){
+        // PJ quitte le combat — seulement sur les modifications (pas le snapshot initial)
+        if(change.type==='modified'&&data._quitCombat===true){
           var idx=combatants.findIndex(function(x){return x.jid===d.id;});
           if(idx>=0)retirerCombattant(idx);
           if(campagneActive)db.collection("parties").doc(campagneActive.id).collection("joueurs").doc(d.id)
@@ -2675,8 +2675,8 @@ function retirerCombattant(idx){
     if(idx<idxActuel)combatTour=Math.max(0,combatTour-1);
     else if(idx===idxActuel)combatTour=combatTour%Math.max(1,combatants.length);
   }
-  // Retirer le token de l'écran PJ si présent
-  if(c){var st=ecran_state();if(st.tokens[c.id]){delete st.tokens[c.id];if(_ecran.selectedId===c.id)_ecran.selectedId=null;ecran_renderPalette();ecran_renderTokens();_ecran_save();}}
+  // Retirer le token de l'écran PJ si présent (seulement si l'écran était déjà initialisé)
+  if(c&&_ecran.state&&_ecran.state.tokens[c.id]){delete _ecran.state.tokens[c.id];if(_ecran.selectedId===c.id)_ecran.selectedId=null;ecran_renderPalette();ecran_renderTokens();_ecran_save();}
   rendreCombat();syncCombatFirestore();sauvegarderCombat();
 }
 
@@ -5890,8 +5890,14 @@ function _ecran_fsState(){
   _stripData(s,'map');_stripData(s,'visuel');
   (s.mapLib||[]).forEach(function(m){_stripData(m,'url');});
   (s.visuelLib||[]).forEach(function(v){_stripData(v,'url');});
-  // Snapshot frozen : strip data URLs
-  if(s.frozen){_stripData(s.frozen,'map');_stripData(s.frozen,'visuel');}
+  // Snapshot frozen : strip data URLs (map, visuel, et imgs des tokens)
+  if(s.frozen){
+    _stripData(s.frozen,'map');_stripData(s.frozen,'visuel');
+    Object.keys(s.frozen.tokens||{}).forEach(function(tid){
+      if(s.frozen.tokens[tid].img&&s.frozen.tokens[tid].img.startsWith('data:'))
+        s.frozen.tokens[tid]=Object.assign({},s.frozen.tokens[tid],{img:null});
+    });
+  }
   // Tokens actifs : strip img data URLs (trop grandes pour Firestore)
   Object.keys(s.tokens||{}).forEach(function(tid){
     if(s.tokens[tid].img&&s.tokens[tid].img.startsWith('data:'))
