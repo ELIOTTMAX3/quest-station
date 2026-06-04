@@ -5979,7 +5979,7 @@ function _ecran_save(){
 }
 // Répondre aux demandes de resync de la fenêtre ecran
 window.addEventListener('message',function(e){
-  if(e.data&&e.data.type==='qs_reqLocal') _ecran_pushLocal();
+  if(e.data&&e.data.type==='qs_reqLocal'){_ecran_restoreLibLocal();_ecran_pushLocal();}
 });
 
 // ── Crop 16:9 ──
@@ -6064,12 +6064,10 @@ function _ecran_confirmCrop(){
   setTimeout(_bind,300);
 })();
 function _ecran_saveLibLocal(){
-  try{
-    var st=ecran_state();
-    localStorage.setItem('qs_mapLib',JSON.stringify((st.mapLib||[]).filter(function(m){return m.url&&!m.url.startsWith('__');})));
-    localStorage.setItem('qs_visuelLib',JSON.stringify((st.visuelLib||[]).filter(function(v){return v.url&&!v.url.startsWith('__');})));
-    localStorage.setItem('qs_tokenImgs',JSON.stringify(st.tokenImgs||{}));
-  }catch(e){}
+  var st=ecran_state();
+  try{localStorage.setItem('qs_mapLib',JSON.stringify((st.mapLib||[]).filter(function(m){return m.url&&!m.url.startsWith('__');})));}catch(e){}
+  try{localStorage.setItem('qs_visuelLib',JSON.stringify((st.visuelLib||[]).filter(function(v){return v.url&&!v.url.startsWith('__');})));}catch(e){}
+  try{localStorage.setItem('qs_tokenImgs',JSON.stringify(st.tokenImgs||{}));}catch(e){toast('⚠ Stockage local plein — relance l\'app pour libérer de l\'espace.');}
 }
 function _ecran_restoreLibLocal(){
   try{
@@ -6274,16 +6272,26 @@ function ecran_removeToken(id){
 }
 function ecran_setTokenImg(id,inp){
   var f=inp.files&&inp.files[0];inp.value='';if(!f)return;
-  // Toujours utiliser FileReader (Firebase Storage peut échouer silencieusement)
   var reader=new FileReader();
   reader.onload=function(e){
-    var st=ecran_state();
-    st.tokenImgs[id]=e.target.result;
-    if(st.tokens[id])st.tokens[id].img=e.target.result;
-    ecran_renderPalette();ecran_renderTokens();
-    _ecran_saveLibLocal(); // persist PNG en localStorage
-    _ecran_save();
-    toast('✅ Image token mise à jour');
+    // Compresser à max 200×200px pour éviter le dépassement de quota localStorage
+    var tmpImg=new Image();
+    tmpImg.onload=function(){
+      var MAX=200;
+      var ratio=Math.min(MAX/tmpImg.width,MAX/tmpImg.height,1);
+      var cw=Math.round(tmpImg.width*ratio),ch=Math.round(tmpImg.height*ratio);
+      var cv=document.createElement('canvas');cv.width=cw;cv.height=ch;
+      cv.getContext('2d').drawImage(tmpImg,0,0,cw,ch);
+      var dataUrl=cv.toDataURL('image/png');
+      var st=ecran_state();
+      st.tokenImgs[id]=dataUrl;
+      if(st.tokens[id])st.tokens[id].img=dataUrl;
+      ecran_renderPalette();ecran_renderTokens();
+      _ecran_saveLibLocal();
+      _ecran_save();
+      toast('✅ Image token mise à jour');
+    };
+    tmpImg.src=e.target.result;
   };
   reader.onerror=function(){toast('❌ Erreur lecture image.');};
   reader.readAsDataURL(f);
