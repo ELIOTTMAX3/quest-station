@@ -2430,6 +2430,13 @@ function effacerCombat(){
   if(el('combat-select'))el('combat-select').style.display='none';
   if(el('btn-debut-combat'))el('btn-debut-combat').style.display='';
   if(el('btn-commencer'))el('btn-commencer').style.display='none';
+  // Vider les tokens de l'écran à la fin du combat
+  if(_ecran.state){
+    var _curKey=_ecran_mapKey(_ecran.state.map);
+    _ecran.state.tokens={};
+    if(_curKey)_ecran.state.mapTokenSaves[_curKey]={};
+    ecran_renderPalette();ecran_renderTokens();_ecran_save();
+  }
   rendreCombat();majControlsCombat();
   syncCombatFirestore();sauvegarderCombat();resetInitScoresPJ();
 }
@@ -2597,13 +2604,6 @@ function lancerCombat(){
   });
   combatants=combatants.concat(monstres);
   combatActif=true;combatRound=0;combatTour=-1;
-  // Vider les tokens de la carte courante au lancement d'un nouveau combat
-  if(_ecran.state){
-    var _curKey=_ecran_mapKey(_ecran.state.map);
-    _ecran.state.tokens={};
-    if(_curKey)_ecran.state.mapTokenSaves[_curKey]={};
-    ecran_renderPalette();ecran_renderTokens();_ecran_save();
-  }
   rendreCombat();majControlsCombat();syncCombatFirestore();sauvegarderCombat();
   resetInitScoresPJ();
 }
@@ -6288,7 +6288,9 @@ function ecran_setTokenImg(id,inp){
     var st=ecran_state();
     st.tokenImgs[id]=e.target.result;
     if(st.tokens[id])st.tokens[id].img=e.target.result;
-    ecran_renderPalette();ecran_renderTokens();_ecran_save();
+    ecran_renderPalette();ecran_renderTokens();
+    _ecran_saveLibLocal(); // persist PNG en localStorage
+    _ecran_save();
     toast('✅ Image token mise à jour');
   };
   reader.onerror=function(){toast('❌ Erreur lecture image.');};
@@ -6498,6 +6500,8 @@ function ecran_toggleDiffusion(){
   _ecran._winCheck=setInterval(function(){
     if(_ecran.win&&_ecran.win.closed){_ecran.win=null;clearInterval(_ecran._winCheck);ecran_bcUI(false);}
   },1000);
+  // Restaurer les libs locales (tokenImgs, mapLib…) avant le push
+  _ecran_restoreLibLocal();
   // Push des images locales après chargement de la page ecran (~1.5s)
   setTimeout(function(){_ecran_pushLocal();},1500);
 }
