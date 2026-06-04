@@ -2649,8 +2649,7 @@ function nouveauRound(){
 }
 
 function nouveauCombat(){
-  if(!confirm("Réinitialiser le combat ? Les scores d'initiative seront effacés."))return;
-  effacerCombat();
+  _mj_confirm("Réinitialiser le combat ? Les scores d'initiative seront effacés.",function(ok){if(ok)effacerCombat();});
 }
 
 function reprendreCombat(){
@@ -2687,12 +2686,13 @@ function majInitiativeCombat(idx,val){
 }
 
 function majPvMonstre(idx,type){
-  var val=parseInt(prompt(type==='degats'?'Dégâts infliqués :':'Soins appliqués :')||'0');
-  if(!val||isNaN(val))return;
-  var c=combatants[idx];
-  if(type==='degats')c.pvact=Math.max(0,c.pvact-Math.abs(val));
-  else c.pvact=Math.min(c.pvmax,c.pvact+Math.abs(val));
-  rendreCombat();syncCombatFirestore();sauvegarderCombat();
+  _mj_prompt(type==='degats'?'Dégâts infliqués :':'Soins appliqués :','',function(v){
+    var val=parseInt(v||'0');if(!val||isNaN(val))return;
+    var c=combatants[idx];if(!c)return;
+    if(type==='degats')c.pvact=Math.max(0,c.pvact-Math.abs(val));
+    else c.pvact=Math.min(c.pvmax,c.pvact+Math.abs(val));
+    rendreCombat();syncCombatFirestore();sauvegarderCombat();
+  });
 }
 
 // Sync PV PJ vers combat tracker (appelé après appliquerHp)
@@ -5798,33 +5798,34 @@ function ecran_uploadFile(file,kind,cb){
 function ecran_pickMapFile(inp){
   var f=inp.files&&inp.files[0];inp.value='';if(!f)return;
   var defNom=f.name.replace(/\.[^.]+$/,'');
-  var nom=prompt('Nom de la carte :',defNom);if(nom===null)return;
-  nom=nom.trim()||defNom;
-  _ecran_showCrop(f,'Carte — '+nom,function(url){
-    var st=ecran_state();
-    // Sauvegarder les tokens de la map active avant de changer
-    var curKey=_ecran_mapKey(st.map);
-    if(curKey)st.mapTokenSaves[curKey]=JSON.parse(JSON.stringify(st.tokens));
-    // Nouvelle map : toujours démarrer sans aucun monstre
-    st.mapLib.push({url:url,label:nom});
-    st.map=url;
-    st.tokens={};
-    ecran_renderMaps();ecran_renderMapArea();ecran_renderPalette();
-    _ecran_saveLibLocal();_ecran_save();
-    toast('✅ Carte "'+nom+'" chargée');
+  _mj_prompt('Nom de la carte :',defNom,function(nom){
+    if(nom===null||nom===false)return;
+    nom=(nom||'').trim()||defNom;
+    _ecran_showCrop(f,'Carte — '+nom,function(url){
+      var st=ecran_state();
+      var curKey=_ecran_mapKey(st.map);
+      if(curKey)st.mapTokenSaves[curKey]=JSON.parse(JSON.stringify(st.tokens));
+      st.mapLib.push({url:url,label:nom});
+      st.map=url;st.tokens={};
+      ecran_renderMaps();ecran_renderMapArea();ecran_renderPalette();
+      _ecran_saveLibLocal();_ecran_save();
+      toast('✅ Carte "'+nom+'" chargée');
+    });
   });
 }
 function ecran_pickVisFile(inp){
   var f=inp.files&&inp.files[0];inp.value='';if(!f)return;
   var defNom=f.name.replace(/\.[^.]+$/,'');
-  var nom=prompt('Nom du visuel :',defNom);if(nom===null)return;
-  nom=nom.trim()||defNom;
-  _ecran_showCrop(f,'Visuel — '+nom,function(url){
-    var st=ecran_state();
-    st.visuelLib.push({url:url,label:nom});
-    ecran_renderVisuel();
-    _ecran_saveLibLocal();_ecran_save();
-    toast('✅ Visuel "'+nom+'" chargé');
+  _mj_prompt('Nom du visuel :',defNom,function(nom){
+    if(nom===null||nom===false)return;
+    nom=(nom||'').trim()||defNom;
+    _ecran_showCrop(f,'Visuel — '+nom,function(url){
+      var st=ecran_state();
+      st.visuelLib.push({url:url,label:nom});
+      ecran_renderVisuel();
+      _ecran_saveLibLocal();_ecran_save();
+      toast('✅ Visuel "'+nom+'" chargé');
+    });
   });
 }
 function ecran_delMap(i){
@@ -6310,10 +6311,11 @@ function ecran_togglePlace(id){
   ecran_renderPalette();ecran_renderTokens();_ecran_save();
 }
 function ecran_addMonstreToken(){
-  var nom=prompt('Nom du token :','Monstre');if(!nom)return;
-  ecran_state().tokens['mon-'+Date.now()]={nom:nom,type:'enemy',icon:'ra-skull',hp:null,maxHp:null,
-    xPct:50,yPct:50,hidden:false};
-  ecran_renderTokens();_ecran_save();
+  _mj_prompt('Nom du token :','Monstre',function(nom){
+    if(!nom)return;
+    ecran_state().tokens['mon-'+Date.now()]={nom:nom,type:'enemy',icon:'ra-skull',hp:null,maxHp:null,xPct:50,yPct:50,hidden:false};
+    ecran_renderTokens();_ecran_save();
+  });
 }
 function ecran_renderTokens(){
   var layer=el('ecran-tokens-layer');if(!layer)return;
@@ -6502,5 +6504,44 @@ function ecran_bcUI(live){
     </div>
   </div>
 </div>
+
+<!-- ══ MODAL INTERNE (remplace confirm/prompt natifs) ══════════ -->
+<div id="mj-modal" style="display:none;position:fixed;inset:0;z-index:9000;background:rgba(0,0,0,.6);align-items:center;justify-content:center;">
+  <div style="background:#111e33;border:1px solid #2a3d5a;border-radius:14px;padding:22px 24px;max-width:380px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.7);">
+    <p id="mj-modal-msg" style="font-size:14px;color:#e8dcc8;margin-bottom:16px;line-height:1.5;"></p>
+    <input id="mj-modal-input" type="text" style="display:none;width:100%;margin-bottom:14px;padding:8px 10px;border-radius:8px;border:1px solid #2a3d5a;background:#0d1624;color:#e8dcc8;font-size:14px;font-family:inherit;">
+    <div style="display:flex;gap:10px;">
+      <button id="mj-modal-ok" class="btn ok" style="flex:1;" onclick="_mjModalOk()">OK</button>
+      <button id="mj-modal-cancel" class="btn" style="flex:1;" onclick="_mjModalClose()">Annuler</button>
+    </div>
+  </div>
+</div>
+<script>
+var _mjModalCb=null;
+var _mjModalIsPrompt=false;
+function _mj_confirm(msg,cb){
+  _mjModalCb=cb;_mjModalIsPrompt=false;
+  el('mj-modal-msg').textContent=msg;
+  el('mj-modal-input').style.display='none';
+  el('mj-modal').style.display='flex';
+  el('mj-modal-ok').focus();
+}
+function _mj_prompt(msg,defVal,cb){
+  _mjModalCb=cb;_mjModalIsPrompt=true;
+  el('mj-modal-msg').textContent=msg;
+  var inp=el('mj-modal-input');inp.value=defVal||'';inp.style.display='';
+  el('mj-modal').style.display='flex';
+  inp.focus();inp.select();
+  inp.onkeydown=function(e){if(e.key==='Enter')_mjModalOk();if(e.key==='Escape')_mjModalClose();};
+}
+function _mjModalOk(){
+  var val=_mjModalIsPrompt?el('mj-modal-input').value:true;
+  _mjModalClose();
+  if(_mjModalCb)_mjModalCb(val);
+}
+function _mjModalClose(){
+  el('mj-modal').style.display='none';_mjModalCb=null;
+}
+</script>
 </body>
 </html>

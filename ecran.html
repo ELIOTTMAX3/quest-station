@@ -68,10 +68,15 @@ function qs(k){var m=new RegExp('[?&]'+k+'=([^&]+)').exec(location.search);retur
 function toggleFs(){if(!document.fullscreenElement)document.documentElement.requestFullscreen();else document.exitFullscreen();}
 // Re-enter fullscreen si la fenêtre MJ ouvre un file picker et nous fait perdre le focus
 var _wasFull=false;
+function _tryFullscreen(){
+  if(_wasFull&&!document.fullscreenElement)
+    document.documentElement.requestFullscreen().catch(function(){});
+}
 document.addEventListener('fullscreenchange',function(){_wasFull=!!document.fullscreenElement;});
-window.addEventListener('focus',function(){
-  if(_wasFull&&!document.fullscreenElement)document.documentElement.requestFullscreen().catch(function(){});
-});
+// Récupération plein écran : focus, visibilité, et vérification périodique
+window.addEventListener('focus',_tryFullscreen);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)_tryFullscreen();});
+setInterval(_tryFullscreen,2000);
 
 // ── Crossfade par overlay (pas de fondu au noir) ──
 // L'overlay capture l'ancienne scène (img ou fond), la nouvelle s'affiche dessous, l'overlay disparaît
