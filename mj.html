@@ -2546,19 +2546,27 @@ function ajouterMonstre(){
 }
 
 function prepCombat(){
-  var jids=Object.keys(joueursData).filter(function(jid){return joueursData[jid]._nom;});
+  // Tous les joueurs inscrits (même sans _nom encore renseigné)
+  var jids=Object.keys(joueursData);
   if(!jids.length){toast('Aucun joueur dans la campagne.');return;}
+  // Trier : en ligne en premier, puis par nom
+  jids.sort(function(a,b){
+    var onA=estEnLigne(joueursData[a])?1:0,onB=estEnLigne(joueursData[b])?1:0;
+    if(onB!==onA)return onB-onA;
+    return (joueursData[a]._nom||a).localeCompare(joueursData[b]._nom||b);
+  });
   var html='';
   jids.forEach(function(jid){
     var d=joueursData[jid];
     var online=estEnLigne(d);
+    var nom=d._nom||('<span style="color:var(--txt3);font-style:italic;">'+jid+'</span>');
     var av=d.avatar
       ?'<img src="'+d.avatar+'" style="width:28px;height:28px;border-radius:50%;object-fit:cover;flex-shrink:0;">'
       :'<div style="width:28px;height:28px;border-radius:50%;background:var(--bg2);display:flex;align-items:center;justify-content:center;font-size:11px;color:var(--txt3);flex-shrink:0;">?</div>';
     html+='<div class="pjsel-item" onclick="togglePJSel(this)">';
     html+='<input type="checkbox" data-jid="'+jid+'">';
     html+=av;
-    html+='<span style="font-weight:600;font-size:13px;flex:1;">'+(d._nom||jid)+'</span>';
+    html+='<span style="font-weight:600;font-size:13px;flex:1;">'+nom+'</span>';
     html+=(online?'<span style="width:8px;height:8px;border-radius:50%;background:#4ade80;flex-shrink:0;"></span>'
       :'<span style="font-size:11px;color:var(--txt3);">Hors ligne</span>');
     html+='</div>';
@@ -2584,7 +2592,7 @@ function lancerCombat(){
   combatants=[];
   joueursCombat.forEach(function(jid){
     var d=joueursData[jid];if(!d)return;
-    combatants.push({id:'pj-'+jid,jid:jid,nom:d._nom,type:'pj',
+    combatants.push({id:'pj-'+jid,jid:jid,nom:d._nom||jid,type:'pj',
       pvact:d._pvact||0,pvmax:d._pvmax||0,ca:d._ca||'—',init:null,avatar:d.avatar||null,conditions:[]});
   });
   combatants=combatants.concat(monstres);
