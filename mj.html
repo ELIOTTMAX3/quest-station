@@ -2430,13 +2430,6 @@ function effacerCombat(){
   if(el('combat-select'))el('combat-select').style.display='none';
   if(el('btn-debut-combat'))el('btn-debut-combat').style.display='';
   if(el('btn-commencer'))el('btn-commencer').style.display='none';
-  // Vider les tokens de l'écran à la fin du combat
-  if(_ecran.state){
-    var _curKey=_ecran_mapKey(_ecran.state.map);
-    _ecran.state.tokens={};
-    if(_curKey)_ecran.state.mapTokenSaves[_curKey]={};
-    ecran_renderPalette();ecran_renderTokens();_ecran_save();
-  }
   rendreCombat();majControlsCombat();
   syncCombatFirestore();sauvegarderCombat();resetInitScoresPJ();
 }
@@ -2691,7 +2684,6 @@ function retirerCombattant(idx){
     else if(idx===idxActuel)combatTour=combatTour%Math.max(1,combatants.length);
   }
   // Retirer le token de l'écran PJ si présent (seulement si l'écran était déjà initialisé)
-  if(c&&_ecran.state&&_ecran.state.tokens[c.id]){delete _ecran.state.tokens[c.id];if(_ecran.selectedId===c.id)_ecran.selectedId=null;ecran_renderPalette();ecran_renderTokens();_ecran_save();}
   rendreCombat();syncCombatFirestore();sauvegarderCombat();
 }
 
@@ -5964,13 +5956,11 @@ function _ecran_curtainUI(){
 }
 function ecran_pleinEcranPJ(){
   if(!_ecran.win||_ecran.win.closed){toast('Ouvre d\'abord la fenêtre écran PJ.');return;}
-  try{
-    // Tentative directe (même origine, geste utilisateur en cours)
-    _ecran.win.document.documentElement.requestFullscreen();
-  }catch(e){
-    // Fallback : message à ecran.html qui entre en plein écran à la prochaine interaction
-    _ecran.win.postMessage({type:'qs_fullscreen'},'*');
-  }
+  // Envoyer le signal avant de focaliser (pour que _wasFull soit true quand focus arrive)
+  _ecran.win.postMessage({type:'qs_fullscreen'},'*');
+  // focus() propage l'activation utilisateur (geste MJ) vers la fenêtre écran (même origine)
+  // → le gestionnaire focus de ecran.html peut alors appeler requestFullscreen()
+  _ecran.win.focus();
 }
 function ecran_setFade(v){ecran_state().fadeMs=parseInt(v)||0;_ecran_save();}
 function _ecran_save(){
@@ -5982,7 +5972,9 @@ function _ecran_save(){
     var key=_ecran_mapKey(st.map);
     if(key)st.mapTokenSaves[key]=JSON.parse(JSON.stringify(st.tokens));
     try{_ecran_pushLocal();}catch(e){}
-    db.collection("parties").doc(campagneActive.id).set({ecran:_ecran_fsState()},{merge:true}).catch(function(err){console.warn('ecran save error',err);});
+    // update() remplace le champ 'ecran' en entier (pas de fusion récursive des sous-objets)
+    // → évite l'accumulation des tokens de toutes les maps dans Firestore
+    db.collection("parties").doc(campagneActive.id).update({ecran:_ecran_fsState()}).catch(function(err){console.warn('ecran save error',err);});
   },120);
 }
 // Répondre aux demandes de resync de la fenêtre ecran

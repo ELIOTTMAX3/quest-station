@@ -214,6 +214,7 @@ window.addEventListener('resize',function(){ if(_last) render(_last.ecran,_last.
 window.addEventListener('message',function(e){
   if(!e.data)return;
   if(e.data.type==='qs_fullscreen'){
+    _wasFull=true; // activer avant que focus arrive
     document.documentElement.requestFullscreen().catch(function(){});
     return;
   }
