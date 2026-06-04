@@ -13690,7 +13690,10 @@ function cbtRendreActions(monTour){
   var eqEquipe=window._equip_equipe||{};
   var eqRows=[];
   function _cbtMakeItemRow(item,id,slotLabel){
-    var ico=item.icone&&!item.icone.startsWith("http")?item.icone:"✨";
+    var _iconeRaw=item.icone&&!item.icone.startsWith("http")?item.icone:"✨";
+    var ico=_iconeRaw&&_iconeRaw.startsWith('ra-')
+      ?'<i class="ra '+_iconeRaw+'" style="font-size:17px;color:var(--or);"></i>'
+      :'<span style="font-size:15px;">'+_iconeRaw+'</span>';
     var hasDesc=!!(item.description&&item.description.trim());
     var hasBonus=Array.isArray(item.bonus)&&item.bonus.length>0;
     var hasCharges=!!(item.charges&&item.charges.max);
@@ -13730,7 +13733,7 @@ function cbtRendreActions(monTour){
     }
     return '<div class="cbt-equip-item"'+(hasDetail?' onclick="cbtToggleSortDesc(\''+did+'\')"':'')+'>'
       +'<div class="cbt-equip-row">'
-      +'<span style="font-size:15px;">'+ico+'</span>'
+      +ico
       +'<span style="flex:1;font-weight:600;color:var(--txt);">'+item.nom+'</span>'
       +chgQuick
       +'<span style="font-size:10px;color:var(--txt3);margin-left:4px;">'+slotLabel+(hasDetail?' ▾':'')+'</span>'
