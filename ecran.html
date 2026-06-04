@@ -213,6 +213,10 @@ var _prevCurtain=null;
 window.addEventListener('resize',function(){ if(_last) render(_last.ecran,_last.combat); });
 window.addEventListener('message',function(e){
   if(!e.data)return;
+  if(e.data.type==='qs_fullscreen'){
+    document.documentElement.requestFullscreen().catch(function(){});
+    return;
+  }
   if(e.data.type==='qs_local'){
     if(e.data.map)   _localData.map=e.data.map;
     if(e.data.visuel)_localData.visuel=e.data.visuel;

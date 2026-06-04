@@ -1004,6 +1004,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
           <option value="3000">Fondu : 3s</option>
         </select>
         <button class="ecran-curtainbtn" id="ecran-curtainbtn" onclick="ecran_toggleCurtain()">🎭 Rideau</button>
+        <button id="ecran-fsbtn" onclick="ecran_pleinEcranPJ()" title="Passer l'écran PJ en plein écran" style="display:none;font-family:inherit;font-size:12px;font-weight:700;padding:7px 12px;border-radius:8px;cursor:pointer;border:1px solid #2a3d5a;background:#111e33;color:#8ab4f8;">⛶ Plein écran PJ</button>
       </div>
       <!-- Sous-onglets -->
       <div class="ecran-subtabs">
@@ -2588,6 +2589,13 @@ function lancerCombat(){
   });
   combatants=combatants.concat(monstres);
   combatActif=true;combatRound=0;combatTour=-1;
+  // Vider les tokens de la carte courante au lancement d'un nouveau combat
+  if(_ecran.state){
+    var _curKey=_ecran_mapKey(_ecran.state.map);
+    _ecran.state.tokens={};
+    if(_curKey)_ecran.state.mapTokenSaves[_curKey]={};
+    ecran_renderPalette();ecran_renderTokens();_ecran_save();
+  }
   rendreCombat();majControlsCombat();syncCombatFirestore();sauvegarderCombat();
   resetInitScoresPJ();
 }
@@ -5941,9 +5949,20 @@ function ecran_toggleCurtain(){
 }
 function _ecran_curtainUI(){
   var st=ecran_state();var live=(_ecran.win&&!_ecran.win.closed);
-  var btn=el('ecran-curtainbtn'),sel=el('ecran-fade-sel');
+  var btn=el('ecran-curtainbtn'),sel=el('ecran-fade-sel'),fsb=el('ecran-fsbtn');
   if(btn){btn.style.display=live?'inline-flex':'none';btn.textContent=st.curtain?'🎭 Lever le rideau':'🎭 Rideau';btn.classList.toggle('down',!!st.curtain);}
   if(sel)sel.style.display=live?'inline-block':'none';
+  if(fsb)fsb.style.display=live?'inline-flex':'none';
+}
+function ecran_pleinEcranPJ(){
+  if(!_ecran.win||_ecran.win.closed){toast('Ouvre d\'abord la fenêtre écran PJ.');return;}
+  try{
+    // Tentative directe (même origine, geste utilisateur en cours)
+    _ecran.win.document.documentElement.requestFullscreen();
+  }catch(e){
+    // Fallback : message à ecran.html qui entre en plein écran à la prochaine interaction
+    _ecran.win.postMessage({type:'qs_fullscreen'},'*');
+  }
 }
 function ecran_setFade(v){ecran_state().fadeMs=parseInt(v)||0;_ecran_save();}
 function _ecran_save(){
@@ -6536,8 +6555,9 @@ function _mj_prompt(msg,defVal,cb){
 }
 function _mjModalOk(){
   var val=_mjModalIsPrompt?el('mj-modal-input').value:true;
+  var cb=_mjModalCb; // sauvegarder avant close (close remet cb à null)
   _mjModalClose();
-  if(_mjModalCb)_mjModalCb(val);
+  if(cb)cb(val);
 }
 function _mjModalClose(){
   el('mj-modal').style.display='none';_mjModalCb=null;
