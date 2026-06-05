@@ -10691,6 +10691,10 @@ function rRendreComps(){
   cc.innerHTML="";
   var total=0;
 
+  // Touche-à-tout (Barde niv 2+) : demi-BM aux compétences sans maîtrise
+  var isBarde=(v("classe")||"").toLowerCase().trim()==="barde";
+  var halfBM=(isBarde&&gNiv()>=2)?Math.floor(bm/2):0;
+
   // Collecter toutes les valeurs
   var allComps=[];
   COMPS.forEach(function(cp,i){
@@ -10699,8 +10703,9 @@ function rRendreComps(){
     var ok=editRow?editRow.checked:false;
     if(ok)total++;
     var bComp=(window._equip_bonus_totaux||{})[cp.n]||0;
-    var compTot=m+(ok?bm:0)+bComp;
-    allComps.push({cp:cp,ok:ok,tot:compTot,bComp:bComp});
+    var bTAT=(!ok)?halfBM:0; // Touche-à-tout uniquement sans maîtrise
+    var compTot=m+(ok?bm:0)+bComp+bTAT;
+    allComps.push({cp:cp,ok:ok,tot:compTot,bComp:bComp,bTAT:bTAT});
   });
 
   // Maîtrisées en tête triées par valeur, puis les autres
@@ -10712,13 +10717,13 @@ function rRendreComps(){
     var pct=Math.max(0,Math.min(100,Math.round((item.tot+5)/16*100)));
     var barFill=item.ok?"#6ee7a1":"rgba(96,165,250,.5)";
     var modCol=item.ok?"color:#6ee7a1;":(item.tot>0?"color:var(--txt2);":"color:var(--txt3);");
-    var orCol=item.bComp?"color:var(--or);":"";
+    var orCol=(item.bComp||item.bTAT)?"color:var(--or);":"";
     var d=document.createElement("div");
     d.className="rg-comp-row"+(item.ok?" on":"");
     d.innerHTML="<div class='rg-comp-dot' style='background:"+(item.ok?"#6ee7a1":"rgba(255,255,255,.15)")+";'></div>"
       +"<span class='rg-comp-name'>"+item.cp.n+"</span>"
       +"<div class='rg-comp-bar-bg'><div class='rg-comp-bar-fill' style='width:"+pct+"%;background:"+barFill+";'></div></div>"
-      +"<span class='rg-comp-mod' style='"+(item.bComp?orCol:modCol)+"'>"+fMod(item.tot)+"</span>";
+      +"<span class='rg-comp-mod' style='"+((item.bComp||item.bTAT)?orCol:modCol)+"'>"+fMod(item.tot)+"</span>";
     cc.appendChild(d);
   }
 
