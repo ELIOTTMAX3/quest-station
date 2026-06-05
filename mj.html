@@ -178,8 +178,7 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .groupe-draft-item{display:flex;align-items:center;gap:6px;font-size:11px;padding:3px 0;border-bottom:1px solid var(--bord);}
 .groupe-draft-item span{flex:1;}
 .groupes-section{border-top:1px solid var(--bord);margin-top:10px;padding-top:8px;}
-.mj-hlist{display:flex;gap:8px;overflow-x:auto;padding:22px 0 8px;margin-bottom:.75rem;scrollbar-width:thin;scrollbar-color:var(--bord) transparent;}
-.mj-hlist::-webkit-scrollbar{height:4px;}.mj-hlist::-webkit-scrollbar-thumb{background:var(--bord);border-radius:2px;}
+.mj-hlist{display:flex;flex-wrap:wrap;gap:8px;padding:22px 0 8px;margin-bottom:.75rem;}
 .mj-hcard{flex-shrink:0;width:200px;background:var(--bg2);border:2px solid var(--bord);border-radius:10px;padding:12px 12px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px;position:relative;cursor:pointer;transition:border-color .15s;}
 .mj-hcard:hover{border-color:var(--bord2);}
 .mj-hcard.actif{border-color:var(--rouge);background:rgba(217,119,6,.1);}
@@ -6227,9 +6226,7 @@ function _ecran_palette(){
     var d=joueursData[jid];if(!d||!d._nom)return;
     list.push({id:'pj-'+jid,nom:d._nom,type:'ally',icon:'ra-sword',hp:null,maxHp:null});
   });
-  (combatants||[]).forEach(function(c){
-    if(c.type==='monstre')list.push({id:c.id,nom:c.nom,type:'enemy',icon:'ra-skull',hp:c.pvact,maxHp:c.pvmax});
-  });
+  // Ennemis exclus de la palette auto — à placer manuellement via les groupes ou le bouton +
   return list;
 }
 function ecran_renderPalette(){
