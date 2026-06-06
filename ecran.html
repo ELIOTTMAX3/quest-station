@@ -168,19 +168,20 @@ function _doRender(renderState, combat, isFrozen){
     var t=tokens[id];
     if(t.hidden)return '';
     if(t.type==='ally')return ''; // PJ non affichés : figurines physiques posées sur l'écran
+    var tSize=t.large?size*2:size;
     var hp='';
     if(t.type!=='enemy' && t.hp!=null && t.maxHp){
       var pct=Math.max(0,Math.round(t.hp/t.maxHp*100));
       var c=pct>50?'#4ade80':pct>25?'#fbbf24':'#ef4444';
-      hp='<div class="hpb" style="bottom:-'+Math.round(size*0.18)+'px;left:4px;right:4px;"><div class="hpf" style="width:'+pct+'%;background:'+c+'"></div></div>';
+      hp='<div class="hpb" style="bottom:-'+Math.round(tSize*0.18)+'px;left:4px;right:4px;"><div class="hpf" style="width:'+pct+'%;background:'+c+'"></div></div>';
     }
     var imgSrc=t.img||((_localData.tokenImgs||{})[id])||null;
     var iconHtml=imgSrc
       ?'<img src="'+imgSrc+'" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);height:180%;width:auto;object-fit:contain;z-index:15;pointer-events:none;" onerror="this.style.display=\'none\'">'
-      :'<i class="ra '+(t.icon||'ra-skull')+'" style="font-size:'+Math.round(size*0.42)+'px;"></i>';
-    return '<div class="tok '+t.type+(imgSrc?' has-img':'')+'" style="left:'+(t.xPct||0)+'%;top:'+(t.yPct||0)+'%;width:'+size+'px;height:'+size+'px;">'
+      :'<i class="ra '+(t.icon||'ra-skull')+'" style="font-size:'+Math.round(tSize*0.42)+'px;"></i>';
+    return '<div class="tok '+t.type+(imgSrc?' has-img':'')+'" style="left:'+(t.xPct||0)+'%;top:'+(t.yPct||0)+'%;width:'+tSize+'px;height:'+tSize+'px;">'
       +iconHtml
-      +'<span class="tl" style="font-size:'+Math.round(size*0.2)+'px;">'+esc(t.nom||'')+'</span>'
+      +'<span class="tl" style="font-size:'+Math.round(tSize*0.2)+'px;">'+esc(t.nom||'')+'</span>'
       +hp
     +'</div>';
   }).join('');

@@ -519,6 +519,10 @@ label{font-size:11px;color:var(--txt3);display:block;margin-bottom:3px;font-weig
 .ecran-token.hidden{opacity:.5;}
 .ecran-token.hidden .hidetag{background:var(--rouge);color:#fff;}
 .ecran-token .tok-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;border-radius:50%;overflow:hidden;}
+.ecran-token.large{width:72px;height:72px;}
+.ecran-token.large i{font-size:28px;}
+.ecran-token .sizetag{position:absolute;top:-8px;left:-8px;font-size:9px;background:#1e2d45;border-radius:5px;padding:0 3px;color:#8a9aba;cursor:pointer;z-index:6;}
+.ecran-token.large .sizetag{background:#7c3aed;color:#fff;}
 .ecran-vis-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;}
 .ecran-vis-card{border-radius:10px;border:2px solid var(--bord);overflow:hidden;cursor:pointer;aspect-ratio:16/10;position:relative;background:var(--bg3);}
 .ecran-vis-card:hover{border-color:var(--bord2);}
@@ -6349,10 +6353,11 @@ function ecran_renderTokens(){
   Object.keys(st.tokens).forEach(function(id){
     var t=st.tokens[id];
     var d=document.createElement('div');
-    d.className='ecran-token '+t.type+(t.img?' has-img':'')+(t.hidden?' hidden':'')+(id===_ecran.selectedId?' sel':'');
+    var isLarge=!!t.large;var tokR=isLarge?36:18;
+    d.className='ecran-token '+t.type+(isLarge?' large':'')+(t.img?' has-img':'')+(t.hidden?' hidden':'')+(id===_ecran.selectedId?' sel':'');
     var mr=el('ecran-map').getBoundingClientRect();
     // Positionner depuis le centre (cohérent avec ecran.html qui utilise translate(-50%,-50%))
-    d.style.left=((t.xPct||0)/100*mr.width-18)+'px';d.style.top=((t.yPct||0)/100*mr.height-18)+'px';
+    d.style.left=((t.xPct||0)/100*mr.width-tokR)+'px';d.style.top=((t.yPct||0)/100*mr.height-tokR)+'px';
     var hp='';
     if(t.hp!=null&&t.maxHp){
       var pct=Math.max(0,Math.round(t.hp/t.maxHp*100));
@@ -6364,7 +6369,8 @@ function ecran_renderTokens(){
       :'<i class="ra '+(t.icon||'ra-skull')+'"></i>';
     d.innerHTML=iconHtml
       +'<span class="tl">'+besti_esc(t.nom||'')+'</span>'+hp
-      +'<span class="hidetag" title="Masquer/montrer aux joueurs" onclick="event.stopPropagation();ecran_toggleHidden(\''+id+'\')">'+(t.hidden?'🙈':'👁')+'</span>';
+      +'<span class="hidetag" title="Masquer/montrer aux joueurs" onclick="event.stopPropagation();ecran_toggleHidden(\''+id+'\')">'+(t.hidden?'🙈':'👁')+'</span>'
+      +'<span class="sizetag" title="Taille : '+(isLarge?'Grand 2×2 → Normal':'Normal → Grand 2×2')+'" onclick="event.stopPropagation();ecran_toggleLarge(\''+id+'\')">'+(isLarge?'2×2':'1×1')+'</span>';
     _ecran_drag(d,id);
     layer.appendChild(d);
   });
@@ -6385,15 +6391,18 @@ function _ecran_drag(d,id){
   });
   function mv(e){
     var r=el('ecran-map').getBoundingClientRect();
-    var nx=Math.max(0,Math.min(r.width-36,e.clientX-r.left-mx));
-    var ny=Math.max(0,Math.min(r.height-36,e.clientY-r.top-my));
+    var isLg=!!(ecran_state().tokens[id]||{}).large;
+    var tokR=isLg?36:18;var tokS=tokR*2;
+    var nx=Math.max(0,Math.min(r.width-tokS,e.clientX-r.left-mx));
+    var ny=Math.max(0,Math.min(r.height-tokS,e.clientY-r.top-my));
     // Centre en %
-    var cx=(nx+18)/r.width*100, cy=(ny+18)/r.height*100;
-    // Snap au CENTRE des cellules (pas aux intersections)
+    var cx=(nx+tokR)/r.width*100, cy=(ny+tokR)/r.height*100;
+    // Snap : centre de case (1×1) ou coin de grille (2×2)
     if(ecran_state().grid!==false){
       var GX=4.1667,GY=7.4074;
-      cx=(Math.floor(cx/GX)+0.5)*GX; cy=(Math.floor(cy/GY)+0.5)*GY;
-      nx=cx/100*r.width-18; ny=cy/100*r.height-18;
+      if(isLg){cx=Math.round(cx/GX)*GX;cy=Math.round(cy/GY)*GY;}
+      else{cx=(Math.floor(cx/GX)+0.5)*GX;cy=(Math.floor(cy/GY)+0.5)*GY;}
+      nx=cx/100*r.width-tokR; ny=cy/100*r.height-tokR;
     }
     d.style.left=nx+'px';d.style.top=ny+'px';
     var t=ecran_state().tokens[id];if(t){t.xPct=Math.round(cx*10)/10;t.yPct=Math.round(cy*10)/10;}
@@ -6412,6 +6421,10 @@ function ecran_toggleTokensVisible(){
 function ecran_toggleHidden(id){
   var t=ecran_state().tokens[id];if(!t)return;
   t.hidden=!t.hidden;ecran_renderTokens();_ecran_save();
+}
+function ecran_toggleLarge(id){
+  var t=ecran_state().tokens[id];if(!t)return;
+  t.large=!t.large;ecran_renderTokens();_ecran_save();
 }
 // ── Visuel ──
 function ecran_broadcastVisuelUrl(url,label){
